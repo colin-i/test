@@ -37,5 +37,4 @@ jobs:
         run: |
           pwd
           ls
-          pkg2appimage ovideo.yml
-          echo $?
+          ./pkg2appimage-1807-x86_64.AppImage ovideo.yml
