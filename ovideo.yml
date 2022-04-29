@@ -1,0 +1,9 @@
+app:
+  ovideo
+
+ingredients:
+  dist: bionic
+  sources:
+    - deb https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu/ bionic main
+  ppas:
+    - colin-i/ppa
