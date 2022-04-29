@@ -35,5 +35,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          ./pkg2appimage ovideo.yml
+          pwd
+          ls
+          pkg2appimage ovideo.yml
           echo $?
