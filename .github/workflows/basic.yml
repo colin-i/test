@@ -31,6 +31,7 @@ jobs:
       - name: Run a multi-line script
         run: |
           pwd
-          echo ${{ secrets.PASS }} > pas.txt
+          #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
+          echo -n ${{ secrets.PASS }} > pas.txt
           ls -l
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
