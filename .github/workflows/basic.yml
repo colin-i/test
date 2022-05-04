@@ -31,6 +31,6 @@ jobs:
       - name: Run a multi-line script
         run: |
           pwd
-          echo ${{ secrets.PRIVATE_SSH_KEY }} > pas.txt
+          echo ${{ secrets.PASS }} > pas.txt
           ls -l
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
