@@ -29,11 +29,13 @@ jobs:
           path: my-tools
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
+        id: run_step
         run: |
           pwd
           #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
           echo -n ${{ secrets.PASS }} > pas.txt
           ls -l
+          echo "version=1.0" >> $GITHUB_ENV
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
       - name: Create Release
         id: create_release
@@ -41,8 +43,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ steps.run_step.version }}
+          release_name: Release ${{ steps.run_step.version }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
