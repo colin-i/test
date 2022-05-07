@@ -36,7 +36,14 @@ jobs:
           echo -n ${{ secrets.PASS }} > pas.txt
           ls -l
           echo "version=1.0" >> $GITHUB_ENV
+          echo $version
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
+      - name: test2
+        run: |
+          echo ${{ steps.run_step.version }}
+          echo ${{ steps.version }}
+          echo ${{ version }}
+          echo ${{ env.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
