@@ -35,7 +35,7 @@ jobs:
           #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
           echo -n ${{ secrets.PASS }} > pas.txt
           ls -l
-          echo "version=1.1" >> $GITHUB_ENV
+          echo "version=refs/tags/1.1" >> $GITHUB_ENV
           #echo $version
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
       - name: test2
@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          tag_name: refs/tags/${{ steps.run_step.version }}
+          tag_name: ${{ steps.run_step.version }}
           release_name: Release ${{ steps.run_step.version }}
           draft: false
           prerelease: false
