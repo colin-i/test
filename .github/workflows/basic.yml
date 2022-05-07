@@ -22,7 +22,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      #- uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       #- uses: actions/checkout@v3
       #  with:
       #    repository: colin-i/irc
@@ -38,10 +38,6 @@ jobs:
           echo "version=refs/tags/1.1" >> $GITHUB_ENV
           #echo $version
           #./pkg2appimage-1807-x86_64.AppImage ovideo.yml
-      - name: test2
-        run: |
-          echo ${{ steps.run_step.version }}
-          echo ${{ env.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
