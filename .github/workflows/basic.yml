@@ -41,14 +41,15 @@ jobs:
       - name: test2
         run: |
           echo ${{ steps.run_step.version }}
+          echo ${{ env.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          tag_name: ${{ steps.run_step.version }}
-          release_name: Release ${{ steps.run_step.version }}
+          tag_name: ${{ env.version }}
+          release_name: Release ${{ env.version }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
