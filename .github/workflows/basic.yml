@@ -41,9 +41,6 @@ jobs:
       - name: test2
         run: |
           echo ${{ steps.run_step.version }}
-          echo ${{ steps.version }}
-          echo ${{ version }}
-          echo ${{ env.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
