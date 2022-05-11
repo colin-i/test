@@ -28,18 +28,20 @@ jobs:
       #    repository: colin-i/irc
       #    path: my-tools
       # Runs a set of commands using the runners shell
-      - uses: dsaltares/fetch-gh-release-asset@master
-        with:
-          repo: 'colin-i/test'
+      #- uses: dsaltares/fetch-gh-release-asset@master
+      #  with:
+      #    repo: 'colin-i/test'
           #version: ${{ env.version }} 'tags/1.1'
-          file: 'LD-.glibc2.27-x86_64.AppImage'
+      #    file: 'LD-.glibc2.27-x86_64.AppImage'
           #target: 'subdir/plague-linux.zip'
           #token: ${{ secrets.PAT }}
       - name: Run a multi-line script
         id: run_step
         run: |
-          wget -c https://github.com/$(wget -q https://github.com/AppImage/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
-          chmod +x ./pkg2appimage-*.AppImage
+          mkdir in #pkg2appimage will write in ../out
+          cd in
+          #wget -c https://github.com/$(wget -q https://github.com/AppImage/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+          #chmod +x ./pkg2appimage-*.AppImage
           pwd
           #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
           #echo -n ${{ secrets.PASS }} > pas.txt
