@@ -1,4 +1,4 @@
-name: debinit
+name: adebinit
 
 on:
  workflow_dispatch:
