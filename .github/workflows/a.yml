@@ -1,0 +1,13 @@
+name: debinit
+
+on:
+ workflow_dispatch:
+
+jobs:
+ abuild:
+  runs-on: ubuntu-18.04
+  steps:
+   - name: Run a multi-line script
+     run: |
+      echo a
+      exit
