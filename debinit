@@ -1,0 +1,7 @@
+
+sudo act -j dbuild -r workflow_dispatch --env init=1
+#id
+#cp
+sudo act -j dbuild -r workflow_dispatch --env debs=
+stop
+remove
