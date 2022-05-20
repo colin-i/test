@@ -1,7 +1,6 @@
 
-sudo act -j dbuild -r workflow_dispatch --env init=1
-#id
-#cp
-sudo act -j dbuild -r workflow_dispatch --env debs=
-stop
-remove
+dch -v 1-181 --distribution=xenial "script build"
+# --create --package "pkgpkg" --newversion 0.0.0.0-0.test
+#dpkg-source --commit --include-removal
+#EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
+#git commit -m "version"

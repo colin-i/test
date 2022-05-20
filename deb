@@ -1,0 +1,12 @@
+
+#if was in runner:
+#echo parola | gpg --batch --yes --passphrase-fd 0 --import gpg.gpg
+
+echo parola | gpg --pinentry-mode loopback --passphrase-fd 0 \
+ --local-user D51F0B6365EAB122 --clearsign --output ${1}.changes ${1}.changes
+
+and dsc
+
+#thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
+
+dput -f ppa:colin-i/ppa ${2}_1-${1}_source.changes
