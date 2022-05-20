@@ -10,4 +10,5 @@ git add .pc/1.${1}/ && \
 git add debian/patches/1.${1} && \
 git commit -a && \
 #git commit -m "version"
+#push
 gh workflow run
