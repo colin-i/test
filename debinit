@@ -1,13 +1,13 @@
 
-dch -v 1-${1} --distribution=${2}
+echo -n 1.${1} | xclip -selection clipboard
+
+dch -v 1-${1} --distribution=${2} && \
 # "${3}"
 # --create --package "pkgpkg" --newversion 0.0.0.0-0.test
-
-dpkg-source --commit --include-removal
+dpkg-source --commit --include-removal && \
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
+git add .pc/1.${1}/ && \
+git add debian/patches/1.${1} && \
+git commit -a && \
 #git commit -m "version"
-#gh workflow run
-
-git add .pc/1.${1}/
-git add debian/patches/1.${1}
-git commit -a
+gh workflow run

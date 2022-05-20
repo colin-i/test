@@ -1,20 +1,18 @@
 
 
 if [ ! -e "../last.zip" ]; then
-
 	id=`gh run list --workflow=deb.yml | cut -f7 | head -1`
 	url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/ostream/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
-	
+
 	#pat
 	#default login <USERNAME> password <PERSONAL ACCESS TOKEN>
 	url=${url:1:-1}
-	
+
 	curl --netrc-file ~/pat -L -o ../last.zip ${url}
 	#L is for redirects
-	
+
 	unzip ../last.zip -d ../tmp/
-	
-	fi
+fi
 
 cd ../tmp
 
@@ -25,12 +23,12 @@ array=(`ls`)
 
 for var in "${array[@]}"
 do
+	#exclude non-signed  ./*.debian.tar.xz
       mv ${var} ${var}2
 	cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
 	 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
 	rm ${var}2
 done
 #thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
-
 
 #dput -f ppa:colin-i/ppa ${2}_1-${1}_source.changes
