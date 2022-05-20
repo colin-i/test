@@ -4,3 +4,5 @@ dch -v 1-181 --distribution=xenial "script build"
 #dpkg-source --commit --include-removal
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
 #git commit -m "version"
+
+gh workflow run
