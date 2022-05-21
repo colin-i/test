@@ -24,17 +24,22 @@ if [ -z "${array}" ]; then
 	#if was in runner:
 	#echo parola | gpg --batch --yes --passphrase-fd 0 --import gpg.gpg
 
+	files=
 	for var in "${array[@]}"
 	do
-	      a=`echo -n $var | grep -o [^.]*.[^.]*.[^.]*$`
-	      if [ "$a" != "debian.tar.xz" ]; then
-		      mv ${var} ${var}2
-			cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
-			 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
-			rm ${var}2
-		fi
+		files+=" ${var}"
+	      #a=`echo -n $var | grep -o [^.]*.[^.]*.[^.]*$`
+	      #if [ "$a" != "debian.tar.xz" ]; then
+		#      mv ${var} ${var}2
+		#	cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
+		#	 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
+		#	rm ${var}2
+		#fi
+		#Checksum doesn't match for /home...
 	done
-	#thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
+	cat ~/u/a/p/gpg | xclip -selection clipboard
+	debsign -k D51F0B6365EAB122 ${1}_1-${2}_source.changes
 fi
 
-dput -f ppa:colin-i/ppa${3} ${1}_1-${2}_source.changes
+dput -f ppa:colin-i/ppa${3} ${1}_1-${2}_source.changes && \
+rm ${files} && rm ../last.zip && rm ${1}_1-${2}_source.ppa.upload
