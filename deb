@@ -1,5 +1,5 @@
 
-#1 prog   2 version
+#1 prog   2 version   3 ppa
 
 if [ ! -e "../last.zip" ]; then
 	id=`gh run list --workflow=deb.yml | cut -f7 | head -1`
@@ -37,4 +37,4 @@ if [ -z "${array}" ]; then
 	#thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
 fi
 
-dput -f ppa:colin-i/ppa ${1}_1-${2}_source.changes
+dput -f ppa:colin-i/ppa${3} ${1}_1-${2}_source.changes
