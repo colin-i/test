@@ -1,6 +1,6 @@
 
 #1 prog     2 source dist     3 dists        4 archs
-#                             "bionic jammy" "i386,amd64"
+#                             bionic jammy   i386,amd64
 
 dests=( ${@:3} )
 arhs=${dests[-1]}
