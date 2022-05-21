@@ -1,4 +1,5 @@
 
+#1 prog   2 version
 
 if [ ! -e "../last.zip" ]; then
 	id=`gh run list --workflow=deb.yml | cut -f7 | head -1`
@@ -10,25 +11,30 @@ if [ ! -e "../last.zip" ]; then
 
 	curl --netrc-file ~/pat -L -o ../last.zip ${url}
 	#L is for redirects
-
-	unzip ../last.zip -d ../tmp/
 fi
 
 cd ../tmp
 
 array=(`ls`)
 
-#if was in runner:
-#echo parola | gpg --batch --yes --passphrase-fd 0 --import gpg.gpg
+if [ -z "${array}" ]; then
+	unzip ../last.zip
+	array=(`ls`)
 
-for var in "${array[@]}"
-do
-	#exclude non-signed  ./*.debian.tar.xz
-      mv ${var} ${var}2
-	cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
-	 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
-	rm ${var}2
-done
-#thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
+	#if was in runner:
+	#echo parola | gpg --batch --yes --passphrase-fd 0 --import gpg.gpg
 
-#dput -f ppa:colin-i/ppa ${2}_1-${1}_source.changes
+	for var in "${array[@]}"
+	do
+	      a=`echo -n $var | grep -o [^.]*.[^.]*.[^.]*$`
+	      if [ "$a" != "debian.tar.xz" ]; then
+		      mv ${var} ${var}2
+			cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
+			 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
+			rm ${var}2
+		fi
+	done
+	#thats with prompt debsign -k D51F0B6365EAB122 ${2}_1-${1}_source.changes
+fi
+
+dput -f ppa:colin-i/ppa ${1}_1-${2}_source.changes

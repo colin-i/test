@@ -1,4 +1,5 @@
 
+#1 prog     2 source dist     3,4,... dest dists
 
 #from launchpadlib.launchpad import Launchpad
 #launchpad = Launchpad.login_with('My Application', 'production', version='devel')
