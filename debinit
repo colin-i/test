@@ -16,3 +16,4 @@ git commit -a && \
 #push
 git push https://gitlab-ci-token:`cat ~/u/pat`@github.com/colin-i/`cat debian/control | grep "^Homepage" | grep -o [^/]*$`.git && \
 gh workflow run
+#gh run list --workflow=deb.yml
