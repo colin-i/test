@@ -14,5 +14,5 @@ echo -n "$4" | xclip -selection clipboard && \
 git commit -a && \
 #git commit -m "version"
 #push
-git push https://gitlab-ci-token:`cat ~/u/pat`@github.com/colin-i/${1}.git && \
+git push https://gitlab-ci-token:`cat ~/u/pat`@github.com/colin-i/`cat debian/control | grep "^Homepage" | grep -o [^/]*$`.git && \
 gh workflow run
