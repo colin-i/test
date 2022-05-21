@@ -1,7 +1,7 @@
 
 #1 prog   2  version   3 dist    4 msg
 
-echo "$4" | xclip -selection clipboard && \
+echo -n "$4" | xclip -selection clipboard && \
 dch -v 1-${2} --distribution=${3} && \
 # "${4}"
 # --create --package "pkgpkg" --newversion 0.0.0.0-0.test
@@ -10,7 +10,7 @@ dpkg-source --commit --include-removal && \
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
 git add .pc/1.${2}/ && \
 git add debian/patches/1.${2} && \
-echo "$4" | xclip -selection clipboard && \
+echo -n "$4" | xclip -selection clipboard && \
 git commit -a && \
 #git commit -m "version"
 #push
