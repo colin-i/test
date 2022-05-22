@@ -15,5 +15,5 @@ git commit -a && \
 #git commit -m "version"
 #push
 git push https://gitlab-ci-token:`cat ~/u/pat`@github.com/colin-i/`cat debian/control | grep "^Homepage" | grep -o [^/]*$`.git && \
-gh workflow run
+gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`
 #gh run list --workflow=deb.yml
