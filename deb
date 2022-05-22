@@ -2,7 +2,8 @@
 #1 prog   2 version   3 ppa
 
 if [ ! -e "../last.zip" ]; then
-	id=`gh run list --workflow=deb.yml | cut -f7 | head -1`
+	#gh cli is also on the hosted runner, can get artifact there too
+	id=$(gh run list --workflow=deb.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
 	url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/ostream/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
 
 	#pat
