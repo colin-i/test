@@ -1,0 +1,4 @@
+
+#1 ppa sufix         2 is artifact
+
+gh workflow run appimage.yml -f ppa=${1} -f artifact=${2}
