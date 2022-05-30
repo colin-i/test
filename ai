@@ -1,4 +1,4 @@
 
-#1 ppa sufix    2 unpublished    3 is artifact
+#1 ppa sufix    optional:    2 unpublished    3 is artifact
 
 gh workflow run appimage.yml -f ppa=${1} -f unpublished=${2} -f artifact=${3}
