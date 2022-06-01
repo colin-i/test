@@ -1,4 +1,4 @@
 
 #cd gree-remote/PythonCLI
-python gree.py -c `cat ~/c` -i `cat ~/i` -k `cat ~/k` get TemSen
+python gree.py -c 192.168.1.9 -i f4911e448ee8 -k 9Mn2Pq5St8VwYz4B get TemSen
 
