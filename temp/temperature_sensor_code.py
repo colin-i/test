@@ -59,11 +59,11 @@ def read_gree_temp():
 
 if len(sys.argv)==7:
 	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6])
-	min=int(sys.argv[1])
-	max=int(sys.argv[2])
-	dif=int(sys.argv[3])
-	send=bool(int(sys.argv[4]))
-	sen2=bool(int(sys.argv[5]))
+	sen2=bool(int(sys.argv[1]))
+	dif=int(sys.argv[2])
+	min=int(sys.argv[3])
+	max=int(sys.argv[4])
+	send=bool(int(sys.argv[5]))
 	base=sys.argv[6]
 	on=False
 	while True:
