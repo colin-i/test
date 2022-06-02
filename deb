@@ -4,7 +4,8 @@
 if [ ! -e "../last.zip" ]; then
 	#gh cli is also on the hosted runner, can get artifact there too
 	id=$(gh run list --workflow=deb.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
-	url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/ostream/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
+	repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+	url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
 
 	#pat
 	#default login <USERNAME> password <PERSONAL ACCESS TOKEN>
@@ -19,7 +20,7 @@ cd ../tmp
 array=(`ls`)
 
 get_prog_ver () {
-	prog_ver=`echo ${array[0]} | cut -d '.' -f1`
+	prog_ver=`echo ${array[0]} | grep -Po ".*(?=.deb)" `
 }
 
 if [ -z "${array}" ]; then
