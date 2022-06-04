@@ -57,15 +57,15 @@ def test(t,d):
 def read_gree_temp():
 	return subprocess.run(["/bin/bash",base+'/tget',base]).returncode
 
-if len(sys.argv)==7:
-	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6])
+if len(sys.argv)==8:
+	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6]+' '+sys.argv[7])
 	sen2=bool(int(sys.argv[1]))
 	dif=int(sys.argv[2])
-	min=int(sys.argv[3])
-	max=int(sys.argv[4])
-	send=bool(int(sys.argv[5]))
-	base=sys.argv[6]
-	on=False
+	on=bool(int(sys.argv[3]))
+	min=int(sys.argv[4])
+	max=int(sys.argv[5])
+	send=bool(int(sys.argv[6]))
+	base=sys.argv[7]
 	while True:
 		a=test(read_gree_temp(),0)
 		if sen2:
