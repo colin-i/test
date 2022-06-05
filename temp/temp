@@ -22,7 +22,7 @@ on=1
 fi
 
 if [ -z "${4}" ]; then
-min=25
+min=26
 else
 min=${4}
 fi
