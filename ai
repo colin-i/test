@@ -1,4 +1,4 @@
 
-#optional:    1 unpublished    2 is artifact    3 ppa sufix
+#optional:    1 unpublished    2 ppa sufix
 
-gh workflow run appimage.yml -f unpublished=${1} -f artifact=${2} -f ppa=${3}
+gh workflow run appimage.yml -f unpublished=${1} -f ppa=${2} -f artifact=1
