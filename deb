@@ -1,5 +1,5 @@
 
-#1 ppa sufix
+#optional:    1 ppa sufix
 
 if [ ! -e "../last.zip" ]; then
 	#gh cli is also on the hosted runner, can get artifact there too
