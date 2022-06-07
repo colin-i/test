@@ -37,7 +37,7 @@ if [ -z "${array}" ]; then
 	      #a=`echo -n $var | grep -o [^.]*.[^.]*.[^.]*$`
 	      #if [ "$a" != "debian.tar.xz" ]; then
 		#      mv ${var} ${var}2
-		#	cat ~/u/a/p/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
+		#	cat ~/n/gpg | gpg --pinentry-mode loopback --passphrase-fd 0 \
 		#	 --local-user D51F0B6365EAB122 --clearsign --output ${var} ${var}2
 		#	rm ${var}2
 		#fi
@@ -47,7 +47,7 @@ if [ -z "${array}" ]; then
 	get_prog_ver
 
 	#the key not here, fresh reboot
-	cat ~/u/a/p/gpg | xclip -selection clipboard
+	cat ~/n/gpg | xclip -selection clipboard
 	debsign -k D51F0B6365EAB122 ${prog_ver}_source.changes
 else
 	get_prog_ver
