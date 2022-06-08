@@ -5,7 +5,8 @@ name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
 sudo docker container cp ${name}.zip ${container}:`pwd`/${name}.zip
 
-sudo act -r -j ubuild --env proj=${name} --env sufix=.windows.zip -s PAT=`cat ~/n/pat` workflow_dispatch && \
+# --env sufix=.windows.zip
+sudo act -r -j ubuild --env proj=${name} -s PAT=`cat ~/n/pat` workflow_dispatch && \
 rm ${name}.zip
 
 sudo docker container stop ${container}
