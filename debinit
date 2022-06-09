@@ -25,3 +25,7 @@ git commit -a && \
 git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/`cat debian/control | grep "^Homepage" | grep -o [^/]*$`.git && \
 gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`
 #gh run list --workflow=deb.yml
+#gh run view [nr]
+#gh run view [nr] --log-failed
+#gh run view --job=[nr]
+#gh run view --log --job=[nr]
