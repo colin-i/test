@@ -1,4 +1,4 @@
 
 #optional:    1 unpublished    2 ppa sufix
 
-gh workflow run appimage.yml -f unpublished=${1} -f ppa=${2}
+gh workflow run rpm.yml -f unpublished=${1} -f ppa=${2}

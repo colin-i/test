@@ -1,6 +1,10 @@
 
 #1 msg
 
+if [ "$#" != "1" ]; then
+ echo $# without msg
+fi
+
 dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
 dist=${dist::-1}
 version=`cat debian/changelog | head -1 | grep -o -e "[^-]*)"`
