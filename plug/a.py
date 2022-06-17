@@ -7,7 +7,7 @@ def get_temp():
 		p = file.read()
 		subprocess.run(['sshpass','-p',p,'sftp','bc@10.42.0.1:/home/bc/n/temp/a','/tmp/a'])
 		with open('/tmp/a', 'r') as f:
-			return int(read.file(f))
+			return int(f.read())
 
 with open(os.getenv('HOME')+'/tempmax', 'r') as file:
 	max = int(file.read())
