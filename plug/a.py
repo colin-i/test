@@ -40,7 +40,7 @@ while True:
 	t=get_temp()
 	print(t.__str__())
 	if on==False:
-		if t>max:
+		if t>=max:
 			device.set_power(True)
 			on=True
 	else:
