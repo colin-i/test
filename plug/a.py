@@ -1,18 +1,13 @@
 
-import time
-
-import subprocess
-import appdirs
 import os
-import json
+import subprocess
 
 def get_temp():
 	with open(os.getenv('HOME')+'/pass', 'r') as file:
 		p = file.read()
 		subprocess.run(['sshpass','-p',p,'sftp','bc@10.42.0.1:/home/bc/n/temp/a','/tmp/a'])
 		with open('/tmp/a', 'r') as f:
-			j=json.load(f)
-			return int(j["coretemp-isa-0000"]["Core 0"]["temp2_input"])
+			return int(read.file(f))
 
 with open(os.getenv('HOME')+'/tempmax', 'r') as file:
 	max = int(file.read())
@@ -35,6 +30,8 @@ import broadlink
 devices = broadlink.discover()
 device=devices[0]
 device.auth()
+
+import time
 
 while True:
 	t=get_temp()
