@@ -44,4 +44,4 @@ while True:
 		if t<min:
 			device.set_power(False)
 			on=False
-	time.sleep(20)
+	time.sleep(30)

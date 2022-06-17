@@ -8,5 +8,5 @@ while :
  fi
  echo ${a}
  echo -n ${a} > ~/n/temp/a
- sleep 20
+ sleep 30
 done
