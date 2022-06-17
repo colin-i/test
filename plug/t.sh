@@ -2,11 +2,10 @@
 while :
  do
  if [ -n "${3}" ]; then
-  sensors -j | jq '."${1}"."${2}"."temp${3}_input"' > ~/n/temp/a
+  a=`sensors -j | jq '."'${1}'"."'"${2}"'"."temp'${3}'_input"'`
  else
-  sensors -j | jq '."${1}"."temp${2}_input"' > ~/n/temp/a
+  a=`sensors -j | jq '."'${1}'"."temp'${2}'_input"'`
  fi
- a=20
  echo ${a}
- sleep ${a}
+ sleep 20
 done
