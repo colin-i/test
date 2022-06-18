@@ -38,8 +38,9 @@ def test(t,d):
 	if math.isnan(t)==False:
 		if on==False:
 			if t>(max+d):
-				gree('1',True)
-				return True
+				if t!=216: #that will be wi-fi timeout
+					gree('1',True)
+					return True
 		else:
 			if t<(min+d):
 				gree('0',False)
