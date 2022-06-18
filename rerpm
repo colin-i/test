@@ -33,4 +33,5 @@ mv usr ${dir}/
 
 rpmbuild -bb --target i386 text && \
 sudo rm text && \
+rm arh.zip && \
 rm ${file}
