@@ -71,4 +71,4 @@ if len(sys.argv)==8:
 		if sen2:
 			if a==False:
 				test(read_temp(),dif)
-		time.sleep(10)
+		time.sleep(30)
