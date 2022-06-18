@@ -3,26 +3,34 @@ name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 file=${name}-${version}.i386.rpm
 
-cd /tmp
-
 if [ ! -e "./${file}" ]; then
 	id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
 	repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+fi
+
+cd /tmp
+
+if [ ! -e "./${file}" ]; then
 	url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
 	url=${url:1:-1}
 	curl --netrc-file ~/n/pat2 -L -o arh.zip ${url}
 	unzip arh.zip
-	sudo docker container cp ${file} 5a2c45e95410:/
-	exit
-	#rpmrebuild -s text ./${file}
+	sudo docker container start 5a2c45e95410
+	sudo docker container cp ./${file} 5a2c45e95410:/
+	echo rpmrebuild -s text ./${file}
+	echo nano text
+	sudo docker container exec -it 5a2c45e95410 bash
 fi
 
+#spec ready
 sudo docker container cp 5a2c45e95410:/text text
 
 rpm2cpio ${file} | cpio -idmv
 
-dir=`echo ${FILE} | grep -Poe ".*(?=\.)"`
-mv usr ${HOME}/rpmbuild/BUILDROOT/${dir}
+dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
+mkdir ${dir}
+mv usr ${dir}/
 
-rpmbuild text
-# -bb --target i386
+rpmbuild -bb --target i386 text && \
+sudo rm text && \
+rm ${file}
