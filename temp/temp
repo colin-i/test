@@ -4,21 +4,21 @@ dir=`pwd`
 cd ~/gree-remote/PythonCLI
 
 if [ -z "${1}" ]; then
-sen2=0
+on=0
 else
-sen2=1
+on=${1}
 fi
 
 if [ -z "${2}" ]; then
-dif=0
+sen2=0
 else
-dif=${2}
+sen2=${2}
 fi
 
 if [ -z "${3}" ]; then
-on=0
+dif=0
 else
-on=1
+dif=${2}
 fi
 
 if [ -z "${4}" ]; then
@@ -45,4 +45,4 @@ else
 base=${6}
 fi
 
-python ${dir}/temperature_sensor_code.py ${sen2} ${dif} ${on} ${min} ${max} ${send} ${base}
+python ${dir}/temperature_sensor_code.py ${on} ${sen2} ${dif} ${min} ${max} ${send} ${base}

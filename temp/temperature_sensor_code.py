@@ -1,20 +1,11 @@
 
 #git clone https://github.com/pimylifeup/temperature_sensor
 
-#import os
-import glob
 import time
 
 import sys
 import subprocess
 import math
-
-#os.system('modprobe w1-gpio')
-#os.system('modprobe w1-therm')
-
-base_dir = '/sys/bus/w1/devices/'
-device_folder = glob.glob(base_dir + '28*')[0]
-device_file = device_folder + '/w1_slave'
 
 def read_temp_raw():
 	f = open(device_file, 'r')
@@ -59,9 +50,17 @@ def read_gree_temp():
 
 if len(sys.argv)==8:
 	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6]+' '+sys.argv[7])
-	sen2=bool(int(sys.argv[1]))
-	dif=int(sys.argv[2])
-	on=bool(int(sys.argv[3]))
+	on=bool(int(sys.argv[1]))
+	sen2=bool(int(sys.argv[2]))
+	if sen2:
+		import glob
+		#import os
+		#os.system('modprobe w1-gpio')
+		#os.system('modprobe w1-therm')
+		base_dir = '/sys/bus/w1/devices/'
+		device_folder = glob.glob(base_dir + '28*')[0]
+		device_file = device_folder + '/w1_slave'
+	dif=int(sys.argv[3])
 	min=int(sys.argv[4])
 	max=int(sys.argv[5])
 	send=bool(int(sys.argv[6]))
@@ -71,4 +70,4 @@ if len(sys.argv)==8:
 		if sen2:
 			if a==False:
 				test(read_temp(),dif)
-			time.sleep(10)
+		time.sleep(10)
