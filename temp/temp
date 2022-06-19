@@ -22,7 +22,7 @@ dif=${3}
 fi
 
 if [ -z "${4}" ]; then
-min=26
+min=24
 else
 min=${4}
 fi
