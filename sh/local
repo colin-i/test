@@ -1,0 +1,8 @@
+
+
+screen -list
+if [ "$?" = "1" ]; then
+screen -dmS 1
+screen -x 1
+fi
+
