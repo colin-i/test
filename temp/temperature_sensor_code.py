@@ -40,12 +40,12 @@ def test(t,d):
 			if t>(max+d):
 				if t!=216: #that will be wi-fi timeout
 					gree('1',True)
-					return True
+					#return True
 		else:
 			if t<(min+d):
 				gree('0',False)
-				return True
-	return False
+				#return True
+	#return False
 
 def read_gree_temp():
 	return subprocess.run(["/bin/bash",base+'/tget',base]).returncode
@@ -68,8 +68,10 @@ if len(sys.argv)==8:
 	send=bool(int(sys.argv[6]))
 	base=sys.argv[7]
 	while True:
-		a=test(read_gree_temp(),0)
+		#a=
 		if sen2:
-			if a==False:
-				test(read_temp(),dif)
+			#if a==False:
+			test(read_temp(),dif)
+		else:
+			test(read_gree_temp(),dif)
 		time.sleep(30)
