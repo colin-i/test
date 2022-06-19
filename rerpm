@@ -1,7 +1,8 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-file=${name}-${version}.i386.rpm
+arh=i386
+file=${name}-${version}.${arh}.rpm
 
 if [ ! -e "./${file}" ]; then
 	id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
@@ -25,13 +26,12 @@ fi
 #spec ready
 sudo docker container cp 5a2c45e95410:/text text
 
-rpm2cpio ${file} | cpio -idmv
-
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
-mkdir ${dir}
-mv usr ${dir}/
 
-rpmbuild -bb --target i386 text && \
+rpm2cpio ${file} | cpio -idmv && \
+mkdir ${dir} && \
+mv usr ${dir}/ && \
+rpmbuild -bb --target ${arh} text && \
 sudo rm text && \
 rm arh.zip && \
 rm ${file}

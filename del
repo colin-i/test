@@ -1,0 +1,5 @@
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
+cd ~/test
+sudo act -j del --env proj=${name} -s PAT=`cat ~/n/pat` workflow_dispatch
