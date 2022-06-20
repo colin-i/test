@@ -33,16 +33,16 @@ def gree(a,b):
 	if send:
 		subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
 
-def test(t,d):
+def test(t):
 	print(t)
 	if math.isnan(t)==False:
 		if on==False:
-			if t>(max+d):
+			if t>=max:
 				if t!=216: #that will be wi-fi timeout
 					gree('1',True)
 					#return True
 		else:
-			if t<(min+d):
+			if t<min:
 				gree('0',False)
 				#return True
 	#return False
@@ -63,15 +63,15 @@ if len(sys.argv)==8:
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
 	dif=int(sys.argv[3])
-	min=int(sys.argv[4])
-	max=int(sys.argv[5])
+	min=int(sys.argv[4])+dif
+	max=int(sys.argv[5])+dif
 	send=bool(int(sys.argv[6]))
 	base=sys.argv[7]
 	while True:
 		#a=
 		if sen2:
 			#if a==False:
-			test(read_temp(),dif)
+			test(read_temp())
 		else:
-			test(read_gree_temp(),dif)
+			test(read_gree_temp())
 		time.sleep(30)

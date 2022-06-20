@@ -47,6 +47,13 @@ if sys.argv[2]=="0":
 else:
 	local=False
 
+if len(sys.argv)>3:
+	print(sys.argv[3])
+	dif=int(sys.argv[3])
+	min+=dif
+	max+=dif
+fi
+
 #https://github.com/mjg59/python-broadlink
 import broadlink
 
