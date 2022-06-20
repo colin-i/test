@@ -1,4 +1,9 @@
 
-#optional:    1 unpublished    2 ppa sufix
+#optional:    1 ppa sufix    2 unpublished
 
-gh workflow run appimage.yml -f unpublished=${1} -f ppa=${2} -f artifact=1
+proj=`pwd | grep "[^\/]*$"`
+if [ "${proj}" = ovideo ]; then
+	gh workflow run appimage.yml -f ppa=${1} -f unpublished=${2} -f artifact=1
+else
+	gh workflow run appimage.yml -f ppa=${1}
+fi
