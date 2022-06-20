@@ -52,7 +52,6 @@ if len(sys.argv)>3:
 	dif=int(sys.argv[3])
 	min+=dif
 	max+=dif
-fi
 
 #https://github.com/mjg59/python-broadlink
 import broadlink
