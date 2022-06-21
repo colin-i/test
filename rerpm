@@ -9,6 +9,7 @@ if [ ! -e "./${file}" ]; then
 	repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 fi
 
+startdir=`pwd`
 cd /tmp
 
 if [ ! -e "./${file}" ]; then
@@ -23,8 +24,10 @@ rpm2cpio ${file} | cpio -idmv
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
 
 #specific steps
-echo ${dir}
-read
+if [ -e "${$startdir}/arh/re" ]; then
+${$startdir}/arh/re
+echo $?
+fi
 
 sudo docker container start 5a2c45e95410
 sudo docker container cp ./${file} 5a2c45e95410:/
