@@ -16,19 +16,27 @@ if [ ! -e "./${file}" ]; then
 	url=${url:1:-1}
 	curl --netrc-file ~/n/pat2 -L -o arh.zip ${url}
 	unzip arh.zip
-	sudo docker container start 5a2c45e95410
-	sudo docker container cp ./${file} 5a2c45e95410:/
-	echo rpmrebuild -s text ./${file}
-	echo nano text
-	sudo docker container exec -it 5a2c45e95410 bash
 fi
+
+rpm2cpio ${file} | cpio -idmv
+
+dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
+
+#specific steps
+echo ${dir}
+read
+
+sudo docker container start 5a2c45e95410
+sudo docker container cp ./${file} 5a2c45e95410:/
+
+echo rpmrebuild -s text ./${file}
+echo nano text
+
+sudo docker container exec -it 5a2c45e95410 bash
 
 #spec ready
 sudo docker container cp 5a2c45e95410:/text text
 
-dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
-
-rpm2cpio ${file} | cpio -idmv && \
 mkdir ${dir} && \
 mv usr ${dir}/ && \
 rpmbuild -bb --target ${arh} text && \
