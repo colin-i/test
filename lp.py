@@ -15,6 +15,8 @@ archive = owner.getPPAByName(name=PPA)
 bs=archive.getPublishedBinaries(distro_arch_series=desired_dist_and_arch)
 for b in bs:
 	if b.binary_package_name==sys.argv[4] and b.binary_package_version==sys.argv[5]:
+		if len(sys.argv)>6:
+			print(b.status)
 		#must not get  Superseded Deleted or Obsolete only Pending Published
 		print(b.build_link)
 		break

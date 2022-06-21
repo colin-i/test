@@ -24,8 +24,8 @@ rpm2cpio ${file} | cpio -idmv
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
 
 #specific steps
-if [ -e "${$startdir}/arh/re" ]; then
-${$startdir}/arh/re
+if [ -e "${startdir}/arh/re" ]; then
+${startdir}/arh/re
 echo $?
 fi
 
