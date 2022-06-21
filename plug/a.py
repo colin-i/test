@@ -70,22 +70,25 @@ while True:
 		t=get_temp_local(name1,name2,name3)
 	else:
 		t=get_temp_inter()
-	print(t.__str__())
+	info=t.__str__()
 	if on==False:
 		if t>=max:
 			if x>=60:
 				device.set_power(True)
 				on=True
 				x=0
+				info+=" on"
 			else:
-				print("at least one minute")
+				info+=" at least one minute"
 	else:
 		if t<min:
 			if x>=60:
 				device.set_power(False)
 				on=False
 				x=0
+				info+=" off"
 			else:
-				print("at least one minute")
+				info+=" at least one minute"
+	print(info)
 	time.sleep(y)
 	x+=y
