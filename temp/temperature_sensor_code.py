@@ -57,7 +57,6 @@ def test(t):
 	#return False
 
 if len(sys.argv)==7:
-	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6])
 	on=bool(int(sys.argv[1]))
 	sen2=bool(int(sys.argv[2]))
 	if sen2:
@@ -72,6 +71,7 @@ if len(sys.argv)==7:
 	max=27+float(sys.argv[4])
 	send=bool(int(sys.argv[5]))
 	base=sys.argv[6]
+	print(sys.argv[1]+' '+sys.argv[2]+' '+min.__str__()+' '+max.__str__()+' '+sys.argv[5]+' '+sys.argv[6])
 	while True:
 		#a=
 		if sen2:
