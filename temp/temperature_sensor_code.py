@@ -26,12 +26,12 @@ def read_temp():
 	return float('nan')
 
 def gree(a,b):
+	s='Pow='+a
 	if send:
 		r=subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
 	else:
 		r=0
 	if r==0:
-		s='Pow='+a
 		print(s)
 		global on
 		on=b
