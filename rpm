@@ -1,4 +1,9 @@
 
-#optional:    1 unpublished    2 ppa sufix
+#optional:    1 ppa sufix    2 unpublished
 
-gh workflow run rpm.yml -f unpublished=${1} -f ppa=${2}
+proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+if [ "${proj}" = "ocompiler" ] || [ "${proj}" = "ovideo" ]; then
+	gh workflow run rpm.yml -f ppa=${1} -f unpublished=${2}
+else
+	gh workflow run rpm.yml -f ppa=${1}
+fi
