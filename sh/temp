@@ -4,7 +4,7 @@ python a.py ${1} ${2} &
 cd ../../
 p1=$!
 echo ${p1}
-~/test/temp/temp ${1} ${2} 1 &
+~/test/temp/temp ${1} ${2} &
 sleep 2
 p2=`ps aux | grep python.*temperature | head -1 | tr -s ' ' | cut -d ' ' -f2`
 echo ${p2}

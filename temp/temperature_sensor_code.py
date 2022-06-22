@@ -25,6 +25,13 @@ def read_temp():
 			return temp_c #, temp_f
 	return float('nan')
 
+def read_gree_temp():
+	t=subprocess.run(["/bin/bash",base+'/tget',base]).returncode
+	if t==216: #that will be wi-fi timeout
+		return float('nan')
+	return t
+
+
 def gree(a,b):
 	s='Pow='+a
 	if send:
@@ -49,14 +56,8 @@ def test(t):
 				#return True
 	#return False
 
-def read_gree_temp():
-	t=subprocess.run(["/bin/bash",base+'/tget',base]).returncode
-	if t==216: #that will be wi-fi timeout
-		return float('nan')
-	return t
-
 if len(sys.argv)==8:
-	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6]+' '+sys.argv[7])
+	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6])
 	on=bool(int(sys.argv[1]))
 	sen2=bool(int(sys.argv[2]))
 	if sen2:
@@ -67,11 +68,10 @@ if len(sys.argv)==8:
 		base_dir = '/sys/bus/w1/devices/'
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
-	dif=int(sys.argv[3])
-	min=int(sys.argv[4])+dif
-	max=int(sys.argv[5])+dif
-	send=bool(int(sys.argv[6]))
-	base=sys.argv[7]
+	min=24+float(sys.argv[3])
+	max=27+float(sys.argv[4])
+	send=bool(int(sys.argv[5]))
+	base=sys.argv[6]
 	while True:
 		#a=
 		if sen2:

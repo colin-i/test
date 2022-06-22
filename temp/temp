@@ -16,33 +16,27 @@ sen2=${2}
 fi
 
 if [ -z "${3}" ]; then
-dif=0
+dif_min=0
 else
-dif=${3}
+dif_min=${3}
 fi
 
 if [ -z "${4}" ]; then
-min=24
+dif_max=0
 else
-min=${4}
+dif_max=${4}
 fi
 
 if [ -z "${5}" ]; then
-max=27
-else
-max=${5}
-fi
-
-if [ -z "${6}" ]; then
 send=1
 else
 send=0
 fi
 
-if [ -z "${7}" ]; then
+if [ -z "${6}" ]; then
 base=${dir}
 else
 base=${6}
 fi
 
-python ${dir}/temperature_sensor_code.py ${on} ${sen2} ${dif} ${min} ${max} ${send} ${base}
+python ${dir}/temperature_sensor_code.py ${on} ${sen2} ${dif_min} ${dif_max} ${send} ${base}
