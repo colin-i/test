@@ -56,7 +56,7 @@ def test(t):
 				#return True
 	#return False
 
-if len(sys.argv)==8:
+if len(sys.argv)==7:
 	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6])
 	on=bool(int(sys.argv[1]))
 	sen2=bool(int(sys.argv[2]))
