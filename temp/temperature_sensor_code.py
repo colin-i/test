@@ -36,15 +36,15 @@ def gree(a,b):
 def test(t):
 	print(t)
 	if math.isnan(t)==False:
-		if on==False:
-			if t>=max:
-				if t!=216: #that will be wi-fi timeout
+		if t!=216: #that will be wi-fi timeout
+			if on==False:
+				if t>=max:
 					gree('1',True)
 					#return True
-		else:
-			if t<min:
-				gree('0',False)
-				#return True
+			else:
+				if t<min:
+					gree('0',False)
+					#return True
 	#return False
 
 def read_gree_temp():
