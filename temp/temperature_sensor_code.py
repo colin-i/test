@@ -26,29 +26,34 @@ def read_temp():
 	return float('nan')
 
 def gree(a,b):
-	s='Pow='+a
-	print(s)
-	global on
-	on=b
 	if send:
-		subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
+		r=subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
+	else:
+		r=0
+	if r==0:
+		s='Pow='+a
+		print(s)
+		global on
+		on=b
 
 def test(t):
 	print(t)
 	if math.isnan(t)==False:
-		if t!=216: #that will be wi-fi timeout
-			if on==False:
-				if t>=max:
-					gree('1',True)
-					#return True
-			else:
-				if t<min:
-					gree('0',False)
-					#return True
+		if on==False:
+			if t>=max:
+				gree('1',True)
+				#return True
+		else:
+			if t<min:
+				gree('0',False)
+				#return True
 	#return False
 
 def read_gree_temp():
-	return subprocess.run(["/bin/bash",base+'/tget',base]).returncode
+	t=subprocess.run(["/bin/bash",base+'/tget',base]).returncode
+	if t==216: #that will be wi-fi timeout
+		return float('nan')
+	return t
 
 if len(sys.argv)==8:
 	print(sys.argv[1]+' '+sys.argv[2]+' '+sys.argv[3]+' '+sys.argv[4]+' '+sys.argv[5]+' '+sys.argv[6]+' '+sys.argv[7])
