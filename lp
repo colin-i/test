@@ -7,6 +7,8 @@ dist=${dist::-1}
 
 if [ "${dist}" = "xenial" ]; then
 	tars="bionic jammy"
+elif [ "${dist}" = "focal" ]; then
+	tars="impish jammy"
 else
 #if [ "${dist}" = "bionic" ]; then
 #if [ "${dist}" = "impish" ]; then
