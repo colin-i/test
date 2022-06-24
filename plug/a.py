@@ -62,8 +62,9 @@ device.auth()
 
 import time
 
-x=0
 y=30
+z=60
+x=z
 
 while True:
 	if local:
@@ -73,7 +74,7 @@ while True:
 	info=t.__str__()
 	if on==False:
 		if t>=max:
-			if x>=60:
+			if x>=z:
 				device.set_power(True)
 				on=True
 				x=0
@@ -82,7 +83,7 @@ while True:
 				info+=" at least one minute"
 	else:
 		if t<min:
-			if x>=60:
+			if x>=z:
 				device.set_power(False)
 				on=False
 				x=0
