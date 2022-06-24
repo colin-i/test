@@ -35,13 +35,12 @@ def read_gree_temp():
 def gree(a,b):
 	s='Pow='+a
 	if send:
-		r=subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
-	else:
-		r=0
-	if r==0:
-		print(s)
-		global on
-		on=b
+		#return is 0 at timeout later
+		subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
+		#.returncode
+	print(s)
+	global on
+	on=b
 
 def test(t):
 	print(t)
@@ -67,6 +66,7 @@ if len(sys.argv)==7:
 		base_dir = '/sys/bus/w1/devices/'
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
+		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
 	min=24+float(sys.argv[3])
 	max=27+float(sys.argv[4])
 	send=bool(int(sys.argv[5]))
