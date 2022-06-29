@@ -3,6 +3,7 @@
 
 if [ "$#" != "1" ]; then
  echo $# without msg
+ exit
 fi
 
 dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
