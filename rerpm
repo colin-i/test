@@ -5,7 +5,7 @@ if [ "${arch}" = "amd64" ]; then
 arch=x86_64
 fi
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-file=${name}.${version}.${arch}.rpm
+file=${name}-${version}.${arch}.rpm
 
 if [ ! -e "./${file}" ]; then
 	id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
