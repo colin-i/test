@@ -1,9 +1,13 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
 arch=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
 if [ "${arch}" = "amd64" ]; then
 arch=x86_64
+elif [ "${arch}" = "all" ]; then
+arch=noarch
 fi
+
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 file=${name}-${version}.${arch}.rpm
 
@@ -29,11 +33,13 @@ dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
 #specific steps
 if [ -e "${startdir}/arh/re" ]; then
 ${startdir}/arh/re
-echo $?
+if [ "$?" != 0 ]; then
+exit
 fi
+fi
+echo edor text
 
 echo rpmrebuild -s text ./${file}
-echo nano text
 
 sudo docker container start 5a2c45e95410 && \
 sudo docker container cp ./${file} 5a2c45e95410:/ && \
@@ -42,9 +48,14 @@ sudo docker container exec -it 5a2c45e95410 bash && \
 \
 sudo docker container cp 5a2c45e95410:/text text && \
 \
+if [ -e "${startdir}/arh/re2" ]; then
+${startdir}/arh/re2 && \
+cat text
+fi && \
 mkdir ${dir} && \
 mv usr ${dir}/ && \
 rpmbuild -bb --target ${arch} text && \
+sudo docker exec 5a2c45e95410  rm -rf /text && \
 sudo rm text && \
 rm arh.zip && \
 rm ${file}
