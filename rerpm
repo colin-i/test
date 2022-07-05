@@ -49,7 +49,7 @@ sudo docker container exec -it 5a2c45e95410 bash && \
 sudo docker container cp 5a2c45e95410:/text text && \
 \
 if [ -e "${startdir}/arh/re2" ]; then
-${startdir}/arh/re2 && \
+${startdir}/arh/re2 ${startdir} && \
 cat text
 fi && \
 mkdir ${dir} && \
