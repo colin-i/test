@@ -1,0 +1,24 @@
+
+
+if [ -n "$1" ]
+then
+
+rm -r dist
+rm -r  *.egg-info
+if [ -d "build" ]; then
+rm -r build
+fi
+
+ls -a
+
+else
+
+python3 setup.py sdist bdist_wheel
+
+tar tzf dist/*-1.0.*.tar.gz
+unzip -l dist/*-1.0.*-py3-none-any.whl
+twine check dist/*
+
+#twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+fi

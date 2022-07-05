@@ -1,0 +1,18 @@
+if [ -n "$1" ]
+then
+
+#python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps $1
+
+#nu poate cere ceva de la piwheels
+#pip3 install -i https://test.pypi.org/simple/ torra==1.0.0
+
+#https://test.pypi.org/project/dicopp/1.0.0/
+#wget https://test-files.pythonhosted.org/packages/fc/cb/1a013ed5faa77cda48ddb8a5b21813c8b7676e825b148c4aae9e0c33bcd1/dicopp-1.0.0-py3-none-any.whl
+wget $1
+#pip3 install dicopp-1.0.0-py3-none-any.whl
+
+else
+
+twine upload dist/*
+
+fi
