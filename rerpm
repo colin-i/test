@@ -39,7 +39,7 @@ fi
 fi
 echo edor text
 
-echo rpmrebuild -s text ./${file}
+echo -n rpmrebuild -s text ./${file} | xclip -selection clipboard
 
 sudo docker container start 5a2c45e95410 && \
 sudo docker container cp ./${file} 5a2c45e95410:/ && \
