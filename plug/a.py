@@ -20,10 +20,8 @@ def get_temp_local(n1,n2,n3):
 
 with open(os.getenv('HOME')+'/tempmax', 'r') as file:
 	max = int(file.read())
-	print(max.__str__())
 with open(os.getenv('HOME')+'/tempmin', 'r') as file:
 	min = int(file.read())
-	print(min.__str__())
 
 import sys
 
@@ -52,6 +50,9 @@ if len(sys.argv)>3:
 	dif=int(sys.argv[3])
 	min+=dif
 	max+=dif
+
+print(min.__str__())
+print(max.__str__())
 
 #https://github.com/mjg59/python-broadlink
 import broadlink
