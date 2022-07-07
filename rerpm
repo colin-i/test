@@ -24,32 +24,32 @@ if [ ! -e "./${file}" ]; then
 	url=${url:1:-1}
 	curl --netrc-file ~/n/pat2 -L -o arh.zip ${url}
 	unzip arh.zip
+	rpm2cpio ${file} | cpio -idmv
 fi
 
-rpm2cpio ${file} | cpio -idmv
 
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
 
 #specific steps
-if [ -e "${startdir}/arh/re" ]; then
-${startdir}/arh/re
-if [ "$?" != 0 ]; then
-exit
-fi
-fi
-echo edor text
-
-echo -n rpmrebuild -s text ./${file} | xclip -selection clipboard
+#if [ -e "${startdir}/arh/re" ]; then
+#${startdir}/arh/re
+#if [ "$?" != 0 ]; then
+#exit
+#fi
+#fi
+#echo edor text
+#echo -n rpmrebuild -s text ./${file} | xclip -selection clipboard
+#sudo docker container exec -it 5a2c45e95410 bash && \
 
 sudo docker container start 5a2c45e95410 && \
 sudo docker container cp ./${file} 5a2c45e95410:/ && \
 \
-sudo docker container exec -it 5a2c45e95410 bash && \
+sudo docker exec 5a2c45e95410 rpmrebuild -s text ./${file} && \
 \
 sudo docker container cp 5a2c45e95410:/text text && \
 \
-if [ -e "${startdir}/arh/re2" ]; then
-${startdir}/arh/re2 ${startdir} && \
+if [ -e "${startdir}/arh/re" ]; then
+${startdir}/arh/re ${startdir} && \
 cat text
 fi && \
 mkdir ${dir} && \
