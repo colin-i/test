@@ -14,7 +14,7 @@ fi
 file=${name}-${version}.${arch}.rpm
 path=${HOME}/rpmbuild/RPMS/${arch}/${file}
 
-sudo docker container cp ${path} ${container}:`pwd`/ && \
+sudo docker container cp ${path} ${container}:`pwd -P`/ && \
 \
 sudo act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch && \
 rm ${path}
