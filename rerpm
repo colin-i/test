@@ -50,9 +50,11 @@ sudo docker exec ${contid} rpmrebuild -s text ./${file} && \
 sudo docker container cp ${contid}:/text text && \
 \
 if [ -e "${startdir}/arh/re" ]; then
-cat text && \
+cp text text_cmp && \
 ${startdir}/arh/re ${startdir} && \
-cat text
+cat text && \
+diff text text_cmp || \
+rm text_cmp
 fi && \
 mkdir ${dir} && \
 mv usr ${dir}/ && \
