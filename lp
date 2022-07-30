@@ -1,4 +1,5 @@
 
+#optional   1 bool for query last tar
 
 prog=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
 
@@ -40,10 +41,15 @@ echo $prog $dist $tars $arhs
 
 #from launchpadlib.launchpad import Launchpad
 #launchpad = Launchpad.login_with('My Application', 'production', version='devel')
-ppa-copy-packages -O colin-i -p ${prog} -s ${dist} -t ${tars} --architectures ${arhs}
-#
 
 # --launchpad-instance staging
 #cannot login to staging and almost a year has gone
 
 # --architectures   default is        ['i386', 'amd64']     i386 amd64
+
+if [ -z "${1}" ]; then
+	ppa-copy-packages -O colin-i -p ${prog} -s ${dist} -t ${tars} --architectures ${arhs}
+else
+	t=`echo -n ${tars} | grep -o '[^ ]*$'`
+	~/test/publp2 ${t}
+fi

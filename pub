@@ -1,6 +1,8 @@
 
 #1..n yml file names
 
+echo pub
+
 for var in "$@"
 do
 	while true
@@ -11,6 +13,7 @@ do
 		status2=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1)
 		if [ "${status1}" = "completed" ]; then
 			#&&
+			echo ${status2}
 			if [ "${status2}" = "success" ]; then
 				break
 			fi

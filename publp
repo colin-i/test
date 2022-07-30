@@ -1,0 +1,13 @@
+
+while true
+do
+	name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+	arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
+	OUTPUT=`python3 ~/test/lp2.py ppa ${name} ${version} ${arh} x | head -1`
+	if [ "${OUTPUT}" = 'Successfully built' ]; then
+		break
+	fi
+	echo sleep
+	sleep 10
+done
