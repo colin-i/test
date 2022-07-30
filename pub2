@@ -1,0 +1,3 @@
+
+url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`
+firefox ${url}/releases/latest
