@@ -5,14 +5,14 @@ echo pub
 
 for var in "$@"
 do
+	#head will break tabs, and echo too is on the internet
+	id=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
 	while true
 	do
-		#head will break tabs, and echo too is on the internet
-		id=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
 		status1=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1)
-		status2=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1)
 		if [ "${status1}" = "completed" ]; then
 			#&&
+			status2=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1)
 			echo ${status2}
 			if [ "${status2}" = "success" ]; then
 				break
@@ -20,7 +20,7 @@ do
 			exit 1
 		fi
 		echo sleep
-		sleep 10
+		sleep 60
 	done
 done
 exit 0

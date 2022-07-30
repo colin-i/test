@@ -10,5 +10,5 @@ do
 		break
 	fi
 	echo sleep
-	sleep 10
+	sleep 60
 done
