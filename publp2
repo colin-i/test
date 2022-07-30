@@ -1,15 +1,18 @@
 
 #optional    1 dist
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
+if [ -z "${1}" ]; then
+	dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
+else
+	dist=${1}
+fi
+echo ${dist}
+
 while true
 do
-	name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
-	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-	arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
-	if [ -z "${1}" ]; then
-		dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
-	else
-		dist=${1}
-	fi
 	OUTPUT=`python3 ~/test/lp.py ppa ${dist} ${arh} ${name} ${version} x | head -1`
 	if [ "${OUTPUT}" = 'Published' ]; then
 		break
