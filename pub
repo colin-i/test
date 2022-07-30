@@ -12,7 +12,7 @@ do
 		if [ "${status1}" = "completed" ]; then
 			#&&
 			if [ "${status2}" = "success" ]; then
-				exit 0
+				break
 			fi
 			#break
 			exit 1
@@ -21,3 +21,4 @@ do
 		sleep 10
 	done
 done
+exit 0
