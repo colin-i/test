@@ -1,11 +1,23 @@
 
-#1 yml file name
+#1..n yml file names
 
-#head will break tabs, and echo too is on the internet
-id=$(gh run list --workflow=${1}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
-status1=$(gh run list --workflow=${1}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1)
-status2=$(gh run list --workflow=${1}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1)
-
-if [ "${status1}" = "completed" ] && [ "${status2}" = "success" ]; then
-echo ${1} ok
-fi
+for var in "$@"
+do
+	while true
+	do
+		#head will break tabs, and echo too is on the internet
+		id=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
+		status1=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1)
+		status2=$(gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1)
+		if [ "${status1}" = "completed" ]; then
+			#&&
+			if [ "${status2}" = "success" ]; then
+				exit 0
+			fi
+			#break
+			exit 1
+		fi
+		echo sleep
+		sleep 10
+	done
+done
