@@ -1,6 +1,6 @@
 
-#can be before, one case was
+#can be before, one case was, at ocompiler
 sleep 1
 eval $@
 sleep 1
-#can be after, one case was, right when requiring deb
+#can be after, one case was, same place, right when requiring deb
