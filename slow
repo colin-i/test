@@ -3,4 +3,4 @@
 sleep 1
 eval $@
 sleep 1
-#can be after, one case was
+#can be after, one case was, right when requiring deb
