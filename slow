@@ -1,0 +1,6 @@
+
+#can be before, one case was
+sleep 1
+eval $@
+sleep 1
+#can be after, one case was
