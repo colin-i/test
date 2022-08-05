@@ -12,7 +12,15 @@ do
 		echo ${status1}, ${var}
 		if [ "${status1}" = "completed" ]; then
 			#&&
-			status2=`~/test/slow gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1`
+			while true
+			do
+				status2=`~/test/slow gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1`
+				if [ "${status2}" = "" ]; then
+					echo status not ready
+					continue
+				fi
+				break
+			done
 			echo "${status2}, ${var}"
 			if [ "${status2}" = "success" ]; then
 				break
