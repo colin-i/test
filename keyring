@@ -1,0 +1,3 @@
+
+#for keyring logins
+cat ~/test/pat3 | sudo -S -i
