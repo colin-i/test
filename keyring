@@ -1,3 +1,8 @@
 
-#for keyring logins
-cat ~/n/pat3 | sudo -S -i
+#for keyring popups
+
+echo | sudo -S -i
+
+if [ "$?" = "1" ]; then
+	cat ~/n/pat3 | sudo -S -i
+fi
