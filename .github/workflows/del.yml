@@ -16,5 +16,5 @@ jobs:
      env:
      with:
       token: ${{ secrets.PAT }}
-      tag: 'refs/tags/1.5'
-      assets: ${{ env.proj }}
+      tag: refs/tags/${{ env.tag }}
+      assets: ${{ env.file }}

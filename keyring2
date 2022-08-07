@@ -1,0 +1,6 @@
+
+#keyring with python is global
+#do at start for ..dotool, not when sleeping
+
+~/test/keyring
+python ~/test/key.py `cat ~/n/pat3`

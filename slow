@@ -1,5 +1,5 @@
 
 eval $@
-sleep 20
+sleep 30
 #can be after, one case was, at ocompiler, right when requiring deb, another at up when searching for test/1.5 id
 #this is sleep also for pub
