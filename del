@@ -9,7 +9,11 @@ else
 	echo prev app delete
 	if [ ! -f "${HOME}/dontdeleteprevappimage" ]; then
 		echo yes
-		prev=`cat debian/changelog | grep ^${name} | sed -n 2p | grep -Poe "[^\(]*(?=\))"`
+		if [ -z "${2}" ]; then
+			prev=`cat debian/changelog | grep ^${name} | sed -n 2p | grep -Poe "[^\(]*(?=\))"`
+		else
+			prev=${2}
+		fi
 		sudo act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch
 	else
 		echo no
