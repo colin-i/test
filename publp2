@@ -17,6 +17,6 @@ do
 	if [ "${OUTPUT}" = 'Published' ]; then
 		break
 	fi
-	echo sleep
+	echo =${OUTPUT}
 	sleep 60
 done
