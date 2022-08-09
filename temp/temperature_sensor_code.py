@@ -67,7 +67,7 @@ if len(sys.argv)==7:
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
 		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
-	min=24+float(sys.argv[3])
+	min=25+float(sys.argv[3])
 	max=27+float(sys.argv[4])
 	send=bool(int(sys.argv[5]))
 	base=sys.argv[6]
