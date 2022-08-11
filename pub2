@@ -1,4 +1,6 @@
 
 url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`
 echo open browser
-firefox ${url}/releases/latest
+
+#firefox ${url}/releases/latest
+notify-send "Publish" "${url}/releases/latest"
