@@ -32,7 +32,7 @@ def is_locked(): return popup.is_alive()
 
 # Wait a moment for the system to react
 # Then check if the system is locked or not
-time.sleep(1)
+time.sleep(2)
 if (is_locked()):
 	#for x11, xdotool without sudo maybe
 	os.system("sudo ydotool type " + password)
