@@ -1,0 +1,20 @@
+
+#1 old version
+
+if [ "$#" -lt "1" ]; then
+ echo version argument is not
+ exit
+fi
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
+id=$(
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" -d '
+ {
+  "query": "query { repository ( owner: \"colin-i\", name: \"'"${name}"'\" ) { release ( tagName: \"'"${1}"'\" ) { databaseId }} }"
+ }
+' | jq ".data.repository.release.databaseId"
+)
+
+cd ~/arhiva
+gh workflow run rel.yml -f name=${name} -f version=${1} -f id=${id}
