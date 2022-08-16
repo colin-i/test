@@ -3,7 +3,7 @@
 
 if [ "$#" -lt "1" ]; then
  echo at least message argument
- exit
+ exit -1
 fi
 
 if [ -z "${2}" ]; then
