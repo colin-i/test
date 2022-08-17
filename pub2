@@ -1,6 +1,13 @@
 
-url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`
-echo open browser
+#optional 1 name
 
-#firefox ${url}/releases/latest
-notify-send "Publish" "${url}/releases/latest"
+if [ -z "${1}" ]; then
+url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`
+else
+url="https://github.com/colin-i/${1}"
+fi
+url+="/releases/latest"
+
+echo open browser
+#firefox ${url}
+notify-send "Publish" "${url}"
