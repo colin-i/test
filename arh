@@ -7,5 +7,5 @@ cd ~/arhiva && \
 ~/test/pub rel && \
 ~/test/pub2 arh && \
 cd ${hereplace} && \
-gh workflow run del.yml -f tag=${1} && \
+gh workflow run delrel.yml -f tag=${1} && \
 ~/test/pub del
