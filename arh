@@ -8,4 +8,4 @@ cd ~/arhiva && \
 ~/test/pub2 arh && \
 cd ${hereplace} && \
 gh workflow run delrel.yml -f tag=${1} && \
-~/test/pub del
+~/test/pub delrel
