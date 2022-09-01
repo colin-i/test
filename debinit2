@@ -1,13 +1,12 @@
 
 #1 msg               optional 2 major version
 
-#version is in ..base but i'm testing without ..base
-name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
-version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-partname=${name}_${version}
-
 ~/test/debinitbase $@ && \
 debuild -S -us -uc && \
+#version is in ..base but i'm testing without ..base
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*` && \
+version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
+partname=${name}_${version} && \
 cd .. && \
 mv ${partname}* tmp && \
 cd tmp && \
