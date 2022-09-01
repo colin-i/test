@@ -1,0 +1,13 @@
+
+#same as arh
+
+echo delete ${1} ? y ?
+
+read -n1 ans
+
+if [ "${ans}" = "y" ]; then
+echo yes
+~/test/arh ${1}
+else
+echo no
+fi
