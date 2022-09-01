@@ -1,7 +1,7 @@
 
 #1 msg               optional 2 major version
 
-~/test/debinitbase $@ && \
+~/test/debinitbase "$@" && \
 debuild -S -us -uc && \
 #is modif by debuild
 git restore debian/files && \

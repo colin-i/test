@@ -1,5 +1,5 @@
 
 #1 msg               optional 2 major version
 
-~/test/debinitbase $@ && \
+~/test/debinitbase "$@" && \
 gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`
