@@ -2,6 +2,8 @@
 #1..n yml file names
 
 echo pub
+#one case was rpm was failure but said ok from previous
+sleep 10
 
 for var in "$@"
 do
