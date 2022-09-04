@@ -1,12 +1,13 @@
 
-#optional 1 name
+#optional 1 tag
+
+url=
 
 if [ -z "${1}" ]; then
-url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`
+url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`/releases/latest
 else
-url="https://github.com/colin-i/${1}"
+url=https://github.com/colin-i/arh/releases/tag/${1}
 fi
-url+="/releases/latest"
 
 echo open browser
 #firefox ${url}
