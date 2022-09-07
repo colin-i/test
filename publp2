@@ -18,5 +18,5 @@ do
 		break
 	fi
 	echo =${OUTPUT}
-	sleep 120
+	sleep 200
 done
