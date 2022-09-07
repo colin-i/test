@@ -1,0 +1,4 @@
+
+gsettings set org.gnome.desktop.session idle-delay 0
+read
+gsettings set org.gnome.desktop.session idle-delay 60
