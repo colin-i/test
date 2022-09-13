@@ -3,8 +3,8 @@
 
 ~/test/debinitbase "$@" && \
 debuild -S -us -uc && \
-#is modif by debuild
-git restore debian/files && \
+#is modif by debuild but let always with changes
+#git restore debian/files && \
 #version is in ..base but i'm testing without ..base
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*` && \
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
