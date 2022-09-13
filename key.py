@@ -36,5 +36,5 @@ time.sleep(2)
 if (is_locked()):
 	#for x11, xdotool without sudo maybe
 	os.system("sudo ydotool type " + password)
-	time.sleep(1)
+	time.sleep(2)
 	os.system("sudo ydotool key enter")
