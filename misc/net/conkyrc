@@ -21,7 +21,7 @@ conky.config = {
 --    default_color = 'white',
 --    default_outline_color = 'white',
 --    default_shade_color = 'white',
--- asta ca altfel clipeste
+-- will clip without this
     double_buffer = true,
 --    draw_borders = false,
 --    draw_outline = false,
@@ -39,9 +39,13 @@ conky.config = {
 --    use_spacer = 'none',
     own_window = true,
 --    own_window_class = 'Conky',
-    own_window_type = 'panel',
+-- normal, desktop, dock, panel or override   desktop is below
+-- desktop is below even with  own_window_hints = 'undecorated,above,sticky,skip_taskbar,skip_pager'
+-- panel is an alternative
+    own_window_type = 'dock',
 --    use_xft = true,
 --    font = 'DejaVu Sans Mono:size=20',
+    gap_x = 100
 }
 
 
