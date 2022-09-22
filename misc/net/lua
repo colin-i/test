@@ -1,0 +1,9 @@
+
+function conky_updtint()
+--it was never the case
+--    if conky_window == nil then
+--        return
+--    end
+
+    return string.format('%d', conky_info.update_interval)
+end

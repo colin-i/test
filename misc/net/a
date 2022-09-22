@@ -1,0 +1,7 @@
+
+set -m
+python a.py &
+
+./c
+
+fg 1

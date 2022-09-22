@@ -34,7 +34,6 @@ conky.config = {
 --    show_graph_range = false,
 --    show_graph_scale = false,
 --    stippled_borders = 0,
-    update_interval = 1.0,
 --    uppercase = false,
 --    use_spacer = 'none',
     own_window = true,
@@ -45,8 +44,15 @@ conky.config = {
     own_window_type = 'dock',
 --    use_xft = true,
 --    font = 'DejaVu Sans Mono:size=20',
-    gap_x = 100
+    gap_x = 100,
+    lua_load = 'lua',
+    update_interval = 5
 }
 
+--conky.config['update_interval']=$$upseconds
 
-conky.text = [[$uptime ${eval $${exec echo aa}} ${color grey} Up:$color ${upspeed} ${color grey} - Down:$color ${downspeed}]]
+--upseconds=5 ]] .. upseconds.. [[
+
+conky.text = [[${color grey}${uptime} $color${eval $${exec python b.py ${lua conky_updtint}}}]]
+--b.py
+--Up: ${upspeed} ${color grey} - Down:$color ${downspeed}
