@@ -1,11 +1,20 @@
 
+#optional    1 ppa
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
 
+if [ -z "${1}" ]; then
+	ppa=ppa
+else
+	ppa=${1}
+fi
+echo ${ppa}
+
 while true
 do
-	OUTPUT=`python3 ~/test/lp2.py ppa ${name} ${version} ${arh} x | head -1`
+	OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${arh} x | head -1`
 	if [ "${OUTPUT}" = 'Successfully built' ]; then
 		break
 	fi

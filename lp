@@ -7,7 +7,7 @@ dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
 dist=${dist::-1}
 
 if [ "${dist}" = "xenial" ]; then
-	tars="bionic jammy"
+	tars="bionic focal jammy"
 else
 #if [ "${dist}" = "bionic" ]; then
 #if [ "${dist}" = "focal" ]; then
