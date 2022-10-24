@@ -13,6 +13,10 @@ else
 			prev=`cat debian/changelog | grep ^${name} | sed -n 2p | grep -Poe "[^\(]*(?=\))"`
 		else
 			prev=${2}
+			if [ -n "${3}" ]; then
+				glb=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | grep -Poe "(?<=edor\.)[^.]*" | head -1)
+				name=${name}.${glb}
+			fi
 		fi
 		sudo act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch
 	else
