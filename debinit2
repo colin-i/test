@@ -2,7 +2,7 @@
 #1 msg               optional 2 major version
 
 ~/test/debinitbase "$@" && \
-debuild -S -us -uc && \
+debuild -S -us -uc -d && \
 #is modif by debuild but let always with changes
 #git restore debian/files && \
 #version is in ..base but i'm testing without ..base

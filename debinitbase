@@ -1,21 +1,21 @@
 
-#1 msg               optional 2 major version
+#1 msg               optional 2 distribution
 
 if [ "$#" -lt "1" ]; then
  echo at least message argument
  exit -1
 fi
 
-if [ -z "${2}" ]; then
- major=1
-else
- major=${2}
-fi
-
-dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
-dist=${dist::-1}
+major=1
 version=`cat debian/changelog | head -1 | grep -o -e "[^-]*)"`
 version=${version::-1}
+if [ -z "${2}" ]; then
+ dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
+ dist=${dist::-1}
+else
+ dist=${2}
+fi
+
 echo version=${version} - is on clipboard. paste, modify, enter
 echo -n "${version}" | xclip -selection clipboard
 read -r version
