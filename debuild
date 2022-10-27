@@ -1,0 +1,15 @@
+
+
+debuild -S -us -uc -d && \
+#is modif by debuild but let always with changes
+#git restore debian/files && \
+#version is in ..base but i'm testing without ..base
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*` && \
+version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
+partname=${name}_${version} && \
+cd .. && \
+mv ${partname}* tmp && \
+cd tmp && \
+zip ../last.zip ./* && \
+rm ./*
+#at exit working dir will not remain in tmp
