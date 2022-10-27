@@ -1,15 +1,19 @@
 
-#optional    1 dist
+#optional    1 dist   2 version
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
-version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
 if [ -z "${1}" ]; then
 	dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
 else
 	dist=${1}
 fi
-echo ${dist}
+if [ -z "${1}" ]; then
+	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+else
+	version=${2}
+fi
+echo ${dist} ${version}
 
 while true
 do
