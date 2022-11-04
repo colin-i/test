@@ -20,7 +20,7 @@ if [ -z "${3}" ]; then
 else
 	version=${3}
 fi
-echo ${dist} ${arh} ${version}
+echo ${name} ${dist} ${arh} ${version}
 
 while true
 do
