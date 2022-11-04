@@ -1,0 +1,7 @@
+
+#1 msg
+
+echo -n "${1}" | xclip -selection clipboard && \
+git commit -a && \
+#push
+git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/`cat debian/control | grep "^Homepage" | grep -o [^/]*$`.git

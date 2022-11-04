@@ -2,4 +2,5 @@
 #1 msg               optional 2 major version
 
 ~/test/debinitbase "$@" && \
-~/test/debuild
+~/test/debuild && \
+~/test/debinitpush "${1}"
