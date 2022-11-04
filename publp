@@ -10,7 +10,10 @@ if [ -z "${1}" ]; then
 else
 	ppa=${1}
 fi
-echo ${ppa}
+if [ "${arh}" = "all" ]; then
+arh=amd64
+fi
+echo ${ppa} ${name} ${version} ${arh}
 
 while true
 do

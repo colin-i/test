@@ -9,6 +9,9 @@ else
 fi
 if [ -z "${2}" ]; then
 	arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
+	if [ "${arh}" = "all" ]; then
+		arh=amd64
+	fi
 else
 	arh=${2}
 fi
@@ -17,7 +20,7 @@ if [ -z "${3}" ]; then
 else
 	version=${3}
 fi
-echo ${dist} ${version}
+echo ${dist} ${arh} ${version}
 
 while true
 do
