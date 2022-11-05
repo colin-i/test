@@ -1,7 +1,7 @@
 
 for szFile in ./*.jpg
-do 
-    convert "$szFile" -rotate 90 ./tmp/"$(basename "$szFile")" ; 
+do
+    convert "$szFile" -rotate 90 ./tmp/"$(basename "$szFile")" ;
 done
 
 #convert a.jpg -crop 1200x1200+0+400 b.jpg
