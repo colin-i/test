@@ -1,15 +1,14 @@
 
 #1 msg               optional 2 distribution
 
-if [ "$#" -lt "1" ]; then
- echo at least message argument
- exit -1
-fi
-
 major=1
 version=`cat debian/changelog | head -1 | grep -o -e "[^-]*)"`
 version=${version::-1}
 if [ -z "${2}" ]; then
+ if [ "$#" -lt "1" ]; then
+  echo at least message argument
+  exit -1
+ fi
  dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
  dist=${dist::-1}
 else

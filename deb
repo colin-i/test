@@ -20,11 +20,6 @@ cd ../tmp
 array=(`ls`)
 
 get_prog_ver () {
-	prog_ver=`echo ${array[0]} | grep -Po ".*(?=.deb)" `
-}
-
-if [ -z "${array}" ]; then
-	unzip ../last.zip
 	array=(`ls`)
 
 	#if was in runner:
@@ -43,6 +38,12 @@ if [ -z "${array}" ]; then
 		#fi
 		#Checksum doesn't match for /home...
 	done
+
+	prog_ver=`echo ${array[0]} | grep -Po ".*(?=.deb)" `
+}
+
+if [ -z "${array}" ]; then
+	unzip ../last.zip
 
 	get_prog_ver
 
