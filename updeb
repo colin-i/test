@@ -1,0 +1,13 @@
+
+# 1 from launchpad
+
+if [ -n "${1}" ]; then
+echo from launchpad
+exit 1
+else
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
+file=${name}_${version}_${arh}.deb
+fi
+#      asset_content_type: application/vnd.debian.binary-package

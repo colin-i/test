@@ -1,5 +1,5 @@
 
-#optional    1 dist   2 arh   3 version
+#optional    1 dist   2 arh   3 version   4 ppa
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ -z "${1}" ]; then
@@ -20,11 +20,16 @@ if [ -z "${3}" ]; then
 else
 	version=${3}
 fi
-echo ${name} ${dist} ${arh} ${version}
+if [ -z "${4}" ]; then
+	ppa=ppa
+else
+	ppa=${4}
+fi
+echo ${name} ${dist} ${arh} ${version} ${ppa}
 
 while true
 do
-	OUTPUT=`python3 ~/test/lp.py ppa ${dist} ${arh} ${name} ${version} x | head -1`
+	OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${arh} ${name} ${version} x | head -1`
 	if [ "${OUTPUT}" = 'Published' ]; then
 		break
 	fi
