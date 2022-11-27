@@ -3,7 +3,7 @@
 
 echo delete ${1} ? y ?
 
-read -n1 ans
+read -n1 -t $((60*60*24)) ans
 
 if [ "${ans}" = "y" ]; then
 echo yes
