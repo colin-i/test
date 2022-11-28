@@ -1,0 +1,21 @@
+
+
+<body style="background-color: #101010; color: #ffffff;">
+
+<embed id='a'></embed>
+
+<script>
+const queryString = self.location.search;
+const urlParams = new URLSearchParams(queryString);
+const game = urlParams.keys().next().value;
+let b,c,d;
+if(game=='t'){b='_Turret_Defence';c=740;d=560;}
+else if(game=='1'){b='Ores_for_Ship/_Ores_for_Ship';c=800;d=600;}
+else if(game=='2'){b='Driving_the_Ship/_Driving_the_Ship';c=800;d=600;}
+const e=document.getElementById("a");
+e.width=c;
+e.height=d;
+e.src='/a/'+b+'.swf';
+</script>
+
+</body>
