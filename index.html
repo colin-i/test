@@ -9,12 +9,15 @@ const queryString = self.location.search;
 const urlParams = new URLSearchParams(queryString);
 const game = urlParams.keys().next().value;
 let b,c,d;
-if(game=='t'){b='_Turret_Defence';c=740;d=560;}
+if(game=='c'){b='_Card_Flip';c=650;d=680;}
+else if(game=='n'){b='_Naval_War';c=800;d=470;}
+else if(game=='t'){b='_Turret_Defence';c=740;d=560;}
 else{
 	c=800;d=600;
 	if(game=='1')b='Ores_for_Ship/_Ores_for_Ship';
 	else if(game=='2')b='Driving_the_Ship/_Driving_the_Ship';
 	else if(game=='3')b='Planet_Landing/_Planet_Landing';
+	else if(game=='4')b='Rocks_Fall/_Rocks_Fall';
 }
 const e=document.getElementById("a");
 e.width=c;
