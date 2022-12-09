@@ -12,17 +12,21 @@ function g(a,b,c){
 return {g:a,w:b,h:c};
 }
 const data={
-c:g('_Card_Flip',650,680),
-n:g('_Naval_War',800,470),
-t:g('_Turret_Defence',740,560),
-1:g('Ores_for_Ship/_Ores_for_Ship'),
-2:g('Driving_the_Ship/_Driving_the_Ship'),
-3:g('Planet_Landing/_Planet_Landing'),
-4:g('Rocks_Fall/_Rocks_Fall'),
-5:g('Balls_Play/_Balls_Play')
+c:g('Card_Flip',650,680),
+n:g('Naval_War',800,470),
+t:g('Turret_Defence',740,560),
+1:g('Ores_for_Ship'),
+2:g('Driving_the_Ship'),
+3:g('Planet_Landing'),
+4:g('Rocks_Fall'),
+5:g('Balls_Play'),
+6:g('Asteroids')
 }
 const ob=data[game];
-if(!ob.w){ob.w=800;ob.h=600;}
+if(!ob.w){
+	ob.w=800;ob.h=600;
+	ob.g=ob.g+'/_'+ob.g;
+}else ob.g='_'+ob.g;
 const e=document.getElementById("a");
 e.width=ob.w;
 e.height=ob.h;
