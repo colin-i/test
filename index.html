@@ -8,21 +8,25 @@
 const queryString = self.location.search;
 const urlParams = new URLSearchParams(queryString);
 const game = urlParams.keys().next().value;
-let b,c,d;
-if(game=='c'){b='_Card_Flip';c=650;d=680;}
-else if(game=='n'){b='_Naval_War';c=800;d=470;}
-else if(game=='t'){b='_Turret_Defence';c=740;d=560;}
-else{
-	c=800;d=600;
-	if(game=='1')b='Ores_for_Ship/_Ores_for_Ship';
-	else if(game=='2')b='Driving_the_Ship/_Driving_the_Ship';
-	else if(game=='3')b='Planet_Landing/_Planet_Landing';
-	else if(game=='4')b='Rocks_Fall/_Rocks_Fall';
+function g(a,b,c){
+return {g:a,w:b,h:c};
 }
+const data={
+c:g('_Card_Flip',650,680),
+n:g('_Naval_War',800,470),
+t:g('_Turret_Defence',740,560),
+1:g('Ores_for_Ship/_Ores_for_Ship'),
+2:g('Driving_the_Ship/_Driving_the_Ship'),
+3:g('Planet_Landing/_Planet_Landing'),
+4:g('Rocks_Fall/_Rocks_Fall'),
+5:g('Balls_Play/_Balls_Play')
+}
+const ob=data[game];
+if(!ob.w){ob.w=800;ob.h=600;}
 const e=document.getElementById("a");
-e.width=c;
-e.height=d;
-e.src='/a/'+b+'.swf';
+e.width=ob.w;
+e.height=ob.h;
+e.src='/a/'+ob.g+'.swf';
 </script>
 
 </body>
