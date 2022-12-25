@@ -12,6 +12,7 @@ function g(a,b,c){
 return {g:a,w:b,h:c};
 }
 const data={
+0:g('universe'),
 c:g('Card_Flip',650,680),
 n:g('Naval_War',800,470),
 t:g('Turret_Defence',740,560),
@@ -33,7 +34,8 @@ t:g('Turret_Defence',740,560),
 const ob=data[game];
 if(!ob.w){
 	ob.w=800;ob.h=600;
-	ob.g=ob.g+'/_'+ob.g;
+	if(game!=0)ob.g=ob.g+'/_'+ob.g;
+	else ob.g=ob.g+'/'+ob.g;
 }else ob.g='_'+ob.g;
 const e=document.getElementById("a");
 e.width=ob.w;
