@@ -13,9 +13,16 @@ return {g:a,w:b,h:c};
 }
 const data={
 0:g('universe'),
-c:g('Card_Flip',650,680),
+//b
+//r
 n:g('Naval_War',800,470),
+cf:g('Card_Flip',650,680),
+//f
+//rc
+//l
 t:g('Turret_Defence',740,560),
+tf:g('Treasure_Finder',800,580),
+//c
 1:g('Ores_for_Ship'),
 2:g('Driving_the_Ship'),
 3:g('Planet_Landing'),
@@ -36,7 +43,7 @@ if(!ob.w){
 	ob.w=800;ob.h=600;
 	if(game!=0)ob.g=ob.g+'/_'+ob.g;
 	else ob.g=ob.g+'/'+ob.g;
-}else ob.g='_'+ob.g;
+}
 const e=document.getElementById("a");
 e.width=ob.w;
 e.height=ob.h;
