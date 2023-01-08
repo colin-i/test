@@ -1,4 +1,6 @@
 
+#optional  1 delete appimage flag  2 delete appimage exact version  3 glib flag
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
 if [ -z "${1}" ]; then
