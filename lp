@@ -1,5 +1,5 @@
 
-#optional   1 bool for query last tar   2 tars
+#optional   1 (bool for query last tar)/0   2 tars
 
 if [ -z "${2}" ] ||  [ "${1}" = "0" ]; then
 	dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
