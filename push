@@ -1,0 +1,15 @@
+
+#optional  1 gist/git  2 diffs  3 if mounting
+
+#git remote add origin https://github.com/colin-i/o.git
+
+if [ -z "${1}" ]; then
+to=gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481
+else
+to=github.com/colin-i/${1}.git
+fi
+to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
+
+git push ${to} && \
+~/${3}test/pushdiff ${2} && \
+~/${3}test/pushinfo ${to}

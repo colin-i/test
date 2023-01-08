@@ -1,0 +1,16 @@
+
+
+nr=1
+if [ -n "$1" ]; then
+nr=$1
+fi
+
+while [ $nr -gt 0 ]
+do
+a=$((nr-1))
+git diff HEAD@{$nr} HEAD@{$a} --unified=0
+nr=$a
+if [ $a -ne 0 ]; then
+$(dd bs=1 count=1 2>/dev/null)
+fi
+done
