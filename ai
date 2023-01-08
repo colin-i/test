@@ -1,9 +1,9 @@
 
-#optional:    1 ppa sufix    2 unpublished
+#optional:    1 ppa sufix
 
 proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ "${proj}" = "ovideo" ]; then
-	gh workflow run appimage.yml -f ppa=${1} -f unpublished=${2} -f artifact=1
+	gh workflow run appimage.yml -f ppa=${1} -f unpublished=1 -f artifact=1
 else
 	gh workflow run appimage.yml -f ppa=${1}
 fi
