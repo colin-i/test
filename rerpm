@@ -63,3 +63,5 @@ sudo docker exec ${contid} rm -rf /text && \
 sudo rm text && \
 rm arh.zip && \
 rm ${file}
+
+sudo docker container stop ${contid}
