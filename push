@@ -2,6 +2,7 @@
 #optional  1 gist/git  2 is gist  3 diffs  4 if mounting
 
 #git remote add origin https://github.com/colin-i/o.git
+#git push --set-upstream https://gitlab-ci-token:@github.com/colin-i/oadbg.git master
 
 if [ -n "${2}" ]; then
 to=gist.github.com/colin-i/${1}
