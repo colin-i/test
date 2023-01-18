@@ -1,16 +1,16 @@
 
-#optional  1 gist/git  2 is gist  3 diffs  4 if mounting
+#optional  1 gist/git  2 is gist  3 diffs  4 if mounting  5 push args
 
 #git remote add origin https://github.com/colin-i/o.git
 #git push --set-upstream https://gitlab-ci-token:@github.com/colin-i/oadbg.git master
 
-if [ -n "${2}" ]; then
+if [ "${2}" = "1" ]; then
 to=gist.github.com/colin-i/${1}
 else
 to=github.com/colin-i/${1}.git
 fi
 to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
 
-git push ${to} && \
+git push ${5} ${to} && \
 ~/${4}test/pushdiff ${3} && \
 ~/${4}test/pushinfo ${to}
