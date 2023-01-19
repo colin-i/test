@@ -1,0 +1,2 @@
+
+sshpass -p `cat ~/n/pat3` ssh bc@192.168.1.12
