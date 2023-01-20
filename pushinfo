@@ -1,44 +1,27 @@
 
 
-a=$(git ls-remote --refs -h $1 | head -1 | cut -f1)
-b=$(git rev-parse HEAD)
-if [ "$a" = "$b" ]
-then
-echo EGAL $(git ls-remote --refs -h $1 | head -1 | cut -f2)
-echo $a
-echo $b
-else
-
-a=$(git ls-remote --refs -h $1 | cut -f1 | sed -n 2p)
-if [ "$a" = "$b" ]
-then
-echo EGAL branch 2 $(git ls-remote --refs -h $1 | cut -f2 | sed -n 2p)
-echo $a
-echo $b
-else
-
-a=$(git ls-remote --refs -h $1 | cut -f1 | sed -n 3p)
-if [ "$a" = "$b" ]
-then
-echo EGAL branch 3 $(git ls-remote --refs -h $1 | cut -f2 | sed -n 3p)
-echo $a
-echo $b
-else
-
-a=$(git ls-remote --refs -h $1 | cut -f1 | sed -n 4p)
-if [ "$a" = "$b" ]
-then
-echo EGAL branch 4 $(git ls-remote --refs -h $1 | cut -f2 | sed -n 4p)
-echo $a
-echo $b
-else
-
-echo NU ESTE EGAL
+#a=$(git ls-remote --refs -h $1 | head -1 | cut -f1)
+#b=$(git rev-parse HEAD)
+#if [ "$a" = "$b" ]
+#then
+#echo EGAL $(git ls-remote --refs -h $1 | head -1 | cut -f2)
 #echo $a
 #echo $b
-fi
-fi
-fi
+#else
+#a=$(git ls-remote --refs -h $1 | cut -f1 | sed -n 2p)
+#if [ "$a" = "$b" ]
+#then
+#echo EGAL branch 2 $(git ls-remote --refs -h $1 | cut -f2 | sed -n 2p)
+#else
+#echo NU ESTE EGAL
+#fi
+#fi
+
+git ls-remote --refs -h $1 | grep `git rev-parse HEAD`
+if [ "$?" = "0" ]; then
+echo egal
+else
+echo NU ESTE EGAL
 fi
 
 git rev-list --all --count
@@ -50,4 +33,4 @@ git rev-list --all --count
 #git push -f
 
 #git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/o.git --delete no_build
-#git push origin --delete no_build
+#git branch --delete no_build
