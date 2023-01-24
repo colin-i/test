@@ -10,10 +10,12 @@ fi
 if [ -z "${2}" ]; then
 	arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
 	if [ "${arh}" = "all" ]; then
-		arh=amd64
+		arh=( amd64 )
+	else
+		arh=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*"` )
 	fi
 else
-	arh=${2}
+	arh=( ${2} )
 fi
 if [ -z "${3}" ]; then
 	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
@@ -25,14 +27,18 @@ if [ -z "${4}" ]; then
 else
 	ppa=${4}
 fi
-echo ${name} ${dist} ${arh} ${version} ${ppa}
+echo ${name} ${dist} ${version} ${ppa}
 
-while true
+for var in "${arh[@]}"
 do
-	OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${arh} ${name} ${version} x | head -1`
-	if [ "${OUTPUT}" = 'Published' ]; then
-		break
-	fi
-	echo =${OUTPUT}
-	sleep 200
+	echo ${var}
+	while true
+	do
+		OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${var} ${name} ${version} x | head -1`
+		echo =${OUTPUT}
+		if [ "${OUTPUT}" = 'Published' ]; then
+			break
+		fi
+		sleep 200
+	done
 done

@@ -8,13 +8,15 @@ fi
 
 if [ -z "${2}" ]; then
 	if [ "${dist}" = "xenial" ]; then
-		tars="bionic focal jammy"
+		tars="bionic focal jammy kinetic"
 	elif [ "${dist}" = "bionic" ]; then
-		tars="focal jammy"
+		tars="focal jammy kinetic"
+	elif [ "${dist}" = "focal" ]; then
+	#impish
+		tars="jammy kinetic"
 	else
-	#if [ "${dist}" = "focal" ]; then
-	#if [ "${dist}" = "impish" ]; then
-		tars="jammy"
+	#if [ "${dist}" = "jammy" ]; then
+		tars="kinetic"
 	fi
 else
 	tars=${2}

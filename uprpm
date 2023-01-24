@@ -1,5 +1,5 @@
 
-sudo act -r -j urbuild --env init=1 workflow_dispatch
+sudo $(which act) -r -j urbuild --env init=1 workflow_dispatch
 container=`sudo docker ps -a | grep uprpm-yml | cut -d ' ' -f1`
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
@@ -16,7 +16,7 @@ path=${HOME}/rpmbuild/RPMS/${arch}/${file}
 
 sudo docker container cp ${path} ${container}:`pwd -P`/ && \
 \
-sudo act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch && \
+sudo $(which act) -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch && \
 rm ${path}
 
 sudo docker container stop ${container}
