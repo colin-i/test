@@ -11,7 +11,8 @@ if [ ! -e "../last.zip" ]; then
 	#default login <USERNAME> password <PERSONAL ACCESS TOKEN>
 	url=${url:1:-1}
 
-	curl --netrc-file ~/n/pat2 -L -o ../last.zip ${url}
+	curl -H "Authorization: token `cat ~/n/pat`" -L -o ../last.zip ${url}
+	#not ok on kinetic curl --netrc-file ~/n/pat2 -L -o ../last.zip ${url}
 	#L is for redirects
 fi
 
