@@ -15,12 +15,20 @@ arh=amd64
 fi
 echo ${ppa} ${name} ${version} ${arh}
 
+slp=60
+
 while true
 do
 	OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${arh} x | head -1`
+	echo =${OUTPUT}
 	if [ "${OUTPUT}" = 'Successfully built' ]; then
 		break
+	elif [ "${OUTPUT}" = 'Needs building' ]; then
+		sleep ${slp}
+		if [ $slp -lt 300 ]; then
+			slp=$((slp*2))
+		fi
+		continue
 	fi
-	echo =${OUTPUT}
 	sleep 60
 done
