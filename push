@@ -1,8 +1,9 @@
 
 #optional  1 gist/git  2 is gist  3 diffs  4 if mounting  5 push args
 
-#git remote add origin https://github.com/colin-i/o.git
-#git push --set-upstream https://gitlab-ci-token:@github.com/colin-i/oadbg.git master
+#git remote add origin https://github.com/colin-i/.git
+#no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config
+#       git branch --unset-upstream master
 
 if [ "${2}" = "1" ]; then
 to=gist.github.com/colin-i/${1}
