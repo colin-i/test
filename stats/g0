@@ -14,7 +14,7 @@ query {
         name
        }
         contributions(first:1){
-         totalCount 
+         totalCount
         }
       }
     }
