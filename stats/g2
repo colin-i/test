@@ -1,0 +1,55 @@
+
+#1 name  2 count
+
+name=${1}
+nr=${2}
+cursor=
+
+echo ${name} ${nr}
+
+while [ "${nr}" -gt 0 ]; do
+
+#get viewer and contributors commits
+#user="MDQ6VXNlcjEwOTI1OTAz"
+#we know author date is different than a commit amend message date
+
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"'"${name}"'\") {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 5'"${cursor}"') {
+                edges{
+                  node{
+                    author{
+                        date
+                        user
+                    }
+                    additions
+                    deletions
+                  }
+                  cursor
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }"
+}'
+
+cursor=$(
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+  jq ".data.viewer.repository.defaultBranchRef.target.history.edges[-1].cursor"
+)
+cursor=",after:\\\"${cursor:1:-1}\\\""
+echo ${cursor}
+
+nr=$((nr-100))
+echo ${nr}
+
+done

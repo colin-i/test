@@ -1,43 +1,33 @@
 
 
-./g1 flashalizer 190
+rps=( `cat g` )
+i=0
 
-exit
-
-#total count last year
-
-query {
-  viewer {
-    contributionsCollection(from:"2015-12-07T00:00:00Z",to:"2016-01-01T00:00:00Z") {
-      commitContributionsByRepository{
-       repository{
-        name
-       }
-        contributions(first:1){
-         totalCount
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repositories(first:100){
+        edges{
+          node{
+            name
+          }
         }
       }
     }
-  }
-}
+  }"
+}'
 
+#-o 1
+reps=( $(
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+  jq -r ".data.viewer.repositories.edges[] | .node.name"
+))
 
+for name in "${reps[@]}"; do
 
+./g1 ${name} `echo -n ${rps[${i}]} | grep -o [^=]*$`
 
+i=$((i+1))
 
-#only yearly data no total commits all time
-
-#{
-#  repository(owner: "google", name: "gson") {
-#    refs(first: 10, refPrefix: "refs/heads/") {
-
-#the author date is when someone first creates a commit with git commit . The commit date is identical to the author date unless someone changes the commit date by using git commit --amend
-
-#query {
-#  viewer {
-# repositories(first:1){
-
-#query {
-#  viewer {
-#    contributionsCollection(from:"2015-12-07T00:00:00Z",to:"2016-01-01T00:00:00Z") {
-#    contributionsCollection(from:"2023-01-01T00:00:00Z",to:"2024-01-01T00:00:00Z") {
+done
