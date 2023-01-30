@@ -6,7 +6,7 @@ prevCount=${2}
 
 QUERY='
 {"query": "
-  query {        
+  query {
     viewer {
       repository(name: \"'"${name}"'\") {
         defaultBranchRef {
