@@ -4,7 +4,7 @@
 name=${1}
 prevCount=${2}
 
-QUERY='
+query='
 {"query": "
   query {
     viewer {
@@ -24,13 +24,17 @@ QUERY='
 }'
 
 count=$(
-curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $query)" | \
   jq ".data.viewer.repository.defaultBranchRef.target.history.totalCount"
 )
 
-a=$((count-prevCount))
-echo ${name} ${prevCount} ${count} ${a}
-./g2 ${name} ${a}
+difCount=$((count-prevCount))
+echo ${name} ${prevCount} ${count} ${difCount}
+./g2 ${name} ${difCount}
+
+
+
+
 
 #total count last year
 

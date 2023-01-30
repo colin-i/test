@@ -26,8 +26,16 @@ curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/p
 
 for name in "${reps[@]}"; do
 
-./g1 ${name} `echo -n ${rps[${i}]} | grep -o [^=]*$`
+prevCount=`echo -n ${rps[${i}]} | grep -o [^=]*$`
+
+./g1 ${name} ${prevCount}
+
+#a.out a waiter with a socket that has processedCount
+out="${out} ${name}=`./a.out ${prevCount}`"
 
 i=$((i+1))
 
 done
+
+out=${out:1}
+echo ${out}
