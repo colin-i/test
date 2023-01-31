@@ -28,10 +28,14 @@ for name in "${reps[@]}"; do
 
 prevCount=`echo -n ${rps[${i}]} | grep -o [^=]*$`
 
+#a.out a waiter with a socket
+./a.out &
+
 ./g1 ${name} ${prevCount}
 
-#a.out a waiter with a socket that has processedCount
-out="${out} ${name}=`./a.out ${prevCount}`"
+processedCount=`./b.out`
+
+out="${out} ${name}=$((prevCount+processedCount))"
 
 i=$((i+1))
 
