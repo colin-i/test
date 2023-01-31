@@ -3,7 +3,7 @@
 
 #include <unistd.h> // for close
 #include <stdio.h> // for printf
-#include <stdlib.h> // for exit  
+#include <stdlib.h> // for exit
 #include <sys/socket.h> // socket call constants and some functions
 #include <sys/un.h> // socket in Unix (storage size of sockaddr_un)
 
