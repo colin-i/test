@@ -116,8 +116,6 @@ while [ "${nr}" -gt 0 ]; do
 	echo ${not_this_year} ${changesets} ${additions} ${deletions}
 done
 
-echo ${not_this_year} ${changesets} ${additions} ${deletions}
-
 ./b.out ${not_this_year}
 ./b2.out ${changesets}
 ./b3.out ${additions}
