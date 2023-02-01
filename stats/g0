@@ -90,7 +90,7 @@ rm b4.out
 
 mkdir ${1}
 cd ${1}
-echo ${out}>h
-echo ${out2}>h2
-echo ${out3}>h3
-echo ${out4}>h4
+echo -n ${out}>h
+echo -n ${out2}>h2
+echo -n ${out3}>h3
+echo -n ${out4}>h4
