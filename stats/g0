@@ -34,10 +34,6 @@ prevCount=`echo -n ${rps[${i}]} | grep -o [^=]*$`
 
 ./g1 ${name} ${prevCount}
 
-if [ "$?" != 0 ]; then echo errors
-exit 1
-fi
-
 processedCount=`./b.out`
 
 out="${out} ${name}=$((prevCount+processedCount))"

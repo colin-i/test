@@ -58,40 +58,35 @@ while [ "${nr}" -gt 0 ]; do
 	echo ${cursornr}
 
 	sleep 1
-	#without -d will strip "
-	data=$(
+	raw=$(
 	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
-	  jq ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id" | \
-	  xargs -d'\n'
+	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id"
 	)
-	#IFS is a collection on delimiters not a string
-	IFS='"' read -r -a array <<< "$data"
+	#is with new lines not space for ( ), IFS was not helping at last tests
+	readarray -t data <<<"$raw"
 
-	if [ "${#array[@]}" != $((cursornr*6)) ]
-	then
-		echo '" error'
-		exit 1
-	fi
+	dlimit=$(date -u -d $(date -u +%Y)-01-01 +%s)
 
-	dlimit=$(date -d $(date +%Y)-01-01 +%s)
-
-	for ((i = 0; i < ${#array[@]}; ))
+	for ((i = 0; i < ${#data[@]}; ))
 	do
-		i=$((i+2))
-		crs=${array[${i}]}
+		crs=${data[${i}]}
+		i=$((i+1))
 
-		i=$((i+2))
-		dt=${array[${i}]}
+		dt=${data[${i}]}
+		i=$((i+1))
 
-		i=$((i+2))
-		id=${array[${i}]}
+		id=${data[${i}]}
+		i=$((i+1))
 
-		dt=`date -d ${dt} +%s`
+		dt=`date -u -d ${dt} +%s`
 
-		if [ $dt -ge $dlimit ]; then continue; fi
+		if [ $dt -ge $dlimit ]; then
+			continue
+		fi
 	done
 
-	cursor=",after:\\\"${crs:1:-1}\\\""
+	cursor=",after:\\\"${crs}\\\""
+	#:1:-1      not -r("a b") will not be ok
 
 	nr=$((nr-cursornr))
 done
