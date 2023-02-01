@@ -1,19 +1,31 @@
 
-#1 name  2 count
+#1 name  2 count  optional 3 limit
 
 name=${1}
 nr=${2}
-cursor=
 
 echo ${name} ${nr}
 
+cursor=
+
+#for tests main reason
+if [ -z "${3}" ]; then
+	maximumlimit=100
+else
+	maximumlimit=${3}
+fi
+
 while [ "${nr}" -gt 0 ]; do
+	if [ "${nr}" -ge ${maximumlimit} ]; then cursornr=${maximumlimit}
+	else
+		cursornr=${nr}
+	fi
 
-#get viewer and contributors commits
-#user="MDQ6VXNlcjEwOTI1OTAz"
-#we know author date is different than a commit amend message date
+	#get viewer and contributors commits
+	#user="MDQ6VXNlcjEwOTI1OTAz"
+	#we know author date is different than a commit amend message date
 
-QUERY='
+	QUERY='
 {"query": "
   query {
     viewer {
@@ -21,12 +33,14 @@ QUERY='
         defaultBranchRef {
           target {
             ... on Commit {
-              history(first: 5'"${cursor}"') {
+              history(first: '"${cursornr}"''"${cursor}"') {
                 edges{
                   node{
                     author{
-                        date
-                        user
+                      date
+                      user{
+                        id
+                      }
                     }
                     additions
                     deletions
@@ -41,15 +55,45 @@ QUERY='
     }
   }"
 }'
+	echo ${cursornr}
 
-cursor=$(
-curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
-  jq ".data.viewer.repository.defaultBranchRef.target.history.edges[-1].cursor"
-)
-cursor=",after:\\\"${cursor:1:-1}\\\""
-echo ${cursor}
+	sleep 1
+	#without -d will strip "
+	data=$(
+	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+	  jq ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id" | \
+	  xargs -d'\n'
+	)
+	#IFS is a collection on delimiters not a string
+	IFS='"' read -r -a array <<< "$data"
 
-nr=$((nr-100))
-echo ${nr}
+	if [ "${#array[@]}" != $((cursornr*6)) ]
+	then
+		echo '" error'
+		exit 1
+	fi
 
+	dlimit=$(date -d $(date +%Y)-01-01 +%s)
+
+	for ((i = 0; i < ${#array[@]}; ))
+	do
+		i=$((i+2))
+		crs=${array[${i}]}
+
+		i=$((i+2))
+		dt=${array[${i}]}
+
+		i=$((i+2))
+		id=${array[${i}]}
+
+		dt=`date -d ${dt} +%s`
+
+		if [ $dt -ge $dlimit ]; then continue; fi
+	done
+
+	cursor=",after:\\\"${crs:1:-1}\\\""
+
+	nr=$((nr-cursornr))
 done
+
+exit 0
