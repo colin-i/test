@@ -90,5 +90,3 @@ while [ "${nr}" -gt 0 ]; do
 
 	nr=$((nr-cursornr))
 done
-
-exit 0
