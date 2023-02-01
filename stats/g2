@@ -15,6 +15,14 @@ else
 	maximumlimit=${3}
 fi
 
+gh_id="MDQ6VXNlcjEwOTI1OTAz"
+
+not_this_year=0
+
+changesets=0
+additions=0
+deletions=0
+
 while [ "${nr}" -gt 0 ]; do
 	if [ "${nr}" -ge ${maximumlimit} ]; then cursornr=${maximumlimit}
 	else
@@ -22,7 +30,6 @@ while [ "${nr}" -gt 0 ]; do
 	fi
 
 	#get viewer and contributors commits
-	#user="MDQ6VXNlcjEwOTI1OTAz"
 	#we know author date is different than a commit amend message date
 
 	QUERY='
@@ -60,7 +67,7 @@ while [ "${nr}" -gt 0 ]; do
 	sleep 1
 	raw=$(
 	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
-	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id"
+	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id, .node.additions, .node.deletions"
 	)
 	#is with new lines not space for ( ), IFS was not helping at last tests
 	readarray -t data <<<"$raw"
@@ -78,11 +85,27 @@ while [ "${nr}" -gt 0 ]; do
 		id=${data[${i}]}
 		i=$((i+1))
 
+		adds=${data[${i}]}
+		i=$((i+1))
+
+		dels=${data[${i}]}
+		i=$((i+1))
+
 		dt=`date -u -d ${dt} +%s`
 
 		if [ $dt -ge $dlimit ]; then
 			continue
 		fi
+
+		not_this_year=$((not_this_year+1))
+
+		if [ "${id}" != "${gh_id}" ]; then
+			continue
+		fi
+
+		changesets=$((changesets+1))
+		additions=$((additions+adds))
+		deletions=$((deletions+dels))
 	done
 
 	cursor=",after:\\\"${crs}\\\""
@@ -90,3 +113,10 @@ while [ "${nr}" -gt 0 ]; do
 
 	nr=$((nr-cursornr))
 done
+
+echo ${not_this_year} ${changesets} ${additions} ${deletions}
+
+./b.out ${not_this_year}
+./b2.out ${changesets}
+./b3.out ${additions}
+./b4.out ${deletions}

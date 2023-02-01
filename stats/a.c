@@ -14,6 +14,8 @@
 
 #include <stdbool.h>
 
+#include <libgen.h> //basename
+
 #include "a.h"
 
 int main(int argc, char **argv)
@@ -28,6 +30,8 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	char server_name[sizeof(SERVER_SOCK_PATH)+1];
+	variable_name(argv[0],SERVER_SOCK_PATH,server_name);
 	/*************************************/
 	/* Bind to an address on file system */
 	/*************************************/
@@ -36,11 +40,11 @@ int main(int argc, char **argv)
 	struct sockaddr_un server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sun_family = AF_UNIX;
-	strcpy(server_addr.sun_path, SERVER_SOCK_PATH);
+	strcpy(server_addr.sun_path, server_name);
 	int len = sizeof(server_addr);
 
 	// unlink the file before bind, unless it can't bind
-	//unlink(SERVER_SOCK_PATH);
+	//unlink(server_name);
 
 	int rc = bind(server_sock, (struct sockaddr *)&server_addr, len);
 	if (rc == -1)
@@ -60,7 +64,7 @@ int main(int argc, char **argv)
 	if (rc == -1)
 	{
 		printf("Listen error: %s\n", strerror(errno));
-		unlink(SERVER_SOCK_PATH);
+		unlink(server_name);
 		close(server_sock);
 		exit(1);
 	}
@@ -81,7 +85,7 @@ int main(int argc, char **argv)
 		{
 			printf("Accept error: %s\n", strerror(errno));
 			close(client_fd);
-			unlink(SERVER_SOCK_PATH);
+			unlink(server_name);
 			close(server_sock);
 			exit(1);
 		}
@@ -93,7 +97,7 @@ int main(int argc, char **argv)
 		{
 			printf("Error when receiving message: %s\n", strerror(errno));
 			close(client_fd);
-			unlink(SERVER_SOCK_PATH);
+			unlink(server_name);
 			close(server_sock);
 			exit(1);
 		}
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
 			}else if(incoming_size > buf_size){
 				printf("What are we doing here?\n");
 				close(client_fd);
-				unlink(SERVER_SOCK_PATH);
+				unlink(server_name);
 				close(server_sock);
 				exit(1);
 			}else{
@@ -114,7 +118,7 @@ int main(int argc, char **argv)
 				if (store_length != incoming_size){
 					printf("Something is wrong!\n");
 					close(client_fd);
-					unlink(SERVER_SOCK_PATH);
+					unlink(server_name);
 					close(server_sock);
 					exit(1);
 				}
@@ -125,7 +129,7 @@ int main(int argc, char **argv)
 	}
 
 	close(client_fd);
-	unlink(SERVER_SOCK_PATH);
+	unlink(server_name);
 	close(server_sock);
 
 	return 0;

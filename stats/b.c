@@ -11,6 +11,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <libgen.h> //basename
+
 #include "a.h"
 
 #define CLIENT_SOCK_PATH "unix_sock.client"
@@ -40,13 +42,15 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	char server_name[sizeof(SERVER_SOCK_PATH)+1];
+	variable_name(argv[0],SERVER_SOCK_PATH,server_name);
 	/****************************************/
 	/* Set server address and connect to it */
 	/****************************************/
 	struct sockaddr_un server_addr;
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sun_family = AF_UNIX;
-	strcpy(server_addr.sun_path, SERVER_SOCK_PATH);
+	strcpy(server_addr.sun_path, server_name);
 	int len = sizeof(server_addr);
 	int rc = connect(client_sock, (struct sockaddr*)&server_addr, len);
 	if(rc == -1)
@@ -76,6 +80,8 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}else{
+		char client_name[sizeof(CLIENT_SOCK_PATH)+1];
+		variable_name(argv[0],CLIENT_SOCK_PATH,client_name);
 		/********************************************/
 		/* Bind client to an address on file system */
 		/********************************************/
@@ -83,7 +89,7 @@ int main(int argc, char **argv)
 		struct sockaddr_un client_addr;
 		memset(&client_addr, 0, sizeof(client_addr));
 		client_addr.sun_family = AF_UNIX;
-		strcpy(client_addr.sun_path, CLIENT_SOCK_PATH);
+		strcpy(client_addr.sun_path, client_name);
 		int len = sizeof(client_addr);
 		rc = bind(client_sock, (struct sockaddr *)&client_addr, len);
 		if (rc == -1)
@@ -99,12 +105,12 @@ int main(int argc, char **argv)
 		if (rc == -1)
 		{
 			printf("Recv Error. %s\n", strerror(errno));
-			unlink (CLIENT_SOCK_PATH);
+			unlink (client_name);
 			close(client_sock);
 			exit(1);
 		}
 		write(fileno(stdout),buf,rc);
-		unlink (CLIENT_SOCK_PATH);
+		unlink (client_name);
 	}
 
 	close(client_sock);
