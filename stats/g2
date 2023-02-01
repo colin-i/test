@@ -112,6 +112,8 @@ while [ "${nr}" -gt 0 ]; do
 	#:1:-1      not -r("a b") will not be ok
 
 	nr=$((nr-cursornr))
+
+	echo ${not_this_year} ${changesets} ${additions} ${deletions}
 done
 
 echo ${not_this_year} ${changesets} ${additions} ${deletions}
