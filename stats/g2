@@ -45,6 +45,7 @@ while [ "${nr}" -gt 0 ]; do
                   node{
                     author{
                       date
+                      email
                       user{
                         id
                       }
@@ -67,7 +68,7 @@ while [ "${nr}" -gt 0 ]; do
 	sleep 1
 	raw=$(
 	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
-	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id, .node.additions, .node.deletions"
+	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.email, .node.author.user.id, .node.additions, .node.deletions"
 	)
 	#is with new lines not space for ( ), IFS was not helping at last tests
 	#-t for trim new line
@@ -81,6 +82,9 @@ while [ "${nr}" -gt 0 ]; do
 		i=$((i+1))
 
 		dt=${data[${i}]}
+		i=$((i+1))
+
+		email=${data[${i}]}
 		i=$((i+1))
 
 		id=${data[${i}]}
@@ -101,8 +105,23 @@ while [ "${nr}" -gt 0 ]; do
 		not_this_year=$((not_this_year+1))
 
 		if [ "${id}" != "${gh_id}" ]; then
-			continue
+			if [ "${name}" != "flashalizer" ]; then
+				continue
+			else
+				#old commits was with another email
+				if [ "${email}" != "costin.b.84@gmail.com" ]; then
+					#was a period with name instead of email
+					if [ "${email}" != "Costin Botescu" ]; then
+						continue
+					elif [ $dt -gt 1490127937 ] || [ $dt -lt 1487947137 ]; then
+						continue
+					fi
+				elif [ $dt -gt 1440604066 ] || [ $dt -lt 1426009995 ]; then
+					continue
+				fi
+			fi
 		fi
+		#there is also 1 in 1 at test from github actions May 19, 2022
 
 		changesets=$((changesets+1))
 		additions=$((additions+adds))

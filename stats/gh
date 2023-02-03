@@ -4,21 +4,39 @@
 cd ${1}
 
 ins=( `cat h3` )
+rms=( `cat h4` )
+
+declare -A adds
+declare -A dels
 
 i=0
-
-declare -A arr
-
 for var in "${ins[@]}"
 do
 	IFS='=' read -a addr <<< "${var}"
-	arr[$i,0]=${addr[0]}
-	arr[$i,1]=${addr[1]}
+	adds[$i,0]=${addr[0]}
+	adds[$i,1]=${addr[1]}
+	i=$((i+1))
+done
+i=0
+for var in "${rms[@]}"
+do
+	IFS='=' read -a addr <<< "${var}"
+	dels[$i]=${addr[1]}
 	i=$((i+1))
 done
 
+out=
+
 for ((j=0;j<i;j++)) do
-	echo ${arr[$j,1]} ${arr[$j,0]} >> 1
+	adds[$j,1]=$((adds[$j,1]-dels[$j]))
+	out="${out} ${adds[$j,0]}=${adds[$j,1]}"
+
+	echo ${adds[$j,1]} ${adds[$j,0]} >> h6
 done
 
-sort -k1nr 1
+out=${out,1}
+echo ${out}
+echo ${out} > h5
+
+sort -k1nr h6 -o h6
+cat h6
