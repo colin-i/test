@@ -69,13 +69,10 @@ done
 
 out=${out:1}
 echo ${out}
-
 out2=${out2:1}
 echo ${out2}
-
 out3=${out3:1}
 echo ${out3}
-
 out4=${out4:1}
 echo ${out4}
 

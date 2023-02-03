@@ -70,6 +70,7 @@ while [ "${nr}" -gt 0 ]; do
 	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.user.id, .node.additions, .node.deletions"
 	)
 	#is with new lines not space for ( ), IFS was not helping at last tests
+	#-t for trim new line
 	readarray -t data <<<"$raw"
 
 	dlimit=$(date -u -d $(date -u +%Y)-01-01 +%s)
