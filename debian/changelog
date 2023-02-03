@@ -1,0 +1,24 @@
+libmingutils (0.4.5-3) bionic; urgency=medium
+
+  * pool
+
+ -- bc <bc@bc-HP-Pavilion-x360-Convertible>  Sun, 10 Jul 2022 08:21:35 +0300
+
+libmingutils (0.4.5-2) bionic; urgency=medium
+
+  * testing build files (they where recreated)
+
+ -- bc <bc@bc-HP-Pavilion-x360-Convertible>  Sun, 10 Jul 2022 08:10:40 +0300
+
+libmingutils (0.4.5-1ubuntu1) bionic; urgency=medium
+
+  * debhelper 11
+
+ -- bc <bc@bc-HP-Pavilion-x360-Convertible>  Tue, 26 Oct 2021 12:49:38 +0300
+
+libmingutils (0.4.5-1) bionic; urgency=low
+
+  * Initial release. Closes: #nnnn
+    <nnnn is the bug number of your ITP>
+
+ -- Colin Botes <costin.botescu@gmail.com>  Tue, 26 Oct 2021 12:02:05 +0300
