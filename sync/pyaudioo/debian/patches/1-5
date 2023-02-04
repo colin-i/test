@@ -1,0 +1,65 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ pyaudioo (1-5) jammy; urgency=medium
+ .
+   * site change
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-03
+
+--- /dev/null
++++ pyaudioo-1/.github/workflows/uprpm.yml
+@@ -0,0 +1,24 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ urbuild:
++  runs-on: ubuntu-18.04
++  steps:
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit 1
++      fi
++      wget https://github.com/colin-i/test/releases/download/1.5/${{ env.proj }} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.file }}
++      asset_content_type: application/x-rpm
+--- /dev/null
++++ pyaudioo-1/arh/re
+@@ -0,0 +1,10 @@
++
++mkdir -p ./usr/lib64/python3.10/site-packages && \
++sed "/^%doc.*copyright.*$/a %ghost \"/usr/lib64/python3.10/site-packages/PyAudio-0.2.12.egg-info\"\n" text > text2 && \
++sed "/^%doc.*copyright.*$/a %ghost \"/usr/lib64/python3.10/site-packages/pyaudio.py\"" text2 > text3 && \
++sed "/^%doc.*copyright.*$/a %ghost \"/usr/lib64/python3.10/site-packages/_portaudio.cpython-310-x86_64-linux-gnu.so\"" text3 > text2 && \
++printf "\n%%post\nln -s /usr/lib/python3/dist-packages/PyAudio-0.2.12.egg-info /usr/lib64/python3.10/site-packages/PyAudio-0.2.12.egg-info\n" >> text2 && \
++printf "ln -s /usr/lib/python3/dist-packages/pyaudio.py /usr/lib64/python3.10/site-packages/pyaudio.py \n" >> text2 && \
++printf "ln -s /usr/lib/python3/dist-packages/_portaudio.cpython-310-x86_64-linux-gnu.so /usr/lib64/python3.10/site-packages/_portaudio.cpython-310-x86_64-linux-gnu.so\n" >> text2 && \
++rm text3 && \
++sudo mv text2 text
