@@ -1,8 +1,13 @@
 
 #1 year
 
-#y=${1}
-#./g0 ${y}
-#./gh ${y}
-#./msg
-cp -P date prevdate
+y=${1}
+
+mkdir ${y} && \
+cd ${y} && \
+echo $(date -u -d $(date -u +%Y)-01-01 +%s) date && \
+cd .. && \
+cp -P date prevdate && \
+./g0 ${y} && \
+./gh ${y} && \
+./msg

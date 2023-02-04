@@ -92,7 +92,6 @@ rm b3.out
 rm a4.out
 rm b4.out
 
-mkdir ${1}
 cd ${1}
 echo -n ${out}>h
 echo -n ${out2}>h2
