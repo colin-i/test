@@ -1,0 +1,402 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ actionswf (1-1.33) bionic; urgency=medium
+ .
+   * flags fix
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-25
+
+--- actionswf-1.orig/example/Makefile
++++ actionswf-1/example/Makefile
+@@ -1,28 +1,49 @@
+ 
++platform = lin
++OCOMP=o
+ OFLAGS = conv_64 1
+ syms=-s
+ 
++ifeq (${platform},win)
++	OFLAGS += inplace_reloc 0 include_sec 1
++else
++	OFLAGS += underscore_pref 1 exit_end 1
++endif
++
+ name=example
+ 
+-all: ${name} uns lnk exe
++all: ${name} uns lib lnk exe
+ 
+ uns:
+ 	ounused ${name}.s.log
+ 
++lib:
++	if [ "${platform}" = "win" ]; then \
++		i686-w64-mingw32-dlltool --no-leading-underscore -d ../lib/actionswf.def -l ./libactionswf.a; \
++	fi
++
+ lnk:
+-	$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${name}.o -entry example_main -o ${name} -lc -L../src -l:actionswf.so
+-	#$(LD) ${syms} --dynamic-linker=/lib64/ld-linux-x86-64.so.2 ${name}.o -entry example_main -o ${name} -lc -L../src -l:actionswf.so
++	if [ "${platform}" = "lin" ]; then \
++		$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${name}.o -entry example_main -o ${name} -lc -L../src -l:actionswf.so; \
++	else \
++		i686-w64-mingw32-ld ${syms} ${name}.o -entry example_main -lmsvcrt -o ${name}.exe -L. -l:libactionswf.a; \
++	fi
++#$(LD) ${syms} --dynamic-linker=/lib64/ld-linux-x86-64.so.2 ${name}.o -entry example_main -o ${name} -lc -L../src -l:actionswf.so
+ 
+ exe:
+-	export LD_LIBRARY_PATH=../src; ./example
++	if [ "${platform}" = "lin" ]; then \
++		export LD_LIBRARY_PATH=../src; ./example; \
++	fi
+ 
+ %: %.s
+-	o $< ${OFLAGS}
++	${OCOMP} $< ${OFLAGS}
+ 
+ clean:
+ 	-rm -f ${name}.s.log
+ 	-rm -f ${name}.o
+ 	-rm -f ${name}
++	-rm -f ${name}.exe
++	-rm -f libactionswf.a
+ 
+ .PHONY: all clean
+ # install distclean uninstall test
+--- actionswf-1.orig/example/example.s
++++ actionswf-1/example/example.s
+@@ -1,6 +1,6 @@
+ format elfobj64
+ 
+-importx "sprintf" sprintf
++importx "_sprintf" sprintf
+ 
+ #a simple shape moving on the stage example
+ 
+@@ -58,4 +58,5 @@ _movie._y=100;
+ 
+ call swf_showframe()
+ call swf_done()
+-exit 0
++
++return 0
+--- /dev/null
++++ actionswf-1/example/makewin32
+@@ -0,0 +1,2 @@
++
++make platform=win $@
+--- actionswf-1.orig/fix/c.def
++++ actionswf-1/fix/c.def
+@@ -5,9 +5,8 @@ _open
+ _write
+ _read
+ _lseek
+-_tell
+-fwrite
+ __iob_func
++fwrite
+ realloc
+ free
+ memcmp
+--- /dev/null
++++ actionswf-1/include/lin.h
+@@ -0,0 +1,8 @@
++
++Const flag_O_BINARY=0
++Const flag_O_CREAT=0x0040
++
++const S_IRWXU=0x1C0
++const S_IRGRP=0x20;const S_IXGRP=0x8
++const S_IROTH=0x4;const S_IXOTH=0x1
++Const flag_pmode=S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH
+--- actionswf-1.orig/include/prog.h
++++ actionswf-1/include/prog.h
+@@ -92,10 +92,9 @@ const FontFlagsHasLayout=0x80
+ #const FontFlagsItalic=2
+ #const FontFlagsBold=1
+ 
++include "lin.h" "win.h"
++
+ Const _O_RDONLY=0;Const _O_WRONLY=0x0001;Const _O_TRUNC=0x0200
+-const win_O_CREAT=0x0100;const win_O_BINARY=0x8000
+-Const _open_read=_O_RDONLY|win_O_BINARY
+-Const _open_write_base=_O_WRONLY|win_O_BINARY|win_O_CREAT
++Const _open_read=_O_RDONLY|flag_O_BINARY
++Const _open_write_base=_O_WRONLY|flag_O_BINARY|flag_O_CREAT
+ Const _open_write=_open_write_base|_O_TRUNC
+-const win_S_IREAD=0x100;const win_S_IWRITE=0x80
+-Const pmode=win_S_IREAD|win_S_IWRITE
+--- /dev/null
++++ actionswf-1/include/win.h
+@@ -0,0 +1,4 @@
++
++const flag_O_CREAT=0x0100;const flag_O_BINARY=0x8000
++const flag_S_IREAD=0x100;const flag_S_IWRITE=0x80
++Const flag_pmode=flag_S_IREAD|flag_S_IWRITE
+--- /dev/null
++++ actionswf-1/makewin32
+@@ -0,0 +1,4 @@
++
++cd src
++
++./makewin32
+--- actionswf-1.orig/readme.txt
++++ actionswf-1/readme.txt
+@@ -3,4 +3,4 @@ Action Swf can create swf files.
+ The program is a set of objects made with O Language.
+ A swf with actionscript example is in the example folder for static o language.
+ The include/actionswf.h is for c/c++ language. dev/import.h are the imports for o language.
+-The files swf.s and action.s has the main functions that can be used.
++The files swf.es and action.es has the main functions that can be used; functions from tool.es can be used in rare situations.
+--- actionswf-1.orig/src/Makefile
++++ actionswf-1/src/Makefile
+@@ -6,27 +6,44 @@ expitems = action swf tool ../shared/act
+ 
+ exte=libexte.a
+ 
++OCOMP=o
+ OFLAGS = conv_64 1
++ifeq (${platform},win)
++	OFLAGS += inplace_reloc 0 include_sec 1
++else
++	OFLAGS += underscore_pref 1
++endif
++
+ syms =-s
+ 
+-name = actionswf.so
++projname=actionswf
++name = ${projname}.so
++
++all: ${items} ${expitems} ounused lnk
+ 
+-all: ${items} ${expitems}
++ounused:
+ 	ounused ${logs}
+-	$(AR) cr ${exte} ${obs}
+-	$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${eobs} -shared -entry DllMain -o ${name} -lc -L. -l:libexte.a --exclude-libs ${exte}
+-	#$(LD) ${syms} --dynamic-linker=/lib64/ld-linux-x86-64.so.2 ${eobs} -shared -entry DllMain -o ${name} -lc -L. -l:libexte.a --exclude-libs ${exte}
++
++lnk:
++	if [ "${platform}" = "lin" ]; then \
++		$(AR) cr ${exte} ${obs} && \
++		$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${eobs} -shared -entry DllMain -o ${name} -lc -L. -l:${exte} --exclude-libs ${exte}; \
++	else \
++		i686-w64-mingw32-ld --no-leading-underscore ${syms} ${eobs} ${obs} -shared -entry=DllMain -lmsvcrt -o ${projname}.dll --exclude-modules-for-implib `printf ',%s' ${obs} | cut -c2-`; \
++	fi
++#noleadingunderscore for exporting symbols
++#$(LD) ${syms} --dynamic-linker=/lib64/ld-linux-x86-64.so.2 ${eobs} -shared -entry DllMain -o ${name} -lc -L. -l:libexte.a --exclude-libs ${exte}
+ 
+ logs :=
+ obs :=
+ eobs :=
+ 
+ %: %.s
+-	o $< ${OFLAGS}
++	${OCOMP} $< ${OFLAGS}
+ 	$(eval logs += $@.s.log)
+ 	$(eval obs += $@.o)
+ %: %.es
+-	o $< ${OFLAGS}
++	${OCOMP} $< ${OFLAGS}
+ 	$(eval logs += $@.es.log)
+ 	$(eval eobs += $@.o)
+ 
+@@ -36,6 +53,7 @@ clean:
+ 	-printf ' %s.o' ${items} ${expitems} | xargs rm -f
+ 	-rm -f ${exte}
+ 	-rm -f ${name}
++	-rm -f ${projname}.dll
+ 
+ distclean: clean
+ 
+--- actionswf-1.orig/src/actioncode.s
++++ actionswf-1/src/actioncode.s
+@@ -1,8 +1,8 @@
+ Format ElfObj64
+ 
+-importx "strcmp" strcmp
+-importx "sprintf" sprintf
+-importx "strlen" strlen
++importx "_strcmp" strcmp
++importx "_sprintf" sprintf
++importx "_strlen" strlen
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+--- actionswf-1.orig/src/actionparse.s
++++ actionswf-1/src/actionparse.s
+@@ -1,10 +1,10 @@
+ Format ElfObj64
+ 
+-importx "strcspn" strcspn
+-importx "strchr" strchr
+-importx "memcpy" memcpy
+-importx "sscanf" sscanf
+-importx "strpbrk" strpbrk
++importx "_strcspn" strcspn
++importx "_strchr" strchr
++importx "_memcpy" memcpy
++importx "_sscanf" sscanf
++importx "_strpbrk" strpbrk
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+--- actionswf-1.orig/src/actionpool.s
++++ actionswf-1/src/actionpool.s
+@@ -1,7 +1,7 @@
+ Format ElfObj64
+ 
+-importx "strlen" strlen
+-importx "memcmp" memcmp
++importx "_strlen" strlen
++importx "_memcmp" memcmp
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+--- actionswf-1.orig/src/actionutil.s
++++ actionswf-1/src/actionutil.s
+@@ -1,8 +1,8 @@
+ Format ElfObj64
+ 
+-importx "strlen" strlen
+-importx "memcpy" memcpy
+-importx "sprintf" sprintf
++importx "_strlen" strlen
++importx "_memcpy" memcpy
++importx "_sprintf" sprintf
+ #
+ importx "action" action
+ 
+--- actionswf-1.orig/src/file.s
++++ actionswf-1/src/file.s
+@@ -1,11 +1,11 @@
+ Format ElfObj64
+ 
+-importx "open" open
+-importx "read" read
+-importx "write" write
+-importx "lseek" lseek
+-#importx "tell" tell   can't find it
+-importx "close" close
++importx "_open" open
++importx "_read" read
++importx "_write" write
++importx "_lseek" lseek
++#importx tell   can't find it
++importx "_close" close
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+@@ -17,8 +17,8 @@ import "error" error
+ function file_open(ss filepath,sd flags)
+     sd file
+     sd permission
+-    sd creat_test;set creat_test flags;and creat_test (win_O_CREAT);if creat_test!=0
+-        set permission (pmode);endif
++    sd creat_test;set creat_test flags;and creat_test (flag_O_CREAT);if creat_test!=0
++        set permission (flag_pmode);endif
+     SetCall file open(filepath,flags,permission)
+     if file==(fd_error)
+         call printEr("File: \"")
+--- actionswf-1.orig/src/lin.s
++++ actionswf-1/src/lin.s
+@@ -4,5 +4,6 @@ format elfobj64
+ Importx "stderr" stderr
+ 
+ function platform_iob()
+-	return stderr
++	sd a^stderr
++	return a#
+ endfunction
+--- /dev/null
++++ actionswf-1/src/makewin32
+@@ -0,0 +1,2 @@
++
++make platform=win $@
+--- actionswf-1.orig/src/storage.s
++++ actionswf-1/src/storage.s
+@@ -1,7 +1,7 @@
+ Format ElfObj64
+ 
+-importx "strlen" strlen
+-importx "memcpy" memcpy
++importx "_strlen" strlen
++importx "_memcpy" memcpy
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+--- actionswf-1.orig/src/swf.es
++++ actionswf-1/src/swf.es
+@@ -1,8 +1,8 @@
+ Format ElfObj64
+ 
+-importx "memcpy" memcpy
+-importx "strlen" strlen
+-importx "memcmp" memcmp
++importx "_memcpy" memcpy
++importx "_strlen" strlen
++importx "_memcmp" memcmp
+ 
+ importaftercall ebool
+ include "../include/prog.h"
+--- actionswf-1.orig/src/util.s
++++ actionswf-1/src/util.s
+@@ -1,12 +1,12 @@
+ Format ElfObj64
+ 
+-importx "fwrite" fwrite
+-importx "realloc" realloc
+-importx "memcpy" memcpy
+-importx "free" free
+-importx "strcspn" strcspn
+-importx "strlen" strlen
+-importx "memcmp" memcmp
++importx "_fwrite" fwrite
++importx "_realloc" realloc
++importx "_memcpy" memcpy
++importx "_free" free
++importx "_strcspn" strcspn
++importx "_strlen" strlen
++importx "_memcmp" memcmp
+ 
+ import "platform_iob" platform_iob
+ 
+--- actionswf-1.orig/src/win.s
++++ actionswf-1/src/win.s
+@@ -1,7 +1,9 @@
+ 
+ format elfobj64
+ 
+-importx "__iob_func" iob_func
++include "../include/prog.h"
++
++importx "___iob_func" iob_func
+ 
+ function platform_iob()
+ #    const STDIN_FILENO=0
+@@ -15,6 +17,7 @@ function platform_iob()
+         #int _charbuf;#int _bufsiz;
+         #char *_tmpfname;
+     #}
++    sd stderr
+     setcall stderr iob_func()
+     const size_of_FILE_noPad=:+DWORD+:+DWORD+DWORD+DWORD+DWORD+:
+     const pad_align_calc1=:-1;const pad_align_calc2=~pad_align_calc1;const pad_align_calc3=size_of_FILE_noPad+pad_align_calc1

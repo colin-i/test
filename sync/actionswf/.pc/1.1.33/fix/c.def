@@ -1,0 +1,22 @@
+LIBRARY msvcrt.dll
+EXPORTS
+_close
+_open
+_write
+_read
+_lseek
+_tell
+fwrite
+__iob_func
+realloc
+free
+memcmp
+memcpy
+sscanf
+sprintf
+strcat
+strchr
+strcmp
+strlen
+strcspn
+strpbrk

@@ -1,0 +1,44 @@
+on:
+ workflow_dispatch:
+  inputs:
+   ppa:
+    description: "ppa sufix"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ rpbuild:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-22.04 #focal alien is not testing ok on docker fedora
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   - uses: actions/checkout@v3
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      #get deb
+      arh=i386
+      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+      version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+      #dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
+      if [ ! -e "lp2.py" ]; then
+       wget -q https://raw.githubusercontent.com/colin-i/test/master/lp2.py
+       #sudo apt install python3-launchpadlib it is on 22.04
+      fi
+      OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version})
+      wget ${OUTPUT}/+files/${name}_${version}_${arh}.deb -O ${name}.deb
+      #make rpm
+      mkdir out
+      cd out
+      #sudo apt update
+      sudo apt install alien
+      sudo alien -rk ../${name}.deb
+      fname=`ls`
+      fnamefinal=`echo ${fname} | sed "s/-/./"`
+      mv ${fname} ../${fnamefinal}
+      echo "file=${fnamefinal}" >> $GITHUB_ENV
+   - name: artifact
+     uses: actions/upload-artifact@v3
+     with:
+      name: rpm
+      path: ./${{ env.file }}

@@ -1,0 +1,20 @@
+
+
+~/test/debinit "${1}" && \
+~/test/keyring2 && \
+~/test/pub deb && \
+~/test/deb && \
+~/test/publp && \
+~/test/rpm && \
+~/test/pub rpm && \
+./makewin32 && \
+~/test/del && \
+~/test/rel && \
+~/test/pub rel && \
+~/test/uponrpm && \
+~/test/up && \
+~/test/pub uponrpm && \
+~/test/pub2 && \
+~/test/publp2 && \
+~/test/lp && \
+~/test/lp x

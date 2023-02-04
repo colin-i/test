@@ -1,0 +1,47 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ actionswf (1-57) bionic; urgency=medium
+ .
+   * fix built-in inside built-in
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-11-20
+
+--- actionswf-1.orig/src/actioncode.s
++++ actionswf-1/src/actioncode.s
+@@ -64,7 +64,7 @@ function get_nr_of_forIn_statements()
+ endfunction
+ 
+ #name/null
+-function action_code_write_builtin_names(sv codepointer,ss p_action)
++function action_code_write_builtin_names(sv codepointer,sv p_action)
+ 	set codepointer codepointer#
+ 	sd compare
+ 	vstr int="int"
+@@ -599,7 +599,9 @@ endfunction
+ #codepointer
+ function action_code_write_builtin_set(sd codepointer,sd pwant_return)
+ 	ss name
+-	chars act#1;chars act2#1
++	#these acts must stay on stack, can be builtin inside builtin
++	sd act
++	sd act2
+ 	setcall name action_code_write_builtin_names(codepointer,#act)
+ 	if name!=(NULL)
+ 		sd test;set test codepointer
