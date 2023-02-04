@@ -1,0 +1,8 @@
+
+#1 year
+
+#y=${1}
+#./g0 ${y}
+#./gh ${y}
+#./msg
+cp -P date prevdate

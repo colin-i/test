@@ -1,28 +1,28 @@
-306042 o
-245835 ostream
-45710 actionswf
-29410 games
-20562 edor
-8415 irc-ssl
-7074 flashalizer
-6637 audapa
-5105 dico
-4057 tora
-1459 chess-helper
-1254 test
-1075 builder
-561 prezenta
-540 pyaudio
-280 irc
-261 experimental
-221 medo
-188 ostriputil
-130 colin-i.github.io
-74 arh
-2 appimage.github.io
-2 colin-i
-0 box64
-0 LIEF
-0 ming
-0 oadbg
-0 odbg
+ostream 45209 258927 213718
+o 35363 325384 290021
+games 29504 54601 25097
+actionswf 7381 47546 40165
+flashalizer 7074 15078 8004
+edor 6731 39553 32822
+irc-ssl 5485 12411 6926
+audapa 3454 8968 5514
+dico 2613 7619 5006
+test 2068 3397 1329
+tora 1900 5438 3538
+chess-helper 1459 3204 1745
+builder 1076 1460 384
+prezenta 565 833 268
+oadbg 539 1629 1090
+pyaudio 287 621 334
+irc 280 556 276
+experimental 261 370 109
+medo 221 610 389
+ostriputil 189 196 7
+colin-i.github.io 130 302 172
+ming 105 250 145
+odbg 100 106 6
+arh 74 167 93
+LIEF 51 52 1
+appimage.github.io 2 2 0
+colin-i 2 4 2
+box64 0 3 3

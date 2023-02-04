@@ -1,6 +1,13 @@
 
 #1 year(folder)
 
+#this from the first case when $(date -u -d $(date -u +%Y)-01-01 +%s) was not enough
+ln -sf ${1}/date date
+if [ "$?" != "0" ]; then
+	echo date error
+	exit 1
+fi
+
 #a.out a waiter with a socket
 cc a.c
 cc b.c -o b.out

@@ -1,0 +1,69 @@
+
+
+from=`cat prevdate`
+to=`cat date`
+
+start=`pwd`
+
+cd $(dirname $(readlink date))
+
+commits=`cat hh2`
+totalplus=`cat hh3`
+totalminus=`cat hh4`
+total=`cat hh5`
+
+readarray -t data <<<"$(cat h6 | head -n3)"
+
+cd ${start}
+
+
+#bold text
+#https://mothereff.in/twitalics
+#They may not even show up at all, depending on your operating system and the fonts you have installed
+
+out=message
+
+datecalc () {
+	time=${1}
+	tm=`date -u -d @${time} +%_S`
+	if [ ${tm} != "0" ]; then
+		time=$(date -u -d @${time} -Is)
+		return
+	fi
+	tm=`date -u -d @${time} +%_M`
+	if [ ${tm} != "0" ]; then
+		time=$(date -u -d @${time} -Im)
+		return
+	fi
+	tm=`date -u -d @${time} +%_H`
+	if [ ${tm} != "0" ]; then
+		time=$(date -u -d @${time} -Ih)
+		return
+	fi
+	tm=`date -u -d @${time} +%_d`
+	if [ ${tm} != "1" ]; then
+		time=$(date -u -d @${time} -I)
+		return
+	fi
+	tm=`date -u -d @${time} +%_m`
+	if [ ${tm} != "1" ]; then
+		time=$(LANG=en_us_88591; date -u -d @${time} '+%B %Y')
+		return
+	fi
+	time=$(date -u -d @${time} '+%Y')
+}
+
+echo "https://github.com/colin-i" >${out}
+echo -n "From ">>${out}
+datecalc ${from}
+echo -n "${time} until ">>${out}
+datecalc ${to}
+echo "${time} I totalized $(echo -n ${commits}) changesets." >>${out}
+echo "The number of rows was increased by ${total} (${totalplus} added and ${totalminus} removed)." >>${out}
+echo "The top 3 projects by the number of rows:" >>${out}
+for var in "${data[@]}"
+do
+	ar=( ${var} )
+	echo -e "\t${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})" >>${out}
+done
+cat ${out}

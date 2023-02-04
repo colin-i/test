@@ -26,17 +26,46 @@ do
 done
 
 out=
+total=0
+totalplus=0
+totalminus=0
 
 for ((j=0;j<i;j++)) do
-	adds[$j,1]=$((adds[$j,1]-dels[$j]))
-	out="${out} ${adds[$j,0]}=${adds[$j,1]}"
+	name=${adds[$j,0]}
+	plus=${adds[$j,1]}
+	minus=${dels[$j]}
+	dif=$((plus-minus))
 
-	echo ${adds[$j,1]} ${adds[$j,0]} >> h6
+	out="${out} ${name}=${dif}"
+
+	total=$((total+dif))
+	totalplus=$((totalplus+plus))
+	totalminus=$((totalminus+minus))
+
+	echo ${name} ${dif} ${plus} ${minus} >> hh6
 done
 
 out=${out,1}
-echo ${out}
 echo ${out} > h5
+cat h5
 
-sort -k1nr h6 -o h6
+sort -k2nr hh6 -o h6
+rm hh6
 cat h6
+
+coms=( `cat h2` )
+commits=0
+for var in "${coms[@]}"
+do
+	IFS='=' read -a addr <<< "${var}"
+	commits=$((commits+addr[1]))
+done
+
+echo ${commits} > hh2
+cat hh2
+echo ${totalplus} > hh3
+cat hh3
+echo ${totalminus} > hh4
+cat hh4
+echo ${total} > hh5
+cat hh5
