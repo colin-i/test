@@ -26,8 +26,10 @@ dch -v ${major}-${version} --distribution=${dist} && \
 echo -n ${major}.${version} | xclip -selection clipboard && \
 dpkg-source --commit --include-removal && \
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
-git add .pc/${major}.${version}/ && \
-git add debian/patches/${major}.${version}
+
+#no more adding in source folder, these are going at "test" project
+#git add .pc/${major}.${version}/ && \
+#git add debian/patches/${major}.${version}
 
 #here was the push
 
