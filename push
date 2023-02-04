@@ -6,11 +6,11 @@
 #       git branch --unset-upstream master
 
 if [ "${2}" = "1" ]; then
-to=gist.github.com/colin-i/${1}
+	to=gist.github.com/colin-i/${1}
 elif [ "${2}" = "2" ]; then
-to=${2}
+	to=${1}
 else
-to=github.com/colin-i/${1}.git
+	to=github.com/colin-i/${1}.git
 fi
 to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
 
