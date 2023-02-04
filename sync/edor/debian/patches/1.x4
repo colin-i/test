@@ -1,0 +1,343 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x4) focal; urgency=medium
+ .
+   * fix for replace and find next
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-07-26
+
+--- /dev/null
++++ edor-1/.github/workflows/appimage.yml
+@@ -0,0 +1,120 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   ppa:
++    description: "ppa sufix"
++
++jobs:
++ build:
++  runs-on: ubuntu-20.04
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      name2=Edor
++      #
++      mkdir -p AppDir
++      file=runtime
++      arch_ai=-x86_64
++      archfile=${file}${arch_ai}
++      kitpart () {
++       #https://github.com/AppImage/pkg2appimage
++       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++      }
++      if [ ! -e "${file}" ]; then
++       kitpart
++       #"pkg2appimage-.*-x86_64.AppImage"
++       wget -c https://github.com/${urlpart}
++       mv ${archfile} ${file}
++       chmod a+x ${file}
++      fi
++      if [ ! -e "${name}.deb" ]; then
++       arh=amd64
++       version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++       if [ ! -e "lp2.py" ]; then
++        wget -q https://raw.githubusercontent.com/colin-i/test/master/lp2.py
++        #is already at focal sudo apt install python3-launchpadlib
++       fi
++       OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version} ${arh})
++       wget ${OUTPUT}/+files/${name}_${version}_${arh}.deb -O ${name}.deb
++       dpkg -x ${name}.deb AppDir
++      fi
++      apd=AppDir
++      cd ${apd}
++      file2=AppRun
++      if [ ! -e "${file2}" ]; then
++       if [ -z "${urlpart}" ]; then
++        kitpart
++       fi
++       archfile2=${file2}${arch_ai}
++       urlpart=${urlpart:0:`echo ${urlpart} | grep -ob '[^/]*$' | cut -d ':' -f 1`}${archfile2}
++       wget -c https://github.com/${urlpart}
++       chmod a+x ${archfile2}
++       mv ${archfile2} ${file2}
++      fi
++      pngfile=${name}.png
++      if [ ! -e "${pngfile}" ]; then
++       wget https://github.com/colin-i/test/releases/download/1.5/${name}.png -O ${pngfile}
++       cat > ${name}.desktop <<EOF
++      [Desktop Entry]
++      Type=Application
++      Name=${name2}
++      Exec=${name}
++      Icon=${name}
++      Categories=Utility
++      EOF
++       ln -s ${pngfile} .DirIcon
++      fi
++      #metadata file
++      mi=usr/share/metainfo
++      mif=${mi}/com.colin.${name}.appdata.xml
++      if [ ! -e "${mif}" ]; then
++       page=`cat ../debian/control | grep "^Homepage" | cut -d ' ' -f2`
++       mkdir -p ${mi}
++       cat > ${mif} <<EOF
++      <?xml version="1.0" encoding="UTF-8"?>
++      <!-- Copyright 2022 -->
++      <component type="desktop-application">
++       <id>com.colin.${name}</id>
++       <metadata_license>FSFAP</metadata_license>
++       <name>${name2}</name>
++       <summary>Console editor</summary>
++       <description>
++        <ul>
++         <li>Edit text files</li>
++         <li>Find/Replace</li>
++         <li>Undo/Redo</li>
++        </ul>
++       </description>
++       <url type="homepage">${page}</url>
++       <screenshots>
++        <screenshot type="default">
++         <caption>${name2} image</caption>
++         <image>https://raw.github.com/colin-i/${name}/master/arh/${name}.png</image>
++        </screenshot>
++       </screenshots>
++       <content_rating/>
++      </component>
++      EOF
++      fi
++      #
++      cd ..
++      #
++      if [ ! -e "${name}.AppImage" ]; then
++       mksquashfs AppDir ${name}.squashfs -root-owned -noappend
++       cat runtime >> ${name}.AppImage
++       cat ${name}.squashfs >> ${name}.AppImage
++       chmod a+x ${name}.AppImage
++      fi
++      glibc=`readelf -V ${apd}/usr/bin/edor | grep -Po "(?<= GLIBC_)[^ ]*" | sort -Vr | head -1`
++      glibc=${glibc//./-}
++      echo -n ${glibc} > version #"glibc" will not be ok for upload-artifact
++   - name: artifact
++     uses: actions/upload-artifact@v3
++     with:
++      name: appimage
++      path: |
++       ./*.AppImage
++       ./version
+--- edor-1.orig/.github/workflows/rpm.yml
++++ edor-1/.github/workflows/rpm.yml
+@@ -28,7 +28,10 @@ jobs:
+       sudo apt install alien
+       sudo alien -rk ../${name}.deb
+       fname=`ls`
+-      mv ${fname} ../
++      mv ${fname} ../${fname}
++      #no, BuildArch is x86_64, don't change to amd64
++      #fname2=${name}.${version}.${arh}.rpm
++      #${fname2} #alien says x86_64 but we coded elsewhere with amd64
+       echo "file=${fname}" >> $GITHUB_ENV
+    - name: artifact
+      uses: actions/upload-artifact@v3
+--- /dev/null
++++ edor-1/.github/workflows/upapp.yml
+@@ -0,0 +1,41 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ uabuild:
++  runs-on: ubuntu-latest
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++      #get appimage artifact
++      id=$(gh run list --workflow=appimage.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
++      repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
++      #
++      url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
++      url=${url:1:-1}
++      echo ${url}
++      curl -L -H "Authorization: token ${{ secrets.PAT }}" ${url} --output a.zip
++      #to env
++      unzip ./a.zip
++      glibc=`cat version`
++      echo "file=${name}.AppImage" >> $GITHUB_ENV
++      echo "fullfile=${name}.glibc${glibc}.amd64.AppImage" >> $GITHUB_ENV
++     env:
++      #for gh
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.fullfile }}
++      asset_content_type: application/x-executable
+--- /dev/null
++++ edor-1/.github/workflows/uprpm.yml
+@@ -0,0 +1,24 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ urbuild:
++  runs-on: ubuntu-18.04
++  steps:
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit 1
++      fi
++      wget https://github.com/colin-i/test/releases/download/1.5/${{ env.proj }} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.file }}
++      asset_content_type: application/x-rpm
+--- edor-1.orig/README.md
++++ /dev/null
+@@ -1,32 +0,0 @@
+-# EDitOR
+-
+-## Install
+-On Ubuntu from PPA.\
+-Architecture: amd64 arm64 armhf
+-```sh
+-sudo add-apt-repository ppa:colin-i/ppa
+-```
+-Or the *manual installation step* from this link *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6* \
+-Install:
+-```sh
+-sudo apt-get install edor
+-```
+-
+-## From source
+-Use autoconf automake libncurses-dev ; on armv7l(alias arm) cpu, libunwind-dev
+-```sh
+-autoreconf -i
+-./configure
+-make install
+-```
+-Use *\-\-prefix=your_path* at *./configure* if needed (example: at Termux in Android).\
+-*\-\-disable\-cpp* to set c rules.\
+-Or, for some 64-bit platforms:
+-```sh
+-make -f Makefile.old
+-```
+-Uninstall command is *make uninstall*.
+-
+-## Donations
+-The *donations* section is here
+-*https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6*
+--- /dev/null
++++ edor-1/arh/re
+@@ -0,0 +1,8 @@
++
++#echo remove at requires the second ncurses and tinfo entries, that with so version name
++
++#sudo sed is still permission
++
++sed '/^Requires.*NCURSES6.*$/d' text > text2
++
++sudo mv text2 text
+--- /dev/null
++++ edor-1/readme.md
+@@ -0,0 +1,39 @@
++# EDitOR
++
++## Install
++On Ubuntu from PPA.\
++Architecture: amd64 arm64 armhf
++```sh
++sudo add-apt-repository ppa:colin-i/ppa
++```
++Or the *manual installation step* from this link *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6* \
++Install:
++```sh
++sudo apt-get install edor
++```
++\
++On Fedora, <i>.rpm</i> file from [releases](https://github.com/colin-i/edor/releases).
++```sh
++yum install edor-*.*.rpm
++```
++\
++On linux distributions, <i>.AppImage</i> file from [releases](https://github.com/colin-i/edor/releases).
++
++## From source
++Use autoconf automake libncurses-dev ; on armv7l(alias arm) cpu, libunwind-dev
++```sh
++autoreconf -i
++./configure
++make install
++```
++Use *\-\-prefix=your_path* at *./configure* if needed (example: at Termux in Android).\
++*\-\-disable\-cpp* to set c rules.\
++Or, for some 64-bit platforms:
++```sh
++make -f Makefile.old
++```
++Uninstall command is *make uninstall*.
++
++## Donations
++The *donations* section is here
++*https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6*
+--- edor-1.orig/s/bar.c
++++ edor-1/s/bar.c
+@@ -814,12 +814,15 @@ static int find(char*z,size_t cursor,siz
+ 		wnoutrefresh(stdscr);
+ 		centering(w,&xr,&xc);
+ 		bool untouched=true;bool delimiter_touched=false;
+-		for(;;){
+-			int a=wgetch(w);
++		char prev_key=' ';
++		int last_key=Char_Return;int a;
++		for(;;last_key=a){
++			a=wgetch(w);
+ 			if(a==Char_Return){
+-				xc+=cursor;
++				if(last_key==Char_Return||last_key==prev_key)
++					xc+=cursor;//add only when last was simple find
+ 				forward=true;
+-			}else if(a==' '){
++			}else if(a==prev_key){
+ 				forward=false;
+ 			}else if(a==KEY_LEFT){
+ 				size_t iferrory=ytext;size_t iferrorx=xtext;

@@ -1,0 +1,121 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x8) focal; urgency=medium
+ .
+   * fix backspace and dels
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-10-24
+
+--- /dev/null
++++ edor-1/.github/FUNDING.yml
+@@ -0,0 +1,13 @@
++# These are supported funding model platforms
++
++github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
++patreon: # Replace with a single Patreon username
++open_collective: # Replace with a single Open Collective username
++ko_fi: # Replace with a single Ko-fi username
++tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
++community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
++liberapay: costin
++issuehunt: # Replace with a single IssueHunt username
++otechie: # Replace with a single Otechie username
++lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
++custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+--- edor-1.orig/.github/workflows/appimage.yml
++++ edor-1/.github/workflows/appimage.yml
+@@ -21,7 +21,8 @@ jobs:
+       archfile=${file}${arch_ai}
+       kitpart () {
+        #https://github.com/AppImage/pkg2appimage
+-       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       #urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       urlpart=AppImage/AppImageKit/releases/latest/download/${archfile}
+       }
+       if [ ! -e "${file}" ]; then
+        kitpart
+--- /dev/null
++++ edor-1/.github/workflows/delrel.yml
+@@ -0,0 +1,15 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   tag:
++    description: "project version"
++
++jobs:
++ delrel:
++   runs-on: ubuntu-latest
++   steps:
++    - uses: cb80/delrel@latest
++      with:
++       tag: ${{ github.event.inputs.tag }}
++       token: ${{ secrets.PAT }}
+--- /dev/null
++++ edor-1/arh/pub
+@@ -0,0 +1,23 @@
++
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | jq .tag_name -r) && \
++~/test/debinit "${1}" && \
++~/test/pub deb && \
++~/test/keyring2 && \
++~/test/deb && \
++~/test/publp && \
++~/test/ai && \
++~/test/rpm && \
++~/test/del && \
++~/test/rel && \
++~/test/pub appimage rpm rel && \
++~/test/upapp
++~/test/rerpm && \
++~/test/uprpm && \
++~/test/pub upapp uprpm && \
++~/test/pub2 && \
++~/test/publp2 && \
++~/test/lp && \
++~/test/lp x && \
++~/test/keyring && \
++~/test/del x ${last} && \
++~/test/arh2 ${last}
+--- edor-1.orig/s/main.c
++++ edor-1/s/main.c
+@@ -1289,7 +1289,11 @@ static bool del_key(size_t y,size_t x,in
+ 	size_t sz=r1->sz;
+ 	if(x==sz){
+ 		size_t yy=y+1;
+-		if(yy==rows_tot)return false;
++		if(yy==rows_tot){
++			//to not continue
++			if(margin/*true*/)wmove(w,r,c);//this is after refreshpage, the pointer is at the last row
++			return true;
++		}
+ 		row*r2=&rows[yy];
+ 		if(row_alloc(r1,x,r2->sz,0)==false){
+ 			if(undo_add_del(y,x,yy,0)==false){
+@@ -1322,7 +1326,7 @@ static bool del_key(size_t y,size_t x,in
+ static bool bcsp(size_t y,size_t x,int*rw,int*cl,WINDOW*w){
+ 	int c=cl[0];
+ 	if(xtext==0&&c==0){
+-		if(y==0)return false;
++		if(y==0)return true;//to not continue
+ 		size_t yy=y-1;
+ 		row*r0=&rows[yy];
+ 		row*r1=&rows[y];

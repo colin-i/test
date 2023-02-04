@@ -1,0 +1,63 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-1ubuntu4) impish; urgency=medium
+ .
+   * fix armhf
+Author: pi <pi@pi-desktop>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2021-10-13
+
+--- edor-1.orig/README.md
++++ edor-1/README.md
+@@ -2,7 +2,7 @@
+ 
+ ## Install
+ On Ubuntu, but other distros may have the same tree and dependencies.\
+-Architecture: amd64 arm64
++Architecture: amd64 arm64 armhf
+ ```sh
+ sudo add-apt-repository ppa:colin-i/ppa
+ sudo apt-get update
+@@ -10,7 +10,7 @@ sudo apt-get install edor
+ ```
+ 
+ ## From source
+-Use autoconf automake libncurses-dev ; on armv7l, libunwind-dev
++Use autoconf automake libncurses-dev ; on armv7l cpu, libunwind-dev
+ ```sh
+ autoreconf -i
+ ./configure
+--- edor-1.orig/configure.ac
++++ edor-1/configure.ac
+@@ -24,10 +24,13 @@ AC_CHECK_HEADERS(dirent.h errno.h fcntl.
+ AC_CHECK_HEADERS(curses.h, [AC_SUBST(CSS, "")], [AC_SUBST(CSS, "-Wno-padded")])
+ AC_SUBST(UNW, "")
+ 
++#arm32 unwind
+ AC_CANONICAL_BUILD
++AC_MSG_CHECKING([build_cpu])
++AC_MSG_RESULT([$build_cpu])
+ AC_MSG_CHECKING([armhf])
+-#arm32 unwind, $(uname -m)
+-AS_IF([test "`echo ${build_cpu} | head -c 6`" = "armv7l"],
++# || [[ "$build_cpu" = "arm" ]]
++AS_IF([ [[ "$build_cpu" = "armv7l" ]] ],
+   [
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(ARM7L, 1, [armv7l])

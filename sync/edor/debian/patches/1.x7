@@ -1,0 +1,68 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x7) focal; urgency=medium
+ .
+   * remove one condition
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-07-26
+
+--- edor-1.orig/s/bar.c
++++ edor-1/s/bar.c
+@@ -815,16 +815,15 @@ static int find(char*z,size_t cursor,siz
+ 		centering(w,&xr,&xc);
+ 		bool untouched=true;bool delimiter_touched=false;
+ 		char prev_key=' ';
+-		int is_for_forward=Char_Return;//last key only at next/prev/replace
++		bool is_for_forward=true;//last key only at next/prev/replace
+ 		for(;;){
+ 			int a=wgetch(w);
+ 			if(a==Char_Return){
+-				if(is_for_forward==Char_Return||is_for_forward==prev_key)
+-					xc+=cursor;//add only when last was simple find
+-				else is_for_forward=a;//modify only if was replace
++				if(is_for_forward)xc+=cursor;//add only when last was simple find
++				else is_for_forward=true;//modify only if was replace
+ 				forward=true;
+ 			}else if(a==prev_key){
+-				forward=false;is_for_forward=a;
++				forward=false;is_for_forward=true;
+ 			}else if(a==KEY_LEFT){
+ 				size_t iferrory=ytext;size_t iferrorx=xtext;
+ 				if(untouched/*true*/){
+@@ -834,7 +833,8 @@ static int find(char*z,size_t cursor,siz
+ 					if(forward){xtext+=cursorr;centering2(w,&xr,&xc,true);}
+ 					else centering(w,&xr,&xc);
+ 					untouched=false;
+-					is_for_forward=a;continue;
++					is_for_forward=false;
++					continue;
+ 				}
+ 				if(finding(cursor,xr,xc,forward)/*true*/){
+ 					if(replace(cursor)/*true*/){ytext=iferrory;xtext=iferrorx;continue;}
+@@ -843,7 +843,8 @@ static int find(char*z,size_t cursor,siz
+ 					else if(ytext==y1&&xtext<x1)x1-=cursor-cursorr;
+ 					if(forward){xtext+=cursorr;centering2(w,&xr,&xc,true);}
+ 					else centering(w,&xr,&xc);
+-					is_for_forward=a;continue;
++					is_for_forward=false;
++					continue;
+ 				}
+ 				return 1;
+ 			}else if(a=='r'){
