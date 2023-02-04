@@ -1,0 +1,38 @@
+This file is parsed by the program to set the preferences. The first char right of the equal sign is a value.
+
+
+Display unreferenced variables/functions warning
+To set to not display the unreferenced variables/functions warning set the following value.
+0 is Hide; 1 is Show
+warnings=1
+
+Log file
+This option creates a file with strings separated by null characters.
+If the includedir value is false: The first entry is the folder path to the main file. The next entry is the first file relative to the path and the other ones are the INCLUDE files relative to the main folder.
+If the includedir value is true: The file entries are followed by the name of the previous active folder, where the program will restore when the file is parsed.
+To create a log file of the compiled source set the following value.
+0 is No; 1 is Yes
+logfile=0
+
+Include active folder
+Change the active directory when including and stepping into a file.
+0 is No; 1 is Yes
+includedir=1
+
+Take the following action at FUNCTION entries at the object format that are not refered in the object and when the reference warning is enabled.
+[if warnings is 1]
+0 is Ignore them; 1 is Print/Show warning; 2 [if logfile is 1] is Write them to the file, else take 1
+codeFnObj=2
+
+Write the function names above the function in code section, useful when debugging asm instructions.
+0 is No; 1 is Yes
+function_name=0
+
+Log import functions
+[if logfile is 1]
+0 is No; 1 is Yes
+log_import_functions=1
+
+Ignore elfobj64
+0 is No,use linux convention if ocompiler was compiled for linux,else use microsoft; 1 is Yes; 2 is No,and cross-compile
+neg_64=0

@@ -1,0 +1,5731 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.3) bionic; urgency=medium
+ .
+   * features
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2021-12-04
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -1,38 +1,58 @@
+-This file is parsed by the program to set the preferences. The first char right of the equal sign is a value.
++This file is parsed by the program to set the preferences. "nameEQUALx" must be preserved.
+ 
+ 
+-Display unreferenced variables/functions warning
+-To set to not display the unreferenced variables/functions warning set the following value.
++1. Display unreferenced variables/functions/constants warning.
+ 0 is Hide; 1 is Show
+ warnings=1
+ 
+-Log file
+-This option creates a file with strings separated by null characters.
+-If the includedir value is false: The first entry is the folder path to the main file. The next entry is the first file relative to the path and the other ones are the INCLUDE files relative to the main folder.
+-If the includedir value is true: The file entries are followed by the name of the previous active folder, where the program will restore when the file is parsed.
+-To create a log file of the compiled source set the following value.
+-0 is No; 1 is Yes
+-logfile=0
++2. Overflow at constants warning.
++0 is Hide; 1 is Show
++over_pref=1
++
++3. Hidden whitespaces warning.
++0 is Hide; 1 is Show
++hidden_pref=1
++
++4. Showed warnings as errors.
++0 if False; 1 is True
++w_as_e=1
+ 
+-Include active folder
+-Change the active directory when including and stepping into a file.
++5. Log file. This option creates a file with string lines.
+ 0 is No; 1 is Yes
+-includedir=1
++logfile=1
+ 
+-Take the following action at FUNCTION entries at the object format that are not refered in the object and when the reference warning is enabled.
++6. Take the following action at FUNCTION entries at the object format that are not referred in the object and when the reference warning is enabled.
+ [if warnings is 1]
+-0 is Ignore them; 1 is Print/Show warning; 2 [if logfile is 1] is Write them to the file, else take 1
++0 is Ignore them; 1 is Show warning; 2 [if logfile is 1] is Write them to the logfile (this will also log import functions), else take 1
+ codeFnObj=2
+ 
+-Write the function names above the function in code section, useful when debugging asm instructions.
+-0 is No; 1 is Yes
+-function_name=0
++7. CONST to unreferenced warnings, same as with FUNCTION
++[if warnings is 1]
++0 is Ignore them; 1 is Show warning; 2 [if logfile is 1] is Write them to the logfile (this will also log used constants), else take 1
++const_warn=2
+ 
+-Log import functions
++8. Log the folder path to the main file, the main file and the INCLUDE files.
+ [if logfile is 1]
++	[if includedir is 1]: The file entries are followed by the name of the previous active folder, where the program will restore when the file is parsed.
+ 0 is No; 1 is Yes
+-log_import_functions=1
++logincludes=1
+ 
+-Ignore elfobj64
++9. Include active folder. Change the active directory when including and stepping into a file.
++0 is No; 1 is Yes
++includedir=1
++
++10. Write the function names above the function in code section, useful when debugging asm instructions.
++0 is No; 1 is Yes
++function_name=0
++
++11. Ignore elfobj64
+ 0 is No,use linux convention if ocompiler was compiled for linux,else use microsoft; 1 is Yes; 2 is No,and cross-compile
+-neg_64=0
+\ No newline at end of file
++conv_64=0
++
++12. Zeroset reserved CHARS/DATA/STR
++0 is No; 1 is Yes
++nul_res_pref=0
++
++13. sd as sv (old programs don't have sv and may be with 64 logic)
++0 is No; 1 is Yes
++sd_as_sv=0
+\ No newline at end of file
+--- ocompiler-1.orig/Makefile
++++ ocompiler-1/Makefile
+@@ -11,7 +11,7 @@ OBT = $(OB).txt
+ 	if [ -s $(OBT) ];then base64 -d $(OBT) > $@;else o $<;fi
+ 
+ syms =-s
+-ATLDCOM = $(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc
++ATLDCOM = $(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc -entry main
+ #gcc -Wl,-melf_i386 -nostdlib "./src/linux/obj.o" -o "./buildg/o" -lc
+ 
+ o: $(OBJ)
+@@ -24,6 +24,7 @@ install: o
+ clean-compile:
+ 	-rm -f $(FULLOBJO)
+ 	-rm -f $(OBJ)
++	-rm -f $(FULLOBJS).log
+ 
+ clean-link:
+ 	-rm -f o
+--- ocompiler-1.orig/make_win32_fromLin_gnu
++++ ocompiler-1/make_win32_fromLin_gnu
+@@ -1,19 +1,11 @@
+ 
+ #this is the new make for windows
+ 
+-i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/user.def -l ./fix/libuser.a
+-i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/kernel.def -l ./fix/libkernel.a
+-i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/comdlg.def -l ./fix/libcomdlg.a
+-i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/c.def -l ./fix/libc.a
+-
+ o ./src/windows/obj32.s
+-i686-w64-mingw32-ld -s -nostdlib -entry _start ./src/windows/obj32.o -L./fix -luser -l kernel -lcomdlg -lc -o ./o.exe
++#argc argv?, no. gcc want -8 at rels and ld 0
++i686-w64-mingw32-ld -s -entry=_WinMain@16 ./src/windows/obj32.o -lmsvcrt -luser32 -lkernel32 -lcomdlg32 -o ./o.exe
+ 
+ rm ./src/windows/obj32.o
+-rm ./fix/libuser.a
+-rm ./fix/libkernel.a
+-rm ./fix/libcomdlg.a
+-rm ./fix/libc.a
+ 
+ mkdir ocompiler
+ mv o.exe ocompiler
+--- ocompiler-1.orig/make_win64_fromLin_gnu
++++ ocompiler-1/make_win64_fromLin_gnu
+@@ -1,5 +1,6 @@
+ 
+ #is old staying for information
++#x86_64-w64-mingw32-ld --image-base=0 -s -entry _WinMain@16 "./obj64.o" -luser32 -lkernel32 -lcomdlg32 -lmsvcrt -o "./o64.exe"
+ exit
+ 
+ #########
+@@ -40,5 +41,11 @@ x86_64-w64-mingw32-dlltool --no-leading-
+ ./o ./src/windows/obj32_64code.s
+ objcopy --input-target=elf32-i386 --output-target=elf64-x86-64 "./src/windows/obj32_64code.o" "./src/windows/obj64.o"
+ mkdir ./buildg
+-x86_64-w64-mingw32-ld -s -nostdlib -entry _start "./src/windows/obj64.o" -L./fix -luser -l kernel -lcomdlg -lc -o "./buildg/o64.exe"
++x86_64-w64-mingw32-ld --image-base=0 -s -nostdlib -entry _WinMain@16 "./src/windows/obj64.o" -L./fix -luser -l kernel -lcomdlg -lc -o "./buildg/o64.exe"
+ cp ./.ocompiler.txt ./buildg/
++
++rm ./fix/libuser.a
++rm ./fix/libkernel.a
++rm ./fix/libcomdlg.a
++rm ./fix/libc.a
++rm ./src/windows/obj64.o
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -75,7 +75,7 @@
+ 
+ <h3><a name="declaringdata">Declaring data</a></h3>
+ <p>
+-	The language has 6 names for data declaration (1 for constants and 5 for variables).
++	The language has 7 names for data declaration (1 for constants and 6 for variables).
+ 
+ 	<p>
+ 	1. Constants
+@@ -142,15 +142,22 @@
+ 	</p>
+ 
+ 	<p>
+-	5 and 6. Stack variables
++	5 - 7. Stack variables
+ 	<br>
+ 	Language command: <b>SD</b> = Stack Data
+ 	<br>
+ 	Language command: <b>SS</b> = Stack String
+ 	<br>
+-	These variables are located on the stack. The methods for declaring SD/SS are the same as for Data/String.
++	Language command: <b>SV</b> = Stack Value
+ 	<br>
+-	When declaring stack variables without a sign this is equivalent with reserve one unit.
++	At 64bit code all stack variables are 8 bytes. 4 bytes at 32.
++	<br>
++	Stack Value differentiates at 64bit code. It will point at 8 bytes ('sv#') when sd is pointing at 4 and ss at 1.
++	At 32bit code sd and sv are the same.
++	<br>
++	These variables are located on the stack. The methods for declaring SD/SS/SV are the same as for Data/String.
++	<br>
++	Stack variables can be declared without a sign. The implicit method in this case is '#1' (reserve one unit).
+ 	<br>
+ 	Example:
+ 	<br>
+@@ -163,12 +170,12 @@
+     sd another_reserve#1</a>
+ 	</p>
+ 
+-	Data can be declared using 5 methods with 4 signs (the first sign has two methods):
++	Data can be declared using the following methods:
+ 
+ 	<p>
+ 	1. Equal sign ('=')
+ 	<p>
+-	First method is without '{}' signs.
++	First method.
+ 	<br>
+ 	Example:
+ 	<br>
+@@ -223,7 +230,7 @@
+ 	4. Relocation sign ('%')
+ 	<br>
+ 	Used at the object format. It acts like equal sign and then the offset is added to the REL section.
+-	At executables it is ignored. At Str and quotations declaration the equal sign adds at object to Rel and this sign cannot be used here. At Chars the sign cannot be used.
++	At executables it translated to '='. At Str and quotations declaration the equal sign adds at object to Rel and this sign cannot be used here. At Chars the sign cannot be used.
+ 	<br>
+ 	Example:
+ 	<br>
+@@ -259,6 +266,9 @@
+ 	<tr><td>chars *examples={</td><td>3+2,</td><td>6-4.</td><td>5*5,</td><td>32/10,</td><td>32/10,</td><td>3$2,</td><td>7&2,</td><td>5|2,</td><td>7^2,</td><td>~0,</td><td>2<2,</td><td>8>3,</td><td>-a}</td></tr>
+ 	<tr><td>#</td><td>5</td><td>2</td><td>25</td><td>3</td><td>2</td><td>9</td><td>2</td><td>7</td><td>5</td><td>0xff</td><td>8</td><td>1</td><td>-1</td></tr>
+ 	</table>
++	<a class="code">
++	 const a=3*(1+2)<br>
++	 return (a) #9</a>
+ 	</p>
+ 
+ 	<p>
+@@ -573,7 +583,7 @@
+ 	<br>
+ 	All functions can be used in combinations like AddCall, OrCall, XorCall, etc.
+ 	<br>
+-	Another feature CallEx for prepared calls. This is a 3 argument operation. The first argument is the function name, the second argument is the arguments pointer and the third argument is the number of arguments. The arguments are passed forward respecting the size of the integer(4 bytes on 32-bits app, 8 on 64). One usage can be when there is a call with a number of arguments detected at run-time and want to pass them all to another call.
++	<b>CallEx</b> is for prepared calls. This is a 3 argument operation. The first argument is the function name, the second argument is the arguments pointer and the third argument is the number of arguments. The arguments are passed forward respecting the size of the integer(4 bytes on 32-bits app, 8 on 64). One usage can be when there is a call with a number of arguments detected at run-time and want to pass them all to another call.
+ 	<br>
+ 	The <b>Entry</b> command acts like a <b>Function</b> command but with some differences: 1. the scope is not changed to a local scope; 2. the function is not added to the unreferences list; 3. the <b>endfunction</b> command is not used at this function.
+ 	<p>
+@@ -776,7 +786,7 @@
+ 	<br>
+ 	<a class="code">
+         #This is a comment and it will not be executed<br>
+-        I3<br>
++        I3 #a line ending comment<br>
+         #this will pause the program into a debugger<br>
+         HEX 0x33,0xc0,0xC3<br>
+         #this will write 3 bytes in the code section<br>
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -62,47 +62,47 @@ If object==false
+ 		#If implibsstarted==true
+ 		#interpreter
+ 		Inc elf32_ehd_e_phnum
+-	
++
+ 		Set elf32_phdr_p_offset_interp elf32_phdr_p_offset_code
+ 		Add elf32_phdr_p_offset_interp codesecReg
+-	
++
+ 		Set elf32_phdr_p_vaddr_interp elf32_phdr_p_vaddr_code
+ 		Add elf32_phdr_p_vaddr_interp codesecReg
+ 		#SetCall elf32_phdr_p_vaddr_interp congruentmoduloatsegments(elf32_phdr_p_vaddr_interp,elf32_phdr_p_offset_interp,page_sectionalignment,codesecReg)
+-	
++
+ 		Set elf32_phdr_p_paddr_interp elf32_phdr_p_vaddr_interp
+-	
++
+ 		SetCall interpretersize strlen(ptrinterpreter)
+ 		Inc interpretersize
+-	
++
+ 		Set elf32_phdr_p_filesz_interp interpretersize
+ 		Set elf32_phdr_p_memsz_interp interpretersize
+-	
++
+ 		#dynamic
+ 		Inc elf32_ehd_e_phnum
+-		
++
+ 		Set elf32_phdr_p_offset_dyn elf32_phdr_p_offset_interp
+ 		Add elf32_phdr_p_offset_dyn interpretersize
+-	
++
+ 		Set elf32_phdr_p_vaddr_dyn elf32_phdr_p_vaddr_interp
+ 		Add elf32_phdr_p_vaddr_dyn interpretersize
+-	
++
+ 		Set elf32_phdr_p_paddr_dyn elf32_phdr_p_vaddr_dyn
+-	
++
+ 		Set elf32_phdr_p_filesz_dyn tableReg
+ 		Add elf32_phdr_p_filesz_dyn elf_dynfix_size
+-	
++
+ 		Set elf32_phdr_p_memsz_dyn elf32_phdr_p_filesz_dyn
+-	
++
+ 		#libraries load
+ 		Inc elf32_ehd_e_phnum
+-	
++
+ 		Set elf32_phdr_p_offset_lib elf32_phdr_p_offset_dyn
+ 		Add elf32_phdr_p_offset_lib elf32_phdr_p_filesz_dyn
+-	
++
+ 		set elf32_phdr_p_vaddr_lib elf32_phdr_p_vaddr_dyn
+ 		Add elf32_phdr_p_vaddr_lib elf32_phdr_p_filesz_dyn
+-	
++
+ 		data test1#1
+ 		data test2#1
+ 		set test1 elf32_phdr_p_vaddr_interp
+@@ -112,20 +112,20 @@ If object==false
+ 		if test2==test1
+ 			add elf32_phdr_p_vaddr_lib page_sectionalignment
+ 		endif
+-	
++
+ 		Set elf32_phdr_p_paddr_lib elf32_phdr_p_vaddr_lib
+-	
++
+ 		##resolve libraries
+ 		###hash
+ 		Set elf32_dyn_d_ptr_hash elf32_phdr_p_vaddr_lib
+-	
++
+ 		#
+ 		Set elf32_phdr_p_filesz_lib elf_hash_minsize
+ 		#
+-	
++
+ 		Set sizeofchain addressesReg
+ 		Div sizeofchain elf32_dyn_d_val_syment
+-	
++
+ 		## '## '=import command dependent
+ 		Data loopsymbols#1
+ 		Data ptrloopsymbols^loopsymbols
+@@ -139,59 +139,59 @@ If object==false
+ 		EndWhile
+ 		##
+ 		Set hash_var_size miscbagReg
+-	
++
+ 		#
+ 		Add elf32_phdr_p_filesz_lib hash_var_size
+ 		#
+-	
++
+ 		###symtab
+ 		Set elf32_dyn_d_ptr_symtab elf32_dyn_d_ptr_hash
+ 		Add elf32_dyn_d_ptr_symtab elf_hash_minsize
+ 		Add elf32_dyn_d_ptr_symtab hash_var_size
+-		
++
+ 		#
+ 		Add elf32_phdr_p_filesz_lib addressesReg
+ 		#
+-	
++
+ 		###strtab
+ 		Set elf32_dyn_d_ptr_strtab elf32_dyn_d_ptr_symtab
+ 		Add elf32_dyn_d_ptr_strtab addressesReg
+-	
++
+ 		###strsz
+ 		Set elf32_dyn_d_val_strsz namesReg
+-	
++
+ 		#stroff
+ 		data elf_str_offset#1
+ 		set elf_str_offset elf32_phdr_p_offset_lib
+ 		add elf_str_offset elf32_phdr_p_filesz_lib
+-	
++
+ 		#
+ 		Add elf32_phdr_p_filesz_lib namesReg
+ 		#
+-	
++
+ 		###rel
+ 		Set elf32_dyn_d_ptr_rel elf32_dyn_d_ptr_strtab
+ 		Add elf32_dyn_d_ptr_rel namesReg
+-	
++
+ 		###relsz
+-		
++
+ 		Set elf32_dyn_d_val_relsz sizeofchain
+-	
++
+ 		Mult elf32_dyn_d_val_relsz elf32_dyn_d_val_relent
+-	
++
+ 		#
+ 		Add elf32_phdr_p_filesz_lib elf32_dyn_d_val_relsz
+ 		#
+-	
++
+ 		##
+ 		Data elf_rel_offset#1
+ 		Chars elf_rel_info_type={R_386_32}
+ 		Data elf_rel_info_symbolindex#1
+-	
++
+ 		Set elf_rel_offset elf32_dyn_d_ptr_rel
+ 		Add elf_rel_offset elf32_dyn_d_val_relsz
+ 		Set elf_rel_info_symbolindex zero
+-	
++
+ 		While elf_rel_info_symbolindex<sizeofchain
+ 			SetCall errormsg addrel(elf_rel_offset,elf_rel_info_type,elf_rel_info_symbolindex,ptrmiscbag)
+ 			If errormsg!=noerr
+@@ -201,18 +201,18 @@ If object==false
+ 			Add elf_rel_offset dwordsize
+ 		EndWhile
+ 		##
+-	
++
+ 		Set rel_var_size miscbagReg
+ 		Sub rel_var_size hash_var_size
+-		
++
+ 		Set elf_rel_entries_size sizeofchain
+ 		Mult elf_rel_entries_size dwordsize
+-	
+-		SetCall errormsg addtosec(null,elf_rel_entries_size,ptrmiscbag)
++
++		SetCall errormsg addtosec(0,elf_rel_entries_size,ptrmiscbag)
+ 		If errormsg!=noerr
+ 			Call msgerrexit(errormsg)
+ 		EndIf
+-	
++
+ 		Data el_rel_entries_loop#1
+ 		Set el_rel_entries_loop miscbag
+ 		Add el_rel_entries_loop miscbagReg
+@@ -222,19 +222,19 @@ If object==false
+ 			Set el_rel_entries_loop# zero
+ 			Inc loopsymbols
+ 		EndWhile
+-	
++
+ 		#commons#
+ 		Set importfileheaders elf_importfileheaders
+ 		Set sizeimportfileheaders elf_importfileheaders_size
+-	
++
+ 		Set virtualimportsoffset elf32_phdr_p_vaddr_lib
+ 		Add virtualimportsoffset elf32_phdr_p_filesz_lib
+ 		#commons#
+-	
++
+ 		#
+ 		Add elf32_phdr_p_filesz_lib elf_rel_entries_size
+ 		#
+-	
++
+ 		Set elf32_phdr_p_memsz_lib elf32_phdr_p_filesz_lib
+ 	endelse
+ 
+@@ -288,7 +288,7 @@ Else
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+-	
++
+ 	Data elf_sec_flags_data=SHF_ALLOC
+ 	Set elf_sec_fileoff elf32_phdr_p_offset_data
+ 	SetCall errormsg elfaddsec(datastrtab,SHT_PROGBITS,elf_sec_flags_data,elf_sec_fileoff,ptrdatasec,null,null,dwordsize,null)
+--- ocompiler-1.orig/src/files/actions/fileformat/pe_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/pe_resolve.s
+@@ -78,7 +78,7 @@ If implibsstarted==true
+ 	Data itabentrysize=IMAGE_IMPORT_DESCRIPTORsize
+ 	Data itabloc#1
+ 	Set itabloc tableReg
+-	SetCall errormsg addtosec(null,itabentrysize,ptrtable)
++	SetCall errormsg addtosec(0,itabentrysize,ptrtable)
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+@@ -101,6 +101,8 @@ If implibsstarted==true
+ 	Data idatasectionsize=idatasectionsize
+ 
+ 	Add SizeOfHeaders idatasectionsize
++	#without this "There is an import table, but the section containing it could not be found"
++	add sizefileheaders idatasectionsize
+ 	##############################################
+ 
+ 	Const iaddressesoffset=itablesize
+@@ -127,7 +129,7 @@ If implibsstarted==true
+ 
+ 	Sub resolveitab itabentrysize
+ 	Data resolvevalue#1
+-	While table<resolveitab
++	While table!=resolveitab
+ 		Sub resolveitab dwordsize
+ 		Set resolvevalue resolveitab#
+ 		Add resolvevalue iaddressesoffset
+@@ -148,7 +150,7 @@ If implibsstarted==true
+ 	Set resolveiadr addresses
+ 	Add resolveiadr addressesReg
+ 
+-	While addresses<resolveiadr
++	While addresses!=resolveiadr
+ 		Sub resolveiadr dwordsize
+ 		Set resolvevalue resolveiadr#
+ 		#offset 0 can be wrong but is not because there it is the first library name and these are functions names
+--- ocompiler-1.orig/src/files/actions/fileformat/pe_struct.s
++++ ocompiler-1/src/files/actions/fileformat/pe_struct.s
+@@ -123,7 +123,7 @@ Const IMAGE_FILE_EXECUTABLE_IMAGE=0x0002
+ #exe specific
+ Const IMAGE_FILE_RELOCS_STRIPPED=0x0001
+ #dll specific
+-Const IMAGE_FILE_DLL=0x2000
++#Const IMAGE_FILE_DLL=0x2000
+ 
+ Const coffChrsGeneral=IMAGE_FILE_DEBUG_STRIPPED|IMAGE_FILE_32BIT_MACHINE|IMAGE_FILE_LOCAL_SYMS_STRIPPED|IMAGE_FILE_LINE_NUMS_STRIPPED|IMAGE_FILE_EXECUTABLE_IMAGE
+ Const coffexeCharacteristics=coffChrsGeneral|IMAGE_FILE_RELOCS_STRIPPED
+--- ocompiler-1.orig/src/files/actions/main.s
++++ ocompiler-1/src/files/actions/main.s
+@@ -27,14 +27,14 @@ While includesReg!=null
+ 		Set lineoffile cursorforincludes#
+ 		Add cursorforincludes dwordsize
+ 		Sub cursorforincludes includes
+-		
++
+ 		Set nameofstoffile cursorforincludes
+-		
++
+ 		Set content contentoffile
+ 		Add content offsetoffile
+ 		Set last contentoffile
+ 		Add last sizeoffile
+-		
++
+ 		While content!=last
+ 			Include "./main/index.s"
+ 			If errormsg!=noerr
+@@ -44,26 +44,22 @@ While includesReg!=null
+ 
+ 				Data columnoffile#1
+ 				Set columnoffile content
+-				Sub columnoffile commstart
++				Sub columnoffile textlinestart
+ 
+ 				Add lineoffile one
+ 				Add columnoffile one
+ 
+-				Chars errformat="%s File %s, Row %i, Column %i"
+-				Str perrformat^errformat
+-
+ 				Data printbuffer#1
+ 
+-				SetCall printbuffer printbuf(perrformat,errormsg)
+-				If printbuffer==null
+-					Call errexit()
+-				EndIf
+ 				if totalnewlines==0
+-					Call sprintf(printbuffer,perrformat,errormsg,nameoffilewitherr,lineoffile,columnoffile)
++					setcall printbuffer printbuf("%s File %s, Row %u, Column %u",errormsg,nameoffilewitherr,2,lineoffile,columnoffile)
+ 				else
+-					sub lineoffile totalnewlines
+-					Call sprintf(printbuffer,"%s File %s, Row %i",errormsg,nameoffilewitherr,lineoffile)
++				#first textlinestart is lost at multilines command
++					setcall printbuffer printbuf("%s File %s, Row %u",errormsg,nameoffilewitherr,1,lineoffile)
+ 				endelse
++				If printbuffer==null
++					Call errexit()
++				EndIf
+ 				Call Message(printbuffer)
+ 				Call free(printbuffer)
+ 				Set content last
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -1,5 +1,5 @@
+ 
+-Data comsize#1
++sd comsize#1
+ 
+ sd newlines
+ sd totalnewlines=0
+@@ -7,11 +7,13 @@ sd totalnewlines=0
+ Data pcontent^content
+ Data pcomsize^comsize
+ 
+-Str commstart#1
++Str textlinestart#1
+ if dot_comma_end==0
+-	Set commstart content
++	Set textlinestart content
+ endif
+ 
++#cursor for hidden whitespaces
++sd cursor_start;set cursor_start content
+ setcall content mem_spaces(content,last)
+ 
+ #test the line size and set the size of line break
+@@ -19,14 +21,13 @@ Chars newline=0xa
+ Data linebreaksize#1
+ Set linebreaksize bytesize
+ 
+-chars quote="\""
+ #set comsize 0
+ ss pointer
+ set pointer content
+ sd loop=2
+ sd is_comment=0
+ if pointer!=last
+-	if pointer#==(asciiNumber)
++	if pointer#==(commentascii)
+ 		set is_comment 1
+ 	endif
+ endif
+@@ -48,8 +49,8 @@ while loop==2
+ 			EndIf
+ 		endif
+ 	elseif is_comment==0
+-		if pointer#==quote
+-			setcall errormsg quotes_forward(#pointer,last,#newlines)
++		if pointer#==(asciidoublequote)
++			setcall errormsg quotes_forward(#pointer,last,#newlines,#textlinestart)
+ 			if errormsg!=(noerror)
+ 				set loop 0
+ 			else
+@@ -66,142 +67,161 @@ while loop==2
+ 	endelse
+ endwhile
+ if loop==1
+-	add lineoffile totalnewlines
+ 	set comsize pointer
+ 	sub comsize content
+ 	#\r\n case begin
+ 	#sub comsize linebreaksize
+ 	#inc comsize
+ 	#\r\n case end
+-endif
+ 
+-If comsize!=0
+-	Data pointtosearchat%compointersloc
+-	SetCall commandset getcommand(pcontent,pcomsize,ptrsubtype,_errormsg,pointtosearchat)
+-	If errormsg==noerr
+-		if twoparse==2
+-			#tested at function gather; FORMAT is here starting with FUNCTIONX to set the mask knowing the format
+-			if commandset!=(cCOMMENT)
+-				if formatdefined==0;Set formatdefined 1;endif
+-				If commandset==(cFORMAT);elseif commandset==(cINCLUDE);elseif commandset==(cSTARTFUNCTION);elseif commandset==(cENDFUNCTION)
+-				else;set commandset (cCOMMENT);endelse
++	ss was_whitespaces
++	If comsize!=0
++		Data pointtosearchat%compointersloc
++		SetCall commandset getcommand(pcontent,pcomsize,ptrsubtype,_errormsg,pointtosearchat)
++		If errormsg==noerr
++			if twoparse==2
++				#tested at function gather; FORMAT is here starting with FUNCTIONX to set the mask knowing the format
++				if commandset!=(cCOMMENT)
++					if formatdefined==0;Set formatdefined 1;endif
++					If commandset==(cFORMAT);elseif commandset==(cINCLUDE);elseif commandset==(cSTARTFUNCTION);elseif commandset==(cENDFUNCTION)
++					else;set commandset (cCOMMENT);endelse
++				endif
+ 			endif
+-		endif
+-		If commandset==(cFORMAT)
+-			if twoparse==2;Include "./index/format.s"
+-			else;Call advancecursors(pcontent,pcomsize,comsize);endelse
+-		ElseIf commandset==(cDECLARE)
+-			Include "./index/declare.s"
+-		ElseIf commandset==(cDECLAREAFTERCALL)
+-			Include "./index/aftercall.s"
+-		ElseIf commandset==(cONEARG)
+-	call entryscope_verify_code()
+-			Include "./index/onearg.s"
+-		ElseIf commandset==(cPRIMSEC)
+-	call entryscope_verify_code()
+-			Include "./index/primsec.s"
+-		ElseIf commandset==(cLIBRARY)
+-			Include "./index/library.s"
+-		ElseIf commandset==(cIMPORTLINK)
+-			Include "./index/import.s"
+-		ElseIf commandset==(cSTARTFUNCTION)
+-			Include "./index/function.s"
+-		ElseIf commandset==(cENDFUNCTION)
+-			Include "./index/endfunction.s"
+-		ElseIf commandset==(cCALL)
+-	call entryscope_verify_code()
+-			Include "./index/call.s"
+-		ElseIf commandset==(cCALLEX)
+-	call entryscope_verify_code()
+-			Include "./index/callex.s"
+-		ElseIf commandset==(cCONDITIONS)
+-	call entryscope_verify_code()
+-			Include "./index/conditions.s"
+-		ElseIf commandset==(cINCLUDE)
+-			Include "./index/include.s"
+-		ElseIf commandset==(cI3)
+-	call entryscope_verify_code()
+-			Include "./index/i3.s"
+-		ElseIf commandset==(cHEX)
+-	call entryscope_verify_code()
+-			Include "./index/hex.s"
+-		ElseIf commandset==(cWARNING)
+-			Include "./index/warning.s"
+-		Else
+-#comments command
+-			Call advancecursors(pcontent,pcomsize,comsize)
+-		EndElse
+-		If errormsg==zero
+-			If comsize!=zero
+-				if content#!=(asciiNumber)
+-					Chars _unreccomaftererr="Unrecognized data after command."
+-					Str unreccomaftererr^_unreccomaftererr
+-					Set errormsg unreccomaftererr
+-				else
+-					#this is comment after command
+-					Call advancecursors(pcontent,pcomsize,comsize)
+-				endelse
+-			#twoparse==2 more
+-			#after the first noncomment command, the format command cannot be changed
+-			elseif formatdefined==1;Set formatdefined 2
+-			#twoparse==1 more
+-			ElseIf fnavailable==two
+-				#retain the file and line where the main scope was started for functions separated from main code
+-				#fnavailable two was set by code detectors
+-				Data currentfile#1
+-				Set currentfile includes
+-				Add currentfile nameofstoffile
+-				Data sizeshortstr=shortstrsize
+-				Call memtomem(ptrentrystartfile,currentfile,sizeshortstr)
++			If commandset==(cFORMAT)
++				if twoparse==2;Include "./index/format.s"
++				else;Call advancecursors(pcontent,pcomsize,comsize);endelse
++			ElseIf commandset==(cDECLARE)
++				Include "./index/declare.s"
++			ElseIf commandset==(cDECLAREAFTERCALL)
++				Include "./index/aftercall.s"
++			ElseIf commandset==(cONEARG)
++		call entryscope_verify_code()
++				Include "./index/onearg.s"
++			ElseIf commandset==(cPRIMSEC)
++		call entryscope_verify_code()
++				Include "./index/primsec.s"
++			ElseIf commandset==(cLIBRARY)
++				Include "./index/library.s"
++			ElseIf commandset==(cIMPORTLINK)
++				Include "./index/import.s"
++			ElseIf commandset==(cSTARTFUNCTION)
++				Include "./index/function.s"
++			ElseIf commandset==(cENDFUNCTION)
++				Include "./index/endfunction.s"
++			ElseIf commandset==(cCALL)
++		call entryscope_verify_code()
++				Include "./index/call.s"
++			ElseIf commandset==(cCALLEX)
++		call entryscope_verify_code()
++				Include "./index/callex.s"
++			ElseIf commandset==(cCONDITIONS)
++		call entryscope_verify_code()
++				Include "./index/conditions.s"
++			ElseIf commandset==(cINCLUDE)
++				Include "./index/include.s"
++			ElseIf commandset==(cI3)
++		call entryscope_verify_code()
++				Include "./index/i3.s"
++			ElseIf commandset==(cHEX)
++		call entryscope_verify_code()
++				Include "./index/hex.s"
++			ElseIf commandset==(cWARNING)
++				Include "./index/warning.s"
++			Else
++	#comments command
++				Call advancecursors(pcontent,pcomsize,comsize)
++				#1 is last
++				if twoparse==1
++					set was_whitespaces content;dec was_whitespaces;setcall was_whitespaces is_whitespace(was_whitespaces#)
++					if was_whitespaces==(TRUE)
++						setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
++					endif
++				endif
++			EndElse
++			If errormsg==(noerror)
++				If comsize!=zero
++					setcall was_whitespaces spaces(pcontent,pcomsize)
++					If comsize!=zero
++						if content#!=(commentascii)
++							Chars _unreccomaftererr="Unrecognized data after command."
++							Str unreccomaftererr^_unreccomaftererr
++							Set errormsg unreccomaftererr
++						else
++							#this is comment after command
++							Call advancecursors(pcontent,pcomsize,comsize)
++						endelse
++					elseIf was_whitespaces==(TRUE)
++						if twoparse==1
++							setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
++						endif
++					endelseIf
++				#twoparse==2 more
++				#after the first noncomment command, the format command cannot be changed
++				elseif formatdefined==1;Set formatdefined 2
++				#twoparse==1 more
++				ElseIf fnavailable==two
++					#retain the file and line where the main scope was started for functions separated from main code
++					#fnavailable two was set by code detectors
++					Data currentfile#1
++					Set currentfile includes
++					Add currentfile nameofstoffile
++					Data sizeshortstr=shortstrsize
++					Call memtomem(ptrentrystartfile,currentfile,sizeshortstr)
+ 
+-				Set entrylinenumber lineoffile
+-				Inc entrylinenumber
++					Set entrylinenumber lineoffile
++					Inc entrylinenumber
+ 
+-				Set fnavailable zero
+-			EndElseIf
++					Set fnavailable zero
++				EndElseIf
++			EndIf
+ 		EndIf
+-	EndIf
+-EndIf
+-
+-If errormsg==noerr
+-	#parse the line termination,then is the include that will retain the next line and advance to the next file
+-	Data lineincrease#1
+-	Set lineincrease zero
+-	If content!=last
+-		Add content linebreaksize
+-		if dot_comma_end==0
+-			Set lineincrease one
++	Elseif cursor_start!=content
++		if twoparse==1
++			setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
+ 		endif
+-	EndIf
+-	Add lineoffile lineincrease
++	Endelseif
+ 
+-	#include next file
+-	If includebool==one
+-		Data inccursor#1
+-		Set inccursor includes
+-		Add inccursor includesReg
+-
+-		Sub inccursor sizeofincludeset
+-	
+-		Add inccursor contentoffsetinclude
+-		Data contentoffset=0
+-		Set contentoffset content
+-		Sub contentoffset contentoffile
+-		Set inccursor# contentoffset
+-		Add inccursor dwordsize
+-	
+-		Set inccursor# lineoffile
+-		SetCall errormsg include(miscbag)
+-		If errormsg!=noerr
+-			Set content commstart
+-			Sub lineoffile lineincrease
+-		Else
+-			Set content contentoffile
+-			Set last content
+-			Add content offsetoffile
+-			Add last sizeoffile
+-			Set miscbagReg zero
+-			Set includebool zero
+-		EndElse
++	If errormsg==noerr
++		add lineoffile totalnewlines
++		#parse the line termination,then is the include that will retain the next line and advance to the next file
++		Data lineincrease#1
++		Set lineincrease zero
++		If content!=last
++			Add content linebreaksize
++			if dot_comma_end==0
++				Set lineincrease one
++			endif
++		EndIf
++		Add lineoffile lineincrease
++
++		#include next file
++		If includebool==one
++			Data inccursor#1
++			Set inccursor includes
++			Add inccursor includesReg
++
++			Sub inccursor sizeofincludeset
++
++			Add inccursor contentoffsetinclude
++			Data contentoffset#1
++			Set contentoffset content
++			Sub contentoffset contentoffile
++			Set inccursor# contentoffset
++			Add inccursor dwordsize
++
++			Set inccursor# lineoffile
++			SetCall errormsg include(miscbag)
++			If errormsg!=noerr
++				Set content textlinestart
++				Sub lineoffile lineincrease
++			Else
++				Set content contentoffile
++				Set last content
++				Add content offsetoffile
++				Add last sizeoffile
++				Set miscbagReg zero
++				Set includebool zero
++			EndElse
++		EndIf
+ 	EndIf
+-EndIf
+\ No newline at end of file
++endif
+--- ocompiler-1.orig/src/files/actions/main/index/endfunction.s
++++ ocompiler-1/src/files/actions/main/index/endfunction.s
+@@ -13,21 +13,22 @@ Else
+ 			data sizereturn#1
+ 			data ptrptrreturn^ptrreturn
+ 			setcall sizereturn getreturn(ptrptrreturn)
+-	
++
+ 			SetCall errormsg addtoCode_set_programentrypoint(ptrreturn,sizereturn)
+ 			If errormsg==noerr
+-				Call warnings(false,includes,nameofstoffile)
+-			
+-				Set i zero
+-				While i!=numberofvariables
+-					Data containertoclear#1
+-					SetCall containertoclear getstructcont(i)
+-					Data indexptr#1
+-					Data ptrindexptr^indexptr
+-					Call getptrcontReg(containertoclear,ptrindexptr)
+-					Set indexptr# zero
+-					Inc i
+-				EndWhile
++				Call warnings(false,includes,nameofstoffile,#errormsg)
++				If errormsg==noerr
++					Set i zero
++					While i!=numberofvariables
++						Data containertoclear#1
++						SetCall containertoclear getstructcont(i)
++						Data indexptr#1
++						Data ptrindexptr^indexptr
++						Call getptrcontReg(containertoclear,ptrindexptr)
++						Set indexptr# zero
++						Inc i
++					EndWhile
++				endIf
+ 			EndIf
+ 		EndIf
+ 	endif
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -17,25 +17,27 @@ If formatresponse==false
+ 		Chars elfobjformat="OBJ"
+ 		Str ptrelfobjformat^elfobjformat
+ 		Data elfobjformresp#1
+-		
++
+ 		sd p_is_for_64_resp;setcall p_is_for_64_resp p_is_for_64()
+-		
++
+ 		SetCall elfobjformresp stringsatmemspc(pcontent,pcomsize,ptrelfobjformat,false,"64",p_is_for_64_resp)
+ 		If elfobjformresp==true
+-			sd neg_64;setcall neg_64 p_neg_is_for_64()
+-			if neg_64#==1
+-				if p_is_for_64_resp#==(TRUE)
+-					set p_is_for_64_resp# (FALSE)
++			if p_is_for_64_resp#==(TRUE)
++				if convention_64==(no_convention_input)
++					setcall convention_64 p_neg_is_for_64()
++					set convention_64 convention_64#
+ 				endif
+-			elseif p_is_for_64_resp#==(TRUE)
+-				if neg_64#==0
++				if convention_64==(ignore_convention_input)
++					set p_is_for_64_resp# (FALSE)
++				elseif convention_64==(direct_convention_input)
+ 					call convdata((convdata_init),(variable_convention))
++				#cross_convention_input
+ 				elseif (variable_convention)==(ms_convention)
+ 					call convdata((convdata_init),(lin_convention))
+ 				else
+ 					call convdata((convdata_init),(ms_convention))
+ 				endelse
+-			endelseif
++			endif
+ 			Set object true
+ 			SetCall errormsg elfaddstrsym(ptrnull,null,null,null,null,null,ptrtable)
+ 			If errormsg==noerr
+--- ocompiler-1.orig/src/files/actions/main/index/function.s
++++ ocompiler-1/src/files/actions/main/index/function.s
+@@ -4,14 +4,14 @@ If innerfunction==true
+ 	Str ptrfinf^finferr
+ 	Set errormsg ptrfinf
+ ElseIf programentrypoint!=codesecReg
+-	Chars funcafterentry="Unavailable FUNCTION/ENTRY[...] statement; The start address was at File: %s; Line: %u."
++	Chars funcafterentry="Unavailable FUNCTION/ENTRY[...] statement; The start address was at File: %s; Line: %s."
+ 	Str fnafteren^funcafterentry
+ 
+-	SetCall allocerrormsg printbuf(fnafteren,ptrentrystartfile)
++	call sprintf(uint64s,"%u",entrylinenumber)
++	SetCall allocerrormsg printbuf(fnafteren,ptrentrystartfile,uint64s,0)
+ 	If allocerrormsg==null
+ 		Call errexit()
+ 	EndIf
+-	Call sprintf(allocerrormsg,fnafteren,ptrentrystartfile,entrylinenumber)
+ 	Set errormsg allocerrormsg
+ Else
+ 	sd el_or_e=FALSE;if subtype==(cENTRY);set el_or_e (TRUE);elseif subtype==(cENTRYLINUX);set el_or_e (TRUE);endelseif
+--- ocompiler-1.orig/src/files/actions/main/index/import.s
++++ ocompiler-1/src/files/actions/main/index/import.s
+@@ -1,13 +1,7 @@
+ 
+ 
+-sd import_ref_mask=idatabitfunction
+-if subtype==(cIMPORTX)
+-	sd importx_bool;setcall importx_bool is_for_64()
+-	if importx_bool==(TRUE);or import_ref_mask (x86_64bit);endif
+-endif
+-
+-Data impquotsz=0
+-Data impescapes=0
++Data impquotsz#1
++Data impescapes#1
+ Data ptrimpquotsz^impquotsz
+ Data ptrimpescapes^impescapes
+ 
+@@ -20,7 +14,7 @@ If object==false
+ EndIf
+ If errormsg==noerr
+ 	Data functionoffset#1
+-	
++
+ 	If fileformat==pe_exec
+ 		Set functionoffset addressesReg
+ 
+@@ -55,26 +49,39 @@ If errormsg==noerr
+ 				#the sym entry
+ 				SetCall errormsg elfaddsym(namesReg,zero,(sym_with_size),STT_NOTYPE,STB_GLOBAL,null,ptrtable)
+ 			EndIf
++			sd imp_mark;set imp_mark names;add imp_mark namesReg
+ 			SetCall errormsg addtosecstresc(pcontent,pcomsize,impquotsz,impescapes,ptrnames,true)
+ 			If errormsg==noerr
+ 				Call stepcursors(pcontent,pcomsize)
+ 				Call spaces(pcontent,pcomsize)
+-				If comsize==zero
++				#after this will find var in vars/fns and if not add a new
++				sd imp_size;setcall imp_size find_whitespaceORcomment(content,comsize)
++				If imp_size==zero
+ 					Chars missimportref="Import name for compiler must be specified after the name for output."
+ 					Str ptrimpref^missimportref
+ 					Set errormsg ptrimpref
+ 				Else
+-					SetCall errormsg entryvarsfns(content,comsize)
++					SetCall errormsg entryvarsfns(content,imp_size)
+ 					If errormsg==noerr
+ 						if logbool==(TRUE)
+-							if log_import_functions==(TRUE)
+-								ss imp_f="Import Function:";sd imp_f_sz;setcall imp_f_sz strlen(imp_f)
+-								call writefile(logfile,imp_f,imp_f_sz)
+-								call addtolog_ex(content,comsize)
++							if codeFnObj==(log_warn)
++								if subtype==(cIMPORT)
++									setcall errormsg writefile_errversion(logfile,"i",1)
++									If errormsg==noerr
++										sub impquotsz impescapes
++										setcall errormsg addtolog_ex(imp_mark,impquotsz)
++									endIf
++								endif
+ 							endif
+ 						endif
+-						Data functionsnr=functionsnumber
+-						SetCall errormsg addaref(functionoffset,pcontent,pcomsize,comsize,functionsnr,import_ref_mask)
++						If errormsg==noerr
++							sd import_ref_mask=idatabitfunction
++							if subtype==(cIMPORTX)
++								or import_ref_mask (x86_64bit)
++							endif
++							Data functionsnr=functionsnumber
++							SetCall errormsg addaref(functionoffset,pcontent,pcomsize,imp_size,functionsnr,import_ref_mask)
++						endIf
+ 					EndIf
+ 				EndElse
+ 			EndIf
+--- ocompiler-1.orig/src/files/actions/main/index/library.s
++++ ocompiler-1/src/files/actions/main/index/library.s
+@@ -29,15 +29,6 @@ EndElse
+ If errormsg==noerr
+ 	SetCall errormsg quotinmem(pcontent,pcomsize,ptrlibquotsz,ptrlibescapes)
+ 	If errormsg==noerr
+-		#if implibsstarted==false
+-		#	If fileformat==elf_unix
+-		#		#the first section to be null
+-		#		SetCall errormsg elfaddstrsec(ptrnull,null,0,0,null,null,0,0,0,0)
+-		#		#reset miscbag used at resolve maybe
+-		#		set miscbagReg 0
+-		#	endif
+-		#endif
+-		#If errormsg==noerr
+ 		SetCall errormsg addtosecstresc(pcontent,pcomsize,libquotsz,libescapes,ptrnames,true)
+ 		If errormsg==noerr
+ 			Call stepcursors(pcontent,pcomsize)
+--- ocompiler-1.orig/src/files/actions/pathout.s
++++ ocompiler-1/src/files/actions/pathout.s
+@@ -17,14 +17,14 @@ Set cursorpath pointofpathout
+ Sub minpath unit
+ Sub cursorpath unit
+ 
+-While minpath<cursorpath
++While minpath!=cursorpath
+ 	Chars teststr=""
+ 	Set teststr cursorpath#
+ 	If teststr==dot
+ 		Set pointofpathout cursorpath
+ 		Set cursorpath minpath
+ 	EndIf
+-	If minpath<cursorpath
++	If minpath!=cursorpath
+ 		Sub cursorpath unit
+ 	EndIf
+ EndWhile
+--- ocompiler-1.orig/src/files/actions/resolve.s
++++ ocompiler-1/src/files/actions/resolve.s
+@@ -31,7 +31,7 @@ While unresptr!=unresptrlastpoint
+ 	add unresptr dwordsize
+ 	Set unresoff unresptr#
+ 	add unresstructure unresoff
+-	
++
+ 	add unresptr dwordsize
+ 	set unresadd unresptr#
+ 	set unresadd unresadd#
+--- ocompiler-1.orig/src/files/actions/setdefdir.s
++++ ocompiler-1/src/files/actions/setdefdir.s
+@@ -51,7 +51,7 @@ if logbool==true
+ 		set logfilecannotinit true
+ 	else
+ 		str appendextension#1
+-	
++
+ 		set appendextension safecurrentdirloc
+ 		add appendextension movesize
+ 		dec appendextension
+@@ -60,14 +60,14 @@ if logbool==true
+ 		setcall sizelogext strlen(logextension)
+ 		inc sizelogext
+ 		call memtomem(appendextension,logextension,sizelogext)
+-		
++
+ 		setcall errormsg openfile(ptrlogfile,safecurrentdirtopath,_open_write)
+ 		if errormsg!=noerr
+ 			set logfilecannotinit true
+ 		else
+ 			Set storeachar filenameloc#
+ 			Set filenameloc# null
+-			call addtolog(path)
++			call logincludes_decision(path)
+ 			Set filenameloc# storeachar
+ 		endelse
+ 		set appendextension# null
+--- ocompiler-1.orig/src/files/actions/terminations.s
++++ ocompiler-1/src/files/actions/terminations.s
+@@ -6,7 +6,7 @@ If errormsg!=noerr
+ 	Call msgerrexit(errormsg)
+ EndIf
+ 
+-#verify at executables that LIBRARY are closed
++#close the last LIBRARY
+ If fileformat==pe_exec
+ 	If implibsstarted==true
+ 		SetCall errormsg closelib()
+@@ -17,5 +17,7 @@ If fileformat==pe_exec
+ EndIf
+ 
+ #verify preferences
+-Call warnings(true,includes,nameofstoffile)
+-
++Call warnings(true,includes,nameofstoffile,#errormsg)
++If errormsg!=noerr
++	Call msgerrexit(errormsg)
++EndIf
+--- ocompiler-1.orig/src/files/actions/write.s
++++ ocompiler-1/src/files/actions/write.s
+@@ -31,26 +31,8 @@ If fileformat==elf_unix
+ 				Call errexit()
+ 			EndIf
+ 			Add sizefileheaders sizeimportfileheaders
+-		EndIf
+-	Else
+-		SetCall writeres writefile(fileout,miscbag,miscbagReg)
+-		If writeres==writefalse
+-			Call errexit()
+-		EndIf
+-		Add sizefileheaders miscbagReg
+-		#cannot see why i set this zero
+-		#Set miscbagReg zero
+-	EndElse
+-EndIf
+-If fileformat==elf_unix
+-	If object==false
+-		if implibsstarted==false
+-			SetCall errormsg elfaddsecn()
+-			If errormsg!=noerr;Call msgerrexit(errormsg);EndIf
+-			SetCall writeres writefile(fileout,miscbag,miscbagReg)
+-			If writeres==writefalse;Call errexit();EndIf
+-			Add sizefileheaders miscbagReg
+-		else
++			#
++			#
+ 			SetCall errormsg elfaddsec_base(secstrs_off_atnames,0,0,null,null,0,0,0,0,null,ptrextra)
+ 			If errormsg!=noerr;Call msgerrexit(errormsg);EndIf
+ 			SetCall errormsg elfaddsec_base(dynstr,(SHT_STRTAB),(SHF_ALLOC),elf_str_offset,elf32_dyn_d_val_strsz,0,0,bytesize,0,elf32_dyn_d_ptr_strtab,ptrextra)
+@@ -64,9 +46,23 @@ If fileformat==elf_unix
+ 			If writeres==writefalse;Call errexit();EndIf
+ 			Add sizefileheaders extraReg
+ 			#extra used nomore
+-		endelse
+-	endif
+-endif
++		Else
++			SetCall errormsg elfaddsecn()
++			If errormsg!=noerr;Call msgerrexit(errormsg);EndIf
++			SetCall writeres writefile(fileout,miscbag,miscbagReg)
++			If writeres==writefalse;Call errexit();EndIf
++			Add sizefileheaders miscbagReg
++		EndElse
++	Else
++		SetCall writeres writefile(fileout,miscbag,miscbagReg)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		Add sizefileheaders miscbagReg
++		#cannot see why i set this zero
++		#Set miscbagReg zero
++	EndElse
++EndIf
+ 
+ SetCall writeres padsec(fileout,sizefileheaders,startofdata)
+ If writeres==writefalse
+@@ -113,83 +109,81 @@ If object==true
+ 	If writeres==writefalse
+ 		Call errexit()
+ 	EndIf
+-Else
++ElseIf implibsstarted==true
+ 	#idata section
+-	If implibsstarted==true
+-		If fileformat==pe_exec
+-			#table
+-			SetCall writeres paddedwrite(fileout,table,tableReg,tableMax)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			#addresses
+-			SetCall writeres paddedwrite(fileout,addresses,addressesReg,addressesMax)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			#names
+-			SetCall writeres paddedwrite(fileout,names,namesReg,namesMax)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-		Else
+-			#interpreter
+-			SetCall writeres writefile(fileout,ptrinterpreter,interpretersize)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
++	If fileformat==pe_exec
++		#table
++		SetCall writeres paddedwrite(fileout,table,tableReg,tableMax)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		#addresses
++		SetCall writeres paddedwrite(fileout,addresses,addressesReg,addressesMax)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		#names
++		SetCall writeres paddedwrite(fileout,names,namesReg,namesMax)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++	Else
++		#interpreter
++		SetCall writeres writefile(fileout,ptrinterpreter,interpretersize)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
+ 
+-			#dynamic
+-			SetCall writeres writefile(fileout,table,tableReg)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			Data ptrelf_dyn%elf_dynfix_start
+-			SetCall writeres writefile(fileout,ptrelf_dyn,elf_dynfix_size)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
++		#dynamic
++		SetCall writeres writefile(fileout,table,tableReg)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		Data ptrelf_dyn%elf_dynfix_start
++		SetCall writeres writefile(fileout,ptrelf_dyn,elf_dynfix_size)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
+ 
+-			#lib
+-			##hashfix
+-			Data ptrelf_hash%elf_hash_start
+-			SetCall writeres writefile(fileout,ptrelf_hash,elf_hash_minsize)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			##hashvar
+-			Data elf_loop_write#1
+-			Set elf_loop_write miscbag
+-			SetCall writeres writefile(fileout,elf_loop_write,hash_var_size)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			Add elf_loop_write hash_var_size
++		#lib
++		##hashfix
++		Data ptrelf_hash%elf_hash_start
++		SetCall writeres writefile(fileout,ptrelf_hash,elf_hash_minsize)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		##hashvar
++		Data elf_loop_write#1
++		Set elf_loop_write miscbag
++		SetCall writeres writefile(fileout,elf_loop_write,hash_var_size)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		Add elf_loop_write hash_var_size
+ 
+-			##symtab
+-			SetCall writeres writefile(fileout,addresses,addressesReg)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
++		##symtab
++		SetCall writeres writefile(fileout,addresses,addressesReg)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
+ 
+-			##strtab
+-			SetCall writeres writefile(fileout,names,namesReg)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
++		##strtab
++		SetCall writeres writefile(fileout,names,namesReg)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
+ 
+-			##rel
+-			SetCall writeres writefile(fileout,elf_loop_write,rel_var_size)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-			Add elf_loop_write rel_var_size
++		##rel
++		SetCall writeres writefile(fileout,elf_loop_write,rel_var_size)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++		Add elf_loop_write rel_var_size
+ 
+-			##calls
+-			SetCall writeres writefile(fileout,elf_loop_write,elf_rel_entries_size)
+-			If writeres==writefalse
+-				Call errexit()
+-			EndIf
+-		EndElse
+-	EndIf
+-EndElse
++		##calls
++		SetCall writeres writefile(fileout,elf_loop_write,elf_rel_entries_size)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++	EndElse
++EndElseIf
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -36,7 +36,9 @@ Include "./functions/actions/argstwo.s"
+ Include "./functions/commands/cond.s"
+ Include "./functions/commands/lib.s"
+ 
+-Include "./functions/preffuncs.s"
++Include "./functions/pref/preffuncs.s"
++Include "./functions/pref/sdsv.s"
++
+ Include "./functions/incld.s"
+ Include "./functions/dataassign.s"
+ Include "./functions/enumbags.s"
+--- ocompiler-1.orig/src/files/functions/64bit.s
++++ ocompiler-1/src/files/functions/64bit.s
+@@ -32,11 +32,15 @@ function is_for_64_is_impX_or_fnX_get();
+ function is_for_64_is_impX_or_fnX_set(sd ptrdata)
+ 	sd p_b
+ 	setcall p_b is_for_64_is_impX_or_fnX_p_get()
+-	#importX and functionX already has a test with is_for_64
+-	add ptrdata (maskoffset)
+-	sd val;set val ptrdata#;and val (x86_64bit)
+-	if val!=(x86_64bit);set p_b# (FALSE);return (void);endif
+-	set p_b# (TRUE)
++	sd b
++	setcall b is_for_64()
++	#importX and functionX used to have a test with is_for_64 outside of this, but at log need to know the type
++	if b==(TRUE)
++		add ptrdata (maskoffset)
++		sd val;set val ptrdata#;and val (x86_64bit)
++		if val==(x86_64bit);set p_b# (TRUE);return (void);endif
++	endif
++	set p_b# (FALSE)
+ endfunction
+ 
+ #get
+@@ -94,9 +98,17 @@ function rex_w_if64()
+ 	call rex_w(#err)
+ 	return err
+ endfunction
+-function is_big(sd dataarg)
+-	sd b;setcall b is_stack(dataarg)
+-	if b!=(NULL)
++function is_big(sd dataarg,sd sufix)
++#called when lowbyte is false
++	sd b;setcall b stackbit(dataarg)
++	if b!=0
++		setcall b pointbit(dataarg)
++		if b==0
++			if sufix==(TRUE)
++				# sd# is not big
++				return (FALSE)
++			endif
++		endif
+ 		setcall b is_for_64()
+ 		return b
+ 	endif
+@@ -115,25 +127,15 @@ function stack64_op_set_get(sd b,sd val)
+ 	endelse
+ endfunction
+ #err
+-function stack64_op(sd takeindex,sd p_mod)
++function stack64_op()
+ 	sd b;setcall b stack64_op_set_get((FALSE))
+-	if b==(FALSE);return (noerror);endif
+-	#reset
+-	call stack64_op_set_get((TRUE),(FALSE))
+-	#return if outside mod=3
+-	if p_mod#==(RegReg);return (noerror);endif
+-	
+-	sd err
+-	SetCall err val64_phase_3();If err!=(noerror);Return err;EndIf
+-	
+-	#set outside mod=3
+-	set p_mod# (RegReg)
+-	#mov reg,[reg]
+-	chars x=moveatprocthemem;chars y#1
+-	setcall y formmodrm((mod_0),takeindex,takeindex)
+-	data code%ptrcodesec
+-	setcall err addtosec(#x,2,code)
+-	return err
++	if b!=(FALSE)
++		#reset
++		call stack64_op_set_get((TRUE),(FALSE))
++		#at push 64 and call 64, without rex is ok
++		sd p;setcall p val64_p_get()
++		set p# (val64_no)
++	endif
+ endfunction
+ 
+ function stack64_add(sd val)
+@@ -146,18 +148,9 @@ endfunction
+ 
+ #setx
+ 
+-function val64_phase_0()
++function val64_init()
+ 	sd p;setcall p val64_p_get();set p# (val64_no)
+ endfunction
+-#er
+-function val64_phase_3()
+-	sd p;setcall p val64_p_get()
+-	if p#==(val64_willbe)
+-		sd er;call rex_w(#er);if er!=(noerror);return er;endif
+-		set p# (val64_no)
+-	endif
+-	return (noerror)
+-endfunction
+ function val64_p_get()
+ 	data x#1;return #x
+ endfunction
+--- ocompiler-1.orig/src/files/functions/actions/argstwo.s
++++ ocompiler-1/src/files/functions/actions/argstwo.s
+@@ -21,19 +21,19 @@ Function twoargs(data ptrcontent,data pt
+ 	Data noreg=noregnumber
+ 	Data eaxreg=eaxregnumber
+ 	Data ecxreg=ecxregnumber
+-	
++
+ 	Data intchar#1
+ 	Set intchar noreg
+ 
+ 	Data sameimportant#1
+ 	Set sameimportant true
+-	
++
+ 	Chars opprim#1
+ 	Chars opsec#1
+ 	Chars atprocthemem={moveatprocthemem}
+ 	Chars atmemtheproc={moveatmemtheproc}
+ 	Set opsec atprocthemem
+-	
++
+ 	Data divmul#1
+ 	Set divmul false
+ 	Data regprep#1
+@@ -61,7 +61,7 @@ Function twoargs(data ptrcontent,data pt
+ 	Chars two=2
+ 
+ 	Set primcalltype false
+-	
++
+ 	sd big;sd rem
+ 	If ptrcondition==false
+ 		#imm second arg
+@@ -84,7 +84,7 @@ Function twoargs(data ptrcontent,data pt
+ 			Set regprep ecxreg
+ 			Set regopcode ecxreg
+ 			Set divmul true
+-			if lowprim==(FALSE);setcall big is_big(dataargprim)
++			if lowprim==(FALSE);setcall big is_big(dataargprim,sufixprim)
+ 			else;set big (FALSE);endelse
+ 			if subtype==(cREM);set rem (TRUE)
+ 			else;set rem (FALSE);endelse
+@@ -129,7 +129,7 @@ Function twoargs(data ptrcontent,data pt
+ 		chars compimmop#1
+ 		set compimmop compimminitial
+ 	EndElse
+-	
++
+ 	If primcalltype==false
+ 		SetCall errnr arg(ptrcontent,ptrsize,ptrdataargsec,ptrlowsec,ptrsufixsec,true)
+ 		If errnr!=noerr
+@@ -170,7 +170,8 @@ Function twoargs(data ptrcontent,data pt
+ 			#this code with the rex promotes, if this near comp later,undefined dataargsec(1==1)will go wrong in is_big, viol
+ 				setcall imm getisimm()
+ 				if imm==false
+-					setcall store_big is_big(dataargsec)
++				#it is 1==big/medium
++					setcall store_big is_big(dataargsec,sufixsec)
+ 				endif
+ 			endelse
+ 		Else
+@@ -191,10 +192,12 @@ Function twoargs(data ptrcontent,data pt
+ 				add compimmop two
+ 				#and for ss#
+ 				set aux lowprim;set lowprim lowsec;set lowsec aux
++				#and char==#sd
++				set aux remind_first_prefix;set remind_first_prefix p_prefix#;set p_prefix# aux
+ 			EndIf
+ 		EndElse
+ 	EndElse
+-	
++
+ 	Data codeptr%ptrcodesec
+ 
+ 	If primcalltype==false
+@@ -207,8 +210,16 @@ Function twoargs(data ptrcontent,data pt
+ 			elseif subtype==(cCALLEX)
+ 				add opsec 1
+ 			endelseif
+-		endif
+-		SetCall errnr writeop_immfilter(dataargsec,opsec,intchar,sufixsec,regopcode,lowsec)
++			SetCall errnr write_imm(dataargsec,opsec)
++		else
++			if p_prefix#==(FALSE)
++				SetCall errnr writeop(dataargsec,opsec,intchar,sufixsec,regopcode,lowsec)
++			else
++			#only take at prefix on regcode
++				call writeoperation_take(#errnr,dataargsec,sufixsec,regopcode,lowsec)
++				#pprefix is reset in the road at remind
++			endelse
++		endelse
+ 		If errnr!=noerr
+ 			Return errnr
+ 		EndIf
+@@ -226,40 +237,22 @@ Function twoargs(data ptrcontent,data pt
+ 			Return errnr
+ 		EndIf
+ 	EndElseif
+-	
++
+ 	#write first arg, the second already was
+ 	set p_prefix# remind_first_prefix
+ 	call restorefirst_isimm()
+ 	setcall imm getisimm()
+ 	if imm==true
+-	#comparations
+-		#first value is imm or was the switch
+-		chars immcomparationtake=0xb9
+-		set opprim immcomparationtake
+-	endif
+-
+-	SetCall errnr writeop_immfilter(dataargprim,opprim,noreg,sufixprim,eaxreg,lowprim)
++		#first argument imm are comparations
++		#first value is imm, or second value is imm (switched)
++		SetCall errnr write_imm(dataargprim,(0xb8+ecxregnumber))
++	else
++		SetCall errnr writeop_prim(dataargprim,opprim,sufixprim,lowprim,sameimportant,lowsec)
++	endelse
+ 	If errnr!=noerr
+ 		Return errnr
+ 	EndIf
+ 
+-	if imm==true
+-		#continue to write the imm comparation(first is imm, second doesnt care)ex: 1(constant)==1(constant)->cmp ecx,eax (eax,ecx can be if switch)
+-		#the jump for this is below, if imm or if not imm
+-		chars immcompdata#1
+-		set immcompdata compimmop
+-		chars *immcompdatamodrm=0xc1
+-		str immcomp^immcompdata
+-		data immcompsz=2
+-		if store_big==(TRUE)
+-			call rex_w(#errnr)
+-			If errnr!=noerr;Return errnr;EndIf
+-		endif
+-		SetCall errnr addtosec(immcomp,immcompsz,codeptr)
+-		If errnr!=noerr
+-			Return errnr
+-		EndIf
+-	endif
+ 	If divmul==true
+ 		Data regreg=RegReg
+ 
+@@ -280,7 +273,7 @@ Function twoargs(data ptrcontent,data pt
+ 			Chars d3_0=0x79;chars d3_1#1
+ 			Chars d4_0#1
+ 			Chars d4_1#1
+-			
++
+ 			Const bitsedxregop=edxregnumber*8
+ 			Const bitsahregop=ahregnumber*8
+ 			Const bitsnotop=Notregopcode*8
+@@ -337,7 +330,7 @@ Function twoargs(data ptrcontent,data pt
+ 		Str ptropcodeex^opcodeex
+ 		Chars storeex#1
+ 		chars storeexrm#1
+-		
++
+ 		Set opcodeex opcodexini
+ 		Set storeex atmemtheproc
+ 
+@@ -374,8 +367,25 @@ Function twoargs(data ptrcontent,data pt
+ 				SetCall errnr writeoperation(dataargprim,storeex,noreg,sufixprim,(edxregnumber),ecxreg,lowprim)
+ 			endelse
+ 		endelse
+-		Return errnr
+ 	ElseIf ptrcondition!=false
++		if imm==true
++			#first imm true only at comparations
++			#continue to write the imm comparation(first is imm, second doesnt care)ex: 1(constant)==1(constant)->cmp ecx,eax (eax,ecx can be if switch)
++			chars immcompdata#1
++			set immcompdata compimmop
++			chars *immcompdatamodrm=0xc1
++			str immcomp^immcompdata
++			data immcompsz=2
++			if store_big==(TRUE)
++				call rex_w(#errnr)
++				If errnr!=noerr;Return errnr;EndIf
++			endif
++			SetCall errnr addtosec(immcomp,immcompsz,codeptr)
++			If errnr!=noerr
++				Return errnr
++			EndIf
++		endif
++
+ 		Chars jumpifnotcond={0x0f}
+ 		Chars cond#1
+ 		#this will be resolved at endcond
+@@ -390,3 +400,18 @@ Function twoargs(data ptrcontent,data pt
+ 	EndElseIf
+ 	Return errnr
+ EndFunction
++
++function writeop_prim(sd dataargprim,sd opprim,sd sufixprim,sd lowprim,sd sameimportant,sd lowsec)
++	sd err
++	if sameimportant==(FALSE)
++		if lowsec==(TRUE)
++			#this is and/or... at sd low not needing to write rex
++			call writeoperation_take(#err,dataargprim,sufixprim,(edxregnumber),lowprim)
++			if err!=(noerror);return err;endif
++			setcall err writeoperation_op(opprim,(noregnumber),(eaxregnumber),(edxregnumber))
++			return err
++		endif
++	endif
++	SetCall err writeop(dataargprim,opprim,(noregnumber),sufixprim,(eaxregnumber),lowprim)
++	return err
++endfunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -14,7 +14,7 @@ Function entryvarsfns(data content,data
+ 			Return noerr
+ 		EndIf
+ 	EndIf
+-	
++
+ 	Chars varfndup="Variable/Function name is already defined."
+ 	Str ptrvarfndup^varfndup
+ 	Return ptrvarfndup
+@@ -33,7 +33,7 @@ function get_img_vdata_dataReg()
+ 		Set value ptrimageoff#
+ 		Set inter ptrdataoff#
+ 		Add value inter
+-	
++
+ 		Call getcontReg(ptrdataSec,ptrinter)
+ 		Add value inter
+ 		return value
+@@ -75,8 +75,12 @@ Function addvarreference(data ptrcontent
+ 				set value stackoffset
+ 				or mask ebp_relative
+ 			endelse
+-			data stackbit=stackbit
+-			or mask stackbit
++			or mask (stackbit)
++			sd vbool
++			if typenumber==(stackvaluenumber);set vbool (TRUE);else;setcall vbool sd_as_sv((sd_as_sv_bool),typenumber);endelse
++			if vbool==(TRUE)
++				or mask (pointbit)
++			endif
+ 		endelse
+ 	Else
+ 		Data structure#1
+@@ -112,7 +116,7 @@ function addvarreferenceorunref(data ptr
+ 	Chars unrefoption#1
+ 	Set unrefoption content#
+ 	Chars unrefsign="*"
+-	
++
+ 	If unrefoption!=unrefsign
+ 		SetCall err addvarreference(ptrcontent,ptrsize,valsize,typenumber,stackoffset)
+ 		If err!=noerr
+@@ -160,9 +164,12 @@ function getsign(str content,data size,d
+ 	SetCall valsize valinmem_pipes(content,size,pointersign,ptrsz)
+ 	If valsize!=size
+ 		If typenumber==charsnr
+-			Chars ptrchar="Incorrect pointer sign ('^') used at CHARS declaration."
+-			Str ptrptrchar^ptrchar
+-			Return ptrptrchar
++			#grep    stackfilter2 4
++			if stack==(FALSE)
++				Chars ptrchar="Incorrect pointer sign ('^') used at CHARS declaration."
++				Str ptrptrchar^ptrchar
++				Return ptrptrchar
++			endif
+ 		EndIf
+ 		Set assigntype# pointersign
+ 		If typenumber!=constnr
+@@ -177,11 +184,13 @@ function getsign(str content,data size,d
+ 		Chars ptrrelchar="Incorrect relocation sign ('%') used at CHARS/CONST declaration."
+ 		Str ptrptrrelchar^ptrrelchar
+ 		If typenumber==charsnr
++			#stackfilter2   grep5
++			if stack==(FALSE)
++				Return ptrptrrelchar
++			endif
++		ElseIf typenumber==constnr
+ 			Return ptrptrrelchar
+-		EndIf
+-		If typenumber==constnr
+-			Return ptrptrrelchar
+-		EndIf
++		EndElseIf
+ 		Set assigntype# equalsign
+ 		Set relocbool# true
+ 		return noerr
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -7,8 +7,9 @@ function writevar(data ptrvalue,data uni
+ 	data true=TRUE
+ 	data false=FALSE
+ 	data ptrobject%ptrobject
+-	
++
+ 	if stack==false
++		data ptrdatasec%ptrdatasec
+ 		if ptrobject#==1
+ 			If ptrrelocbool#==true
+ 				#data
+@@ -18,13 +19,22 @@ function writevar(data ptrvalue,data uni
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
++				sd inplacevalue
++				if relindex==(dataind)
++				#data a^dataB
++					set inplacevalue (i386_obj_default_reloc)
++				else
++				#data^functionReloc
++					set inplacevalue ptrvalue#
++				endelse
++				SetCall err addtosec(#inplacevalue,(dwsz),ptrdatasec)
++				return err
+ 			endif
+ 		endif
+-		data ptrdatasec%ptrdatasec
+ 		SetCall err addtosec(ptrvalue,unitsize,ptrdatasec)
+ 		return err
+ 	endif
+-	
++
+ 	sd for_64;setcall for_64 is_for_64()
+ 	if ptrobject#==1
+ 		If ptrrelocbool#==true
+@@ -77,6 +87,7 @@ Function enumcommas(data ptrcontent,data
+ 			Data unitsize#1
+ 			Data charsnr=charsnumber
+ 			If typenumber==charsnr
++			#ignored at stack value   grep stackfilter2  1
+ 				Set unitsize bSz
+ 			Else
+ 				Set unitsize dwSz
+@@ -110,7 +121,7 @@ Function enumcommas(data ptrcontent,data
+ 			Else
+ 				Data value#1
+ 				Data ptrvalue^value
+-				SetCall err parseoperations(ptrcontent,ptrsize,argumentsize,ptrvalue)
++				SetCall err parseoperations(ptrcontent,ptrsize,argumentsize,ptrvalue,(FALSE))
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
+@@ -137,9 +148,9 @@ Function enumcommas(data ptrcontent,data
+ 				ss test
+ 				set test content
+ 				dec test
+-				chars quot="\""
+-				if test#==quot
+-					set delim quot
++				chars d_quot=asciidoublequote
++				if test#==d_quot
++					set delim d_quot
+ 					#look later at escapes, here only at the margins
+ 					ss c
+ 					sd s
+@@ -160,7 +171,7 @@ Function enumcommas(data ptrcontent,data
+ 						SetCall len valinmemsens(c,s,comma,sens)
+ 						mult len -1
+ 						Call advancecursors(#c,#s,len)
+-						if c#==quot
++						if c#==d_quot
+ 							set loop 0
+ 						else
+ 							#here the string ".." is in a good condition when quotes_forward was called at fn(...)
+@@ -173,7 +184,7 @@ Function enumcommas(data ptrcontent,data
+ 			if delim==comma
+ 				SetCall argsize valinmemsens(content,sz,comma,sens)
+ 			endif
+-			
++
+ 			Data negvalue#1
+ 			Set negvalue zero
+ 			Sub negvalue argsize
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -47,7 +47,6 @@ Function parsefunction(data ptrcontent,d
+ 	Data true=TRUE
+ 	Data false=FALSE
+ 
+-	Chars fnbegin="("
+ 	Data zero=0
+ 	Data fns%ptrfunctions
+ 	Data code%ptrcodesec
+@@ -61,8 +60,8 @@ Function parsefunction(data ptrcontent,d
+ 
+ 	Set content ptrcontent#
+ 	Set size ptrsize#
+-	
+-	SetCall sz valinmem(content,size,fnbegin)
++
++	SetCall sz valinmem(content,size,(asciiparenthesisstart))
+ 	If sz==zero
+ 		Chars funnameexp="Function name expected."
+ 		Str fnerr^funnameexp
+@@ -74,7 +73,6 @@ Function parsefunction(data ptrcontent,d
+ 		Return starterr
+ 	EndIf
+ 
+-	sd b
+ 	If declare==true
+ 		Data fnnr=functionsnumber
+ 		Data value#1
+@@ -98,11 +96,10 @@ Function parsefunction(data ptrcontent,d
+ 			Data mask#1
+ 			Data ptrobjfnmask%ptrobjfnmask
+ 			Set mask ptrobjfnmask#
+-			
++
+ 			setcall scope64 is_funcx_subtype(subtype)
+ 			if scope64==(TRUE)
+-				setcall b is_for_64()
+-				if b==(TRUE);or mask (x86_64bit);endif
++				or mask (x86_64bit)
+ 			endif
+ 			SetCall err addaref(value,ptrcontent,ptrsize,sz,fnnr,mask)
+ 			If err!=noerr
+@@ -115,7 +112,7 @@ Function parsefunction(data ptrcontent,d
+ 			sd pointer
+ 			setcall pointer vars_ignoreref(content,sz,fns)
+ 			Call advancecursors(ptrcontent,ptrsize,sz)
+-			
++
+ 			#add the function name to the code section if the option is set
+ 			sd fn_text
+ 			setcall fn_text fn_text_info()
+@@ -131,7 +128,7 @@ Function parsefunction(data ptrcontent,d
+ 					Return err
+ 				EndIf
+ 			endif
+-			
++
+ 			Call getcontReg(code,ptrvalue)
+ 			set pointer# value
+ 
+@@ -147,7 +144,7 @@ Function parsefunction(data ptrcontent,d
+ 					Return err
+ 				EndIf
+ 			EndIf
+-			
++
+ 			setcall scope64 is_funcx_subtype(subtype)
+ 			#functionx,entry in 64 conventions
+ 			#entrylinux has no return but has argc,aexec,a1...an
+@@ -177,7 +174,7 @@ Function parsefunction(data ptrcontent,d
+ 		endif
+ 		setcall err nr_of_args_64need_set();if err!=(noerror);return err;endif
+ 	EndElse
+-	
++
+ 	Call stepcursors(ptrcontent,ptrsize)
+ 	data ptr_sz^sz
+ 	setcall err parenthesis_size(ptrcontent#,ptrsize#,ptr_sz)
+@@ -192,7 +189,7 @@ Function parsefunction(data ptrcontent,d
+ 			Return err
+ 		EndIf
+ 	EndIf
+-	
++
+ 	If declare==true
+ 		call entryscope()
+ 	else
+@@ -214,16 +211,19 @@ endfunction
+ function prepare_function_call(sd pcontent,sd psize,sd sz,sd p_data,sd p_bool_indirect)
+ 	set p_bool_indirect# (FALSE)
+ 	Data fns%ptrfunctions
+-	
++
+ 	SetCall p_data# vars(pcontent#,sz,fns)
+ 	If p_data#==0
+ 		setcall p_data# vars_number(pcontent#,sz,(integersnumber))
+ 		If p_data#==0
+ 			setcall p_data# vars_number(pcontent#,sz,(stackdatanumber))
+ 			If p_data#==0
+-				Chars unfndeferr="Undefined function/data name."
+-				Str ptrunfndef^unfndeferr
+-				Return ptrunfndef
++				setcall p_data# vars_number(pcontent#,sz,(stackvaluenumber))
++				If p_data#==0
++					Chars unfndeferr="Undefined function/data name."
++					Str ptrunfndef^unfndeferr
++					Return ptrunfndef
++				EndIf
+ 			EndIf
+ 		EndIf
+ 		set p_bool_indirect# (TRUE)
+@@ -232,7 +232,7 @@ function prepare_function_call(sd pconte
+ 		call is_for_64_is_impX_or_fnX_set(p_data#)
+ 	EndElse
+ 	Call advancecursors(pcontent,psize,sz)
+-	
++
+ 	#move over the stack arguments, ebx is also shorting the first stack variable (mov rbx,rdx)
+ 	#mov esp,ebx
+ 	Data code%ptrcodesec
+@@ -251,7 +251,7 @@ endfunction
+ function write_function_call(sd ptrdata,sd boolindirect,sd is_callex)
+ 	sd err
+ 	Data code%ptrcodesec
+-	
++
+ 	sd b;setcall b is_for_64_is_impX_or_fnX_get()
+ 	if b==(TRUE)
+ 		setcall err function_call_64(is_callex)
+@@ -261,13 +261,13 @@ function write_function_call(sd ptrdata,
+ 	Data ptrfnmask#1
+ 	Set ptrfnmask ptrdata
+ 	Add ptrfnmask (maskoffset)
+-	
++
+ 	Data fnmask#1
+ 	Data idatafn=idatabitfunction
+ 	Data ptrobject%ptrobject
+ 	Set fnmask ptrfnmask#
+ 	And fnmask idatafn
+-	
++
+ 	If fnmask==idatafn
+ 		If ptrobject#==(FALSE)
+ 			Set boolindirect (TRUE)
+@@ -278,7 +278,7 @@ function write_function_call(sd ptrdata,
+ 		Chars directcall#1
+ 		Data directcalloff#1
+ 		chars *={0xff,0xd0}
+-		
++
+ 		Data ptrdirectcall^directcall
+ 		const directcallsize=1+dwsz
+ 		data ptrdirectcalloff^directcalloff
+@@ -314,7 +314,7 @@ function write_function_call(sd ptrdata,
+ 			Return err
+ 		EndIf
+ 	EndElse
+-	
++
+ 	sd global_err_pB;setcall global_err_pB global_err_pBool()
+ 	if global_err_pB#!=(FALSE)
+ 		sd global_err_ptr;setcall global_err_ptr global_err_p()
+@@ -364,7 +364,7 @@ function write_function_call(sd ptrdata,
+ 		#return
+ 		SetCall err addtosec(ret_end_p,ret_end_sz,code);If err!=(noerror);Return err;EndIf
+ 	endif
+-	
++
+ 	return (noerror)
+ endfunction
+ 
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -13,7 +13,7 @@ Function fndecargs(data ptrcontent,data
+ 	Data err#1
+ 	Data perr^err
+ 	data subtype#1
+-	
++
+ 	Data ptrsearchsize^sz
+ 	Data len#1
+ 	Set len sz
+@@ -25,7 +25,7 @@ Function fndecargs(data ptrcontent,data
+ 	EndIf
+ 	Data vartype#1
+ 	setcall vartype commandSubtypeDeclare_to_typenumber(subtype)
+-	
++
+ 	#substract from the big size the parsed size
+ 	Sub len sz
+ 	Data length#1
+@@ -89,29 +89,32 @@ Function fndecargs(data ptrcontent,data
+ 		Return err
+ 	EndIf
+ 
+-	Const offend^memoff
+-	Const offstart^stacktransfer1
+-	Data ptrextra%ptrextra
+-	Data reloff=offend-offstart
+-	Data dataind=dataind
+-	SetCall err adddirectrel_base(ptrextra,reloff,dataind,memoff)
+-	If err!=noerr
+-		Return err
+-	EndIf
+-
++	data p_is_object%ptrobject
++	if p_is_object#==(TRUE)
++		Const offend^memoff
++		Const offstart^stacktransfer1
++		Data ptrextra%ptrextra
++		Data reloff=offend-offstart
++		Data dataind=dataind
++		SetCall err adddirectrel_base(ptrextra,reloff,dataind,memoff)
++		If err!=noerr
++			Return err
++		EndIf
++		set memoff (i386_obj_default_reloc)
++	endif
+ 	Str codeops^stacktransfer1
+ 	Data _codesec%ptrcodesec
+ 	SetCall err addtosec(codeops,sizeoftransfer,_codesec)
+ 	If err!=noerr;Return err;EndIf
+-	
++
+ 	sd b;setcall b is_for_64()
+ 	if b==(TRUE)
+ 		#at 64 code:
+ 		#A3 XX.XX.XX.XX_XX.XX.XX.XX
+-		sd z=0
++		sd z=i386_obj_default_reloc_rah
+ 		SetCall err addtosec(#z,(dwsz),_codesec)
+ 		If err!=noerr;Return err;EndIf
+ 	endif
+-	
++
+ 	Return err
+ EndFunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/add/add.s
++++ ocompiler-1/src/files/functions/add/add.s
+@@ -33,7 +33,7 @@ endfunction
+ 
+ #errnr
+ Function addaref(data value,data ptrcontent,data ptrsize,data size,data typenumber,data mask)
+-	Str content#1
++	Ss content
+ 	Set content ptrcontent#
+ 	Chars byte#1
+ 
+@@ -45,18 +45,16 @@ Function addaref(data value,data ptrcont
+ 	if bool!=(TRUE)
+ 		Return _err
+ 	EndIf
+-	Data len#1
+-	Set len size
+-	Data zero=0
++	ss end;set end content;add end size
++	inc content
+ 	Data false=FALSE
+-	While len!=zero
++	While content!=end
+ 		Set byte content#
+ 		SetCall bool is_variable_char(byte)
+ 		If bool==false
+ 			Return _err
+ 		EndIf
+ 		Inc content
+-		Dec len
+ 	EndWhile
+ 
+ 	#set the referenced bit if warnings are off
+@@ -64,7 +62,7 @@ Function addaref(data value,data ptrcont
+ 	if warningsboolptr#==(FALSE)
+ 		or mask (referencebit)
+ 	endif
+-	
++
+ 	sd dest
+ 	SetCall dest getstructcont(typenumber)
+ 	sd errnr
+@@ -72,7 +70,7 @@ Function addaref(data value,data ptrcont
+ 	If errnr!=(noerror)
+ 		Return errnr
+ 	EndIf
+-	
++
+ 	Call advancecursors(ptrcontent,ptrsize,size)
+ 
+ 	Return errnr
+@@ -94,6 +92,6 @@ function add_ref_to_sec(sd sec,sd value,
+ 	If errnr!=(noerror)
+ 		Return errnr
+ 	EndIf
+-	
++
+ 	return (noerror)
+ EndFunction
+--- ocompiler-1.orig/src/files/functions/add/addstresc.s
++++ ocompiler-1/src/files/functions/add/addstresc.s
+@@ -1,46 +1,35 @@
+ 
+ 
+ #errnr
+-Function addtosecstresc(data pcontent,data psize,data sz,data escapes,data pdest,data allowOdd)
+-	Data odd=0
+-	Data zero=0
+-	Data nonzero=1
+-	
++Function addtosecstresc(sd pcontent,sd psize,sd sz,sd escapes,sd pdest,sd wordpad)
+ 	#set destination start
+ 	Data destReg#1
+ 	Data ptrdestReg^destReg
+ 	Call getcontReg(pdest,ptrdestReg)
+ 
++	Data odd#1
++	Data zero=0
++
+ 	# size of the string out with term
+-	Data sizeEsc=0
++	Data sizeEsc#1
+ 	Set sizeEsc sz
++	sd end;set end sizeEsc
+ 	Sub sizeEsc escapes
+-	# the "str" on src
+-	Data sizeonsrc=0
+-	Set sizeonsrc sizeEsc
+ 	Inc sizeEsc
+ 
+-	Data sznr=0
+ 	Set odd zero
+ 	#into idata string is padded to word
+-	If allowOdd!=zero
+-		Set sznr sizeEsc
+-		While sznr!=zero
+-			If odd==zero
+-				Set odd nonzero
+-			Else
+-				Set odd zero
+-			EndElse
+-			Dec sznr
+-		EndWhile
+-		If odd==nonzero
++	If wordpad!=zero
++		set odd sizeEsc
++		and odd 1
++		If odd!=zero
+ 			Inc sizeEsc
+ 		EndIf
+ 	EndIf
+ 
+ 	Data noerr=noerror
+ 	Data errnr#1
+-	SetCall errnr addtosec(zero,sizeEsc,pdest)
++	SetCall errnr addtosec(0,sizeEsc,pdest)
+ 	If errnr!=noerr
+ 		Return errnr
+ 	EndIf
+@@ -48,19 +37,19 @@ Function addtosecstresc(data pcontent,da
+ 	#set destination start
+ 	Str destloc#1
+ 	Data ptrdestloc^destloc
+-	SetCall destloc getcont(pdest,ptrdestloc)
++	Call getcont(pdest,ptrdestloc)
+ 	Add destloc destReg
+ 
+-	While sizeonsrc!=zero
+-		Chars byte={0}
++	add end pcontent#
++	While pcontent#!=end
++		Chars byte#1
+ 		SetCall byte quotescaped(pcontent,psize,zero)
+ 		Set destloc# byte
+ 		Inc destloc
+ 		Call stepcursors(pcontent,psize)
+-		Dec sizeonsrc
+ 	EndWhile
+ 	Set destloc# zero
+-	If odd==nonzero
++	If odd!=zero
+ 		Inc destloc
+ 		Set destloc# zero
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/add/addtomem.s
++++ ocompiler-1/src/files/functions/add/addtomem.s
+@@ -2,14 +2,16 @@
+ 
+ 
+ 
+-#one for code and one for rest
+-Const maxsectionvalue=0x7fFFffFF/4
++#40...h*2 and can't compare signed<>unsigned and will loose control at alloc
++#this is also used at reserve *4 will be negative there
++Const maxsectionvalue=0x40000000-1
++#                       aaBBccDD
+ 
+ #err
+ Function maxvaluecheck(data value)
+ 	Data secmax=maxsectionvalue
+ 	If value>secmax
+-		Chars secsizeerr="Reserve/Section size cannot be greater than 536 870 911."
++		Chars secsizeerr="Section size cannot be greater than 1 073 741 823."
+ 		Str ptrsecsizeerr^secsizeerr
+ 		Return ptrsecsizeerr
+ 	EndIf
+@@ -22,9 +24,9 @@ Function addtosec(str content,data size,
+ 	Data destMax#1
+ 	Data pdestReg#1
+ 	Data ppdestReg^pdestReg
+-	
++
+ 	Call getptrcontReg(dst,ppdestReg)
+-	
++
+ 	Set destMax dst#
+ 
+ 	Data null=0
+@@ -89,7 +91,7 @@ Function addtosec(str content,data size,
+ 	If content!=null
+ 		Str destloc#1
+ 		Data ptrdest^destloc
+-		SetCall destloc getcont(dst,ptrdest)
++		Call getcont(dst,ptrdest)
+ 		Add destloc destData
+ 		Call memtomem(destloc,content,size)
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/argument/arg.s
++++ ocompiler-1/src/files/functions/argument/arg.s
+@@ -37,19 +37,19 @@ Function getarg(data ptrcontent,data ptr
+ 	ss content
+ 	sd size
+ 	sd errnr
+-	
++
+ 	Set content ptrcontent#
+ 	set size ptrsize#
+ 
+-	chars string_arg="\""
++	chars d_q=asciidoublequote
+ 
+ 	Str argnameerr="Argument name expected."
+ 	if sizetoverify==0
+ 		Return argnameerr
+ 	endif
+-	
++
+ 	sd argsize
+-	if content#!=string_arg
++	if content#!=d_q
+ 		setcall errnr arg_size(content,sizetoverify,#argsize)
+ 		If errnr!=(noerror)
+ 			Return errnr
+@@ -58,7 +58,7 @@ Function getarg(data ptrcontent,data ptr
+ 
+ 	Data noerr=noerror
+ 	data false=0
+-	
++
+ 	call resetisimm()
+ 	sd bool
+ 	setcall bool is_constant_related_ascii(content#)
+@@ -86,7 +86,7 @@ Function getarg(data ptrcontent,data ptr
+ 		#sufix is not used at imm value
+ 	else
+ 		sd prefix
+-		if content#==string_arg
++		if content#==d_q
+ 			#get entry
+ 			sd sec%ptrdummyEntry
+ 			call getcont(sec,ptrdata)
+@@ -118,14 +118,14 @@ Function getarg(data ptrcontent,data ptr
+ 			#lower than argsize in case of a prefix
+ 			sd argsize_filter
+ 			set argsize_filter argsize
+-			
++
+ 			#at object var/fn,non-object var
+ 			sd undvar_err
+ 			sd possible_err
+ 			setcall undvar_err undefinedvariable()
+ 			set possible_err undvar_err
+ 			set ptrdata# 0
+-			
++
+ 			chars arg_pointer="#"
+ 			if content#==arg_pointer
+ 				#prefix
+@@ -167,13 +167,11 @@ Function getarg(data ptrcontent,data ptr
+ 	#
+ 	If sens==(FORWARD)
+ 		Call advancecursors(ptrcontent,ptrsize,argsize)
+-		Call spaces(ptrcontent,ptrsize)
+ 		Return noerr
+-	Else
+-		data f^verify_syntax_end
+-		setcall errnr restore_cursors_onok(ptrcontent,ptrsize,f,argsize)
+-		return errnr
+-	EndElse
++	endIf
++	data f^verify_syntax_end
++	setcall errnr restore_cursors_onok(ptrcontent,ptrsize,f,argsize)
++	return errnr
+ EndFunction
+ 
+ function function_in_code()
+@@ -216,6 +214,16 @@ EndFunction
+ 
+ #err
+ Function argfilters(data ptrcondition,data ptrcontent,data ptrsize,data ptrdata,data ptrlow,data ptrsufix)
++	sd err
++	setcall err argfilters_helper(ptrcondition,ptrcontent,ptrsize,ptrdata,ptrlow,ptrsufix)
++	if err==(noerror)
++		#this is only at first arg
++		call spaces(ptrcontent,ptrsize)
++	endif
++	return err
++endfunction
++#err
++function argfilters_helper(data ptrcondition,data ptrcontent,data ptrsize,data ptrdata,data ptrlow,data ptrsufix)
+ 	Data null=NULL
+ 	Data err#1
+ 	Data forward=FORWARD
+@@ -223,81 +231,80 @@ Function argfilters(data ptrcondition,da
+ 	If ptrcondition==null
+ 		SetCall err arg(ptrcontent,ptrsize,ptrdata,ptrlow,ptrsufix,forward)
+ 		Return err
+-	Else
+-		call setimm()
++	EndIf
++	call setimm()
++
++	Data content#1
++	Data size#1
++	Set content ptrcontent#
++	Set size ptrsize#
++	Data argsz#1
+ 
+-		Data content#1
+-		Data size#1
+-		Set content ptrcontent#
+-		Set size ptrsize#
+-		Data argsz#1
+-		
+ Const enterifNOTequal=0x84
+-		Chars s1="!="
+-		Data *=enterifNOTequal
++	Chars s1="!="
++	Data *=enterifNOTequal
+ 
+ Const enterifLESSorEQUAL=0x8F
+-		Chars *s2="<="
+-		Data *=enterifLESSorEQUAL
++	Chars *s2="<="
++	Data *=enterifLESSorEQUAL
+ 
+ Const enterifGREATERorEQUAL=0x8C
+-		Chars *s3=">="
+-		Data *=enterifGREATERorEQUAL
++	Chars *s3=">="
++	Data *=enterifGREATERorEQUAL
+ 
+ Const enterifEQUAL=0x85
+-		Chars *s4="=="
+-		Data *=enterifEQUAL
++	Chars *s4="=="
++	Data *=enterifEQUAL
+ 
+ Const enterifLESS=0x8D
+-		Chars *s5="<"
+-		Data *=enterifLESS
++	Chars *s5="<"
++	Data *=enterifLESS
+ 
+ Const enterifGREATER=0x8E
+-		Chars *s6=">"
+-		Data *=enterifGREATER
+-
+-		Chars term={0}
++	Chars *s6=">"
++	Data *=enterifGREATER
+ 
+-		Data ptr#1
+-		Data ptrini^s1
+-		Chars byte#1
++	Chars term={0}
+ 
+-		Set ptr ptrini
++	Data ptr#1
++	Data ptrini^s1
++	Chars byte#1
++
++	Set ptr ptrini
++	Set byte ptr#
++
++	While byte!=term
++		SetCall argsz strinmem(content,size,ptr)
++		If argsz!=size
++			Set ptrcondition# ptr
++			Data errnr#1
++			sd verifyafter
++			set verifyafter content
++			add verifyafter argsz
++			SetCall errnr getarg(ptrcontent,ptrsize,argsz,ptrdata,ptrlow,ptrsufix,forward)
++			data noerrnr=noerror
++			if errnr!=noerrnr
++				Return errnr
++			endif
++			if verifyafter!=ptrcontent#
++				str moreatprimcond="Unrecognized characters at first condition argument."
++				return moreatprimcond
++			endif
++			return noerrnr
++		EndIf
++		Data sz#1
++		Data one=1
++		Data four=4
++		SetCall sz strlen(ptr)
++		Add ptr sz
++		Add ptr one
++		Add ptr four
+ 		Set byte ptr#
+-		
+-		While byte!=term
+-			SetCall argsz strinmem(content,size,ptr)
+-			If argsz!=size
+-				Set ptrcondition# ptr
+-				Data errnr#1
+-				sd verifyafter
+-				set verifyafter content
+-				add verifyafter argsz
+-				SetCall errnr getarg(ptrcontent,ptrsize,argsz,ptrdata,ptrlow,ptrsufix,forward)
+-				data noerrnr=noerror
+-				if errnr!=noerrnr
+-					Return errnr
+-				endif
+-				if verifyafter!=ptrcontent#
+-					str moreatprimcond="Unrecognized characters at first condition argument."
+-					return moreatprimcond
+-				endif
+-				return noerrnr
+-			EndIf
+-			Data sz#1
+-			Data one=1
+-			Data four=4
+-			SetCall sz strlen(ptr)
+-			Add ptr sz
+-			Add ptr one
+-			Add ptr four
+-			Set byte ptr#
+-		EndWhile
+-		Chars conderr="Condition sign(s) expected."
+-		Str _conderr^conderr
+-		Return _conderr
+-		Return err
+-	EndElse
++	EndWhile
++	Chars conderr="Condition sign(s) expected."
++	Str _conderr^conderr
++	Return _conderr
++	Return err
+ EndFunction
+ 
+ 
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -41,16 +41,9 @@ Function argument(data ptrcontent,data p
+ 
+ 	Set sizeofcontinuation zero
+ 
+-	data termswitch#1
+-	set termswitch false
+-	if subtype==(cEXIT)
+-		set termswitch true
+-		set subtype (cRETURN)
+-	endif
+-
+ 	Data codeptr%ptrcodesec
+ 	Data regopcode#1
+-	
++
+ 	Data err#1
+ 	Data noerr=noerror
+ 	chars immop#1
+@@ -59,18 +52,25 @@ Function argument(data ptrcontent,data p
+ 	call unsetimm()
+ 	Data forward=FORWARD
+ 	If forwardORcallsens==forward
++		sd termswitch=FALSE
++		if subtype==(cEXIT)
++			set subtype (cRETURN)
++			set termswitch (TRUE)
++		endif
+ 		If subtype==(cRETURN)
+ 			call setimm()
+ 			set immop immtake
+ 			Set integerreminder true
+ 			Set op (moveatprocthemem)
+ 
+-			#exit from linux term
+-			if termswitch==(FALSE);setcall termswitch is_linux_end();endif
++			if termswitch==(FALSE)
++				#exit from linux term
++				setcall termswitch is_linux_end()
++			endif
+ 
+ 			if termswitch==true
+ 				#if to keep rsp can be leave pop sub rsp,:
+-				
++
+ 				#int 0x80, sys_exit, eax 1,ebx the return number
+ 				chars sys_exit={0xb8,1,0,0,0}
+ 				data exinit^sys_exit
+@@ -187,8 +187,12 @@ Function argument(data ptrcontent,data p
+ 			Set intchar regopcode
+ 		EndIf
+ 	EndIf
+-	
+-	SetCall err writeop_immfilter(dataarg,op,intchar,sufix,regopcode,lowbyte)
++
++	if imm==true
++		setcall err write_imm(dataarg,op)
++	else
++		SetCall err writeop(dataarg,op,intchar,sufix,regopcode,lowbyte)
++	endelse
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+@@ -197,7 +201,7 @@ Function argument(data ptrcontent,data p
+ 		SetCall err addtosec(ptrcontinuation,sizeofcontinuation,codeptr)
+ 		return err
+ 	EndIf
+-	
++
+ 	return noerr
+ 
+ endfunction
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -26,7 +26,7 @@ Function formmodrm(data mod,data regopco
+ 	Set bitshift initialbitshift
+ 
+ 	Set modrm rm
+-	
++
+ 	SetCall bitshift rol(bitshift,toregopcode)
+ 	Set store bitshift
+ 	Mult store regopcode
+@@ -40,60 +40,65 @@ Function formmodrm(data mod,data regopco
+ 	Return modrm
+ EndFunction
+ 
+-function writetake(sd takeindex,sd entry)
+-	Data ptrcodesec%ptrcodesec
+-	data null=0
+-
+-	Data errnr#1
+-
+-	Chars takeini={0xb8}
+-
++function takewithimm(sd ind,sd addr)
+ 	Chars takeop#1
+ 	Data takeloc#1
+ 
+-	Data ptrtake^takeop
+-	Data sz1=bsz+dwsz
++	Set takeop (0xb8)
++	Add takeop ind
++	set takeloc addr
+ 
+-	Set takeop takeini
+-	Add takeop takeindex
++	Data ptrcodesec%ptrcodesec
++	Data sz1=bsz+dwsz
+ 
+-	Set takeloc entry#
++	sd err
++	SetCall err addtosec(#takeop,sz1,ptrcodesec)
++	return err
++endfunction
++function writetake(sd takeindex,sd entry)
++	data p_is_object%ptrobject
++	Data ptrcodesec%ptrcodesec
++	Data errnr#1
+ 
+-	
+-	data stack#1
+-	setcall stack is_stack(entry)
+-
+-	if stack==null
+-		Data ptrextra%ptrextra
+-		data relocoff=1
+-		sd var
+-		setcall var function_in_code()
+-		if var#==0
+-			Data dataind=dataind
+-			SetCall errnr adddirectrel_base(ptrextra,relocoff,dataind,takeloc)
+-			If errnr!=(noerror)
+-				Return errnr
+-			EndIf
+-		else
+-			#function in code
+-			set var# 0
+-			sd importbit
+-			setcall importbit get_importbit(entry)
+-			setcall takeloc get_function_value(importbit,entry)
+-			sd index
+-			setcall index get_function_values(importbit,#takeloc,entry)
+-			SetCall errnr adddirectrel_base(ptrextra,relocoff,index,takeloc)
+-			If errnr!=(noerror)
+-				Return errnr
+-			EndIf
+-			if importbit==0
+-				setcall errnr unresLc(1,ptrcodesec,0)
++	sd take_loc;set take_loc entry#
++	sd stack
++	setcall stack stackbit(entry)
++	if stack==0
++		if p_is_object#==(TRUE)
++			Data ptrextra%ptrextra
++			data relocoff=1
++			sd var
++			setcall var function_in_code()
++			if var#==0
++				Data dataind=dataind
++				SetCall errnr adddirectrel_base(ptrextra,relocoff,dataind,take_loc)
++				If errnr!=(noerror)
++					Return errnr
++				EndIf
++				set take_loc (i386_obj_default_reloc)
++			else
++				#function in code, not sd^local, sd^imp
++				#function in code is only at objects at the moment, is set only once at arg.s
++				#var# 0? is static bool
++				set var# 0
++				sd importbit
++				setcall importbit get_importbit(entry)
++				setcall take_loc get_function_value(importbit,entry)
++				sd index
++				setcall index get_function_values(importbit,#take_loc,entry)
++				SetCall errnr adddirectrel_base(ptrextra,relocoff,index,take_loc)
+ 				If errnr!=(noerror)
+ 					Return errnr
+ 				EndIf
+-			endif
+-		endelse
+-		SetCall errnr addtosec(ptrtake,sz1,ptrcodesec)
++				if importbit==0
++					setcall errnr unresLc(1,ptrcodesec,0)
++					If errnr!=(noerror)
++						Return errnr
++					EndIf
++				endif
++			endelse
++		endif
++		setcall errnr takewithimm(takeindex,take_loc)
+ 	else
+ 		chars stack_relative#1
+ 		chars regreg=RegReg
+@@ -103,8 +108,8 @@ function writetake(sd takeindex,sd entry
+ 		SetCall getfromstack_modrm formmodrm(regreg,takeindex,stack_relative)
+ 		data ptrgetfromstack^getfromstack
+ 		data sizegetfromstack=2
+-		if takeloc!=0
+-			SetCall errnr addtosec(ptrtake,sz1,ptrcodesec)
++		if take_loc!=0
++			setcall errnr takewithimm(takeindex,take_loc);If errnr!=(noerror);Return errnr;EndIf
+ 			set getfromstack 0x03
+ 		else;set getfromstack (moveatprocthemem);endelse
+ 		setcall errnr rex_w_if64();if errnr!=(noerror);return errnr;endif
+@@ -113,8 +118,8 @@ function writetake(sd takeindex,sd entry
+ 	Return errnr
+ endfunction
+ 
+-#er
+-Function writeoperation(sd location,sd operationopcode,sd regprepare,sd sufix,sd regopcode,sd takeindex,sd is_low)
++#val64. is one call at this that will break val64 if not a return value
++Function writeoperation_take(sd p_errnr,sd location,sd sufix,sd takeindex,sd is_low)
+ #last parameter is optional
+ 	Data ptrcodesec%ptrcodesec
+ 	Data errnr#1
+@@ -122,20 +127,18 @@ Function writeoperation(sd location,sd o
+ 
+ 	setcall errnr writetake(takeindex,location)
+ 	If errnr!=noerr
+-		Return errnr
++		set p_errnr# errnr;return (void)
+ 	EndIf
+ 
+-	Data noreg=noregnumber
+-	Data sz2=bsz+bsz
+ 
+-	sd take64stack=FALSE;sd v64
+-	sd stacktest;setcall stacktest is_stack(location)
+-	if stacktest!=(NULL)
++	sd take64stack=FALSE;sd v_64=val64_no
++	sd stacktest;setcall stacktest stackbit(location)
++	if stacktest!=0
+ 		#p test
+ 		sd for_64;setcall for_64 is_for_64()
+ 		if for_64==(TRUE)
+ 			set take64stack (TRUE)
+-			setcall v64 val64_p_get();set v64# (val64_willbe)
++			set v_64 (val64_willbe)
+ 			#rex if p
+ 		endif
+ 		#take on takeindex
+@@ -143,23 +146,50 @@ Function writeoperation(sd location,sd o
+ 	Data true=TRUE
+ 	If sufix==true
+ 		if take64stack==(TRUE)
+-			call rex_w(#errnr);If errnr!=noerr;Return errnr;EndIf
++			call rex_w(#errnr);If errnr!=noerr
++				set p_errnr# errnr;return (void);EndIf
+ 			if is_low==(TRUE)
+ 			#not ss, rex.w op r/m8 is ok but is useless
+-				set v64# (val64_no)
+-			endif
++				set v_64 (val64_no)
++			else
++				sd pbit;setcall pbit pointbit(location)
++				if pbit==0
++					#not needed at sd#
++					sd prefix
++					setcall prefix prefix_bool()
++					if prefix#==0
++					#but keep at prefix, this is a #a# case,the logic is fragile
++						set v_64 (val64_no)
++					endif
++				endif
++			endelse
+ 		endif
+ 		Chars newtake=moveatprocthemem
+ 		Chars newtakemodrm#1
+ 		Str ptrnewtake^newtake
++		Data sz2=bsz+bsz
+ 		setcall newtakemodrm formmodrm((mod_0),takeindex,takeindex)
+ 		SetCall errnr addtosec(ptrnewtake,sz2,ptrcodesec)
+-		If errnr!=noerr
+-			Return errnr
+-		EndIf
+-	EndIf
+-	
+-	If regprepare!=noreg
++		set p_errnr# errnr
++	Else;set p_errnr# (noerror);EndElse
++	Return v_64
++EndFunction
++#er
++Function writeoperation_op(sd operationopcode,sd regprepare,sd regopcode,sd takeindex)
++	Data ptrcodesec%ptrcodesec
++	Data errnr#1
++	Data noerr=noerror
++	Data sz2=bsz+bsz
++
++
++	sd prefix
++	setcall prefix prefix_bool()
++	sd mod=mod_0
++	#this will reset call,push and set v64
++	Call stack64_op()
++
++	#if is low
++	If regprepare!=(noregnumber)
+ 		Chars comprepare1={0x33}
+ 		Chars comprepare2#1
+ 		setcall comprepare2 formmodrm((RegReg),regprepare,regprepare)
+@@ -167,31 +197,36 @@ Function writeoperation(sd location,sd o
+ 		If errnr!=noerr
+ 			Return errnr
+ 		EndIf
+-	EndIf
++	Else
++	#there is no prefix at low, and no val64
++		If prefix#!=0
++			set mod (RegReg)
++			set prefix# 0
++		EndIf
++		sd v64;setcall v64 val64_p_get()
++		if v64#==(val64_willbe)
++			call rex_w(#errnr);if errnr!=(noerror);return errnr;endif
++			set v64# (val64_no)
++		endif
++	EndElse
+ 
+ 	Chars actionop#1
+ 	Chars actionmodrm#1
+-	
++
+ 	Set actionop operationopcode
+-	
+-	sd mod=0
+-	#prefix is tested here; the suffix is above
+-	sd prefix
+-	setcall prefix prefix_bool()
+-	if prefix#!=0
+-		set mod (RegReg)
+-		set prefix# 0
+-	endif
+-	#reset the behaviour, return if (RegReg), write
+-	SetCall errnr stack64_op(takeindex,#mod)
+-	If errnr!=noerr;Return errnr;EndIf
+ 	SetCall actionmodrm formmodrm(mod,regopcode,takeindex)
+-	
+-	SetCall errnr val64_phase_3();If errnr!=noerr;Return errnr;EndIf
+-	
+ 	SetCall errnr addtosec(#actionop,sz2,ptrcodesec)
+ 	Return errnr
+-EndFunction
++Endfunction
++#er
++Function writeoperation(sd location,sd operationopcode,sd regprepare,sd sufix,sd regopcode,sd takeindex,sd is_low)
++	sd err;sd v_64
++	setcall v_64 writeoperation_take(#err,location,sufix,takeindex,is_low)
++	if err!=(noerror);return err;endif
++	sd v64;setcall v64 val64_p_get();set v64# v_64
++	setcall err writeoperation_op(operationopcode,regprepare,regopcode,takeindex)
++	return err
++Endfunction
+ 
+ #er
+ Function writeop(sd location,sd operationopcode,sd regprepare,sd sufix,sd regopcode,sd is_low)
+--- ocompiler-1.orig/src/files/functions/argument/imm.s
++++ ocompiler-1/src/files/functions/argument/imm.s
+@@ -6,7 +6,7 @@ function imm_values(sd ptrcontent,sd ptr
+ 	dec sz
+ 	dec sz
+ 	sd err
+-	setcall err parseoperations(ptrcontent,ptrsize,sz,outvalue)
++	setcall err parseoperations(ptrcontent,ptrsize,sz,outvalue,(FALSE))
+ 	return err
+ endfunction
+ 
+@@ -17,8 +17,7 @@ function canbeimm_orerror(sd ptrcontent,
+ 
+ 	sd err
+ 
+-	chars canbeconstantsnumbers="("
+-	if content#!=canbeconstantsnumbers
++	if content#!=(asciiparenthesisstart)
+ 		setcall err numbersconstants(content,sz,outvalue)
+ 		return err
+ 	endif
+@@ -77,15 +76,7 @@ endfunction
+ 
+ 
+ #er
+-function writeop_immfilter(sd dataarg,sd op,sd intchar,sd sufix,sd regopcode,sd is_low)
+-	sd isimm
+-	setcall isimm getisimm()
+-	data false=0
+-	sd err
+-	if isimm==false
+-		setcall err writeop(dataarg,op,intchar,sufix,regopcode,is_low)
+-		return err
+-	endif
++function write_imm(sd dataarg,sd op)
+ 	chars immop#1
+ 	data value#1
+ 	data immadd^immop
+@@ -93,6 +84,7 @@ function writeop_immfilter(sd dataarg,sd
+ 	set value dataarg
+ 	data sz=5
+ 	data code%ptrcodesec
++	sd err
+ 	setcall err addtosec(immadd,sz,code)
+ 	return err
+ endfunction
+--- ocompiler-1.orig/src/files/functions/commands/cond.s
++++ ocompiler-1/src/files/functions/commands/cond.s
+@@ -40,7 +40,7 @@ Function condbegin(data ptrcontent,data
+ 	Data ptrcond^cond
+ 	Data err#1
+ 	Data noerr=noerror
+-	
++
+ 	SetCall err twoargs(ptrcontent,ptrsize,(not_a_subtype),ptrcond)
+ 	If err!=noerr
+ 		Return err
+@@ -107,7 +107,7 @@ Function condend(data number)
+ 	Data dsz=dwsz
+ 	Sub regnr dsz
+ 	Add structure regnr
+-	
++
+ 	Data lastcondition#1
+ 	Set lastcondition structure#
+ 
+@@ -126,7 +126,7 @@ Function condend(data number)
+ 	Data codeoffset#1
+ 	Data ptrcodeoff^codeoffset
+ 	Data codesec%ptrcodesec
+-	
++
+ 	Call getcontReg(codesec,ptrcodeoff)
+ 
+ 	Data noerr=noerror
+@@ -138,7 +138,7 @@ Function condend(data number)
+ 
+ 		Data whileloopstart#1
+ 		Data whileloopsize#1
+-		
++
+ 		Sub regnr dsz
+ 		Sub structure dsz
+ 
+@@ -185,7 +185,7 @@ Function conditionscondend(data close1,d
+ 	Data loopini=1
+ 	Data loopstop=0
+ 	Set loop loopini
+-	
++
+ 	Data number#1
+ 	Set number close1
+ 
+@@ -209,12 +209,8 @@ Function conditionscondend(data close1,d
+ 			EndElse
+ 		EndIf
+ 		If number==elsenr
+-			Data clreg#1
+ 			Data cl#1
+-			Data ptrclreg^clreg
+-			Data ptrcl^cl
+-			Call getcontandcontReg(structure,ptrcl,ptrclreg)
+-			Add cl clreg
++			Call getcontplusReg(structure,#cl)
+ 			Sub cl dsz
+ 			Data conditionsterminator#1
+ 			Set conditionsterminator cl#
+--- ocompiler-1.orig/src/files/functions/commands/lib.s
++++ ocompiler-1/src/files/functions/commands/lib.s
+@@ -18,7 +18,7 @@ Function openlib()
+ 	Data *ForwarderChain=0
+ 	Data Name#1
+ 	Data FirstThunk#1
+-	
++
+ 	Set Name namesReg
+ 	Set FirstThunk addressesReg
+ 
+@@ -66,7 +66,7 @@ Function closelib()
+ 
+ 	Data iidsize=IMAGE_IMPORT_DESCRIPTORsize
+ 	Sub itab iidsize
+-	
++
+ 	Set itab# adrsize
+ 
+ 	Data src#1
+--- ocompiler-1.orig/src/files/functions/commons/base.s
++++ ocompiler-1/src/files/functions/commons/base.s
+@@ -25,6 +25,12 @@ Function getcontandcontReg(data ptrstruc
+ 	Call getcont(ptrstrucutre,ptrcontainer)
+ EndFunction
+ 
++Function getcontplusReg(data ptrstrucutre,data ptrcontainer)
++	Call getcont(ptrstrucutre,ptrcontainer)
++	sd r
++	Call getcontReg(ptrstrucutre,#r)
++	add ptrcontainer# r
++EndFunction
+ 
+ Data innerfunction#1
+ Const globalinnerfunction^innerfunction
+@@ -34,7 +40,7 @@ Function getstructcont(data typenumber)
+ 	Data dest#1
+ 	Data scopes%ptrscopes
+ 	Data sizeofdataset=sizeofcontainer
+-	
++
+ 	Data fnboolptr%globalinnerfunction
+ 	Data fnbool#1
+ 
+@@ -42,7 +48,7 @@ Function getstructcont(data typenumber)
+ 
+ 	Data true=TRUE
+ 	Data scopeindependent=afterscopes
+-	
++
+ 	If fnbool==true
+ 		If typenumber<scopeindependent
+ 			Data nrofvars=numberofvars
+@@ -65,7 +71,7 @@ Function congruentmoduloatsegments(data
+ 
+     #add newbytes at virtual, offset already has them
+ 	Add virtual newbytes
+-	
++
+ 	SetCall virtualtop remainder(virtual,modulo)
+ 
+ 	SetCall offsettop remainder(offset,modulo)
+@@ -95,23 +101,28 @@ Function congruentmoduloatsegments(data
+ 	return virtual
+ EndFunction
+ 
+-#void
++#err
+ function addtolog(str content)
+ 	data sizetowrite#1
+ 	setcall sizetowrite strlen(content)
+-	call addtolog_ex(content,sizetowrite)
++	sd err
++	setcall err addtolog_ex(content,sizetowrite)
++	return err
+ endfunction
+-#void
++#err
+ function addtolog_ex(ss content,sd sizetowrite)
+ 	data ptrfilehandle%ptrlogfile
+ 	data filehandle#1
+ 	set filehandle ptrfilehandle#
+-	call writefile(filehandle,content,sizetowrite)
++	sd err
++	setcall err writefile_errversion(filehandle,content,sizetowrite)
++	if err!=(noerror);return err;endif
+ 
+ 	chars textterm={0xd,0xa,0}
+ 	str text^textterm
+ 	data sz=2
+-	call writefile(filehandle,text,sz)
++	setcall err writefile_errversion(filehandle,text,sz)
++	return err
+ endfunction
+ 
+ function restore_cursors_onok(sd ptrcontent,sd ptrsize,sd forward,sd data1,sd data2)
+--- ocompiler-1.orig/src/files/functions/commons/comfn.s
++++ ocompiler-1/src/files/functions/commons/comfn.s
+@@ -58,10 +58,10 @@ EndFunction
+ #0 equal -1 not
+ Function memcmp(str m1,str m2,data size)
+ 	Data zero=0
+-	
++
+ 	Data equal=0
+ 	Data notequal=-1
+-	
++
+ 	Chars c1#1
+ 	Chars c2#1
+ 	While size!=zero
+@@ -94,15 +94,17 @@ Function strlen(str str)
+ EndFunction
+ 
+ #null or buffer
+-Function printbuf(str format,str message)
++Function printbuf(sd format,sd message,sd s1,sd nr,sd n1,sd n2)
+ 	Data bufsize#1
+-	Data bufpartsize#1
+-	SetCall bufpartsize strlen(format)
+-	Set bufsize bufpartsize
+-	SetCall bufpartsize strlen(message)
+-	Add bufsize bufpartsize
+-	Data safesize=100
+-	Add bufsize safesize
++	SetCall bufsize strlen(format)
++	addCall bufsize strlen(message)
++	addCall bufsize strlen(s1)
++	if nr>0
++		add bufsize (max_uint64)
++		if nr>1
++			add bufsize (max_uint64)
++		endif
++	endif
+ 
+ 	Str buf#1
+ 	SetCall buf memalloc(bufsize)
+@@ -110,19 +112,19 @@ Function printbuf(str format,str message
+ 	If buf==null
+ 		Return null
+ 	EndIf
++	call sprintf(buf,format,message,s1,n1,n2)
+ 	Return buf
+ EndFunction
+ 
+-#err
++#str1/newPointer
+ function errorDefOut(str str1,str str2)
+ 	str format="%s%s"
+ 	data ptrallocerrormsg%ptrallocerrormsg
+-	SetCall ptrallocerrormsg# printbuf(str1,str2)
++	SetCall ptrallocerrormsg# printbuf(format,str1,str2,0)
+ 	data null=NULL
+ 	If ptrallocerrormsg#==null
+ 		return str1
+ 	EndIf
+-	Call sprintf(ptrallocerrormsg#,format,str1,str2)
+ 	return ptrallocerrormsg#
+ endfunction
+ 
+@@ -144,18 +146,29 @@ Function openfile(data pfile,str path,da
+ 	Return noerr
+ EndFunction
+ 
++chars writefile_err="Cannot write data to a file."
++const writefile_err_p^writefile_err
+ #return _write (-1 or wrln)
+ Function writefile(data hfile,str buf,data ln)
+-	Data writefalse=writeno
+-	Data writeres=0
++	sd writeres
+ 	SetCall writeres write(hfile,buf,ln)
+-	If writeres==writefalse
+-		Chars writeerr="Cannot write data to a file."
++	If writeres!=ln
++		sd writeerr%writefile_err_p
+ 		Call Message(writeerr)
+-		Return writefalse
++		Return (writeno)
+ 	EndIf
+ 	Return writeres
+ EndFunction
++#err
++Function writefile_errversion(data hfile,str buf,data ln)
++	sd writeres
++	SetCall writeres write(hfile,buf,ln)
++	If writeres!=ln
++		sd writeerr%writefile_err_p
++		Return writeerr
++	EndIf
++	Return (noerror)
++EndFunction
+ 
+ #return required pad, so value can be a multiple of pad
+ Function requiredpad(data value,data pad)
+@@ -227,7 +240,7 @@ EndFunction
+ 
+ #true if match or false
+ Function filepathdelims(chars chr)
+-	Chars bslash="\\"
++	Chars bslash=asciibs
+ 	Chars slash=asciislash
+ 	Data true=TRUE
+ 	Data false=FALSE
+@@ -350,7 +363,7 @@ function clearmessage()
+ 	data null=NULL
+ 	If ptrallocerrormsg#!=null
+ 		Call free(ptrallocerrormsg#)
+-		#at preferences, required next, clear here
++		#if the error from file_get.. is from open here is ok, else if is only a str err alloc was not
+ 		set ptrallocerrormsg# null
+ 	EndIf
+ endfunction
+--- ocompiler-1.orig/src/files/functions/commons/getcommand.s
++++ ocompiler-1/src/files/functions/commons/getcommand.s
+@@ -3,7 +3,7 @@
+ Const spacereq=1
+ Const spacenotreq=0
+ 
+-Chars cDATA_c="DATA";Chars cCHARS_c="CHARS";Chars cSTR_c="STR";Chars cSD_c="SD";Chars cSS_c="SS"
++Chars cDATA_c="DATA";Chars cCHARS_c="CHARS";Chars cSTR_c="STR";Chars cSD_c="SD";Chars cSS_c="SS";Chars cSV_c="SV"
+ 	Chars cCONST_c="CONST";Chars cAFTERCALL_c="AFTERCALL";Chars cIMPORTAFTERCALL_c="IMPORTAFTERCALL"
+ Chars cFORMAT_c="FORMAT"
+ Chars cRETURN_c="RETURN";Chars cNOT_c="NOT";Chars cINC_c="INC";Chars cINCST_c="INCST";Chars cDEC_c="DEC";Chars cEXIT_c="EXIT";Chars cNEG_c="NEG";Chars cSHL_c="SHL";Chars cSHR_c="SHR";Chars cSAR_c="SAR"
+@@ -20,7 +20,7 @@ Chars cINCLUDE_c="INCLUDE"
+ Chars cI3_c="I3"
+ Chars cHEX_c="HEX"
+ Chars cWARNING_c="WARNING"
+-Chars cCOMMENT_c="#"
++Chars cCOMMENT_c={commentascii,0}
+ 
+ const not_a_subtype=-1
+ 
+@@ -53,6 +53,11 @@ const commandsvars_start=!
+ 			Data *=cDECLARE
+ 			Data *=cSS
+ 			Data *=spacereq
++		Const cSV=!-cDECLARE_top
++			data *^cSV_c
++			Data *=cDECLARE
++			Data *=cSV
++			Data *=spacereq
+ #numberofcommandsvars to set these commands to search for them at function parameter declare
+ Const numberofcommandsvars=!-commandsvars_start/4/dwsz
+ 		Const cCONST=!-cDECLARE_top
+@@ -316,6 +321,7 @@ function commandSubtypeDeclare_to_typenu
+ 	elseif subtype==(cSTR);return (stringsnumber)
+ 	elseif subtype==(cSD);return (stackdatanumber)
+ 	elseif subtype==(cSS);return (stackstringnumber)
++	elseif subtype==(cSV);return (stackvaluenumber)
+ 	else
+ 	#cCONST
+ 		return (constantsnumber)
+@@ -330,7 +336,7 @@ Function getcommand(data pcontent,data p
+ 	Data true=TRUE
+ 
+ 	Data dsz=dwsz
+-	
++
+ 	Set cursor pointercommands#
+ 	While cursor!=zero
+ 		Data offset#1
+@@ -350,7 +356,7 @@ Function getcommand(data pcontent,data p
+ 		Str extstr#1
+ 		Data extbooldata#1
+ 		Data extbool^extbooldata
+-		
++
+ 		If command==(cPRIMSEC)
+ 			Set extstr call
+ 		Else
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -106,47 +106,92 @@ EndFunction
+ 
+ #pointer
+ function mem_spaces(ss content,ss last)
+-	Chars spc=" "
+-	Chars tab=0x9
+ 	while content!=last
+-		if content#!=spc
+-			if content#!=tab
+-				return content
+-			endif
++		sd bool;setcall bool is_whitespace(content#)
++		if bool==(FALSE)
++			return content
++		endif
++		inc content
++	endwhile
++	return content
++endfunction
++#new size
++function find_whitespaceORcomment(ss content,sd size)
++#size is greater than zero
++	ss end;set end content;add end size
++	ss start;set start content
++	while content!=end
++		chars b#1;set b content#
++		if b==(commentascii)
++			sub content start
++			return content
++		endif
++		sd bool
++		setcall bool is_whitespace(b)
++		if bool==(TRUE)
++			sub content start
++			return content
+ 		endif
+ 		inc content
+ 	endwhile
++	sub content start
+ 	return content
+ endfunction
++#bool
++function is_whitespace(chars c)
++	if c==(asciispace)
++		return (TRUE)
++	endif
++	if c==(asciitab)
++		return (TRUE)
++	endif
++	return (FALSE)
++endfunction
++data warn_hidden_whitespaces_times#1
++const warn_hidden_whitespaces_times_p^warn_hidden_whitespaces_times
++#err
++function warn_hidden_whitespaces(sd inc,sd add)
++	data warn_hidden_whitespaces_times_p%warn_hidden_whitespaces_times_p
++	if warn_hidden_whitespaces_times_p#==0
++		add inc add
++		sd goodwrongstring
++		setcall goodwrongstring errorDefOut("Hidden whitespaces at :",inc)
++		call safeMessage(goodwrongstring)
++		inc warn_hidden_whitespaces_times_p#
++		sd w%p_w_as_e
++		if w#==(TRUE)
++			sd p%p_hidden_pref
++			if p#==(TRUE)
++				return ""
++			endif
++		endif
++	endif
++	return (noerror)
++endfunction
++
++Function spaces_helper(ss cursor,sd size)
++	sd end;set end cursor;add end size
++	while cursor!=end
++		sd b
++		setcall b is_whitespace(cursor#)
++		if b==(TRUE)
++			inc cursor
++		else
++			return cursor
++		endelse
++	endwhile
++	return cursor
++endfunction
+ #spaces;return 1 if at least one spc/tab;0 otherwise
+-Function spaces(Str pcontent,data psize)
+-	Data b=0
+-	Data localview=0
+-	Data true=TRUE
+-	Data false=FALSE
+-	Data var=0
+-	Chars spc=" "
+-	Str pspc^spc
+-	Chars tab={0x9,0}
+-	Str ptab^tab
+-
+-	Set b false
+-	Set localview true
+-	
+-	While localview==true
+-		Set localview false
+-		SetCall var stratmem(pcontent,psize,pspc)
+-		If var==true
+-			Set b true
+-			Set localview true
+-		EndIf
+-		SetCall var stratmem(pcontent,psize,ptab)
+-		If var==true
+-			Set b true
+-			Set localview true
+-		EndIf
+-	EndWhile
+-	Return b
++Function spaces(sd pcontent,sd psize)
++	sd start;set start pcontent#
++	setcall pcontent# spaces_helper(pcontent#,psize#)
++	if pcontent#==start
++		return (FALSE)
++	endif
++	sub start pcontent#
++	add psize# start
++	return (TRUE)
+ EndFunction
+ 
+ #bool;return 1 or 0
+@@ -194,31 +239,26 @@ Function quotescaped(Data pcontent,Data
+ 	Str content#1
+ 	Data size#1
+ 	Chars byte#1
+-	Chars bs={asciibs}
++	Chars bs=asciibs
+ 	Data zero=0
+-	
++
+ 	Set content pcontent#
+-	Set size psize#
+ 	Set byte content#
+ 	If byte!=bs
+ 		Return byte
+ 	EndIf
+-	Inc content
++	Set size psize#
+ 	Dec size
+-
+ 	If size==zero
+ 		Return byte
+ 	EndIf
+ 
++	Inc content
+ 	Set byte content#
+ 	Set pcontent# content
+ 	Set psize# size
+-
+-	Data escapes#1
+ 	If pescapes!=zero
+-		Set escapes pescapes#
+-		Inc escapes
+-		Set pescapes# escapes
++		Inc pescapes#
+ 	EndIf
+ 
+ 	Return byte
+@@ -226,7 +266,7 @@ EndFunction
+ 
+ #return false or true
+ Function quotientinmem(data ptrcontent,data ptrsize,data pquotsz,data pescapes)
+-	Chars quotation="\""
++	Chars quotation={asciidoublequote,0}
+ 	Str pquotation^quotation
+ 	Data intnr=0
+ 	Data zero=0
+@@ -247,7 +287,7 @@ Function quotientinmem(data ptrcontent,d
+ 	Set pescapes# zero
+ 	Data escbefore=0
+ 	Data escafter=0
+-	
++
+ 	Chars byte={0}
+ 	Chars bnull={0}
+ 	While length!=zero
+@@ -293,61 +333,60 @@ function maxpathverif(str safecurrentdir
+ 	setcall size2 strlen(logextension)
+ 	add size1 size2
+ 	inc size1
+-	
++
+ 	data err#1
+ 	setcall err compareagainstmaxpath(size1)
+ 	return err
+ endfunction
+ 
+ #err
+-function quotes_forward(sd p_content,ss last,sd p_newlines)
+-	if p_content#==last
+-		return (noerror)
+-	endif
++function quotes_forward(sd p_content,ss last,sd p_newlines,sd p_lastlinestart)
++#this version is knowing that the first char is "
++	chars delim=asciidoublequote
+ 	ss content
+ 	set content p_content#
+-	chars delim="\""
+-	if content#!=delim
+-		return (noerror)
+-	endif
+ 	str unend="end string (\") expected"
+ 	sd escapes=0
+-    inc content
+-    if content==last
++	inc content
++	if content==last
+ 		return unend
+ 	endif
+ 	sd newlines=0
+-    while content#!=delim
+-        chars escape="\\"
+-        while content#==escape
+-            if escapes==0
+-                set escapes 1
+-            else
+-                set escapes 0
+-            endelse
+-            inc content
+-            if content==last
++	while content#!=delim
++		chars escape_c=asciibs
++		while content#==escape_c
++			if escapes==0
++				set escapes 1
++			else
++				set escapes 0
++			endelse
++			inc content
++			if content==last
+ 				return unend
+ 			endif
+-        endwhile
+-        chars newline=0xa
+-        if content#==newline
+-			inc newlines
+-		endif
+-        if escapes==1
+-            inc content
+-            set escapes 0
+-        elseif content#!=delim
+-            inc content
+-        endelseif
+-        if content==last
++		endwhile
++		chars newline=0xa
++		if content#==newline
++			if p_newlines!=0
++				inc newlines
++				set p_lastlinestart# content
++				inc p_lastlinestart#
++			endif
++		endif
++		if escapes==1
++			inc content
++			set escapes 0
++		elseif content#!=delim
++			inc content
++		endelseif
++		if content==last
+ 			return unend
+ 		endif
+-    endwhile
+-    inc content
+-    set p_content# content
+-    if p_newlines!=0
++	endwhile
++	inc content
++	set p_content# content
++	if p_newlines!=0
+ 		set p_newlines# newlines
+-    endif
+-    return (noerror)
++	endif
++	return (noerror)
+ endfunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/commons/vars.s
++++ ocompiler-1/src/files/functions/commons/vars.s
+@@ -1,5 +1,30 @@
+ 
+ 
++#same or zero
++function warn_or_log(ss str1,sd return_value,ss symbolname,sd log_option,sd p_err)
++	data ptrobject%ptrobject
++	if ptrobject#==(TRUE)
++		if log_option==(log_warn)
++			data ptrlogfile%ptrlogfile
++			if ptrlogfile#!=-1
++				sd len
++				setcall len strlen(str1)
++				setcall p_err# writefile_errversion(ptrlogfile#,str1,len)
++				if p_err#!=(noerror)
++					return return_value
++				endif
++				add symbolname (dwsz)
++				setcall p_err# addtolog(symbolname)
++				if p_err#!=(noerror)
++					return return_value
++				endif
++				return 0
++			endif
++		endif
++	endif
++	return return_value
++endfunction
++
+ #null or a pointer to the constant/variable/function
+ function vars_core_ref(str content,data size,data ptrstructure,data warningssearch,sd setref)
+ 	Data zero=0
+@@ -13,67 +38,53 @@ function vars_core_ref(str content,data
+ 	Data ptrcontainerReg^containerReg
+ 	Call getcontandcontReg(ptrstructure,ptrcontainer,ptrcontainerReg)
+ 	Data entrypoint#1
+-	
++
+ 	While containerReg>zero
+ 		Set entrypoint container
+ 		Add container dwlen
+ 		Sub containerReg dwlen
+-		Data true=TRUE
+-		Data false=FALSE
+-		If warningssearch==true
++		If warningssearch!=(NULL)
+ 			Data ReferenceBit=referencebit
+ 			Data checkvalue#1
+ 			Set checkvalue container#
+ 			And checkvalue ReferenceBit
++			data ptrconstants%ptrconstants;sd cb
+ 			If checkvalue==zero
+ 				data returnvalue#1
+ 				set returnvalue entrypoint
++				#
+ 				data ptrfunctions%ptrfunctions
+ 				if ptrfunctions==ptrstructure
+ 					Set checkvalue container#
+-					data idatabitfunction=idatabitfunction
++					data idatabitfunction=idatabitfunction|x86_64bit
+ 					And checkvalue idatabitfunction
+ 					if checkvalue==zero
+-						data ptrobject%ptrobject
+-						if ptrobject#==true
+-							data ignorecodeFnObj=ignorecodeFnObj
+-							data logcodeFnObj=logcodeFnObj
+-							data ptrcodeFnObj%ptrcodeFnObj
+-							if ptrcodeFnObj#==logcodeFnObj
+-								set returnvalue zero
+-								data ptrlogfile%ptrlogfile
+-								if ptrlogfile#!=-1
+-									data symbolname#1
+-									set symbolname container
+-									add symbolname dwlen
+-									str str1="Symbol(unused in the obj):"
+-									data log#1
+-									setcall log errorDefOut(str1,symbolname)
+-									call addtolog(log)
+-									call clearmessage()
+-								endif
+-							elseif ptrcodeFnObj#==ignorecodeFnObj
+-								set returnvalue zero
+-							endelseif
+-						endif
++						data ptrcodeFnObj%ptrcodeFnObj
++						setcall returnvalue warn_or_log("f",returnvalue,container,ptrcodeFnObj#,warningssearch)
+ 					endif
+-				endif
++				elseif ptrconstants==ptrstructure
++					setcall cb constants_bool((const_warn_get))
++					setcall returnvalue warn_or_log("c",returnvalue,container,cb,warningssearch)
++				endelseif
+ 				if returnvalue!=zero
+ 					Return returnvalue
+ 				endif
+-			EndIf
++			elseIf ptrconstants==ptrstructure
++				setcall cb constants_bool((const_warn_get))
++				call warn_or_log("r",entrypoint,container,cb,warningssearch)
++			EndelseIf
+ 		EndIf
+ 		Add container dwlen
+ 		Sub containerReg dwlen
+ 		SetCall varsize strlen(container)
+-		If warningssearch==false
++		If warningssearch==(NULL)
+ 			If varsize==size
+ 				Data cmpret#1
+ 				SetCall cmpret memcmp(container,content,size)
+ 				If cmpret==zero
+ 					#go back from string to mask
+ 					Sub container dwlen
+-					
++
+ 					#if set the reference is true
+ 					if setref==1
+ 						#get the value and change the reference bit of the mask to true
+@@ -106,15 +117,14 @@ EndFunction
+ function vars_ignoreref(str content,data size,data ptrstructure)
+ 	Data pointer#1
+ 	Data false=FALSE
+-	SetCall pointer vars_core_ref(content,size,ptrstructure,false,false)
++	SetCall pointer vars_core_ref(content,size,ptrstructure,(NULL),false)
+ 	Return pointer
+ endfunction
+ 
+ #varscore
+ Function vars(str content,data size,data ptrstructure)
+ 	Data pointer#1
+-	Data false=FALSE
+-	SetCall pointer varscore(content,size,ptrstructure,false)
++	SetCall pointer varscore(content,size,ptrstructure,(NULL))
+ 	Return pointer
+ EndFunction
+ 
+@@ -159,8 +169,7 @@ EndFunction
+ #searchinvars
+ Function strinvars(str content,data size,data ptrtype)
+ 	Data pointer#1
+-	Data false=FALSE
+-	SetCall pointer searchinvars(content,size,ptrtype,false)
++	SetCall pointer searchinvars(content,size,ptrtype,(NULL))
+ 	Return pointer
+ EndFunction
+ 
+@@ -191,7 +200,7 @@ Function varsufix(str content,data size,
+ 	Data ptrtype^type
+ 	Data false=FALSE
+ 	Data true=TRUE
+-	
++
+ 	#size is expecting to be greater than zero
+ 	Str viewsfx#1
+ 	Set viewsfx content
+@@ -208,7 +217,7 @@ Function varsufix(str content,data size,
+ 	Else
+ 		Set sufix false
+ 	EndElse
+-	
++
+ 	Data null=NULL
+ 	Data data#1
+ 
+@@ -225,7 +234,7 @@ Function varsufix(str content,data size,
+ 	Data charsnumber=charsnumber
+ 	sd is_str
+ 	setcall is_str is_string(type)
+-	
++
+ 	sd prefix
+ 	setcall prefix prefix_bool()
+ 	If type==charsnumber
+@@ -243,6 +252,7 @@ Function varsufix(str content,data size,
+ 	ElseIf is_str==false
+ 		Set ptrlow# false
+ 	Else
++	#str ss
+ 		If sufix==true
+ 			if prefix#==0
+ 				Set ptrlow# true
+@@ -255,7 +265,7 @@ Function varsufix(str content,data size,
+ 	EndElse
+ 
+ 	Set ptrsufix# sufix
+-	
++
+ 	Data noerr=noerror
+ 	Return noerr
+ EndFunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -6,17 +6,14 @@
+ Function dataassign(data ptrcontent,data ptrsize,data typenumber)
+ 	Data false=FALSE
+ 	Data true=TRUE
+-	data null=0
+ 	data stack#1
+ 	data ptrS^stack
+-	data rightstackpointer#1
+-	
++
+ 	setcall typenumber stackfilter(typenumber,ptrS)
+ 	if stack==true
+ 		#######must be at the start
+ 		call entryscope_verify_code()
+ 	endif
+-	set rightstackpointer false
+ 
+ 	Str err#1
+ 	Data noerr=noerror
+@@ -28,14 +25,19 @@ Function dataassign(data ptrcontent,data
+ 	Data charsnr=charsnumber
+ 	Data stringsnr=stringsnumber
+ 
+-	sd offset
++	data offset#1
+ 	Data ptroffset^offset
+ 	Data constantsstruct%ptrconstants
+ 	Data container#1
+ 	Data pointer_structure#1
+ 	Data ptrcontainer^container
+ 	#at constants and at data^sd,str^ss
++
++	Data ptrrelocbool%ptrrelocbool
++
+ 	If typenumber!=charsnr
++	#for const and at pointer with stack false
++	#this can't go after dataparse, addvarref will increase the offset
+ 		if typenumber==constantsnr
+ 			set pointer_structure constantsstruct
+ 		else
+@@ -43,12 +45,6 @@ Function dataassign(data ptrcontent,data
+ 		endelse
+ 		Call getcontReg(pointer_structure,ptroffset)
+ 	EndIf
+-
+-	Data ptrrelocbool%ptrrelocbool
+-	Data relocindx#1
+-	Data dataind=dataind
+-	Set relocindx dataind
+-	
+ 	SetCall err dataparse(ptrcontent,ptrsize,typenumber,assignsign,ptrrelocbool,stack)
+ 	If err!=noerr
+ 		Return err
+@@ -59,6 +55,13 @@ Function dataassign(data ptrcontent,data
+ 		Return noerr
+ 	endif
+ 
++	data rightstackpointer#1
++	set rightstackpointer false
++
++	Data relocindx#1
++	Data dataind=dataind
++	Set relocindx dataind
++
+ 	Data value#1
+ 	Data ptrvalue^value
+ 
+@@ -69,7 +72,7 @@ Function dataassign(data ptrcontent,data
+ 	Data ptrfunctions%ptrfunctions
+ 
+ 	Data zero=0
+-	
++
+ 	Data dwSz=dwsz
+ 	data bsz=bsz
+ 	data valuewritesize#1
+@@ -82,7 +85,7 @@ Function dataassign(data ptrcontent,data
+ 	set skipNumberValue false
+ 	Data importbittest#1
+ 	set importbittest -1
+-	
++
+ 	Set size ptrsize#
+ 	If size==zero
+ 		Chars rightsideerr="Right side of the assignment expected."
+@@ -95,12 +98,15 @@ Function dataassign(data ptrcontent,data
+ 		Set byte content#
+ 		Chars groupstart="{"
+ 		If byte!=groupstart
+-			chars stringstart="\""
++			chars stringstart=asciidoublequote
+ 			If byte==stringstart
+ 			#"text"
+ 				If typenumber==charsnr
+-					set stringtodata true
+-					set skipNumberValue true
++					if stack==false
++					#else is at stack value   grep stackfilter2   2
++						set stringtodata true
++						set skipNumberValue true
++					endif
+ 				ElseIf typenumber==stringsnr
+ 					set stringtodata true
+ 					setcall value get_img_vdata_dataReg()
+@@ -120,12 +126,15 @@ Function dataassign(data ptrcontent,data
+ 				endif
+ 			Else
+ 			#=value+constant-/&...
+-				SetCall err parseoperations(ptrcontent,ptrsize,size,ptrvalue)
++				SetCall err parseoperations(ptrcontent,ptrsize,size,ptrvalue,(TRUE))
+ 				if err!=noerr
+ 					return err
+ 				endif
+ 				If typenumber==charsnr
+-					set valuewritesize bsz
++					if stack==false
++					#else is at stack value   grep stackfilter2   3
++						set valuewritesize bsz
++					endif
+ 				EndIf
+ 			EndElse
+ 		Else
+@@ -155,30 +164,37 @@ Function dataassign(data ptrcontent,data
+ 		EndElse
+ 	Chars reserve="#"
+ 	ElseIf sign==reserve
+-		SetCall err parseoperations(ptrcontent,ptrsize,size,ptrvalue)
++		SetCall err parseoperations(ptrcontent,ptrsize,size,ptrvalue,(TRUE))
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
++		Chars negreserve="Unexpected negative value at reserve declaration."
++		Str ptrnegreserve^negreserve
+ 		If value<zero
+-			Chars negreserve="Unexpected negative value at reserve declaration."
+-			Str ptrnegreserve^negreserve
+ 			Return ptrnegreserve
+ 		EndIf
+ 		Data dsz=dwsz
+ 		if stack==false
+-			SetCall err maxvaluecheck(value)
+-			If err!=noerr
+-				Return err
+-			EndIf
+ 			If typenumber!=charsnr
+-				Mult value dsz
+ 				SetCall err maxvaluecheck(value)
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
++				Mult value dsz
+ 			EndIf
+-			SetCall err addtosec(null,value,ptrdatasec)
+-			Return err
++			If value<zero
++				return ptrnegreserve
++			endIf
++			sd p_nul_res_pref%p_nul_res_pref
++			if p_nul_res_pref#==(TRUE)
++				sd datacont;call getcontplusReg(ptrdatasec,#datacont)
++			endif
++			SetCall err addtosec(0,value,ptrdatasec)
++			If err!=noerr;Return err;EndIf
++			if p_nul_res_pref#==(TRUE)
++				call memset(datacont,0,value)
++			endif
++			Return (noerror)
+ 		else
+ 			Mult value dsz
+ 			call growramp(value)
+@@ -200,9 +216,9 @@ Function dataassign(data ptrcontent,data
+ 		Data pointer#1
+ 		SetCall pointer strinvars(content,size,tp)
+ 		If pointer!=zero
+-			data rightstackbool#1
+-			setcall rightstackbool is_stack(pointer)
+-			if rightstackbool==false
++			data rightstackbit#1
++			setcall rightstackbit stackbit(pointer)
++			if rightstackbit==0
+ 				Set value pointer#
+ 			else
+ 				set ptrrelocbool# false
+@@ -253,7 +269,7 @@ Function dataassign(data ptrcontent,data
+ 					dec doublepointer
+ 					set addatend ptrvirtualimportsoffset
+ 				endelse
+-				
++
+ 				sd section
+ 				sd section_offset
+ 				if stack==false
+--- ocompiler-1.orig/src/files/functions/elf/elf.s
++++ ocompiler-1/src/files/functions/elf/elf.s
+@@ -42,7 +42,7 @@ function elfaddsec_base(sd stringname,sd
+ 	#Entry size if section holds table
+ 	Data sh_entsize#1
+ 	Const elf_section_size=!-elf_section
+-	
++
+ 	Const elf64_section=!
+ 	Data sh64_name#1
+ 	Data sh64_type#1
+@@ -59,15 +59,15 @@ function elfaddsec_base(sd stringname,sd
+ 	Const SHT_NULL=0
+ 	Const SHT_PROGBITS=1
+ 	Const SHT_NOBITS=8
+-		
++
+ 	const SHF_WRITE=1
+ 		#Occupies memory during execution,1 << 1
+ 	Const SHF_ALLOC=2*1
+ 		#Executable,1 << 2
+ 	Const SHF_EXECINSTR=2*2
+ 		#`sh_info' contains SHT index,1 << 6
+-	Const SHF_INFO_LINK=2*6
+-	
++	#Const SHF_INFO_LINK=2*6
++
+ 	Data SHT_PROGBITS=SHT_PROGBITS
+ 	Data SHT_NOBITS=SHT_NOBITS
+ 	Data zero=0
+@@ -76,7 +76,7 @@ function elfaddsec_base(sd stringname,sd
+ 			Set type SHT_NOBITS
+ 		EndIf
+ 	EndIf
+-	
++
+ 	Data err#1
+ 	#is false at inits, no worry about only at object
+ 	sd e64;setcall e64 is_for_64()
+@@ -139,7 +139,7 @@ Function elfaddsym(data stringoff,data v
+ 		Chars elf64_sym_st_shndx#2
+ 		Data elf64_sym_st_value#1;data *=0
+ 		Data elf64_sym_st_size#1;data *=0
+-	
++
+ 		Set elf64_sym_st_name stringoff
+ 		Set elf64_sym_st_value value
+ 		Set elf64_sym_st_size size
+@@ -167,7 +167,7 @@ Function elfaddsym(data stringoff,data v
+ 		Chars *elf32_sym_st_other={0}
+ 		#Section index
+ 		Chars elf32_sym_st_shndx#2
+-	
++
+ 		Set elf32_sym_st_name stringoff
+ 		Set elf32_sym_st_value value
+ 		Set elf32_sym_st_size size
+@@ -177,7 +177,7 @@ Function elfaddsym(data stringoff,data v
+ 		Const elf_sym_start^elf32_sym_st_name
+ 		SetCall err addtosec(#elf32_sym_st_name,(!-elf_sym_start),struct)
+ 	endelse
+-	
++
+ 	Return err
+ EndFunction
+ #err
+@@ -216,6 +216,12 @@ Data codestrtab#1
+ Data objfnmask#1
+ Const ptrobjfnmask^objfnmask
+ 
++#not changing inplace
++#from addrel        before writes
++#from addrel_base   at call
++#from adddirect     writetake,function   importaftercall
++#changing inplace
++#from adddirect     fndecargs   writevar(examples there)   writevar(sd^arg,will use from writetake)   writetake,data (take_locat),argInCall
+ #err
+ Function addrel_base(sd offset,sd type,sd symbolindex,sd addend,sd struct)
+ 	#Direct 32 bit
+@@ -226,7 +232,7 @@ Function addrel_base(sd offset,sd type,s
+ 	#const R_386_PC32=2
+ 	#const R_X86_64_PC32=R_386_PC32
+ 	#const R_X86_64_PC64=24
+-	
++
+ 	Data elf_rel#1
+ 	Data elf_rel_sz#1
+ 
+@@ -237,13 +243,13 @@ Function addrel_base(sd offset,sd type,s
+ 		data *elf64_r_info_type=R_X86_64_32
+ 		data elf64_r_info_symbolindex#1
+ 		data elf64_r_addend#1;data *=0
+-		
++
+ 		#it is not enough
+ 		#Call memtomem(#elf64_r_offset,#offset,(qwsz))
+ 		set elf64_r_offset offset
+ 		set elf64_r_info_symbolindex symbolindex
+ 		set elf64_r_addend addend
+-		
++
+ 		set elf_rel #elf64_r_offset
+ 		set elf_rel_sz (elf64_dyn_d_val_relent)
+ 	else
+@@ -258,11 +264,11 @@ Function addrel_base(sd offset,sd type,s
+ 		Set elf_r_info_type type
+ 		Call memtomem(#elf_r_info_symbolindex,#symbolindex,3)
+ 		set elf_r_addend addend
+-		
++
+ 		set elf_rel #elf_r_offset
+ 		set elf_rel_sz (elf32_dyn_d_val_relent)
+ 	endelse
+-	
++
+ 	SetCall err addtosec(elf_rel,elf_rel_sz,struct)
+ 	Return err
+ EndFunction
+@@ -276,12 +282,6 @@ endfunction
+ 
+ #err
+ Function adddirectrel_base(sd relsec,sd extraoff,sd index,sd addend)
+-	Data noerr=noerror
+-	Data ptrobject%ptrobject
+-	Data false=FALSE
+-	If ptrobject#==false
+-		Return noerr
+-	EndIf
+ 	Data err#1
+ 	Data off#1
+ 	Data ptroff^off
+--- ocompiler-1.orig/src/files/functions/enumbags.s
++++ ocompiler-1/src/files/functions/enumbags.s
+@@ -45,7 +45,7 @@ EndFunction
+ Function freeclose()
+ 	Data value#1
+ 	Data zero=0
+-	
++
+ 	Data ptrpath%ptrpath
+ 	Set value ptrpath#
+ 	If value!=zero
+@@ -53,7 +53,7 @@ Function freeclose()
+ 	EndIf
+ 
+ 	Call enumbags(zero)
+-	
++
+ 	Data negative=-1
+ 
+ 	Data ptrfileout%ptrfileout
+--- ocompiler-1.orig/src/files/functions/global/funcs.s
++++ ocompiler-1/src/files/functions/global/funcs.s
+@@ -8,13 +8,13 @@ function localResolve(sd unrLc,sd unrLcR
+ 
+ 	sd struct
+ 	sd offset
+-	
++
+ 	while unrLcReg!=0
+ 		set struct unrLc#
+ 		sd cont
+ 		sd ptr_cont^cont
+ 		call getcont(struct,ptr_cont)
+-		
++
+ 		add unrLc 4
+ 
+ 		set offset unrLc#
+@@ -61,9 +61,9 @@ function unresLc(sd addition,sd structur
+ 
+ 	sd ptradd^struct
+ 	sd ptroff^offset
+-				
++
+ 	Call getcontReg(structure,ptroff)
+-			
++
+ 	add offset addition
+ 
+ 	set struct structure
+@@ -82,7 +82,7 @@ function unresolvedLocal(sd addition,sd
+ 	If err!=(noerror)
+ 		Return err
+ 	EndIf
+-	
++
+ 	call get_fn_pos(currentfnpointer,ptr_out)
+ 	return (noerror)
+ endfunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/incld.s
++++ ocompiler-1/src/files/functions/incld.s
+@@ -33,9 +33,9 @@ Function include(Str path)
+ 
+ 	data ptrlogfile%ptrlogfile
+ 	if ptrlogfile#!=negative
+-		call addtolog(path)
++		call logincludes_decision(path)
+ 	endif
+-	
++
+ 	Str contentoffl#1
+ 	Data sizeoffl#1
+ 	Data offsetoffl#1
+@@ -44,13 +44,13 @@ Function include(Str path)
+ 
+ 	Data err#1
+ 	Data noerr=noerror
+-	
++
+ 	Const includeset^contentoffl
+ 	Data includeset%includeset
+ 
+ 	Data psizeoffl^sizeoffl
+ 	Data pcontentoffl%includeset
+-	
++
+ 	setcall offsetoffl offsetoffile_value()
+ 
+ 	SetCall err file_get_content_ofs(path,psizeoffl,pcontentoffl,offsetoffl)
+@@ -71,14 +71,14 @@ Function include(Str path)
+ 		endif
+ 
+ 		if ptrlogfile#!=negative
+-			call addtolog(pcontentoffl#)
++			call logincludes_decision(pcontentoffl#)
+ 		endif
+ 
+ 
+ 		chars storechar#1
+ 		set storechar folders#
+ 		set folders# 0
+-		
++
+ 		data int#1
+ 		data chdirok=chdirok
+ 		setcall int changedir(path)
+@@ -113,7 +113,7 @@ Function include(Str path)
+ 		Sub fnamesize one
+ 		Set moresize one
+ 	EndIf
+-	
++
+ 	Str dest#1
+ 	Str initialdest^nameoffl
+ 	Set dest initialdest
+@@ -125,18 +125,18 @@ Function include(Str path)
+ 		Set dest# morestr
+ 		Add dest one
+ 	EndIf
+-	
++
+ 	Set dest# 0
+-	
+-	
++
++
+ 	Data pincludes%ptrincludes
+ 	Data isetsize=includesetSz
+-	
++
+ 	SetCall err addtosec(includeset,isetsize,pincludes)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+-	
++
+ 	Data pointers%includestructure
+ 	Data sizeadd#1
+ 	Set sizeadd isetsize
+@@ -152,6 +152,6 @@ Function include(Str path)
+ 	Set envinccursor pointers
+ 	Add envinccursor sizeadd
+ 	Set envinccursor# includespoint
+-	
++
+ 	Return noerr
+ EndFunction
+\ No newline at end of file
+--- /dev/null
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -0,0 +1,268 @@
++
++const nr_of_prefs=13
++const nr_of_prefs_jumper=nr_of_prefs*:
++
++data nul_res_pref#1
++const p_nul_res_pref^nul_res_pref
++
++function constants_bool(sd direction)
++	data bool#1
++	if direction==(const_warn_get)
++		return bool
++	endif
++	return #bool
++endfunction
++
++function logincludes_decision(ss str)
++	sd b;setcall b logincludes_bool()
++	if b#==(TRUE)
++		data ptrfilehandle%ptrlogfile
++		sd err
++		setcall err writefile_errversion(ptrfilehandle#,"p",1)
++		if err==(noerror)
++			setcall err addtolog(str)
++		endif
++		if err!=(noerror);call Message(err);endif
++	endif
++endfunction
++function logincludes_bool()
++	data bool#1
++	return #bool
++endfunction
++
++#void
++Function warnings(sd searchInAll,sd includes,sd nameoffset,sd p_err)
++	Data warningsboolptr%ptrwarningsbool
++	Data warningsbool#1
++	Data null=NULL
++	Data true=TRUE
++	Data false=FALSE
++
++	Set warningsbool warningsboolptr#
++	If warningsbool==false
++		Return null
++	EndIf
++
++	Data var#1
++
++	SetCall var searchinvars(null,null,null,p_err)
++	If var==null
++		If searchInAll==true
++			data ptrcodeFnObj%ptrcodeFnObj
++			if ptrcodeFnObj#!=(ignore_warn)
++				Data functionsptr%ptrfunctions
++				SetCall var varscore(null,null,functionsptr,p_err)
++			endif
++			if var==null
++				sd cb;setcall cb constants_bool((const_warn_get))
++				if cb!=(ignore_warn)
++					data constantsptr%ptrconstants
++					SetCall var varscore(null,null,constantsptr,p_err)
++				endif
++			endif
++		EndIf
++	EndIf
++	If var!=null
++		Chars unrefformat="Unreferenced variable/function/constant: %s. Scope Termination File: %s. To disable this warning see '.ocompiler.txt'"
++		Str ptrunrefformat^unrefformat
++
++		Data printbuffer#1
++
++		Data fileoff=nameoffset
++		Add var fileoff
++		Add includes nameoffset
++		SetCall printbuffer printbuf(ptrunrefformat,var,includes,0)
++		If printbuffer!=null
++			sd pallocerrormsg%ptrallocerrormsg
++			set pallocerrormsg# printbuffer
++		EndIf
++		Call safeMessage(printbuffer)
++		sd w%p_w_as_e
++		if w#==(TRUE)
++			set p_err# ""
++			#else it will be the same allocerror
++		endif
++	EndIf
++EndFunction
++
++#void
++#parse and set the value, 0-9(one digit) values are expected here
++function parsepreferences(sd ptrcontent,sd ptrsize,sd strs_pointers)
++	Chars searchsign="="
++	Data sizeuntilsign#1
++
++	str content#1
++	data size#1
++	set content ptrcontent#
++	set size ptrsize#
++
++	SetCall sizeuntilsign valinmem(content,size,searchsign)
++	call advancecursors(ptrcontent,ptrsize,sizeuntilsign)
++
++	If sizeuntilsign!=size
++		sd backp;setcall backp parsepreferences_back(sizeuntilsign,ptrcontent#,strs_pointers)
++		Call stepcursors(ptrcontent,ptrsize)
++		if backp!=(NULL)
++			set size ptrsize#
++			If size!=0
++				set content ptrcontent#
++				Call stepcursors(ptrcontent,ptrsize)
++				Set backp# content#
++				Sub backp# (asciizero)
++			endIf
++		endif
++	EndIf
++endfunction
++#pointer/null
++function parsepreferences_back(sd sizeback,ss content,sd strs_pointers)
++	sd end;set end strs_pointers
++	add end (nr_of_prefs_jumper)
++	while strs_pointers!=end
++		sd i
++		ss s;set s strs_pointers#
++		setcall i strlen(s)
++		if sizeback>=i
++			ss e;set e s;add e i
++			sd b
++			setcall b parsepreferences_back_helper(content,e,s)
++			if b==(TRUE)
++				#and put this to last to not get it again without a fight
++				sd test;set test strs_pointers
++				sd test2;set test2 test;sub test2 (nr_of_prefs_jumper)
++				sd return
++				set return test2#
++				sd store
++				set store strs_pointers#
++				sd test3;set test3 test2
++				sub end :
++				while test!=end
++					incst test;incst test2
++					set strs_pointers# test#
++					set test3# test2#
++					incst strs_pointers;incst test3
++				endwhile
++				set test# store
++				set test2# return
++				return return
++			endif
++		endif
++		incst strs_pointers
++	endwhile
++	return (NULL)
++endfunction
++#bool
++function parsepreferences_back_helper(ss content,ss e,ss s)
++	while s!=e
++		dec content
++		dec e
++		if content#!=e#
++			return (FALSE)
++		endif
++	endwhile
++	return (TRUE)
++endfunction
++
++#void
++function setpreferences(str scrpath)
++	#defaults
++	data ptrwarningsbool%ptrwarningsbool
++	data p_over_pref%p_over_pref
++	data p_hidden_pref%p_hidden_pref
++	data p_w_as_e%p_w_as_e
++	data ptrlogbool%ptrlogbool
++	data ptrincludedir%ptrincludedir
++	data ptrcodeFnObj%ptrcodeFnObj
++	data p_nul_res_pref%p_nul_res_pref
++
++	data true=TRUE
++	data false=FALSE
++	data defaultcodeFnObj=log_warn
++
++	set ptrwarningsbool# true
++	set p_over_pref# true
++	set p_hidden_pref# true
++	set p_w_as_e# true
++	set ptrlogbool# false
++	set ptrcodeFnObj# defaultcodeFnObj
++	sd cb;setcall cb constants_bool((const_warn_get_init))
++	set cb# (FALSE)
++	sd li;setcall li logincludes_bool()
++	set li# (TRUE)
++	set ptrincludedir# true
++	sd text_fn_info
++	setcall text_fn_info fn_text_info()
++	set text_fn_info# false
++	sd conv_64
++	setcall conv_64 p_neg_is_for_64()
++	set conv_64# (direct_convention_input)
++	set p_nul_res_pref# false
++	sd sdsv_p
++	setcall sdsv_p sd_as_sv((sd_as_sv_get))
++	set sdsv_p# false
++
++
++	Str preferences=".ocompiler.txt"
++	data err#1
++	data noerr=noerror
++	Str preferencescontent#1
++	Data ptrpreferencescontent^preferencescontent
++	Data preferencessize#1
++	Data ptrpreferencessize^preferencessize
++
++	setcall err prefextra(preferences,ptrpreferencessize,ptrpreferencescontent)
++	If err!=noerr
++		data null=0
++		data void#1
++
++		str folders#1
++		setcall folders endoffolders(scrpath)
++		set folders# null
++		sub folders scrpath
++
++		data prefsz#1
++		setcall prefsz strlen(preferences)
++		inc prefsz
++
++		data total#1
++		set total folders
++		add total prefsz
++
++		data ptrmem#1
++		data allocptrmem^ptrmem
++		setcall err memoryalloc(total,allocptrmem)
++		if err!=noerr
++			call Message(err)
++			return void
++		endif
++
++		call memtomem(ptrmem,scrpath,folders)
++
++		str apppath#1
++		set apppath ptrmem
++		add apppath folders
++		call memtomem(apppath,preferences,prefsz)
++
++		SetCall err file_get_content_ofs(ptrmem,ptrpreferencessize,ptrpreferencescontent,null)
++		call free(ptrmem)
++		If err!=noerr
++			Call safeMessage(err)
++		EndIf
++	endif
++	If err==noerr
++		Data freepreferences#1
++		Set freepreferences preferencescontent
++
++		sd p#nr_of_prefs;sd s#nr_of_prefs
++		sd q;set q #p;sd t;set t #s
++		set p ptrwarningsbool;incst q; set q# p_hidden_pref;incst q; set q# p_over_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# li;incst q;            set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q
++		set s "warnings";incst t;      set t# "hidden_pref";incst t; set t# "over_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "logincludes";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv"
++		sd n=nr_of_prefs
++		while n>0
++			call parsepreferences(ptrpreferencescontent,ptrpreferencessize,q)
++			dec n
++		endwhile
++
++		Call free(freepreferences)
++	endif
++EndFunction
++#void
+--- /dev/null
++++ ocompiler-1/src/files/functions/pref/sdsv.s
+@@ -0,0 +1,11 @@
++
++function sd_as_sv(sd direction,sd typenumber)
++	data bool#1
++	if direction==(sd_as_sv_bool)
++		if bool==(TRUE)
++			if typenumber==(stackdatanumber);return (TRUE);endif
++		endif
++		return (FALSE)
++	endif
++	return #bool
++endfunction
+--- ocompiler-1.orig/src/files/functions/preffuncs.s
++++ /dev/null
+@@ -1,164 +0,0 @@
+-
+-
+-#void
+-Function warnings(data searchinfunctions,data includes,data nameoffset)
+-	Data warningsboolptr%ptrwarningsbool
+-	Data warningsbool#1
+-	Data null=NULL
+-	Data true=TRUE
+-	Data false=FALSE
+-
+-	Set warningsbool warningsboolptr#
+-	If warningsbool==false
+-		Return null
+-	EndIf
+-
+-	Data var#1
+-	
+-	SetCall var searchinvars(null,null,null,true)
+-	If var==null
+-		If searchinfunctions==true
+-			Data functionsptr%ptrfunctions
+-			SetCall var varscore(null,null,functionsptr,true)
+-		EndIf
+-	EndIf
+-	If var!=null
+-		Chars unrefformat="Unreferenced variable/function: %s. Scope Termination File: %s. To disable this warning see '.ocompiler.txt'"
+-		Str ptrunrefformat^unrefformat
+-
+-		Data printbuffer#1
+-
+-		Data fileoff=nameoffset
+-		Add var fileoff
+-		SetCall printbuffer printbuf(ptrunrefformat,var)
+-		If printbuffer!=null
+-			Add includes nameoffset
+-			Call sprintf(printbuffer,ptrunrefformat,var,includes)
+-			Call Message(printbuffer)
+-			Call free(printbuffer)
+-		EndIf
+-	EndIf
+-EndFunction
+-
+-#void
+-#parse and set the value, 0-9(one digit) values are expected here
+-function parsepreferences(data ptrcontent,data ptrsize,data ptrvalue)
+-	Chars searchsign="="
+-	Data sizeuntilsign#1
+-
+-	str content#1
+-	data size#1
+-	set content ptrcontent#
+-	set size ptrsize#
+-
+-	SetCall sizeuntilsign valinmem(content,size,searchsign)
+-	call advancecursors(ptrcontent,ptrsize,sizeuntilsign)
+-
+-	If sizeuntilsign!=size
+-		Call stepcursors(ptrcontent,ptrsize)
+-		set content ptrcontent#
+-		set size ptrsize#
+-		data zero=0
+-		If size!=zero
+-			Call stepcursors(ptrcontent,ptrsize)
+-			Set ptrvalue# content#
+-			data asciiNumbersStart=asciizero
+-			Sub ptrvalue# asciiNumbersStart
+-		EndIf
+-	EndIf
+-
+-	data false=FALSE
+-	return false
+-endfunction
+-
+-#void
+-function setpreferences(str scrpath)
+-	data null=0
+-	data void#1
+-
+-	str folders#1
+-	setcall folders endoffolders(scrpath)
+-	set folders# null
+-	sub folders scrpath
+-
+-	Str preferences=".ocompiler.txt"
+-	data prefsz#1
+-	setcall prefsz strlen(preferences)
+-	inc prefsz
+-
+-	data total#1
+-	set total folders
+-	add total prefsz
+-
+-	data err#1
+-	data noerr=noerror
+-	data ptrmem#1
+-	data allocptrmem^ptrmem
+-	setcall err memoryalloc(total,allocptrmem)
+-	if err!=noerr
+-		call Message(err)
+-		return void
+-	endif
+-
+-	call memtomem(ptrmem,scrpath,folders)
+-
+-	str apppath#1
+-	set apppath ptrmem
+-	add apppath folders
+-	call memtomem(apppath,preferences,prefsz)
+-
+-	#defaults
+-	data ptrwarningsbool%ptrwarningsbool
+-	data ptrlogbool%ptrlogbool
+-	data ptrincludedir%ptrincludedir
+-	data ptrcodeFnObj%ptrcodeFnObj
+-	data ptr_log_import_functions%ptr_log_import_functions
+-	
+-	data true=TRUE
+-	data false=FALSE
+-	data defaultcodeFnObj=logcodeFnObj
+-
+-	set ptrwarningsbool# true
+-	set ptrlogbool# false
+-	set ptrincludedir# true
+-	set ptrcodeFnObj# defaultcodeFnObj
+-	sd text_fn_info
+-	setcall text_fn_info fn_text_info()
+-	set text_fn_info# false
+-	set ptr_log_import_functions# true
+-	sd neg_64
+-	setcall neg_64 p_neg_is_for_64()
+-	set neg_64# false
+-	
+-	Str preferencescontent#1
+-	Data ptrpreferencescontent^preferencescontent
+-	Data preferencessize#1
+-	Data ptrpreferencessize^preferencessize
+-
+-	SetCall err file_get_content_ofs(ptrmem,ptrpreferencessize,ptrpreferencescontent,null)
+-	call free(ptrmem)
+-	If err!=noerr
+-		Call safeMessage(err)
+-		If err!=noerr
+-			setcall err prefextra(preferences,ptrpreferencessize,ptrpreferencescontent)
+-			If err!=noerr
+-				Call safeMessage(err)
+-			endif
+-		endif
+-	EndIf
+-	If err==noerr
+-		Data freepreferences#1
+-		Set freepreferences preferencescontent
+-
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,ptrwarningsbool)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,ptrlogbool)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,ptrincludedir)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,ptrcodeFnObj)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,text_fn_info)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,ptr_log_import_functions)
+-		call parsepreferences(ptrpreferencescontent,ptrpreferencessize,neg_64)
+-
+-		Call free(freepreferences)
+-	endif
+-EndFunction
+-#void
+--- ocompiler-1.orig/src/files/functions/stack/stack.s
++++ ocompiler-1/src/files/functions/stack/stack.s
+@@ -6,7 +6,7 @@ function ramp_index(data mode,data conta
+ 	data set=0
+ 	if mode==set
+ 		data ptrreg^reg
+-		const ramppointer^reg
++		#const ramppointer^reg
+ 		call getcontReg(container,ptrreg)
+ 		data dword=4
+ 		sub reg dword
+@@ -81,7 +81,7 @@ function entryscope()
+ 	#sub e(r)bx dword
+ 	const scope4_start=!;chars scope4={0x81,0xc3}
+ 	data *scopestack=0;const scope4_sz=!-scope4_start
+-	
++
+ 	setcall err addtosec(#scope1,(scope1_sz),container);if err!=(noerror);return err;endif
+ 	setcall err rex_w_if64();if err!=(noerror);return err;endif
+ 	setcall err addtosec(#scope2,(scope2_sz),container);if err!=(noerror);return err;endif
+@@ -149,7 +149,7 @@ function addtocodeforstack(sd value,sd r
+ 	setcall rampindex addramp()
+ 	setcall rampindex neg(rampindex)
+ 	set rampvalue value
+-	
++
+ 	setcall err addtosec(stack,size,ptrcodesec)
+ 	return err
+ endfunction
+--- ocompiler-1.orig/src/files/functions/stack/stack_inits.s
++++ ocompiler-1/src/files/functions/stack/stack_inits.s
+@@ -1,20 +1,22 @@
+ 
+ 
+ 
+-function is_stack(data pointer)
+-	data mask#1
+-	data maskoffset=maskoffset
+-	data stackb=stackbit
+-	data stack#1
+-	
+-	set mask pointer
+-	add mask maskoffset
+-	set stack stackb
+-	and stack mask#
+-	return stack
++function data_get_maskbit(ss pointer,sd bit)
++	add pointer (maskoffset)
++	and bit pointer#
++	return bit
+ endfunction
+ 
+-
++function stackbit(sd pointer)
++	sd bit
++	setcall bit data_get_maskbit(pointer,(stackbit))
++	return bit
++endfunction
++function pointbit(sd pointer)
++	sd bit
++	setcall bit data_get_maskbit(pointer,(pointbit))
++	return bit
++endfunction
+ 
+ function stack_get_relative(sd location)
+ 	sd mask
+--- ocompiler-1.orig/src/files/functions/values/numbersandconstants.s
++++ ocompiler-1/src/files/functions/values/numbersandconstants.s
+@@ -17,17 +17,18 @@ EndFunction
+ #bool
+ Function memtoint(str content,data size,data outvalue,data minusbool)
+ 	#if size==0 not required in the program, it already comes at least 1
+-	
++
+ 	Data value#1
+ 	Data number#1
+-	
++
+ 	data multx#1
+ 	Set value 0
+ 	set multx 1
++
+ 	Add content size
+ 	While size!=0
+ 		Dec content;Dec size
+-		
++
+ 		Data bool#1
+ 		Chars byte#1
+ 		Set byte content#
+@@ -37,7 +38,7 @@ Function memtoint(str content,data size,
+ 		EndIf
+ 		Sub byte (asciizero)
+ 		Set number byte
+-		
++
+ 		const bil_1=1000*1000*1000
+ 		const bil_2=2*bil_1
+ 		const max_int=0x80*0x100*0x100*0x100
+@@ -67,7 +68,7 @@ Function memtoint(str content,data size,
+ 				endelseif
+ 			endelseif
+ 		endif
+-		
++
+ 		mult number multx;mult multx 10
+ 		Add value number
+ 	EndWhile
+@@ -118,7 +119,7 @@ Function memtohex(str content,data size,
+ 
+ 	Set val initialval
+ 	Set limit initiallimit
+-	
++
+ 	If size<limit
+ 		Return false
+ 	EndIf
+@@ -135,7 +136,7 @@ Function memtohex(str content,data size,
+ 	Data nr#1
+ 	Data initialmultp=1
+ 	Data multp#1
+-	
++
+ 	Set multp initialmultp
+ 	SetCall bool stratmem(pc,ps,"0X")
+ 	If bool==false
+@@ -220,8 +221,8 @@ Function numbersconstants(str content,da
+ 	endif
+ 	sd bool
+ 	setcall bool is_variable_char_not_numeric(content#)
++	sd err
+ 	If bool==(FALSE)
+-		sd err
+ 		setcall err numbertoint(content,size,outval,minusbool)
+ 	Else
+ 		Data constr%ptrconstants
+@@ -255,21 +256,23 @@ function parenthesis_size(ss content,sd
+ 	sd last
+ 	Chars closefnexp="Close parenthesis sign (')') expected."
+ 	Str closeerr^closefnexp
+-	
++
+ 	set mark content
+ 	set last content
+ 	add last size
+ 	while content!=last
+-		sd er
+-		setcall er quotes_forward(#content,last,0)
+-		if er!=(noerror)
+-			return er
++		if content#==(asciidoublequote)
++			sd er
++			setcall er quotes_forward(#content,last,0)
++			if er!=(noerror)
++				return er
++			endif
+ 		endif
+ 		if content==last
+ 			return closeerr
+ 		endif
+-		Chars fnbegin="("
+-		Chars fnend=")"
++		Chars fnbegin=asciiparenthesisstart
++		Chars fnend=asciiparenthesisend
+ 		if content#==fnend
+ 			dec opens
+ 			if opens==z
+@@ -285,10 +288,10 @@ function parenthesis_size(ss content,sd
+ 	Return closeerr
+ endfunction
+ #er
+-function parenthesis_all_size(sd content,sd size,sd ptr_sz)
++function parenthesis_all_size(ss content,sd size,sd ptr_sz)
+ 	data noerr=noerror
+-	Chars fnbegin="("
+-	if content!=fnbegin
++	Chars fnbegin=asciiparenthesisstart
++	if content#!=fnbegin
+ 		return noerr
+ 	endif
+ 	inc content
+--- ocompiler-1.orig/src/files/functions/values/operations.s
++++ ocompiler-1/src/files/functions/values/operations.s
+@@ -1,61 +1,85 @@
+ 
+ 
+-Const addNumber=0
+-Const subNumber=1
+-Const mulNumber=2
+-Const divNumber=3
+-Const andNumber=4
+-Const orNumber=5
+-Const xorNumber=6
+-Const powNumber=7
+-Const remNumber=8
+-Const shlNumber=9
+-Const shrNumber=10
++Const addNumber=asciiplus
++Const subNumber=asciiminus
++Const mulNumber=asciiast
++Const divNumber=asciislash
++Const andNumber=asciiand
++Const orNumber=asciivbar
++Const xorNumber=asciicirc
++Const powNumber=asciidollar
++Const remNumber=asciipercent
++Const shlNumber=asciiless
++Const shrNumber=asciigreater
+ #asciiminus and asciinot for one arg
+ 
++#err
+ function const_security(sd item)
+ 	#2$31 is last one
+ 	#1 shl 63 is last one
+ 	#maximum first overflow, ok
+-	data maximum=qwsz*8
+-	if item>=maximum
+-		call safeMessage("Overflow at constants.")
+-		return maximum
++	sd maximum=qwsz*8-1
++	if item#>maximum
++		str err="Overflow at constants."
++		sd w%p_w_as_e
++		if w#==(TRUE)
++			sd p%p_over_pref
++			if p#==(TRUE)
++				return err
++			endif
++		endif
++		call Message(err)
++		set item# maximum
+ 	endif
+-	return item
++	return (noerror)
+ endfunction
++#err
+ function shift_right(sd a,sd n)
+-	setcall n const_security(n)
++	sd err
++	setcall err const_security(#n)
++	If err!=(noerror);return err;endif
+ 	while n>0
+ 		dec n
+-		shr a
++		shr a#
+ 	endwhile
+-	return a
++	return (noerror)
+ endfunction
++#err
+ function shift_left(sd a,sd n)
+-	setcall n const_security(n)
++	sd err
++	setcall err const_security(#n)
++	If err!=(noerror);return err;endif
+ 	while n>0
+ 		dec n
+-		shl a
++		shl a#
+ 	endwhile
+-	return a
++	return (noerror)
+ endfunction
+ 
+ #err pointer
+-Function operation(str content,data size,data inoutvalue,data number)
+-	Data newitem#1
+-	Data ptrnewitem^newitem
+-	Data initialnewitem=0
+-	Data errptr#1
++Function operation(ss content,sd size,sd inoutvalue,sd number)
++	sd newitem
++	sd ptrnewitem^newitem
++	sd errptr
+ 	Data noerr=noerror
+ 
+-	Set newitem initialnewitem
+-	SetCall errptr numbersconstants(content,size,ptrnewitem)
+-	If errptr!=noerr
+-		Return errptr
+-	EndIf
++	if content#!=(asciiparenthesisstart)
++		#not needing set newitem 0
++		SetCall errptr numbersconstants(content,size,ptrnewitem)
++	else
++		inc content;sub size 2
++		setcall errptr parseoperations(#content,#size,size,ptrnewitem,(FALSE))
++	endelse
++	If errptr!=noerr;Return errptr;EndIf
+ 
+-	Data currentitem=0
++	setcall errptr operation_core(inoutvalue,number,newitem)
++	return errptr
++EndFunction
++
++#err
++function operation_core(sd inoutvalue,sd number,sd newitem)
++	sd errptr
++	sd currentitem
+ 	Set currentitem inoutvalue#
+ 	If number==(addNumber)
+ 		Add currentitem newitem
+@@ -91,7 +115,8 @@ Function operation(str content,data size
+ 		elseif newitem==0
+ 			set currentitem 1
+ 		else
+-			setcall newitem const_security(newitem)
++			SetCall errptr const_security(#newitem)
++			If errptr!=(noerror);return errptr;endif
+ 			sd item;set item currentitem
+ 			while newitem!=1
+ 				mult currentitem item
+@@ -106,73 +131,53 @@ Function operation(str content,data size
+ 	ElseIf number==(shlNumber)
+ 		if newitem<0
+ 			neg newitem
+-			setcall currentitem shift_right(currentitem,newitem)
++			SetCall errptr shift_right(#currentitem,newitem)
+ 		else
+-			setcall currentitem shift_left(currentitem,newitem)
++			SetCall errptr shift_left(#currentitem,newitem)
+ 		endelse
++		If errptr!=(noerror);return errptr;endif
+ 	Else
+ 	#If number==(shrNumber)
+ 		if newitem<0
+ 			neg newitem
+-			setcall currentitem shift_left(currentitem,newitem)
++			SetCall errptr shift_left(#currentitem,newitem)
+ 		else
+-			setcall currentitem shift_right(currentitem,newitem)
++			SetCall errptr shift_right(#currentitem,newitem)
+ 		endelse
++		If errptr!=(noerror);return errptr;endif
+ 	EndElse
+ 
+ 	Set inoutvalue# currentitem
+-	Return noerr
+-EndFunction
++	Return (noerror)
++endfunction
+ 
+ #bool
+-Function signop(chars byte,data outval)
+-	Chars plus=asciiplus
+-	Chars minus=asciiminus
+-	Chars mult=asciiast
+-	Chars div=asciislash
+-	Chars and=asciiand
+-	Chars or=asciivbar
+-	Chars xor=asciicirc
+-	Chars pow=asciidollar
+-	Chars rem=asciipercent
+-	Chars shl=asciiless
+-	Chars shr=asciigreater
+-
++Function signop(chars byte,sd outval)
+ 	Data false=FALSE
+ 	Data true=TRUE
+ 
+-	If byte==plus
+-		Set outval# (addNumber)
+-	ElseIf byte==minus
+-		Set outval# (subNumber)
+-	ElseIf byte==mult
+-		Set outval# (mulNumber)
+-	ElseIf byte==div
+-		Set outval# (divNumber)
+-	ElseIf byte==and
+-		Set outval# (andNumber)
+-	ElseIf byte==or
+-		Set outval# (orNumber)
+-	ElseIf byte==xor
+-		Set outval# (xorNumber)
+-	ElseIf byte==pow
+-		Set outval# (powNumber)
+-	ElseIf byte==rem
+-		Set outval# (remNumber)
+-	ElseIf byte==shl
+-		Set outval# (shlNumber)
+-	ElseIf byte==shr
+-		Set outval# (shrNumber)
++	If byte==(addNumber)
++	ElseIf byte==(subNumber)
++	ElseIf byte==(mulNumber)
++	ElseIf byte==(divNumber)
++	ElseIf byte==(andNumber)
++	ElseIf byte==(orNumber)
++	ElseIf byte==(xorNumber)
++	ElseIf byte==(powNumber)
++	ElseIf byte==(remNumber)
++	ElseIf byte==(shlNumber)
++	ElseIf byte==(shrNumber)
+ 	Else
+ 		return false
+ 	EndElse
++	set outval# byte
+ 	Return true
+ EndFunction
+ 
+ #err
+-Function oneoperation(data ptrcontent,str initial,str content,data val,data op)
+-	Data size#1
+-	Data errptr#1
++Function oneoperation(sd ptrcontent,ss initial,ss content,sd val,sd op)
++	sd size
++	sd errptr
+ 	Data noerr=noerror
+ 
+ 	Set size content
+@@ -187,64 +192,80 @@ Function oneoperation(data ptrcontent,st
+ EndFunction
+ 
+ #err pointer
+-Function parseoperations(data ptrcontent,data ptrsize,data sz,data outvalue)
+-	Str content#1
+-	Str initial#1
+-	Data number#1
+-	Data val#1
+-	Data ptrval^val
++Function parseoperations(sd ptrcontent,sd ptrsize,sd sz,sd outvalue,sd comments)
++	ss content
++	ss initial
++	sd number
++	sd val
++	sd ptrval^val
+ 	Data zero=0
+-	Data errptr#1
++	sd errptr
+ 	Data noerr=noerror
+ 
+ 	Set content ptrcontent#
+ 
+ 	Set initial content
+-	Set number zero
++	Set number (addNumber)
+ 	Set val zero
+ 
+-	Data bool#1
++	sd bool
+ 	Data false=FALSE
+ 	Data true=TRUE
+-	Data nr#1
+-	Data pnr^nr
+-	Chars byte#1
+-	Data find#1
+-	
+-	Data opsize#1
+-	Set opsize sz
+-
+-	While sz!=zero
+-		Set bool false
+-		Set byte content#
+-		SetCall find signop(byte,pnr)
+-		If find==true
++	sd nr
++	sd pnr^nr
++	sd find
++
++	sd end;set end content;add end sz
++
++	Set bool false
++	#<end?maybe unsigned cursor
++	While content!=end
++		SetCall find signop(content#,pnr)
++		if find==true
+ 			If initial!=content
+ 				SetCall errptr oneoperation(ptrcontent,initial,content,ptrval,number)
+ 				If errptr!=noerr
+ 					Return errptr
+ 				EndIf
+-				Set bool true
+ 				Set number nr
++				Set bool true
+ 			EndIf
+-		EndIf
++		elseif content#==(asciiparenthesisstart)
++			inc content
++			sd rest_sz;set rest_sz end;sub rest_sz content
++			sd insz
++			setcall errptr parenthesis_size(content,rest_sz,#insz)
++			if errptr!=(noerror);return errptr;endif
++			add content insz
++		endelseif
++
+ 		Inc content
+-		Dec sz
+ 		If bool==true
+-			Data p_content^content
+-			Data p_sz^sz
+-			Call spaces(p_content,p_sz)
+-
++			setcall content mem_spaces(content,end)
+ 			Set initial content
++			Set bool false
+ 		EndIf
+ 	EndWhile
+ 
++	#allow line end comment
++	if comments==(TRUE)
++		sd szz
++		set szz end;sub szz initial
++		sd size
++		setcall size find_whitespaceORcomment(initial,szz)
++		sub szz size
++		sub content szz
++	endif
++	#oneoperation is with cursor adjuster for errors
+ 	SetCall errptr oneoperation(ptrcontent,initial,content,ptrval,number)
+ 	If errptr!=noerr
+ 		Return errptr
+ 	EndIf
+ 	Set outvalue# val
+ 
+-	Call advancecursors(ptrcontent,ptrsize,opsize)
++	if comments==(TRUE)
++		sub sz szz
++	endif
++	Call advancecursors(ptrcontent,ptrsize,sz)
+ 	Return noerr
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/headers/ascii.h
++++ ocompiler-1/src/files/headers/ascii.h
+@@ -1,14 +1,19 @@
+ 
+ 
+ #some ascii Constants commonly used
++Const asciitab=0x9
++Const asciispace=0x20
+ Const asciiExclamationmark=0x21
++Const asciidoublequote=0x22
+ Const asciiNumber=0x23
+ Const asciidollar=0x24
+ Const asciipercent=0x25
+ Const asciiand=0x26
+ Const asciiparenthesisstart=0x28
++Const asciiparenthesisend=0x29
+ Const asciiast=0x2A
+ Const asciiplus=0x2B
++#2c comma
+ Const asciiminus=0x2D
+ Const asciislash=0x2F
+ Const asciizero=0x30
+@@ -24,10 +29,12 @@ Const asciiF=0x46
+ Const asciiL=0x4c
+ Const asciiZ=0x5A
+ Const asciibs=0x5C
++Const asciicirc=0x5E
+ Const asciiunderscore=0x5F
+ Const asciia=0x61
+ Const asciif=0x66
+ Const asciiz=0x7A
+-Const asciicirc=0x5E
++#7b left curly bracket {
+ Const asciivbar=0x7C
++#7d }
+ Const asciiequiv=0x7E
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/headers/asm.h
++++ ocompiler-1/src/files/headers/asm.h
+@@ -16,7 +16,7 @@ const REX_R8_15=REX_default|REX_W|REX_R
+ 
+ Const retcom=0xc3
+ const intimm8=0xCD
+-Const atedximm=0xba
++#Const atedximm=0xba
+ 
+ Const moveatmemtheproc=0x89
+ Const moveatprocthemem=0x8b
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -14,7 +14,7 @@ Const _O_TRUNC=0x0200
+ 
+  #seek
+ Const SEEK_SET=0
+-Const SEEK_CUR=1
++#Const SEEK_CUR=1
+ Const SEEK_END=2
+  #write
+ Const writeno=-1
+@@ -28,7 +28,7 @@ Const wsz=2
+ Const dwsz=4
+ Const qwsz=8
+ Const A_from_AZ=asciiA
+-Const Z_from_AZ=asciiZ
++#Const Z_from_AZ=asciiZ
+ Const a_from_az=asciia
+ Const z_from_az=asciiz
+ Const az_to_AZ=a_from_az-A_from_AZ
+@@ -42,6 +42,7 @@ Data flag_max_path=flag_MAX_PATH
+ 
+ #more values
+ Const noerror=0
++Const error=-1
+ Const FORWARD=1
+ Const BACKWARD=-1
+ Const not_used=0
+--- ocompiler-1.orig/src/files/headers/cond.h
++++ ocompiler-1/src/files/headers/cond.h
+@@ -5,16 +5,16 @@ Const ifnumber=0
+ Const elsenumber=1
+ Const whilenumber=2
+ 
+-Const condmiscs=whilenumber+1
++#Const condmiscs=whilenumber+1
+ 
+-Const elseifnumber=condmiscs+0
++#Const elseifnumber=condmiscs+0
+ 
+-Const condends=elseifnumber+1
++#Const condends=elseifnumber+1
+ 
+-Const endifnumber=condends+ifnumber
+-Const endelsenumber=condends+elsenumber
+-Const endwhilenumber=condends+whilenumber
++#Const endifnumber=condends+ifnumber
++#Const endelsenumber=condends+elsenumber
++#Const endwhilenumber=condends+whilenumber
+ 
+-Const endelseifnumber=condends+elseifnumber
++#Const endelseifnumber=condends+elseifnumber
+ 
+ Const nocondnumber=-1
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -10,9 +10,10 @@ Const stackbit=0x04
+ #bit offset 3,4,5: stack ebx/ebp
+ #0x8,0x10,0x20
+ Const tostack_relative=0x08
+-#bit offset 6: is importX
++#bit offset 6: is functionX/importX
+ const x86_64bit=0x40
+-#bit offset 7=unused
++#bit offset 7; pointer bit (sv# with rex, sd# without rex)
++const pointbit=0x80
+ const dummy_mask=0
+ 
+ Const maskoffset=dwsz
+@@ -86,6 +87,9 @@ Data *#1
+ Data ssMax#1
+ Data *#1
+ Data *#1
++Data svMax#1
++Data *#1
++Data *#1
+ 
+ Data integerfnscopeMax#1
+ Data *#1
+@@ -102,6 +106,9 @@ Data *#1
+ Data ssfnMax#1
+ Data *#1
+ Data *#1
++Data svfnMax#1
++Data *#1
++Data *#1
+ 
+ Const memvariablesnumber=0
+ 	Const integersnumber=memvariablesnumber+0
+@@ -110,7 +117,9 @@ Const memvariablesnumber=0
+ Const totalmemvariables=charsnumber+1
+ 	Const stackdatanumber=totalmemvariables+integersnumber
+ 	Const stackstringnumber=totalmemvariables+stringsnumber
+-Const numberofvars=stackstringnumber+1
++	Const stackvaluenumber=totalmemvariables+charsnumber
++	#that was +charsnumber because it is compared once against charsnumber, to remember
++Const numberofvars=stackvaluenumber+1
+ #from numberofvars to afterscopes comes inner function local scopes
+ Const afterscopes=numberofvars*2
+ 	Const constantsnumber=afterscopes+0
+@@ -159,7 +168,7 @@ Data addressesReg#1
+ Const ptraddresses^addressesMax
+ 
+ Const sizeofienames=sizeofsecdata-iaddressessize-itablesize
+-Const inamessize=sizeofienames
++#Const inamessize=sizeofienames
+ #namessize
+ Data namesMax#1
+ Data names#1
+@@ -265,16 +274,18 @@ const ptrlogfile^logfile
+ data includedir#1
+ const ptrincludedir^includedir
+ 
++const ignore_warn=0
++#const show_warn=1
++const log_warn=2
+ 
+-const ignorecodeFnObj=0
+-const showcodeFnObj=1
+-const logcodeFnObj=2
+ data codeFnObj#1
+ const ptrcodeFnObj^codeFnObj
+ 
+-Data log_import_functions#1
+-const ptr_log_import_functions^log_import_functions
++#Data log_import_functions#1
++#const ptr_log_import_functions^log_import_functions
+ 
++const const_warn_get=0
++const const_warn_get_init=1
+ 
+ 
+ #main alloc error msg
+@@ -313,8 +324,15 @@ Const hexenum=1
+ 
+ 
+ const val64_no=0
+-const val64_willbe=2
++const val64_willbe=1
+ 
++const no_convention_input=-1
++const direct_convention_input=0
++const ignore_convention_input=1
++#this is not needed at windows and unreferenced
++#const cross_convention_input=2
++#const last_convention_input=cross_convention_input
++#
+ const ms_convention=4
+ const lin_convention=6
+ 
+@@ -322,3 +340,27 @@ const convdata_total=0
+ const convdata_call=1
+ const convdata_fn=2
+ const convdata_init=3
++
++#this for i686-gcc at make... more info
++#const i386_obj_default_reloc=-8
++#const i386_obj_default_reloc_rah=-1
++const i386_obj_default_reloc=0
++const i386_obj_default_reloc_rah=0
++
++const sd_as_sv_bool=0
++const sd_as_sv_get=1
++
++const commentascii=asciiNumber
++
++const max_uint64=20
++chars uint64c#max_uint64+1
++str uint64s^uint64c
++
++data w_as_e#1
++const p_w_as_e^w_as_e
++
++data over_pref#1
++const p_over_pref^over_pref
++
++data hidden_pref#1
++const p_hidden_pref^hidden_pref
+--- ocompiler-1.orig/src/files/headers/pe_format.h
++++ ocompiler-1/src/files/headers/pe_format.h
+@@ -7,7 +7,7 @@
+ #File Structures
+ 
+ Const dossize=0x1e*wsz+dwsz
+-Const alldossize=dossize+0x40
++#Const alldossize=dossize+0x40
+ Chars dos_header#dossize
+ Const stublength=0x40
+ Chars stub#stublength
+@@ -39,7 +39,7 @@ Const pe_imagebase=0x00400000
+ Data *ImageBase=pe_imagebase
+ Data SectionAlignment=page_sectionalignment
+ Data FileAlignment=0x200
+-Const VersionsSize=6*wsz
++#Const VersionsSize=6*wsz
+ Chars *MajorOperatingSystemVersion={1,0}
+ Chars *MinorOperatingSystemVersion={0,0}
+ Chars *MajorImageVersion={0,0}
+@@ -70,10 +70,10 @@ Data directoryentries#imgdirsInts
+ #IMAGE_DATA_DIRECTORY
+ 	#DWORD   VirtualAddress
+     #DWORD   Size
+-Const IMAGE_DIRECTORY_ENTRY_EXPORT=0
++#Const IMAGE_DIRECTORY_ENTRY_EXPORT=0
+ Const IMAGE_DIRECTORY_ENTRY_IMPORT=1
+ Const img_dir_entry_sz=img_dir_entry*dwsz
+-Const im_d_entry_export_offset=IMAGE_DIRECTORY_ENTRY_EXPORT*img_dir_entry_sz
++#Const im_d_entry_export_offset=IMAGE_DIRECTORY_ENTRY_EXPORT*img_dir_entry_sz
+ Const im_d_entry_import_offset=IMAGE_DIRECTORY_ENTRY_IMPORT*img_dir_entry_sz
+ 
+ #IMAGE_SECTION_HEADERs
+--- ocompiler-1.orig/src/files/inits.s
++++ ocompiler-1/src/files/inits.s
+@@ -18,7 +18,6 @@ Set startofdata page_sectionalignment
+ Set object false
+ #fileformat#
+ 
+-
+ #for function in function rule
+ Set innerfunction false
+ 
+@@ -62,12 +61,14 @@ Set stringMax mainscope
+ Set charsMax mainscope
+ Set sdMax mainscope
+ Set ssMax mainscope
++Set svMax mainscope
+ 
+ Set integerfnscopeMax subscope
+ Set stringfnscopeMax subscope
+ Set charsfnscopeMax subscope
+ Set sdfnMax subscope
+ Set ssfnMax subscope
++Set svfnMax subscope
+ 
+ Set constantsMax constantssize
+ Set functionsMax mainscope
+@@ -123,7 +124,7 @@ set var# 0
+ #is init , is tested at any import and is set TRUE/FALSE only at elfobj... syntax
+ sd p_is_for_64_value;setcall p_is_for_64_value p_is_for_64();set p_is_for_64_value# (FALSE)
+ call stack64_op_set_get((TRUE),(FALSE))
+-call val64_phase_0()
++call val64_init()
+ 
+ #afterCall
+ data g_e_b_p#1;setcall g_e_b_p global_err_pBool();set g_e_b_p# (FALSE)
+@@ -134,3 +135,4 @@ data el_b_p#1;setcall el_b_p entrylinux_
+ Include "../files/inits/alloc.s"
+ 
+ 
++set warn_hidden_whitespaces_times 0
+--- /dev/null
++++ ocompiler-1/src/files/inits/conv_a.s
+@@ -0,0 +1,2 @@
++
++sd convention_64=no_convention_input
+--- /dev/null
++++ ocompiler-1/src/files/inits/conv_b.s
+@@ -0,0 +1,4 @@
++
++if argc>3
++	call msgerrexit("Too many arguments")
++endif
+--- /dev/null
++++ ocompiler-1/src/files/inits/conv_c.s
+@@ -0,0 +1,23 @@
++
++const cross_convention_input=ignore_convention_input+1
++const last_convention_input=cross_convention_input
++
++set convention_64 argv2#
++
++if convention_64==0
++	call msgerrexit("argv2 null")
++endif
++inc argv2
++if argv2#!=0
++	call msgerrexit("argv2 must have only one character")
++endif
++
++if convention_64<(asciizero)
++	call msgerrexit("argv2 must be greater than 0")
++endif
++
++sub convention_64 (asciizero)
++
++if convention_64>(last_convention_input)
++	call msgerrexit("argv2 must be 0,1 or 2")
++endif
+--- ocompiler-1.orig/src/linux/files/prefextra.s
++++ ocompiler-1/src/linux/files/prefextra.s
+@@ -3,6 +3,15 @@ const variable_convention=lin_convention
+ 
+ #err
+ function prefextra(ss prefpath,sd ptrpreferencessize,sd ptrpreferencescontent)
++	sd err
++	setcall err prefextra_helper(prefpath,ptrpreferencessize,ptrpreferencescontent)
++	if err!=(noerror)
++		Call safeMessage(err)
++	endif
++	return err
++endfunction
++#err
++function prefextra_helper(ss prefpath,sd ptrpreferencessize,sd ptrpreferencescontent)
+ 	ss homestr="HOME"
+ 	ss envhome
+ 	sd err
+@@ -22,7 +31,7 @@ function prefextra(ss prefpath,sd ptrpre
+ 				call free(mem)
+ 				return err
+ 			endif
+-			str er="No preferences file found."
++			str er="No preferences file found in HOME. The file is here: https://raw.githubusercontent.com/colin-i/o/master/.ocompiler.txt"
+ 			return er
+ 		endif
+ 		return err
+--- ocompiler-1.orig/src/linux/o.s
++++ ocompiler-1/src/linux/o.s
+@@ -23,4 +23,3 @@ EndFunction
+ Include "./head.h"
+ 
+ Include "./text.s"
+-
+--- ocompiler-1.orig/src/linux/obj.s
++++ ocompiler-1/src/linux/obj.s
+@@ -20,7 +20,6 @@ EndFunction
+ 
+ Include "./head.h"
+ 
+-Entry _start()
+-	Include "./text.s"
++Include "./text.s"
+ 
+ 
+--- ocompiler-1.orig/src/linux/text.s
++++ ocompiler-1/src/linux/text.s
+@@ -1,10 +1,18 @@
+ 
++EntryLinux main(sd argc,ss *argv0,ss *argv1,ss argv2)
+ 
+ #main
+ Include "../files/inits.s"
+ 
+ Include "./files/xgetfile.s"
+ 
++Include "../files/inits/conv_a.s"
++Include "../files/inits/conv_b.s"
++if argc==3
++	#here on windows must take from argv
++	Include "../files/inits/conv_c.s"
++endif
++
+ Include "../files/actions.s"
+ 
+ Exit zero
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/files/prefextra.s
++++ ocompiler-1/src/windows/files/prefextra.s
+@@ -1,6 +1,6 @@
+ 
+-const variable_convention=first_convention
++const variable_convention=ms_convention
+ 
+ function prefextra(ss *file,sd *ptrpreferencessize,sd *ptrpreferencescontent)
+-	return (noerror)
++	return (error)
+ endfunction
+--- ocompiler-1.orig/src/windows/files/wingetfile/getfilefromcommand.s
++++ ocompiler-1/src/windows/files/wingetfile/getfilefromcommand.s
+@@ -21,9 +21,9 @@ If commnamesize!=zero
+ 		Else
+ 			SetCall launchsize valinmem(commandname,commnamesize,space)
+ 		EndElse
+-		
++
+ #
+-		
++
+ 		Add commandname launchsize
+ 		Sub commnamesize launchsize
+ 		If commnamesize!=zero
+--- ocompiler-1.orig/src/windows/files/winobj64imports.h
++++ ocompiler-1/src/windows/files/winobj64imports.h
+@@ -27,4 +27,4 @@ Importx "GetModuleFileNameA" GetModuleFi
+ Importx "MessageBoxA" MessageBox
+ 
+ #comdlg32
+-Importx "GetOpenFileNameA" GetOpenFileName
+\ No newline at end of file
++Importx "GetOpenFileNameA" GetOpenFileName
+--- ocompiler-1.orig/src/windows/files/winobjimports.h
++++ ocompiler-1/src/windows/files/winobjimports.h
+@@ -1,6 +1,12 @@
+ 
++#msvcrt
+ 
+-include "../../files/_/cimports.h"
++Import "_realloc" realloc
++Import "_free" free
++Import "_sprintf" sprintf
++Import "_memcpy" memtomem
++Import "_memset" memset
++Import "_exit" exit
+ 
+ Import "_open" open
+ Import "_close" close
+@@ -10,15 +16,15 @@ Import "_chdir" chdir
+ Import "_getcwd" getcwd
+ 
+ Import "_lseek" lseek
+-Import "strcat" strcat
++Import "_strcat" strcat
+ 
+ #kernel32
+-Import "GetCommandLineA" GetCommandName
+-Import "GetTickCount" GetTickCount
+-Import "GetModuleFileNameA" GetModuleFileName
++Import "_GetCommandLineA@0" GetCommandName
++Import "_GetTickCount@0" GetTickCount
++Import "_GetModuleFileNameA@12" GetModuleFileName
+ 
+ #user32
+-Import "MessageBoxA" MessageBox
++Import "_MessageBoxA@16" MessageBox
+ 
+ #comdlg32
+-Import "GetOpenFileNameA" GetOpenFileName
+\ No newline at end of file
++Import "_GetOpenFileNameA@4" GetOpenFileName
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/o.s
++++ ocompiler-1/src/windows/o.s
+@@ -9,4 +9,3 @@ Include "./files/winimports.h"
+ Include "./head.h"
+ 
+ Include "./text.s"
+-
+--- ocompiler-1.orig/src/windows/obj.s
++++ ocompiler-1/src/windows/obj.s
+@@ -1,5 +1,7 @@
+ 
+ Include "./head.h"
+ 
+-Entry _start()
++#i686-w64-mingw32-gcc will not argc argv, only x86_64-w64-mingw32-gcc
++
++Entry _WinMain@16(sd *argc,sd *argv)
+ 	Include "./text.s"
+--- ocompiler-1.orig/src/windows/text.s
++++ ocompiler-1/src/windows/text.s
+@@ -8,8 +8,10 @@ Data openfilenamemethod#1
+ Set openfilenamemethod false
+ Include "./files/wingetfile.s"
+ 
++Include "../files/inits/conv_a.s"
++
+ Include "../files/actions.s"
+ 
+ Include "./files/winend.s"
+ 
+-Call exit(zero)
+\ No newline at end of file
++Call exit(zero)

@@ -1,0 +1,77 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.24) bionic; urgency=medium
+ .
+   * exit end
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-24
+
+--- ocompiler-1.orig/src/files/actions/main/index/function.s
++++ ocompiler-1/src/files/actions/main/index/function.s
+@@ -20,6 +20,9 @@ Else
+ 		Set objfnmask referencebit
+ 		if twoparse==1
+ 			set fnavailable two
++			if exit_end==(TRUE)
++				set real_exit_end (TRUE)
++			endif
+ 		endif
+ 	Else
+ 		Set objfnmask null
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -389,8 +389,8 @@ endfunction
+ 
+ #bool
+ function is_linux_end()
+-	sd p_exit_end%p_exit_end
+-	return p_exit_end#
++	sd p_real_exit_end%p_real_exit_end
++	return p_real_exit_end#
+ endfunction
+ #er
+ function entrylinux_top()
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -392,3 +392,5 @@ const p_underscore_pref^underscore_pref
+ #exit end preference
+ data exit_end#1
+ const p_exit_end^exit_end
++data real_exit_end#1
++const p_real_exit_end^real_exit_end
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -80,3 +80,5 @@ endelse
+ #this is init at start because we don't want to compare if 64 every time
+ sd rel64_blankinit%p_elf64_r_info_type
+ set rel64_blankinit# (R_X86_64_32)
++
++set real_exit_end (FALSE)
+--- ocompiler-1.orig/srcres/Makefile
++++ ocompiler-1/srcres/Makefile
+@@ -7,7 +7,7 @@ FULLOBJS = ${FULLOBJ}.s
+ FULLOBJO = ${FULLOBJ}.o
+ 
+ %.o: ${FULLOBJS}
+-	../src/o $<
++	../src/o $< exit_end 1
+ 
+ syms =-s
+ ATLDCOM = $(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc -entry main

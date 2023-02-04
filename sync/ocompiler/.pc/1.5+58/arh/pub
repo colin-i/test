@@ -1,0 +1,37 @@
+
+#1
+
+last=`curl https://api.github.com/repos/colin-i/o/releases/latest -s | jq .tag_name -r` && \
+~/test/debinit2 "${1}" && \
+~/test/keyring2 && \
+~/test/deb && \
+~/test/publp && \
+~/test/ai && \
+~/test/pub appimage && \
+./makewin32 && \
+~/test/del && \
+~/test/rel && \
+~/test/pub rel && \
+~/test/rpm && \
+~/test/upapp && \
+~/test/up && \
+~/test/pub upapp rpm && \
+~/test/pub2 && \
+~/test/publp2 && \
+~/test/lp && \
+~/test/lp x && \
+~/test/keyring && \
+~/test/del x ${last} && \
+~/test/arh2 ${last}
+
+
+#plans:
+
+#SHT_NOBITS at virtual
+#simple and or
+#={"a","b"}
+#~(page_sectionalignment-1)
+#function in code exes
+#SizeofStackReserve against growramp?
+#at write when there is at 0x80.... or at exes it is a fixed virtual
+#there is 0x66 prefix for words and some movsw/movzw

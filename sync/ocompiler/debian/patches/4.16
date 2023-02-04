@@ -1,0 +1,342 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.16) bionic; urgency=medium
+ .
+   * syms separator
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-15
+
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -307,9 +307,13 @@ Else
+ 	Str ptrelfsymtab^elfsymtab
+ 	Data SHT_SYMTAB=2
+ 	Add elf_sec_fileoff codesecReg
+-	Data oneGreaterThanLastSTB_LOCAL=oneGreaterThanLastSTB_LOCAL
++	sd localsyms
++	setcall errormsg elfobj_resolve(#localsyms,table,tableReg,syment,addresses,addressesReg,extra,extraReg,relent)
++	If errormsg!=noerr
++		Call msgerrexit(errormsg)
++	EndIf
+ 
+-	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,oneGreaterThanLastSTB_LOCAL,dwordsize,syment)
++	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,localsyms,dwordsize,syment)
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+--- ocompiler-1.orig/src/files/actions/main/index/aftercall.s
++++ ocompiler-1/src/files/actions/main/index/aftercall.s
+@@ -41,7 +41,8 @@ else
+ 				div g_e_p# elf32_dyn_d_val_syment
+ 			endelse
+ 			#adding at current names reg the content lenghting comsize
+-			SetCall errormsg elfaddstrszsym(ac_store_content,ac_store_size,acsym_value,acsym_size,(STT_NOTYPE),(STB_GLOBAL),acsym_shndx,ptrtable)
++			SetCall errormsg elfaddstrszsym(ac_store_content,ac_store_size,acsym_value,acsym_size,(STT_NOTYPE),(STB_LOCAL),acsym_shndx,ptrtable)
++			#GLOBAL
+ 		endif
+ 	endif
+ endelse
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -49,7 +49,6 @@ If formatresponse==false
+ 					Data codeind=codeind
+ 					Set codestrtab namesReg
+ 					SetCall errormsg elfaddstrsym(ptrelftext,null,null,STT_SECTION,STB_LOCAL,codeind,ptrtable)
+-Const oneGreaterThanLastSTB_LOCAL=3
+ 				EndIf
+ 			EndIf
+ 			Set imagebaseoffset null
+--- ocompiler-1.orig/src/files/actions/main/index/import.s
++++ ocompiler-1/src/files/actions/main/index/import.s
+@@ -47,7 +47,11 @@ If errormsg==noerr
+ 		If errormsg==noerr
+ 			If object==true
+ 				#the sym entry
+-				SetCall errormsg elfaddsym(namesReg,zero,(sym_with_size),STT_NOTYPE,STB_GLOBAL,null,ptrtable)
++				if subtype==(cIMPORT)
++					SetCall errormsg elfaddsym(namesReg,zero,(sym_with_size),STT_NOTYPE,STB_LOCAL,null,ptrtable)
++				else
++					SetCall errormsg elfaddsym(namesReg,zero,(sym_with_size),STT_NOTYPE,STB_GLOBAL,null,ptrtable)
++				endelse
+ 			EndIf
+ 			sd imp_mark;set imp_mark names;add imp_mark namesReg
+ 			SetCall errormsg addtosecstresc(pcontent,pcomsize,impquotsz,impescapes,ptrnames,true)
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -16,6 +16,7 @@ Include "./functions/values/numbersandco
+ Include "./functions/values/operations.s"
+ 
+ Include "./functions/elf/elf.s"
++Include "./functions/elf/elfobj.s"
+ 
+ Include "./functions/stack/stack_inits.s"
+ 
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -136,10 +136,14 @@ Function parsefunction(data ptrcontent,d
+ 			Data ptrobject%ptrobject
+ 			If ptrobject#==true
+ 				Data STT_FUNC=STT_FUNC
+-				Data STB_GLOBAL=STB_GLOBAL
+ 				Data codeind=codeind
+ 				Data ptrtable%ptrtable
+-				SetCall err elfaddstrszsym(content,sz,value,zero,STT_FUNC,STB_GLOBAL,codeind,ptrtable)
++				if subtype!=(cFUNCTION)
++				#entries are also not local
++					SetCall err elfaddstrszsym(content,sz,value,zero,STT_FUNC,(STB_GLOBAL),codeind,ptrtable)
++				else
++					SetCall err elfaddstrszsym(content,sz,value,zero,STT_FUNC,(STB_LOCAL),codeind,ptrtable)
++				endelse
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
+--- ocompiler-1.orig/src/files/functions/elf/elf.s
++++ ocompiler-1/src/files/functions/elf/elf.s
+@@ -121,10 +121,10 @@ EndFunction
+ 
+ #err
+ Function elfaddsym(data stringoff,data value,data size,chars type,chars bind,data index,data struct)
+-	Chars tohibyte={16}
+ 	sd st_info
+ 	Set st_info type
+-	Mult bind tohibyte
++const elf_sym_st_info_tohibyte=16
++	Mult bind (elf_sym_st_info_tohibyte)
+ 	Or st_info bind
+ 
+ 	Data ptrndxsrc^index
+@@ -134,6 +134,7 @@ Function elfaddsym(data stringoff,data v
+ 	sd x;setcall x is_for_64()
+ 	if x==(TRUE)
+ 		Data elf64_sym_st_name#1
++	const elf64_sym_st_info_offset=dwsz
+ 		Chars elf64_sym_st_info#1
+ 		Chars *elf64_sym_st_other={0}
+ 		Chars elf64_sym_st_shndx#2
+@@ -162,6 +163,7 @@ Function elfaddsym(data stringoff,data v
+ 		Const STT_NOTYPE=0
+ 		Const STT_FUNC=2
+ 		Const STT_SECTION=3
++	const elf32_sym_st_info_offset=3*dwsz
+ 		Chars elf32_sym_st_info#1
+ 		#Symbol visibility
+ 		Chars *elf32_sym_st_other={0}
+@@ -241,7 +243,9 @@ Function addrel_base(sd offset,sd type,s
+ 	if x==(TRUE)
+ 		Data elf64_r_offset#1;data *=0
+ 		data *elf64_r_info_type=R_X86_64_32
++	const elf64_r_info_symbolindex_offset=2*dwsz
+ 		data elf64_r_info_symbolindex#1
++	const elf64_r_info_symbolindex_size=dwsz
+ 		data elf64_r_addend#1;data *=0
+ 
+ 		#it is not enough
+@@ -257,7 +261,9 @@ Function addrel_base(sd offset,sd type,s
+ 		Data elf_r_offset#1
+ 		#Relocation type and symbol index
+ 		Chars elf_r_info_type#1
++	const elf_r_info_symbolindex_offset=dwsz+bsz
+ 		chars elf_r_info_symbolindex#3
++	const elf_r_info_symbolindex_size=3
+ 		data elf_r_addend#1
+ 
+ 		Set elf_r_offset offset
+--- /dev/null
++++ ocompiler-1/src/files/functions/elf/elfobj.s
+@@ -0,0 +1,179 @@
++
++
++#err
++function elfobj_resolve(sd p_localsyms,sd cont,sd end,sd entsize,sd datacont,sd datasize,sd textcont,sd textsize,sd relsize)
++	add end cont
++	#
++	sd st_info_offset
++	sd info_symbolindex_offset
++	sd info_symbolindex_size
++	if entsize==(elf64_dyn_d_val_syment)
++		set st_info_offset (elf64_sym_st_info_offset)
++		set info_symbolindex_offset (elf64_r_info_symbolindex_offset)
++		set info_symbolindex_size (elf64_r_info_symbolindex_size)
++	else
++		set st_info_offset (elf32_sym_st_info_offset)
++		set info_symbolindex_offset (elf_r_info_symbolindex_offset)
++		set info_symbolindex_size (elf_r_info_symbolindex_size)
++	endelse
++	#iterate left right stop on global
++	sd first_global
++	setcall first_global elfobj_resolve_lr(cont,end,entsize,st_info_offset)
++	#iterate right left stop on local
++	sd last_local_margin
++	setcall last_local_margin elfobj_resolve_rl(cont,end,entsize,st_info_offset)
++	#in case there are no globals
++	set p_localsyms# first_global
++	sub p_localsyms# cont
++	div p_localsyms# entsize
++	#
++	if first_global!=last_local_margin
++		sd alloc
++		sd localindex
++		set localindex p_localsyms#
++		#count local/global
++		setcall p_localsyms# elfobj_resolve_count(first_global,last_local_margin,entsize,st_info_offset,localindex,#alloc)
++		#alloc global aux
++		sd sz
++		set sz entsize
++		mult sz alloc
++		sd err
++		setcall err memoryalloc(sz,#alloc)
++		if err==(noerror)
++			#alloc new rellocs for modifs
++			sd reldata;sd reltext
++			setcall err memoryalloc(datasize,#reldata)
++			if err==(noerror)
++				setcall err memoryalloc(textsize,#reltext)
++				if err==(noerror)
++					call memtomem(reldata,datacont,datasize)
++					call memtomem(reltext,textcont,textsize)
++					#iterate inside
++					sd pos
++					sd localpos
++					set pos alloc
++					set localpos first_global
++					sd globalindex
++					sd index
++					set globalindex p_localsyms#
++					set index localindex
++					#
++					sd dataend
++					set dataend datasize
++					add dataend datacont
++					sd textend
++					set textend textsize
++					add textend textcont
++					while first_global!=last_local_margin
++						sd comp
++						setcall comp elfobj_resolve_stbcomp(first_global,st_info_offset,(STB_GLOBAL))
++						if comp==(TRUE)
++							#if global put on aux
++							call memtomem(pos,first_global,entsize)
++							add pos entsize
++							#with the entry, modify index in rel data/text
++							call elffobj_resolve_relmodif(index,globalindex,datacont,dataend,textcont,textend,relsize,info_symbolindex_offset,info_symbolindex_size,reldata,reltext)
++							inc globalindex
++						else
++							#if local put on position
++							call memtomem(localpos,first_global,entsize)
++							add localpos entsize
++							#
++							call elffobj_resolve_relmodif(index,localindex,datacont,dataend,textcont,textend,relsize,info_symbolindex_offset,info_symbolindex_size,reldata,reltext)
++							inc localindex
++						endelse
++						add first_global entsize
++						inc index
++					endwhile
++					#at end, put globals
++					call memtomem(localpos,alloc,sz)
++					call memtomem(datacont,reldata,datasize)
++					call memtomem(textcont,reltext,textsize)
++					call free(reltext)
++				endif
++				call free(reldata)
++			endif
++			call free(alloc)
++		endif
++		return err
++	endif
++	return (noerror)
++endfunction
++
++function elfobj_resolve_lr(sd cont,sd end,sd entsize,sd st_info_offset)
++	while cont!=end
++		#compare st_info
++		sd comp
++		setcall comp elfobj_resolve_stbcomp(cont,st_info_offset,(STB_GLOBAL))
++		if comp==(TRUE)
++			set end cont
++		else
++			add cont entsize
++		endelse
++	endwhile
++	return cont
++endfunction
++
++function elfobj_resolve_rl(sd cont,sd end,sd entsize,sd st_info_offset)
++	while cont!=end
++		sub end entsize
++		#compare st_info
++		sd comp
++		setcall comp elfobj_resolve_stbcomp(end,st_info_offset,(STB_LOCAL))
++		if comp==(TRUE)
++			add end entsize
++			set cont end
++		endif
++	endwhile
++	return end
++endfunction
++
++function elfobj_resolve_stbcomp(ss ent,sd offset,sd against)
++	add ent offset
++	set ent ent#
++	div ent (elf_sym_st_info_tohibyte)
++	if ent==against
++		return (TRUE)
++	endif
++	return (FALSE)
++endfunction
++
++#n
++function elfobj_resolve_count(sd a,sd b,sd sz,sd of,sd locals,sd p_alloc)
++	add a sz #a is first global
++	sd g=1
++	while a!=b
++		sd comp
++		setcall comp elfobj_resolve_stbcomp(a,of,(STB_LOCAL))
++		if comp==(TRUE)
++			inc locals
++		else
++			inc g
++		endelse
++		add a sz
++	endwhile
++	set p_alloc# g
++	return locals
++endfunction
++
++function elffobj_resolve_relmodif(sd oldindex,sd newindex,sd datacont,sd dataend,sd textcont,sd textend,sd relsize,sd offset,sd infsize,sd reldata,sd reltext)
++	call elfobj_resolve_relmodif_section(oldindex,newindex,datacont,dataend,relsize,offset,infsize,reldata)
++	call elfobj_resolve_relmodif_section(oldindex,newindex,textcont,textend,relsize,offset,infsize,reltext)
++endfunction
++function elfobj_resolve_relmodif_section(sd oldindex,sd newindex,sd cont,sd end,sd size,sd offset,sd infsize,sd newcont)
++	sd start
++	set start cont
++	while cont!=end
++		sd a
++		set a cont
++		add a offset
++		sd c
++		setcall c memcmp(a,#oldindex,infsize)
++		if c==0
++			sub a start
++			add a newcont
++			call memtomem(a,#newindex,infsize)
++		endif
++		add cont size
++	endwhile
++endfunction

@@ -1,0 +1,1186 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.4) bionic; urgency=medium
+ .
+   * vdata,decst,argv
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2021-12-06
+
+--- ocompiler-1.orig/README.md
++++ ocompiler-1/README.md
+@@ -12,6 +12,7 @@ Update and install:
+ sudo apt-get update
+ sudo apt-get install ocompiler
+ ```
++Documentation is at <i>o.html</i>
+ 
+ ## Donations
+ The *donations* section is here
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -106,6 +106,8 @@
+ 	<br>
+ 	Is a 32 bit value. It is used for operations, pointer operations.
+ 	<br>
++	There is also <b>VData</b> for reservation method that will reserve 8 bytes for a unit on 64 bit format file.
++	<br>
+ 	Example:
+ 	<br>
+ 	<a class="code">Data variable=100</a>
+@@ -798,6 +800,7 @@
+ 	<p>
+ 	When the option function_name from the .ocompiler.txt file is set to Yes(1), the name is wrote in the code section above the function, for debugging asm code.<br>
+ 	The preferences file can be placed in HOME folder on linux.<br>
+-	Lines are ended with new line(0xa),carriage return and new line(0xd,0xa) or semicolon(0x3B).
++	Lines are ended with new line(0xa),carriage return and new line(0xd,0xa) or semicolon(0x3B).<br>
++	The command line options are detailed at some point on the linux console std. On windows there some dialogs instead of console std.
+ 	</p>
+-</p>
+\ No newline at end of file
++</p>
+--- ocompiler-1.orig/src/files/actions.s
++++ ocompiler-1/src/files/actions.s
+@@ -1,8 +1,12 @@
+ 
+ 
++
++#allocs can stand with inits that need on top then some allocs at openfilename then frees needing inits
++Include "./inits/alloc.s"
++
+ Include "./actions/setdefdir.s"
+ 
+-SetCall errormsg include(path)
++SetCall errormsg include(safecurrentdirtopath)
+ If errormsg!=noerr
+ 	Call msgerrexit(errormsg)
+ EndIf
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -17,7 +17,7 @@ sd cursor_start;set cursor_start content
+ setcall content mem_spaces(content,last)
+ 
+ #test the line size and set the size of line break
+-Chars newline=0xa
++Chars newline=asciireturn
+ Data linebreaksize#1
+ Set linebreaksize bytesize
+ 
+@@ -39,7 +39,7 @@ while loop==2
+ 		set dot_comma_end 0
+ 		if pointer!=content
+ 			ss testcarriage
+-			Chars carriage=0x0d
++			Chars carriage=asciicarriage
+ 			set testcarriage pointer
+ 			dec testcarriage
+ 			If testcarriage#==carriage
+--- ocompiler-1.orig/src/files/actions/main/index/declare.s
++++ ocompiler-1/src/files/actions/main/index/declare.s
+@@ -1,4 +1,8 @@
+ 
+-sd declare_typenumber
+-setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype)
+-SetCall errormsg dataassign(pcontent,pcomsize,declare_typenumber)
++if subtype==(cVDATA)
++	SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(TRUE))
++else
++	sd declare_typenumber
++	setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype)
++	SetCall errormsg dataassign(pcontent,pcomsize,declare_typenumber,(FALSE))
++endelse
+--- ocompiler-1.orig/src/files/actions/pathout.s
++++ ocompiler-1/src/files/actions/pathout.s
+@@ -48,7 +48,7 @@ If extension!=null
+ 	Data sz#1
+ 	SetCall sz strlen(extension)
+ 
+-	setcall errormsg maxpathverif(path,extension)
++	setcall errormsg maxpathverif(safecurrentdirtopath,extension)
+ 	if errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	endif
+@@ -57,4 +57,4 @@ If extension!=null
+ 	Add pointofpathout sz
+ EndIf
+ 
+-Set pointofpathout# null
+\ No newline at end of file
++Set pointofpathout# null
+--- ocompiler-1.orig/src/files/actions/setdefdir.s
++++ ocompiler-1/src/files/actions/setdefdir.s
+@@ -4,16 +4,16 @@ Chars safedirdata="./"
+ Str safedir^safedirdata
+ 
+ Str filenameloc#1
+-SetCall filenameloc endoffolders(path)
++SetCall filenameloc endoffolders(path_nofree)
+ Chars storeachar#1
+ Set storeachar filenameloc#
+ Set filenameloc# null
+ 
+ sd chdirresult#1
+-setcall chdirresult changedir(path)
++setcall chdirresult changedir(path_nofree)
+ if chdirresult!=chdirok
+ 	str startchdirerr="Cannot set active folder:"
+-	setcall errormsg errorDefOut(startchdirerr,path)
++	setcall errormsg errorDefOut(startchdirerr,path_nofree)
+ 	Call msgerrexit(errormsg)
+ endif
+ 
+@@ -29,7 +29,6 @@ if errormsg!=noerr
+ 	Call msgerrexit(errormsg)
+ endif
+ 
+-Data safecurrentdirtopath#1
+ SetCall safecurrentdirtopath memalloc(flag_max_path)
+ If safecurrentdirtopath==null
+ 	Call errexit()
+@@ -67,7 +66,7 @@ if logbool==true
+ 		else
+ 			Set storeachar filenameloc#
+ 			Set filenameloc# null
+-			call logincludes_decision(path)
++			call logincludes_decision(path_nofree)
+ 			Set filenameloc# storeachar
+ 		endelse
+ 		set appendextension# null
+@@ -77,6 +76,3 @@ if logbool==true
+ 		call Message(errormsg)
+ 	endif
+ endif
+-
+-Call free(path)
+-Set path safecurrentdirtopath
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/actions/write.s
++++ ocompiler-1/src/files/actions/write.s
+@@ -3,7 +3,7 @@
+ 
+ Data err#1
+ 
+-SetCall err openfile(ptrfileout,path,_open_write)
++SetCall err openfile(ptrfileout,safecurrentdirtopath,_open_write)
+ If err!=noerr
+ 	Chars fouterr="Error with the file out open function."
+ 	Str fileouterr^fouterr
+--- ocompiler-1.orig/src/files/functions/add/addtomem.s
++++ ocompiler-1/src/files/functions/add/addtomem.s
+@@ -4,14 +4,17 @@
+ 
+ #40...h*2 and can't compare signed<>unsigned and will loose control at alloc
+ #this is also used at reserve *4 will be negative there
+-Const maxsectionvalue=0x40000000-1
++#Const maxsectionvalue=0x40000000-1
+ #                       aaBBccDD
++Const maxsectionvalue=0x20000000-1
++#knowing that enlarge value will qwsz them
+ 
+ #err
+ Function maxvaluecheck(data value)
+ 	Data secmax=maxsectionvalue
+ 	If value>secmax
+-		Chars secsizeerr="Section size cannot be greater than 1 073 741 823."
++		#Chars secsizeerr="Section size cannot be greater than 1 073 741 823."
++		Chars secsizeerr="Section size cannot be greater than 536 870 911."
+ 		Str ptrsecsizeerr^secsizeerr
+ 		Return ptrsecsizeerr
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -106,20 +106,24 @@ Function argument(data ptrcontent,data p
+ 			Chars inc={0xFF}
+ 			Set op inc
+ 			set regopcode 0
+-		ElseIf subtype==(cINCST)
++		ElseIf subtype==(cDEC)
++			Chars dec={0xFF}
++			Chars decregopcode={1}
++			Set op dec
++			Set regopcode decregopcode
++		ElseIf subtype<=(cDECST)
+ 			set op (0x83)
+-			set regopcode 0
++			if subtype==(cINCST)
++				set regopcode 0
++			else
++				set regopcode 5
++			endelse
+ 			chars incs_sz#1
+ 			sd b;setcall b is_for_64()
+ 			if b==(FALSE);set incs_sz (dwsz)
+ 			else;set incs_sz (qwsz);endelse
+ 			set ptrcontinuation #incs_sz
+ 			set sizeofcontinuation (bsz)
+-		ElseIf subtype==(cDEC)
+-			Chars dec={0xFF}
+-			Chars decregopcode={1}
+-			Set op dec
+-			Set regopcode decregopcode
+ 		ElseIf subtype==(cNEG)
+ 			set op (0xf7)
+ 			set regopcode 3
+--- ocompiler-1.orig/src/files/functions/commons/base.s
++++ ocompiler-1/src/files/functions/commons/base.s
+@@ -118,7 +118,7 @@ function addtolog_ex(ss content,sd sizet
+ 	setcall err writefile_errversion(filehandle,content,sizetowrite)
+ 	if err!=(noerror);return err;endif
+ 
+-	chars textterm={0xd,0xa,0}
++	chars textterm={asciicarriage,asciireturn,0}
+ 	str text^textterm
+ 	data sz=2
+ 	setcall err writefile_errversion(filehandle,text,sz)
+--- ocompiler-1.orig/src/files/functions/commons/comfn.s
++++ ocompiler-1/src/files/functions/commons/comfn.s
+@@ -387,5 +387,3 @@ function compareagainstmaxpath(data size
+ 		return noerr
+ 	endelse
+ endfunction
+-
+-
+--- ocompiler-1.orig/src/files/functions/commons/getcommand.s
++++ ocompiler-1/src/files/functions/commons/getcommand.s
+@@ -4,9 +4,9 @@ Const spacereq=1
+ Const spacenotreq=0
+ 
+ Chars cDATA_c="DATA";Chars cCHARS_c="CHARS";Chars cSTR_c="STR";Chars cSD_c="SD";Chars cSS_c="SS";Chars cSV_c="SV"
+-	Chars cCONST_c="CONST";Chars cAFTERCALL_c="AFTERCALL";Chars cIMPORTAFTERCALL_c="IMPORTAFTERCALL"
++	Chars cCONST_c="CONST";Chars cVDATA_c="VDATA";Chars cAFTERCALL_c="AFTERCALL";Chars cIMPORTAFTERCALL_c="IMPORTAFTERCALL"
+ Chars cFORMAT_c="FORMAT"
+-Chars cRETURN_c="RETURN";Chars cNOT_c="NOT";Chars cINC_c="INC";Chars cINCST_c="INCST";Chars cDEC_c="DEC";Chars cEXIT_c="EXIT";Chars cNEG_c="NEG";Chars cSHL_c="SHL";Chars cSHR_c="SHR";Chars cSAR_c="SAR"
++Chars cRETURN_c="RETURN";Chars cNOT_c="NOT";Chars cINC_c="INC";Chars cDEC_c="DEC";Chars cINCST_c="INCST";Chars cDECST_c="DECST";Chars cEXIT_c="EXIT";Chars cNEG_c="NEG";Chars cSHL_c="SHL";Chars cSHR_c="SHR";Chars cSAR_c="SAR"
+ Chars cSET_c="SET";Chars cADD_c="ADD";Chars cSUB_c="SUB";Chars cMULT_c="MULT";Chars cDIV_c="DIV";Chars cREM_c="REM";Chars cAND_c="AND";Chars cOR_c="OR";Chars cXOR_c="XOR"
+ #                 ;Chars cSETX_c="SETX"
+ Chars cLIBRARY_c="LIBRARY";
+@@ -59,12 +59,17 @@ const commandsvars_start=!
+ 			Data *=cSV
+ 			Data *=spacereq
+ #numberofcommandsvars to set these commands to search for them at function parameter declare
+-Const numberofcommandsvars=!-commandsvars_start/4/dwsz
++Const numberofcommandsvars=(!-commandsvars_start)/4/dwsz
+ 		Const cCONST=!-cDECLARE_top
+ 			data *^cCONST_c
+ 			Data *=cDECLARE
+ 			Data *=cCONST
+ 			Data *=spacereq
++		Const cVDATA=!-cDECLARE_top
++			data *^cVDATA_c
++			Data *=cDECLARE
++			Data *=cVDATA
++			Data *=spacereq
+ #aftercall can be at function parameters but the get_img_vdata_dataReg() is set inside and codding must be done for not a big deal
+ 	Const cDECLAREAFTERCALL=!-coms_start
+ 	Const cDECLAREAFTERCALL_top=!
+@@ -100,15 +105,20 @@ Const numberofcommandsvars=!-commandsvar
+ 			Data *=cONEARG
+ 			Data *=cINC
+ 			Data *=spacereq
++		Const cDEC=!-cONEARG_top
++			data *^cDEC_c
++			Data *=cONEARG
++			Data *=cDEC
++			Data *=spacereq
+ 		Const cINCST=!-cONEARG_top
+ 			data *^cINCST_c
+ 			Data *=cONEARG
+ 			Data *=cINCST
+ 			Data *=spacereq
+-		Const cDEC=!-cONEARG_top
+-			data *^cDEC_c
++		Const cDECST=!-cONEARG_top
++			data *^cDECST_c
+ 			Data *=cONEARG
+-			Data *=cDEC
++			Data *=cDECST
+ 			Data *=spacereq
+ 		Const cEXIT=!-cONEARG_top
+ 			data *^cEXIT_c
+@@ -302,7 +312,7 @@ Const numberofcommandsvars=!-commandsvar
+ 		Data *=cCOMMENT
+ 		Data *#1
+ 		Data *=spacenotreq
+-Const numberofcommands=!-coms_start/4/dwsz
++Const numberofcommands=(!-coms_start)/4/dwsz
+ 
+ Data pointers#numberofcommands+1
+ Const compointersloc^pointers
+@@ -316,6 +326,7 @@ const x_call_flag=0x80000000
+ 
+ #declare coresp
+ function commandSubtypeDeclare_to_typenumber(sd subtype)
++#these numbers will be used at getstruct directly
+ 	if subtype==(cDATA);return (integersnumber)
+ 	elseif subtype==(cCHARS);return (charsnumber)
+ 	elseif subtype==(cSTR);return (stringsnumber)
+@@ -430,6 +441,7 @@ Function sortcommands(data pointerscurso
+ EndFunction
+ 
+ Function sortallcommands()
++#put commands pointers at init
+ 	Data pointerscursor%compointersloc
+ 	Data comms=numberofcommands
+ 
+@@ -438,4 +450,4 @@ Function sortallcommands()
+ 	Data pointersvarscursor%compointersvarsloc
+ 	Data variables=numberofcommandsvars
+ 	Call sortcommands(pointersvarscursor,variables)
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -365,7 +365,7 @@ function quotes_forward(sd p_content,ss
+ 				return unend
+ 			endif
+ 		endwhile
+-		chars newline=0xa
++		chars newline=asciireturn
+ 		if content#==newline
+ 			if p_newlines!=0
+ 				inc newlines
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -3,7 +3,7 @@
+ 
+ 
+ #err
+-Function dataassign(data ptrcontent,data ptrsize,data typenumber)
++Function dataassign(sd ptrcontent,sd ptrsize,sd typenumber,sd long_bool)
+ 	Data false=FALSE
+ 	Data true=TRUE
+ 	data stack#1
+@@ -181,6 +181,7 @@ Function dataassign(data ptrcontent,data
+ 					Return err
+ 				EndIf
+ 				Mult value dsz
++				call enlarge_value(#value,long_bool)
+ 			EndIf
+ 			If value<zero
+ 				return ptrnegreserve
+@@ -380,4 +381,14 @@ function add_string_to_data(sd ptrconten
+ 		return err
+ 	endif
+ 	return (noerror)
+-endfunction
+\ No newline at end of file
++endfunction
++
++#v
++function enlarge_value(sd p_value,sd bool)
++	if bool==(TRUE)
++		sd is64;setcall is64 is_for_64()
++		if is64==(TRUE)
++			mult p_value# (qwsz/dwsz)
++		endif
++	endif
++endfunction
+--- ocompiler-1.orig/src/files/functions/enumbags.s
++++ ocompiler-1/src/files/functions/enumbags.s
+@@ -46,12 +46,6 @@ Function freeclose()
+ 	Data value#1
+ 	Data zero=0
+ 
+-	Data ptrpath%ptrpath
+-	Set value ptrpath#
+-	If value!=zero
+-		Call free(value)
+-	EndIf
+-
+ 	Call enumbags(zero)
+ 
+ 	Data negative=-1
+@@ -71,6 +65,13 @@ Function freeclose()
+ 	#here if allocerrormsg was a submessage(included in sprintf)
+ 	#here at some main msgerrexits
+ 	call clearmessage()
++
++	sd p_safecurrentdirtopath%p_safecurrentdirtopath
++	if p_safecurrentdirtopath#!=(NULL)
++		call free(p_safecurrentdirtopath#)
++	endif
++
++	call platform_free()
+ EndFunction
+ 
+ Function msgerrexit(data msg)
+@@ -80,5 +81,14 @@ EndFunction
+ 
+ Function errexit()
+ 	Call freeclose()
+-	Call exit(-1)
++	call errorexit()
+ EndFunction
++
++function errorexit()
++	Call exit(-1)
++endfunction
++
++function exitMessage(ss s)
++	call Message(s)
++	call errorexit()
++endfunction
+--- ocompiler-1.orig/src/files/headers/ascii.h
++++ ocompiler-1/src/files/headers/ascii.h
+@@ -2,6 +2,8 @@
+ 
+ #some ascii Constants commonly used
+ Const asciitab=0x9
++Const asciireturn=0xa
++Const asciicarriage=0xd
+ Const asciispace=0x20
+ Const asciiExclamationmark=0x21
+ Const asciidoublequote=0x22
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -42,7 +42,7 @@ Data flag_max_path=flag_MAX_PATH
+ 
+ #more values
+ Const noerror=0
+-Const error=-1
++#this is win specific Const error=-1
+ Const FORWARD=1
+ Const BACKWARD=-1
+ Const not_used=0
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -28,8 +28,7 @@ Data _errormsg^errormsg
+ Data noerr=noerror
+ 
+ 
+-Str path#1
+-Const ptrpath^path
++Str path_nofree#1
+ Data fileout#1
+ Const ptrfileout^fileout
+ Data ptrfileout%ptrfileout
+@@ -364,3 +363,6 @@ const p_over_pref^over_pref
+ 
+ data hidden_pref#1
+ const p_hidden_pref^hidden_pref
++
++Data safecurrentdirtopath#1
++const p_safecurrentdirtopath^safecurrentdirtopath
+--- ocompiler-1.orig/src/files/inits.s
++++ ocompiler-1/src/files/inits.s
+@@ -26,9 +26,6 @@ Set programentrypoint zero
+ #include or not include for applying after command parse
+ Set includebool zero
+ 
+-#input path
+-Set path zero
+-
+ #files
+ Set fileout negative
+ set logfile negative
+@@ -132,7 +129,6 @@ data g_e_b_p#1;setcall g_e_b_p global_er
+ #entrylinux bool
+ data el_b_p#1;setcall el_b_p entrylinux_bool_p();set el_b_p# (FALSE)
+ 
+-Include "../files/inits/alloc.s"
+-
+-
+ set warn_hidden_whitespaces_times 0
++
++set safecurrentdirtopath (NULL)
+--- ocompiler-1.orig/src/files/inits/alloc.s
++++ ocompiler-1/src/files/inits/alloc.s
+@@ -1,11 +1,7 @@
+ 
+ 
+-SetCall path memalloc(flag_max_path)
+-If  path==null
+-	Call errexit()
+-EndIf
+-
+ SetCall errormsg enumbags(true)
++#here is the start of mem worries for linux
+ If errormsg!=noerr
+ 	Call msgerrexit(errormsg)
+ EndIf
+--- /dev/null
++++ ocompiler-1/src/files/inits/conv.s
+@@ -0,0 +1,38 @@
++
++sd convention_64
++
++if argc>2
++	if argc>3
++		call exitMessage("Too many arguments")
++	endif
++
++
++	const cross_convention_input=ignore_convention_input+1
++	const last_convention_input=cross_convention_input
++
++	#argv will be freed on windows
++	set convention_64 argv;add convention_64 (2*:)
++	ss argv2
++	set argv2 convention_64#
++	set convention_64 argv2#
++
++	if convention_64==0
++		call exitMessage("argv2 null")
++	endif
++	inc argv2
++	if argv2#!=0
++		call exitMessage("argv2 must have only one character")
++	endif
++
++	if convention_64<(asciizero)
++		call exitMessage("argv2 must be greater than 0")
++	endif
++
++	sub convention_64 (asciizero)
++
++	if convention_64>(last_convention_input)
++		call exitMessage("argv2 must be 0,1 or 2")
++	endif
++else
++	set convention_64 (no_convention_input)
++endelse
+--- ocompiler-1.orig/src/files/inits/conv_a.s
++++ /dev/null
+@@ -1,2 +0,0 @@
+-
+-sd convention_64=no_convention_input
+--- ocompiler-1.orig/src/files/inits/conv_b.s
++++ /dev/null
+@@ -1,4 +0,0 @@
+-
+-if argc>3
+-	call msgerrexit("Too many arguments")
+-endif
+--- ocompiler-1.orig/src/files/inits/conv_c.s
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-const cross_convention_input=ignore_convention_input+1
+-const last_convention_input=cross_convention_input
+-
+-set convention_64 argv2#
+-
+-if convention_64==0
+-	call msgerrexit("argv2 null")
+-endif
+-inc argv2
+-if argv2#!=0
+-	call msgerrexit("argv2 must have only one character")
+-endif
+-
+-if convention_64<(asciizero)
+-	call msgerrexit("argv2 must be greater than 0")
+-endif
+-
+-sub convention_64 (asciizero)
+-
+-if convention_64>(last_convention_input)
+-	call msgerrexit("argv2 must be 0,1 or 2")
+-endif
+--- ocompiler-1.orig/src/linux/files/prefextra.s
++++ ocompiler-1/src/linux/files/prefextra.s
+@@ -29,6 +29,10 @@ function prefextra_helper(ss prefpath,sd
+ 			if a==0
+ 				SetCall err file_get_content_ofs(mem,ptrpreferencessize,ptrpreferencescontent,(NULL))
+ 				call free(mem)
++				if err!=(noerror)
++					#knowing that exists but still fearing at file open
++					call safeMessage(err)
++				endif
+ 				return err
+ 			endif
+ 			str er="No preferences file found in HOME. The file is here: https://raw.githubusercontent.com/colin-i/o/master/.ocompiler.txt"
+--- ocompiler-1.orig/src/linux/files/xcomimports.h
++++ ocompiler-1/src/linux/files/xcomimports.h
+@@ -13,10 +13,5 @@ Import "getcwd" getcwd
+ Import "fprintf" fprintf
+ Import "stderr" stderr
+ 
+-Import "getpid" getpid
+-Import "fopen" fopen
+-Import "fclose" fclose
+-Import "getdelim" getdelim
+-
+ import "getenv" getenv
+ import "access" access
+\ No newline at end of file
+--- ocompiler-1.orig/src/linux/files/xgetfile.s
++++ ocompiler-1/src/linux/files/xgetfile.s
+@@ -1,143 +1,104 @@
+ 
+-
+-
+-
+-Chars cmdfileformpathdata="/proc/%u/cmdline"
+-Str cmdfilepathform^cmdfileformpathdata
+-Chars cmdfilepathdata#32
+-Str cmdfilepath^cmdfilepathdata
+-
+-Data pid#1
+-SetCall pid getpid()
+-
+-Call sprintf(cmdfilepath,cmdfilepathform,pid)
+-
+-Data cmdfile#1
+-Data openno=openno
+-Chars fopenreaddata="rb"
+-Str fopenread^fopenreaddata
+-SetCall cmdfile fopen(cmdfilepath,fopenread)
+-If cmdfile==openno
+-	Chars cmdopenerr="Cannot open command line file."
+-	Str ptrcmdopenerr^cmdopenerr
+-	Call msgerrexit(ptrcmdopenerr)
+-EndIf
+-
+-Str script#1
+-Data argumentssize#1
+-
+-Data ptrscript^script
+-Data ptrargumentssize^argumentssize
+-
+-Call memset(ptrscript,zero,qwordsize)
+-
+-Data getdelimreturn#1
+-Data getdelimreturnerr=-1
+-
+-#returns the argument+nullbyte size
+-SetCall getdelimreturn getdelim(ptrscript,ptrargumentssize,null,cmdfile)
+-If getdelimreturn==getdelimreturnerr
++if argc<1
+ 	Chars cmdscripterr="Cannot parse to input file name."
+ 	Str ptrcmdscripterr^cmdscripterr
+-	Call msgerrexit(ptrcmdscripterr)
+-EndIf
++	call exitMessage(ptrcmdscripterr)
++endif
+ 
+ #if the file was executed from the PATH, then the root folder it is searched
++Data argumentssize#1
+ str scriptfullname#1
+-set scriptfullname null
+ chars slash=asciislash
+-data accessresult#1
+ data slashtest#1
+ 
+-set accessresult negative
+-setcall slashtest valinmem(script,argumentssize,slash)
++setcall argumentssize strlen(argv0)
++setcall slashtest valinmem(argv0,argumentssize,slash)
+ if slashtest!=argumentssize
+-	set scriptfullname script
++	set scriptfullname argv0
+ else
++	data accessresult#1
+ 	str envpath#1
+ 	str pathstr="PATH"
++	set scriptfullname null
+ 	setcall envpath getenv(pathstr)
+ 	if envpath==null
+ 		str enverr="Getenv error on PATH."
+ 		call Message(enverr)
+-	endif
+-	data sizeofpath#1
+-	setcall sizeofpath strlen(envpath)
+-	while sizeofpath!=zero
+-		chars pathdelim=":"
+-		data sizeoffolder#1
+-		setcall sizeoffolder valinmem(envpath,sizeofpath,pathdelim)
+-
+-		data sizetocreate#1
+-		set sizetocreate sizeoffolder
+-		#this one is if '/' needs to be added after the folder
+-		inc sizetocreate
+-		add sizetocreate argumentssize
+-		inc sizetocreate
+-		setcall scriptfullname memalloc(sizetocreate)
+-		if scriptfullname==null
+-			set sizeofpath zero
+-		else
+-			#do not work on null PATH parts
+-			if sizeoffolder!=null
+-				str scrpointer#1
+-				set scrpointer scriptfullname
+-				call memtomem(scrpointer,envpath,sizeoffolder)
+-				add scrpointer sizeoffolder
+-				dec scrpointer
+-
+-				chars slashcompare#1
+-				set slashcompare scrpointer#
+-				inc scrpointer
+-				if slashcompare!=slash
+-					set scrpointer# slash
+-					inc scrpointer
+-				endif
+-				call memtomem(scrpointer,script,argumentssize)
+-				add scrpointer argumentssize
+-				set scrpointer# null
+-
+-				data runaccess=X_OK
+-				setcall accessresult access(scriptfullname,runaccess)
+-			endif
+-			if accessresult==zero
+-				#continue with this path to preferences
++	else
++		data sizeofpath#1
++		setcall sizeofpath strlen(envpath)
++		set accessresult negative
++		while sizeofpath!=zero
++			chars pathdelim=":"
++			data sizeoffolder#1
++			setcall sizeoffolder valinmem(envpath,sizeofpath,pathdelim)
++
++			data sizetocreate#1
++			set sizetocreate sizeoffolder
++			#this one is if '/' needs to be added after the folder
++			inc sizetocreate
++			add sizetocreate argumentssize
++			inc sizetocreate
++			setcall scriptfullname memalloc(sizetocreate)
++			if scriptfullname==null
+ 				set sizeofpath zero
+-				Call free(script)
+-				set script scriptfullname
+ 			else
+-				call free(scriptfullname)
+-				set scriptfullname null
+-				add envpath sizeoffolder
+-				sub sizeofpath sizeoffolder
+-				if envpath#==pathdelim
+-					inc envpath
+-					dec sizeofpath
++				#do not work on null PATH parts
++				if sizeoffolder!=null
++					str scrpointer#1
++					set scrpointer scriptfullname
++					call memtomem(scrpointer,envpath,sizeoffolder)
++					add scrpointer sizeoffolder
++					dec scrpointer
++
++					chars slashcompare#1
++					set slashcompare scrpointer#
++					inc scrpointer
++					if slashcompare!=slash
++						set scrpointer# slash
++						inc scrpointer
++					endif
++					call memtomem(scrpointer,argv0,argumentssize)
++					add scrpointer argumentssize
++					set scrpointer# null
++
++					data runaccess=X_OK
++					setcall accessresult access(scriptfullname,runaccess)
+ 				endif
++				if accessresult==zero
++					#continue with this path to preferences
++					set sizeofpath zero
++				else
++					call free(scriptfullname)
++					set scriptfullname null
++					add envpath sizeoffolder
++					sub sizeofpath sizeoffolder
++					if envpath#==pathdelim
++						inc envpath
++						dec sizeofpath
++					endif
++				endelse
+ 			endelse
+-		endelse
+-	endwhile
++		endwhile
++	endelse
+ endelse
+ 
+-if scriptfullname==false
++if scriptfullname==null
+ 	str patherr="Pathfind error."
+ 	call Message(patherr)
+ else
+ 	call setpreferences(scriptfullname)
++	if scriptfullname!=argv0
++		call free(scriptfullname)
++	endif
+ endelse
+ 
+-Call free(script)
+-
+-Data ptrpath%ptrpath
+-Set argumentssize flag_max_path
+-SetCall getdelimreturn getdelim(ptrpath,ptrargumentssize,null,cmdfile)
+-
+-If getdelimreturn==getdelimreturnerr
+-	Chars cmdnoinput="Enter the input file. O Compiler - usage: o \"filename.o\""
+-	Str ptrcmdnoinput^cmdnoinput
+-	Call msgerrexit(ptrcmdnoinput)
++if argc<2
++	Chars cmdnoinput="O Compiler - usage: o \"filename\" [conv_64]"
++	chars moreinfo="Documentation is here: https://htmlpreview.github.io/?https://github.com/colin-i/o/blob/master/o.html"
++	ss moreinfo_helper^moreinfo
++	dec moreinfo_helper;set moreinfo_helper# (asciireturn)
++	call exitMessage(#cmdnoinput)
+ EndIf
+ 
+-Call fclose(cmdfile)
+-
+-
++set path_nofree argv1
+--- ocompiler-1.orig/src/linux/head.h
++++ ocompiler-1/src/linux/head.h
+@@ -5,5 +5,7 @@ Include "./files/xheaders.h"
+ Include "../files/headers.h"
+ 
+ #functions
++function platform_free()
++endfunction
+ include "./files/prefextra.s"
+ Include "../files/functions.s"
+--- ocompiler-1.orig/src/linux/text.s
++++ ocompiler-1/src/linux/text.s
+@@ -1,17 +1,15 @@
+ 
+-EntryLinux main(sd argc,ss *argv0,ss *argv1,ss argv2)
++EntryLinux main(sd argc,ss argv0,ss argv1)
+ 
+ #main
+ Include "../files/inits.s"
+ 
+ Include "./files/xgetfile.s"
+ 
+-Include "../files/inits/conv_a.s"
+-Include "../files/inits/conv_b.s"
+-if argc==3
+-	#here on windows must take from argv
+-	Include "../files/inits/conv_c.s"
+-endif
++sd argv
++set argv #argv0
++
++Include "../files/inits/conv.s"
+ 
+ Include "../files/actions.s"
+ 
+--- /dev/null
++++ ocompiler-1/src/windows/files/platform.s
+@@ -0,0 +1,27 @@
++
++function platform_free()
++	sd a%p_argv
++	if a#!=(NULL)
++		call free(a#)
++	endif
++	sd b%p_path_free
++	if b#!=(NULL)
++		call free(b#)
++	endif
++endfunction
++
++function wide_to_ansi(ss in)
++	ss out
++	set out in
++	dec out
++	chars n=0;chars x#1
++	while 0==0
++		inc out
++		set x in#
++		set out# x
++		if x==n
++			return (void)
++		endif
++		add in 2
++	endwhile
++endfunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/files/prefextra.s
++++ ocompiler-1/src/windows/files/prefextra.s
+@@ -1,6 +1,8 @@
+ 
+ const variable_convention=ms_convention
+ 
++Const error=-1
++
+ function prefextra(ss *file,sd *ptrpreferencessize,sd *ptrpreferencescontent)
+ 	return (error)
+ endfunction
+--- ocompiler-1.orig/src/windows/files/winend.s
++++ ocompiler-1/src/windows/files/winend.s
+@@ -20,5 +20,5 @@ If openfilenamemethod==true
+ 	Str ptrouttimeformat^outtimeformat
+ 
+ 	Call sprintf(ptrouttime,ptrouttimeformat,seconds,timeatend)
+-	Call MessageBox(null,ptrouttime,ptrocompiler,null)
++	Call MessageBox(null,ptrouttime,"Time",null)
+ EndIf
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/files/wingetfile.s
++++ ocompiler-1/src/windows/files/wingetfile.s
+@@ -14,15 +14,13 @@ if ptrmem!=null
+ 	call free(ptrmem)
+ endif
+ 
+-
+-Data commandchar#1
+-Set path# null
++Set path_nofree (NULL)
+ Include "./wingetfile/getfilefromcommand.s"
+-
+-Set commandchar path#
+-If commandchar==null
++set path_free (NULL)
++If path_nofree==null
+ 	#open file name
+ 	Include "./wingetfile/getfilefromopenfilename.s"
++	set path_nofree path_free
+ 	Data timeatbegin#1
+ 	SetCall timeatbegin GetTickCount()
+ 	Set openfilenamemethod true
+--- ocompiler-1.orig/src/windows/files/wingetfile/getfilefromcommand.s
++++ ocompiler-1/src/windows/files/wingetfile/getfilefromcommand.s
+@@ -1,57 +1,26 @@
+ 
+ 
+-Str commandname#1
+-Data commnamesize#1
+-Data ptrcommandname^commandname
+-Data ptrcommnamesize^commnamesize
++sd command_name
++sd commname_size
+ 
+-SetCall commandname GetCommandName()
++SetCall command_name GetCommandName()
+ 
+-SetCall commnamesize strlen(commandname)
+-If commnamesize!=zero
+-	Call spaces(ptrcommandname,ptrcommnamesize)
+-	If commnamesize!=zero
+-		Chars quotation="\""
+-		Chars space=" "
+-		Data launchsize#1
+-		Set commandchar commandname#
+-		If commandchar==quotation
+-			Call stepcursors(ptrcommandname,ptrcommnamesize)
+-			SetCall launchsize valinmem(commandname,commnamesize,quotation)
+-		Else
+-			SetCall launchsize valinmem(commandname,commnamesize,space)
+-		EndElse
+-
+-#
+-
+-		Add commandname launchsize
+-		Sub commnamesize launchsize
+-		If commnamesize!=zero
+-			Set commandchar commandname#
+-			If commandchar==quotation
+-				Call stepcursors(ptrcommandname,ptrcommnamesize)
+-			EndIf
+-			Call spaces(ptrcommandname,ptrcommnamesize)
+-			If commnamesize!=zero
+-				Data sizeofpathin#1
+-				#
+-				Set commandchar commandname#
+-				If commandchar==quotation
+-					Call stepcursors(ptrcommandname,ptrcommnamesize)
+-					SetCall sizeofpathin valinmem(commandname,commnamesize,quotation)
+-				Else
+-					set sizeofpathin commnamesize
+-				EndElse
+-				If sizeofpathin!=zero
+-					Data maximumallowed=flag_MAX_PATH-1
+-					If sizeofpathin<=maximumallowed
+-						Call memtomem(path,commandname,sizeofpathin)
+-						Set commandname path
+-						Add commandname sizeofpathin
+-						Set commandname# null
+-					EndIf
+-				EndIf
+-			EndIf
+-		EndIf
+-	EndIf
++#this is so bugged but accepted , strlen is ansi, but no wide path in this program, so first XX00h will stop
++SetCall commname_size strlen(command_name)
++If commname_size!=zero
++	setcall argv CommandLineToArgvW(command_name,#argc)
++	if argv!=(NULL)
++		#here is the start of mem worries for windows
++		if argc>1
++			sd mirror
++			set mirror argv;incst mirror
++			sd aux_mirror;set aux_mirror mirror#
++			call wide_to_ansi(aux_mirror)
++			set path_nofree aux_mirror
++			if argc>2
++				incst mirror
++				call wide_to_ansi(mirror#)
++			endif
++		endif
++	endif
+ EndIf
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/files/wingetfile/getfilefromopenfilename.s
++++ ocompiler-1/src/windows/files/wingetfile/getfilefromopenfilename.s
+@@ -1,5 +1,4 @@
+ 
+-
+ #OPENFILENAME
+ Const OFN_FILEMUSTEXIST=0x1000
+ Const OFN_PATHMUSTEXIST=0x0800
+@@ -8,8 +7,16 @@ Const ofnFlags=OFN_FILEMUSTEXIST|OFN_PAT
+ 
+ Str ofnfiltermemvalue#1
+ 
++setcall path_free memalloc(flag_max_path)
++if path_free==(NULL)
++	#memalloc has message
++	call errexit()
++endif
++set path_free# 0
++
+ Include "./getfilefromopenfilename/lpstrFilter.s"
+ 
++
+ Data ofnlStructSize=0x58
+ Data *ofnhwndOwner=0
+ Data *ofnhInstance=0
+@@ -19,8 +26,8 @@ Set ofnfiltermem ofnfiltermemvalue
+ Data *ofnlpstrCustomFilter=0
+ Data *ofnnMaxCustFilter=0
+ Data *ofnnFilterIndex=0
+-Str ofnlpstrFile=0
+-Set ofnlpstrFile path
++Str ofnlpstrFile#1
++Set ofnlpstrFile path_free
+ 
+ Data ofnnMaxFile#1
+ Set ofnnMaxFile flag_max_path
+@@ -51,10 +58,5 @@ SetCall openfilenameresult GetOpenFileNa
+ Call free(ofnfiltermem)
+ 
+ If openfilenameresult==zero
+-	Chars ofnstop="No file selected or an error occurs."
+-	Str ptrofnstop^ofnstop
+-	Chars ocompiler="O Compiler"
+-	Str ptrocompiler^ocompiler
+-	Call MessageBox(null,ptrofnstop,ptrocompiler,null)
+-	Call errexit()
+-EndIf
+\ No newline at end of file
++	Call msgerrexit("No file selected or an error occurs.")
++EndIf
+--- ocompiler-1.orig/src/windows/files/winheaders.h
++++ ocompiler-1/src/windows/files/winheaders.h
+@@ -6,4 +6,11 @@ Const flag_MAX_PATH=260
+ 
+ Const flag_O_CREAT=0x0100
+ const _S_IREAD=0x100;const _S_IWRITE=0x80
+-Const pmode_mode=_S_IREAD|_S_IWRITE
+\ No newline at end of file
++Const pmode_mode=_S_IREAD|_S_IWRITE
++
++data argv#1
++const p_argv^argv
++data argc#1
++
++str path_free#1
++const p_path_free^path_free
+\ No newline at end of file
+--- ocompiler-1.orig/src/windows/files/winimports.h
++++ ocompiler-1/src/windows/files/winimports.h
+@@ -13,7 +13,7 @@ Import "_lseek" lseek
+ Import "strcat" strcat
+ 
+ Library "kernel32.dll"
+-Import "GetCommandLineA" GetCommandName
++Import "GetCommandLineW" GetCommandName
+ Import "GetTickCount" GetTickCount
+ Import "GetModuleFileNameA" GetModuleFileName
+ 
+@@ -21,4 +21,7 @@ Library "user32.dll"
+ Import "MessageBoxA" MessageBox
+ 
+ Library "comdlg32.dll"
+-Import "GetOpenFileNameA" GetOpenFileName
+\ No newline at end of file
++Import "GetOpenFileNameA" GetOpenFileName
++
++Library "shell32.dll"
++Import "CommandLineToArgvW" CommandLineToArgvW
+--- ocompiler-1.orig/src/windows/files/winobj64imports.h
++++ ocompiler-1/src/windows/files/winobj64imports.h
+@@ -19,7 +19,7 @@ Importx "_lseek" lseek
+ Importx "strcat" strcat
+ 
+ #kernel32
+-Importx "GetCommandLineA" GetCommandName
++Importx "GetCommandLineW" GetCommandName
+ Importx "GetTickCount" GetTickCount
+ Importx "GetModuleFileNameA" GetModuleFileName
+ 
+@@ -28,3 +28,6 @@ Importx "MessageBoxA" MessageBox
+ 
+ #comdlg32
+ Importx "GetOpenFileNameA" GetOpenFileName
++
++#shell32
++ImportX "CommandLineToArgvW" CommandLineToArgvW
+--- ocompiler-1.orig/src/windows/files/winobjimports.h
++++ ocompiler-1/src/windows/files/winobjimports.h
+@@ -19,7 +19,7 @@ Import "_lseek" lseek
+ Import "_strcat" strcat
+ 
+ #kernel32
+-Import "_GetCommandLineA@0" GetCommandName
++Import "_GetCommandLineW@0" GetCommandName
+ Import "_GetTickCount@0" GetTickCount
+ Import "_GetModuleFileNameA@12" GetModuleFileName
+ 
+@@ -27,4 +27,7 @@ Import "_GetModuleFileNameA@12" GetModul
+ Import "_MessageBoxA@16" MessageBox
+ 
+ #comdlg32
+-Import "_GetOpenFileNameA@4" GetOpenFileName
+\ No newline at end of file
++Import "_GetOpenFileNameA@4" GetOpenFileName
++
++#shell32
++Import "_CommandLineToArgvW@8" CommandLineToArgvW
+--- ocompiler-1.orig/src/windows/head.h
++++ ocompiler-1/src/windows/head.h
+@@ -10,4 +10,5 @@ Function Message(str text)
+ 	Data null=NULL
+ 	Call MessageBox(null,text,null,null)
+ EndFunction
++include "./files/platform.s"
+ Include "../files/functions.s"
+--- ocompiler-1.orig/src/windows/text.s
++++ ocompiler-1/src/windows/text.s
+@@ -4,11 +4,14 @@
+ 
+ Include "../files/inits.s"
+ 
++set argv (NULL)
+ Data openfilenamemethod#1
+ Set openfilenamemethod false
+ Include "./files/wingetfile.s"
+ 
+-Include "../files/inits/conv_a.s"
++if argv!=(NULL)
++	Include "../files/inits/conv.s"
++endif
+ 
+ Include "../files/actions.s"
+ 

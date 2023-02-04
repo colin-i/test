@@ -1,0 +1,1944 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.19) bionic; urgency=medium
+ .
+   * reloc64 and values full, mainly
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-20
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -47,10 +47,14 @@ conv_64=0
+ 0 is No; 1 is Yes
+ nul_res_pref=0
+ 
+-12. sd as sv (old programs don't have sv and may be with 64 logic)
++12. SD as SV (old programs don't have sv and may be with 64 logic)
+ 0 is No; 1 is Yes
+ sd_as_sv=0
+ 
+-13. inplace reloc 0 or the addend for objects? (standard ld wants addend, i686-w64-mingw32-ld wants 0)
++13. Inplace reloc 0 or the addend for objects? (standard ld wants addend, i686-w64-mingw32-ld wants 0)
+ 0 is Zero; 1 is Addend
+-inplace_reloc=1
+\ No newline at end of file
++inplace_reloc=1
++
++14. At objects, when on 64 format, relocs are R_X86_64_64.
++0 is No; 1 is Yes
++reloc_64=1
+\ No newline at end of file
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -180,9 +180,7 @@
+ 	<br>
+ 	Language command: <b>VALUE</b>
+ 	<br>
+-	Uset at reservation method only. These are not implemented for other methods, will act like DATA/STR there.
+-	<br>
+-	They will reserve 8 bytes for a unit on 64 bit format file.
++	They will declare 8 bytes for a unit on 64 bit format file.
+ 	<br>
+ 	The pointer is like for stack variables; vdata 4, vstr 1, value 4/8.
+ 	</p>
+--- ocompiler-1.orig/src/Makefile
++++ ocompiler-1/src/Makefile
+@@ -7,8 +7,10 @@ FULLOBJS = ${FULLOBJ}.s
+ FULLOBJO = ${FULLOBJ}.o
+ OBT = ${OB}.txt
+ 
++OFLAGS=
++
+ %.o: ${FULLOBJS}
+-	if [ -s ${OBT} ];then base64 -d ${OBT} > $@;else o $<;fi
++	if [ -s ${OBT} ];then base64 -d ${OBT} > $@;else o $< ${OFLAGS};fi
+ 
+ syms =-s
+ ATLDCOM = $(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc -entry main
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -185,7 +185,6 @@ If object==false
+ 
+ 		##
+ 		Data elf_rel_offset#1
+-		Chars elf_rel_info_type={R_386_32}
+ 		Data elf_rel_info_symbolindex#1
+ 
+ 		Set elf_rel_offset elf32_dyn_d_ptr_rel
+@@ -193,7 +192,7 @@ If object==false
+ 		Set elf_rel_info_symbolindex zero
+ 
+ 		While elf_rel_info_symbolindex<sizeofchain
+-			SetCall errormsg addrel(elf_rel_offset,elf_rel_info_type,elf_rel_info_symbolindex,ptrmiscbag)
++			SetCall errormsg addrel(elf_rel_offset,elf_rel_info_symbolindex,ptrmiscbag)
+ 			If errormsg!=noerr
+ 				Call msgerrexit(errormsg)
+ 			EndIf
+--- ocompiler-1.orig/src/files/actions/main/index/declare.s
++++ ocompiler-1/src/files/actions/main/index/declare.s
+@@ -1,10 +1,22 @@
+ 
+ if subtype==(cVDATA)
+-	SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(datapointbit))
++	if p_is_for_64_resp#==(TRUE)
++		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(datapointbit))
++	else
++		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),0)
++	endelse
+ elseif subtype==(cVSTR)
+-	SetCall errormsg dataassign(pcontent,pcomsize,(stringsnumber),(datapointbit))
++	if p_is_for_64_resp#==(TRUE)
++		SetCall errormsg dataassign(pcontent,pcomsize,(stringsnumber),(datapointbit))
++	else
++		SetCall errormsg dataassign(pcontent,pcomsize,(stringsnumber),0)
++	endelse
+ elseif subtype==(cVALUE)
+-	SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(datapointbit|pointbit))
++	if p_is_for_64_resp#==(TRUE)
++		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(valueslongmask))
++	else
++		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),0)
++	endelse
+ else
+ 	sd declare_typenumber
+ 	setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype)
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -23,6 +23,8 @@ If formatresponse==false
+ 		SetCall elfobjformresp stringsatmemspc(pcontent,pcomsize,ptrelfobjformat,false,"64",p_is_for_64_resp)
+ 		If elfobjformresp==true
+ 			if p_is_for_64_resp#==(TRUE)
++				call reloc64_init()
++				#
+ 				set convention_64 convention_64#
+ 				if convention_64==(ignore_convention_input)
+ 					set p_is_for_64_resp# (FALSE)
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -43,4 +43,6 @@ Include "./functions/pref/sdsv.s"
+ Include "./functions/incld.s"
+ Include "./functions/dataassign.s"
+ Include "./functions/enumbags.s"
+-Include "./functions/64bit.s"
++
++Include "./functions/64/bit.s"
++Include "./functions/64/reloc.s"
+--- /dev/null
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -0,0 +1,444 @@
++
++
++#p_bits
++function p_is_for_64()
++	data bool#1
++	return #bool
++endfunction
++#bool
++function is_for_64()
++	sd p;setcall p p_is_for_64();return p#
++endfunction
++#p_bits
++function p_neg_is_for_64()
++	data bool#1
++	return #bool
++endfunction
++
++function scope64_p()
++	data bool#1;return #bool
++endfunction
++function scope64_get()
++	sd p;setcall p scope64_p();return p#
++endfunction
++function scope64_set(sd b)
++	sd p;setcall p scope64_p();set p# b
++endfunction
++
++#get
++function is_for_64_is_impX_or_fnX_p_get();data b#1;return #b;endfunction
++#get
++function is_for_64_is_impX_or_fnX_get();sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get();return p_b#;endfunction
++function is_for_64_is_impX_or_fnX_set(sd ptrdata)
++	sd p_b
++	setcall p_b is_for_64_is_impX_or_fnX_p_get()
++	sd b
++	setcall b is_for_64()
++	#importX and functionX used to have a test with is_for_64 outside of this, but at log need to know the type
++	if b==(TRUE)
++		add ptrdata (maskoffset)
++		sd val;set val ptrdata#;and val (x86_64bit)
++		if val==(x86_64bit);set p_b# (TRUE);return (void);endif
++	endif
++	set p_b# (FALSE)
++endfunction
++
++#get
++function nr_of_args_64need_p_get();data n#1;return #n;endfunction
++#er
++function nr_of_args_64need_set()
++	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
++	if p_b#==(TRUE)
++		sd p;setcall p nr_of_args_64need_p_get();set p# 0
++		#Stack aligned on 16 bytes. Later set, depending on the number of arguments, jumpCarry or jumpNotCarry
++		sd err
++		data code%ptrcodesec
++		#bt rsp,3 (offset 3)
++		chars hex_x={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
++		SetCall err addtosec(#hex_x,5,code);If err!=(noerror);Return err;EndIf
++		#
++		sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
++		call getcontReg(code,stack_align_p)
++		#j(c|nc);sub rsp,8
++		chars jump#1;chars *=4;chars *={REX_Operand_64,0x83,0xEC,8}
++		SetCall err addtosec(#jump,6,code);If err!=(noerror);Return err;EndIf
++	endif
++	Return (noerror)
++endfunction
++function nr_of_args_64need_count()
++	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
++	if p_b#==(TRUE)
++		sd p;setcall p nr_of_args_64need_p_get();inc p#
++	endif
++endfunction
++#nr_of_args
++function nr_of_args_64need()
++	sd n;setcall n nr_of_args_64need_p_get();return n#
++endfunction
++#p
++function stack_align_off_p_get()
++	data o#1;return #o
++endfunction
++
++
++
++##REX_W
++function rex_w(sd p_err)
++	Data code%ptrcodesec
++	chars r=REX_Operand_64
++	SetCall p_err# addtosec(#r,1,code)
++endfunction
++#er
++function rex_w_if64()
++	sd b;setcall b is_for_64()
++	if b==(FALSE)
++		return (noerror)
++	endif
++	sd err
++	call rex_w(#err)
++	return err
++endfunction
++#b
++function is_big(sd dataarg,sd sufix)
++#called when lowbyte is false
++	sd b;setcall b bigbits(dataarg)
++	if b!=0
++		setcall b pointbit(dataarg)
++		if b==0
++			if sufix==(TRUE)
++				# sd# is not big
++				return (FALSE)
++			endif
++		endif
++		setcall b is_for_64()
++		return b
++	endif
++	return (FALSE)
++endfunction
++#z
++function bigbits(sd data)
++	sd test
++	setcall test stackbit(data)
++	if test==0
++		setcall test datapointbit(data)
++	endif
++	return test
++endfunction
++
++function stack64_op_set()
++	sd b;setcall b is_for_64()
++	if b==(TRUE);call stack64_op_set_get((TRUE),(TRUE));endif
++endfunction
++#(false)get
++function stack64_op_set_get(sd b,sd val)
++	data x#1
++	if b==(TRUE);set x val
++	else;return x
++	endelse
++endfunction
++#err
++function stack64_op()
++	sd b;setcall b stack64_op_set_get((FALSE))
++	if b!=(FALSE)
++		#reset
++		call stack64_op_set_get((TRUE),(FALSE))
++		#at push 64 and call 64, without rex is ok
++		sd p;setcall p val64_p_get()
++		set p# (val64_no)
++	endif
++endfunction
++
++function stack64_add(sd val)
++	sd b;setcall b is_for_64()
++	if b==(TRUE)
++		mult val 2
++	endif
++	return val
++endfunction
++
++#setx
++
++function val64_init()
++	sd p;setcall p val64_p_get();set p# (val64_no)
++endfunction
++function val64_p_get()
++	data x#1;return #x
++endfunction
++
++function convdata(sd type,sd dest)
++	if type==(convdata_total)
++		data nr_of_args#1
++		return nr_of_args
++	elseif type==(convdata_call)
++		#rdi
++		chars hex_1={REX_Operand_64,moveatprocthemem,ediregnumber*toregopcode|espregnumber,0x24,0}
++		#rsi
++		chars hex_2={REX_Operand_64,moveatprocthemem,esiregnumber*toregopcode|disp8mod|espregnumber,0x24,8}
++		#rcx/rdx,rsp+
++		chars hex_3={REX_Operand_64,moveatprocthemem};chars c3#1;chars *=0x24;chars c3o#1
++		#rdx/rcx,rsp+
++		chars hex_4={REX_Operand_64,moveatprocthemem};chars c4#1;chars *=0x24;chars c4o#1
++		#r8,rsp+
++		chars hex_5={REX_R8_15,moveatprocthemem,0x44,0x24};chars c5o#1
++		#r9,rsp+
++		chars hex_6={REX_R8_15,moveatprocthemem,0x4C,0x24};chars c6o#1
++		if nr_of_args==(lin_convention)
++			set dest# #hex_1
++			incst dest;set dest# #hex_2
++			incst dest
++		endif
++		set dest# #hex_3
++		incst dest;set dest# #hex_4
++		incst dest;set dest# #hex_5
++		incst dest;set dest# #hex_6
++		return (void)
++	elseif type==(convdata_fn)
++		const functionxlin_start=!
++		#pop a
++		chars functionxlin_code=0x58
++		#sub esp,conv8
++		chars *={REX_Operand_64,0x83,5*toregopcode|regregmod|espregnumber};chars *=lin_convention*qwsz
++		#push a
++		chars *=0x50
++		chars *={REX_Operand_64,moveatmemtheproc,ediregnumber*toregopcode|disp8mod|espregnumber,0x24,8}
++		chars *={REX_Operand_64,moveatmemtheproc,esiregnumber*toregopcode|disp8mod|espregnumber,0x24,16}
++		const functionx_start=!
++		#mov [rsp++8h],rcx
++		chars functionx_code={REX_Operand_64,moveatmemtheproc};chars f3#1;chars *=0x24;chars f3o#1
++		#mov [rsp++10h],rdx
++		chars *={REX_Operand_64,moveatmemtheproc};chars f4#1;chars *=0x24;chars f4o#1
++		#mov [rsp++18h],r8
++		chars *={REX_R8_15,moveatmemtheproc,0x44,0x24};chars f5o#1
++		#mov [rsp++20h],r9
++		chars *={REX_R8_15,moveatmemtheproc,0x4C,0x24};chars f6o#1
++		if nr_of_args==(ms_convention)
++			set dest# (!-functionx_start)
++			return #functionx_code
++		else
++			set dest# (!-functionxlin_start)
++			return #functionxlin_code
++		endelse
++	endelseif
++	set nr_of_args dest
++	if nr_of_args==(ms_convention)
++		set c3 0x0C;set c3o 0
++		set c4 0x54;set c4o 8
++		set c5o 16;set c6o 24
++		set f3 0x4C;set f3o 8
++		set f4 0x54;set f4o 16
++		set f5o 24;set f6o 32
++	else
++		set c3 0x54;set c3o 16
++		set c4 0x4C;set c4o 24
++		set c5o 32;set c6o 40
++		set f3 0x54;set f3o 24
++		set f4 0x4C;set f4o 32
++		set f5o 40;set f6o 48
++	endelse
++endfunction
++
++function function_call_64fm(sd nr_of_args,sd hex_n,sd conv,sd code)
++	sd err
++	if nr_of_args>0
++		SetCall err addtosec(hex_n#,4,code);If err!=(noerror);Return err;EndIf
++		if nr_of_args>1
++			incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
++			if nr_of_args>2
++				incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
++				if nr_of_args>3
++					incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
++					if conv==(lin_convention)
++						if nr_of_args>4
++							incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
++							if nr_of_args>5
++								incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
++							endif
++						endif
++					endif
++				endif
++			endif
++		endif
++	endif
++	return (noerror)
++endfunction
++function function_call_64f(sd hex_n,sd conv,sd code)
++	sd err
++	sd nr_of_args;setcall nr_of_args nr_of_args_64need()
++	#
++	setcall err function_call_64fm(nr_of_args,hex_n,conv,code);If err!=(noerror);Return err;EndIf
++	#
++	if conv==(ms_convention)
++		if nr_of_args<conv
++			#shadow space
++			#sub esp,x;default 4 args stack space convention
++			chars hex_w={REX_Operand_64,0x83,0xEC};chars argspush#1
++			set argspush nr_of_args;sub argspush conv;mult argspush (-1*qwsz)
++			SetCall err addtosec(#hex_w,4,code);If err!=(noerror);Return err;EndIf
++		endif
++	elseif nr_of_args>0
++		#lin_convention
++		#add esp,x
++		chars hex_x={REX_Operand_64,0x83,regregmod|espregnumber};chars adjuster#1
++		if nr_of_args>conv;set adjuster conv;else;set adjuster nr_of_args;endelse
++		mult adjuster (qwsz)
++		SetCall err addtosec(#hex_x,4,code);If err!=(noerror);Return err;EndIf
++	endelseif
++	#
++	#stack align,more to see when the offset was taken
++	sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
++	ss code_pointer;call getcont(code,#code_pointer)
++	add code_pointer stack_align_p#
++	sd against_one;if nr_of_args>conv;set against_one nr_of_args;else;set against_one conv;endelse;and against_one 1
++	#Jump short if not carry
++	if against_one==0;set code_pointer# (0x73)
++	#Jump short if carry
++	else;set code_pointer# (0x72);endelse
++	return (noerror)
++endfunction
++function function_call_64(sd is_callex)
++	sd conv;setcall conv convdata((convdata_total))
++	sd err
++	Data code%ptrcodesec
++	sd hex_1;sd hex_2;sd hex_3;sd hex_4;sd hex_5;sd hex_6
++	call convdata((convdata_call),#hex_1)
++	#
++	if is_callex==(FALSE)
++		setcall err function_call_64f(#hex_1,conv,code)
++		Return err
++	endif
++	##
++	#mov edx,eax
++	chars find_args={REX_Operand_64,0x8b,edxregnumber|regregmod}
++	SetCall err addtosec(#find_args,3,code);If err!=(noerror);Return err;EndIf
++	#
++	#convention and shadow space
++	#cmp rax,imm32
++	chars cmp_je={REX_Operand_64,0x3d};data cmp_imm32#1
++	set cmp_imm32 conv;dec cmp_imm32
++	#jump if above
++	chars *callex_jump=0x77;chars j_off#1
++	#
++	#convention gdb view,and gui view
++	#push a
++	chars callex_conv=0x50
++	#neg al
++	chars *={0xf6,3*toregopcode|regregmod}
++	#add al conv
++	chars *=0x04;chars conv_neg#1
++	#mov cl 5
++	chars *={0xb1,5}
++	#mult al cl
++	chars *={0xf6,4*toregopcode|ecxregnumber|regregmod}
++	#call
++	chars *={0xe8,0,0,0,0}
++	#pop c
++	chars *=0x59
++	#add rax rcx    can be --image-base=int64 but more than 0xff000000 x64 dbg says invalid but there is int64 rip in parent x64 debug
++	chars *={REX_Operand_64,0x01,ecxregnumber|regregmod}
++	#pop a
++	chars *=0x58
++	#add rcx,imm8
++	chars *={REX_Operand_64,0x83,ecxregnumber|regregmod,11}
++	#j cl
++	chars *={0xff,4*toregopcode|ecxregnumber|regregmod}
++	#
++	set conv_neg conv
++	set j_off 25
++	SetCall err addtosec(#cmp_je,8,code);If err!=(noerror);Return err;EndIf
++	SetCall err addtosec(#callex_conv,25,code);If err!=(noerror);Return err;EndIf
++	if conv==(lin_convention)
++		SetCall err addtosec(hex_6,5,code);If err!=(noerror);Return err;EndIf
++		SetCall err addtosec(hex_5,5,code);If err!=(noerror);Return err;EndIf
++	endif
++	SetCall err addtosec(hex_4,5,code);If err!=(noerror);Return err;EndIf
++	SetCall err addtosec(hex_3,5,code);If err!=(noerror);Return err;EndIf
++	SetCall err addtosec(hex_2,5,code);If err!=(noerror);Return err;EndIf
++	ss rspwithoffset;set rspwithoffset hex_1;add rspwithoffset 2;or rspwithoffset# (disp8mod)
++	SetCall err addtosec(hex_1,5,code);If err!=(noerror);Return err;EndIf
++	xor rspwithoffset# (disp8mod)
++	#
++	#shadow space
++	if conv==(ms_convention)
++		#neg al
++		chars callex_shadow={0xf6,3*toregopcode|regregmod}
++		#add al conv-1
++		chars *=0x04;chars shadow_neg#1
++		#push qwordsz
++		chars *={0x6a,qwsz}
++		#mul al [esp]
++		chars *={0xf6,4*toregopcode|espregnumber,espregnumber*toregopcode|espregnumber}
++		#sub rsp,rax
++		chars *={REX_Operand_64,0x2b,espregnumber*toregopcode|regregmod}
++		#
++		set shadow_neg conv;dec shadow_neg
++		set j_off 12
++		SetCall err addtosec(#cmp_je,8,code);If err!=(noerror);Return err;EndIf
++		SetCall err addtosec(#callex_shadow,12,code)
++	else
++		#lin_convention
++		#cmp rax,imm32
++		chars callex_unshadow={REX_Operand_64,0x3d};data *cmp_imm32=lin_convention
++		#jump if below or equal
++		chars *callex_jump=0x76;chars *j_off=10
++		chars *rax_conv={REX_Operand_64,0xb8};data *={lin_convention,0}
++		#push qwordsz
++		chars *={0x6a,qwsz}
++		#inc eax
++		chars *={0xfe,regregmod}
++		#mul al [esp]
++		chars *={0xf6,4*toregopcode|espregnumber,espregnumber*toregopcode|espregnumber}
++		#add rsp,rax
++		chars *={REX_Operand_64,0x03,espregnumber*toregopcode|regregmod}
++		#
++		SetCall err addtosec(#callex_unshadow,28,code)
++	endelse
++	return err
++endfunction
++#err
++function function_start_64()
++	Data code%ptrcodesec
++	sd data;sd sz
++	setcall data convdata((convdata_fn),#sz)
++	sd err
++	SetCall err addtosec(data,sz,code)
++	return err
++endfunction
++#err
++function callex64_call()
++	sd conv;setcall conv convdata((convdata_total))
++	#Stack aligned on 16 bytes.
++	const callex64_start=!
++	#bt rsp,3 (bit offset 3)
++	chars callex64_code={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
++	#jc @ (jump when rsp=....8)
++	chars *=0x72;chars *=7+2+4+2+2
++	#7cmp ecx,5
++	chars *={REX_Operand_64,0x81,0xf9};data jcase1#1
++	set jcase1 conv;inc jcase1
++	#2jb $
++	chars *=0x72;chars *=4+2+2+7+2+4+2+4
++	#4bt ecx,0
++	chars *={0x0F,0xBA,bt_reg_imm8|ecxregnumber,0}
++	#2jc %
++	chars *=0x72;chars *=2+7+2+4+2
++	#2jmp $
++	chars *=0xEB;chars *=7+2+4+2+4
++	#7@ cmp ecx,5
++	chars *={REX_Operand_64,0x81,0xf9};data jcase2#1
++	set jcase2 conv;inc jcase2
++	#2jb %
++	chars *=0x72;chars *=4+2
++	#4bt ecx,0
++	chars *={0x0F,0xBA,bt_reg_imm8|ecxregnumber,0}
++	#2jc $
++	chars *=0x72;chars *=4
++	#%
++	#4 sub rsp,8
++	chars *={REX_Operand_64,0x83,0xEC};chars *=8
++	#$
++	chars *keep_nr_args={REX_Operand_64,0x8b,edxregnumber*toregopcode|ecxregnumber|regregmod}
++	sd ptrcodesec%ptrcodesec
++	sd err
++	SetCall err addtosec(#callex64_code,(!-callex64_start),ptrcodesec)
++	return err
++endfunction
+--- /dev/null
++++ ocompiler-1/src/files/functions/64/reloc.s
+@@ -0,0 +1,46 @@
++
++
++function reloc64_init()
++	sd a%p_pref_reloc_64
++	sd b%p_elf64_r_info_type
++	if a#==(TRUE)
++		set b# (R_X86_64_64)
++	endif
++	#blank is at inits
++endfunction
++
++function reloc64_offset(sd offset)
++	sd a%p_elf64_r_info_type
++	if a#==(R_X86_64_64)
++		add offset 1
++	endif
++	return offset
++endfunction
++#er
++function reloc64_ante()
++	sd a%p_elf64_r_info_type
++	if a#==(R_X86_64_64)
++		sd err
++		call rex_w(#err)
++		return err
++	endif
++	return (noerror)
++endfunction
++#er
++function reloc64_post_base(sd struct)
++	sd a%p_elf64_r_info_type
++	if a#==(R_X86_64_64)
++		sd err
++		sd null=0
++		SetCall err addtosec(#null,(dwsz),struct)
++		return err
++	endif
++	return (noerror)
++endfunction
++#er
++function reloc64_post()
++	sd ptrcodesec%ptrcodesec
++	sd err
++	setcall err reloc64_post_base(ptrcodesec)
++	return err
++endfunction
+--- ocompiler-1.orig/src/files/functions/64bit.s
++++ /dev/null
+@@ -1,444 +0,0 @@
+-
+-
+-#p_bits
+-function p_is_for_64()
+-	data bool#1
+-	return #bool
+-endfunction
+-#bool
+-function is_for_64()
+-	sd p;setcall p p_is_for_64();return p#
+-endfunction
+-#p_bits
+-function p_neg_is_for_64()
+-	data bool#1
+-	return #bool
+-endfunction
+-
+-function scope64_p()
+-	data bool#1;return #bool
+-endfunction
+-function scope64_get()
+-	sd p;setcall p scope64_p();return p#
+-endfunction
+-function scope64_set(sd b)
+-	sd p;setcall p scope64_p();set p# b
+-endfunction
+-
+-#get
+-function is_for_64_is_impX_or_fnX_p_get();data b#1;return #b;endfunction
+-#get
+-function is_for_64_is_impX_or_fnX_get();sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get();return p_b#;endfunction
+-function is_for_64_is_impX_or_fnX_set(sd ptrdata)
+-	sd p_b
+-	setcall p_b is_for_64_is_impX_or_fnX_p_get()
+-	sd b
+-	setcall b is_for_64()
+-	#importX and functionX used to have a test with is_for_64 outside of this, but at log need to know the type
+-	if b==(TRUE)
+-		add ptrdata (maskoffset)
+-		sd val;set val ptrdata#;and val (x86_64bit)
+-		if val==(x86_64bit);set p_b# (TRUE);return (void);endif
+-	endif
+-	set p_b# (FALSE)
+-endfunction
+-
+-#get
+-function nr_of_args_64need_p_get();data n#1;return #n;endfunction
+-#er
+-function nr_of_args_64need_set()
+-	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
+-	if p_b#==(TRUE)
+-		sd p;setcall p nr_of_args_64need_p_get();set p# 0
+-		#Stack aligned on 16 bytes. Later set, depending on the number of arguments, jumpCarry or jumpNotCarry
+-		sd err
+-		data code%ptrcodesec
+-		#bt rsp,3 (offset 3)
+-		chars hex_x={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
+-		SetCall err addtosec(#hex_x,5,code);If err!=(noerror);Return err;EndIf
+-		#
+-		sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
+-		call getcontReg(code,stack_align_p)
+-		#j(c|nc);sub rsp,8
+-		chars jump#1;chars *=4;chars *={REX_Operand_64,0x83,0xEC,8}
+-		SetCall err addtosec(#jump,6,code);If err!=(noerror);Return err;EndIf
+-	endif
+-	Return (noerror)
+-endfunction
+-function nr_of_args_64need_count()
+-	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
+-	if p_b#==(TRUE)
+-		sd p;setcall p nr_of_args_64need_p_get();inc p#
+-	endif
+-endfunction
+-#nr_of_args
+-function nr_of_args_64need()
+-	sd n;setcall n nr_of_args_64need_p_get();return n#
+-endfunction
+-#p
+-function stack_align_off_p_get()
+-	data o#1;return #o
+-endfunction
+-
+-
+-
+-##REX_W
+-function rex_w(sd p_err)
+-	Data code%ptrcodesec
+-	chars r=REX_Operand_64
+-	SetCall p_err# addtosec(#r,1,code)
+-endfunction
+-#er
+-function rex_w_if64()
+-	sd b;setcall b is_for_64()
+-	if b==(FALSE)
+-		return (noerror)
+-	endif
+-	sd err
+-	call rex_w(#err)
+-	return err
+-endfunction
+-#b
+-function is_big(sd dataarg,sd sufix)
+-#called when lowbyte is false
+-	sd b;setcall b bigbits(dataarg)
+-	if b!=0
+-		setcall b pointbit(dataarg)
+-		if b==0
+-			if sufix==(TRUE)
+-				# sd# is not big
+-				return (FALSE)
+-			endif
+-		endif
+-		setcall b is_for_64()
+-		return b
+-	endif
+-	return (FALSE)
+-endfunction
+-#z
+-function bigbits(sd data)
+-	sd test
+-	setcall test stackbit(data)
+-	if test==0
+-		setcall test datapointbit(data)
+-	endif
+-	return test
+-endfunction
+-
+-function stack64_op_set()
+-	sd b;setcall b is_for_64()
+-	if b==(TRUE);call stack64_op_set_get((TRUE),(TRUE));endif
+-endfunction
+-#(false)get
+-function stack64_op_set_get(sd b,sd val)
+-	data x#1
+-	if b==(TRUE);set x val
+-	else;return x
+-	endelse
+-endfunction
+-#err
+-function stack64_op()
+-	sd b;setcall b stack64_op_set_get((FALSE))
+-	if b!=(FALSE)
+-		#reset
+-		call stack64_op_set_get((TRUE),(FALSE))
+-		#at push 64 and call 64, without rex is ok
+-		sd p;setcall p val64_p_get()
+-		set p# (val64_no)
+-	endif
+-endfunction
+-
+-function stack64_add(sd val)
+-	sd b;setcall b is_for_64()
+-	if b==(TRUE)
+-		mult val 2
+-	endif
+-	return val
+-endfunction
+-
+-#setx
+-
+-function val64_init()
+-	sd p;setcall p val64_p_get();set p# (val64_no)
+-endfunction
+-function val64_p_get()
+-	data x#1;return #x
+-endfunction
+-
+-function convdata(sd type,sd dest)
+-	if type==(convdata_total)
+-		data nr_of_args#1
+-		return nr_of_args
+-	elseif type==(convdata_call)
+-		#rdi
+-		chars hex_1={REX_Operand_64,moveatprocthemem,ediregnumber*toregopcode|espregnumber,0x24,0}
+-		#rsi
+-		chars hex_2={REX_Operand_64,moveatprocthemem,esiregnumber*toregopcode|disp8mod|espregnumber,0x24,8}
+-		#rcx/rdx,rsp+
+-		chars hex_3={REX_Operand_64,moveatprocthemem};chars c3#1;chars *=0x24;chars c3o#1
+-		#rdx/rcx,rsp+
+-		chars hex_4={REX_Operand_64,moveatprocthemem};chars c4#1;chars *=0x24;chars c4o#1
+-		#r8,rsp+
+-		chars hex_5={REX_R8_15,moveatprocthemem,0x44,0x24};chars c5o#1
+-		#r9,rsp+
+-		chars hex_6={REX_R8_15,moveatprocthemem,0x4C,0x24};chars c6o#1
+-		if nr_of_args==(lin_convention)
+-			set dest# #hex_1
+-			incst dest;set dest# #hex_2
+-			incst dest
+-		endif
+-		set dest# #hex_3
+-		incst dest;set dest# #hex_4
+-		incst dest;set dest# #hex_5
+-		incst dest;set dest# #hex_6
+-		return (void)
+-	elseif type==(convdata_fn)
+-		const functionxlin_start=!
+-		#pop a
+-		chars functionxlin_code=0x58
+-		#sub esp,conv8
+-		chars *={REX_Operand_64,0x83,5*toregopcode|regregmod|espregnumber};chars *=lin_convention*qwsz
+-		#push a
+-		chars *=0x50
+-		chars *={REX_Operand_64,moveatmemtheproc,ediregnumber*toregopcode|disp8mod|espregnumber,0x24,8}
+-		chars *={REX_Operand_64,moveatmemtheproc,esiregnumber*toregopcode|disp8mod|espregnumber,0x24,16}
+-		const functionx_start=!
+-		#mov [rsp++8h],rcx
+-		chars functionx_code={REX_Operand_64,moveatmemtheproc};chars f3#1;chars *=0x24;chars f3o#1
+-		#mov [rsp++10h],rdx
+-		chars *={REX_Operand_64,moveatmemtheproc};chars f4#1;chars *=0x24;chars f4o#1
+-		#mov [rsp++18h],r8
+-		chars *={REX_R8_15,moveatmemtheproc,0x44,0x24};chars f5o#1
+-		#mov [rsp++20h],r9
+-		chars *={REX_R8_15,moveatmemtheproc,0x4C,0x24};chars f6o#1
+-		if nr_of_args==(ms_convention)
+-			set dest# (!-functionx_start)
+-			return #functionx_code
+-		else
+-			set dest# (!-functionxlin_start)
+-			return #functionxlin_code
+-		endelse
+-	endelseif
+-	set nr_of_args dest
+-	if nr_of_args==(ms_convention)
+-		set c3 0x0C;set c3o 0
+-		set c4 0x54;set c4o 8
+-		set c5o 16;set c6o 24
+-		set f3 0x4C;set f3o 8
+-		set f4 0x54;set f4o 16
+-		set f5o 24;set f6o 32
+-	else
+-		set c3 0x54;set c3o 16
+-		set c4 0x4C;set c4o 24
+-		set c5o 32;set c6o 40
+-		set f3 0x54;set f3o 24
+-		set f4 0x4C;set f4o 32
+-		set f5o 40;set f6o 48
+-	endelse
+-endfunction
+-
+-function function_call_64fm(sd nr_of_args,sd hex_n,sd conv,sd code)
+-	sd err
+-	if nr_of_args>0
+-		SetCall err addtosec(hex_n#,4,code);If err!=(noerror);Return err;EndIf
+-		if nr_of_args>1
+-			incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
+-			if nr_of_args>2
+-				incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
+-				if nr_of_args>3
+-					incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
+-					if conv==(lin_convention)
+-						if nr_of_args>4
+-							incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
+-							if nr_of_args>5
+-								incst hex_n;SetCall err addtosec(hex_n#,5,code);If err!=(noerror);Return err;EndIf
+-							endif
+-						endif
+-					endif
+-				endif
+-			endif
+-		endif
+-	endif
+-	return (noerror)
+-endfunction
+-function function_call_64f(sd hex_n,sd conv,sd code)
+-	sd err
+-	sd nr_of_args;setcall nr_of_args nr_of_args_64need()
+-	#
+-	setcall err function_call_64fm(nr_of_args,hex_n,conv,code);If err!=(noerror);Return err;EndIf
+-	#
+-	if conv==(ms_convention)
+-		if nr_of_args<conv
+-			#shadow space
+-			#sub esp,x;default 4 args stack space convention
+-			chars hex_w={REX_Operand_64,0x83,0xEC};chars argspush#1
+-			set argspush nr_of_args;sub argspush conv;mult argspush (-1*qwsz)
+-			SetCall err addtosec(#hex_w,4,code);If err!=(noerror);Return err;EndIf
+-		endif
+-	elseif nr_of_args>0
+-		#lin_convention
+-		#add esp,x
+-		chars hex_x={REX_Operand_64,0x83,regregmod|espregnumber};chars adjuster#1
+-		if nr_of_args>conv;set adjuster conv;else;set adjuster nr_of_args;endelse
+-		mult adjuster (qwsz)
+-		SetCall err addtosec(#hex_x,4,code);If err!=(noerror);Return err;EndIf
+-	endelseif
+-	#
+-	#stack align,more to see when the offset was taken
+-	sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
+-	ss code_pointer;call getcont(code,#code_pointer)
+-	add code_pointer stack_align_p#
+-	sd against_one;if nr_of_args>conv;set against_one nr_of_args;else;set against_one conv;endelse;and against_one 1
+-	#Jump short if not carry
+-	if against_one==0;set code_pointer# (0x73)
+-	#Jump short if carry
+-	else;set code_pointer# (0x72);endelse
+-	return (noerror)
+-endfunction
+-function function_call_64(sd is_callex)
+-	sd conv;setcall conv convdata((convdata_total))
+-	sd err
+-	Data code%ptrcodesec
+-	sd hex_1;sd hex_2;sd hex_3;sd hex_4;sd hex_5;sd hex_6
+-	call convdata((convdata_call),#hex_1)
+-	#
+-	if is_callex==(FALSE)
+-		setcall err function_call_64f(#hex_1,conv,code)
+-		Return err
+-	endif
+-	##
+-	#mov edx,eax
+-	chars find_args={REX_Operand_64,0x8b,edxregnumber|regregmod}
+-	SetCall err addtosec(#find_args,3,code);If err!=(noerror);Return err;EndIf
+-	#
+-	#convention and shadow space
+-	#cmp rax,imm32
+-	chars cmp_je={REX_Operand_64,0x3d};data cmp_imm32#1
+-	set cmp_imm32 conv;dec cmp_imm32
+-	#jump if above
+-	chars *callex_jump=0x77;chars j_off#1
+-	#
+-	#convention gdb view,and gui view
+-	#push a
+-	chars callex_conv=0x50
+-	#neg al
+-	chars *={0xf6,3*toregopcode|regregmod}
+-	#add al conv
+-	chars *=0x04;chars conv_neg#1
+-	#mov cl 5
+-	chars *={0xb1,5}
+-	#mult al cl
+-	chars *={0xf6,4*toregopcode|ecxregnumber|regregmod}
+-	#call
+-	chars *={0xe8,0,0,0,0}
+-	#pop c
+-	chars *=0x59
+-	#add rax rcx    can be --image-base=int64 but more than 0xff000000 x64 dbg says invalid but there is int64 rip in parent x64 debug
+-	chars *={REX_Operand_64,0x01,ecxregnumber|regregmod}
+-	#pop a
+-	chars *=0x58
+-	#add rcx,imm8
+-	chars *={REX_Operand_64,0x83,ecxregnumber|regregmod,11}
+-	#j cl
+-	chars *={0xff,4*toregopcode|ecxregnumber|regregmod}
+-	#
+-	set conv_neg conv
+-	set j_off 25
+-	SetCall err addtosec(#cmp_je,8,code);If err!=(noerror);Return err;EndIf
+-	SetCall err addtosec(#callex_conv,25,code);If err!=(noerror);Return err;EndIf
+-	if conv==(lin_convention)
+-		SetCall err addtosec(hex_6,5,code);If err!=(noerror);Return err;EndIf
+-		SetCall err addtosec(hex_5,5,code);If err!=(noerror);Return err;EndIf
+-	endif
+-	SetCall err addtosec(hex_4,5,code);If err!=(noerror);Return err;EndIf
+-	SetCall err addtosec(hex_3,5,code);If err!=(noerror);Return err;EndIf
+-	SetCall err addtosec(hex_2,5,code);If err!=(noerror);Return err;EndIf
+-	ss rspwithoffset;set rspwithoffset hex_1;add rspwithoffset 2;or rspwithoffset# (disp8mod)
+-	SetCall err addtosec(hex_1,5,code);If err!=(noerror);Return err;EndIf
+-	xor rspwithoffset# (disp8mod)
+-	#
+-	#shadow space
+-	if conv==(ms_convention)
+-		#neg al
+-		chars callex_shadow={0xf6,3*toregopcode|regregmod}
+-		#add al conv-1
+-		chars *=0x04;chars shadow_neg#1
+-		#push qwordsz
+-		chars *={0x6a,qwsz}
+-		#mul al [esp]
+-		chars *={0xf6,4*toregopcode|espregnumber,espregnumber*toregopcode|espregnumber}
+-		#sub rsp,rax
+-		chars *={REX_Operand_64,0x2b,espregnumber*toregopcode|regregmod}
+-		#
+-		set shadow_neg conv;dec shadow_neg
+-		set j_off 12
+-		SetCall err addtosec(#cmp_je,8,code);If err!=(noerror);Return err;EndIf
+-		SetCall err addtosec(#callex_shadow,12,code)
+-	else
+-		#lin_convention
+-		#cmp rax,imm32
+-		chars callex_unshadow={REX_Operand_64,0x3d};data *cmp_imm32=lin_convention
+-		#jump if below or equal
+-		chars *callex_jump=0x76;chars *j_off=10
+-		chars *rax_conv={REX_Operand_64,0xb8};data *={lin_convention,0}
+-		#push qwordsz
+-		chars *={0x6a,qwsz}
+-		#inc eax
+-		chars *={0xfe,regregmod}
+-		#mul al [esp]
+-		chars *={0xf6,4*toregopcode|espregnumber,espregnumber*toregopcode|espregnumber}
+-		#add rsp,rax
+-		chars *={REX_Operand_64,0x03,espregnumber*toregopcode|regregmod}
+-		#
+-		SetCall err addtosec(#callex_unshadow,28,code)
+-	endelse
+-	return err
+-endfunction
+-#err
+-function function_start_64()
+-	Data code%ptrcodesec
+-	sd data;sd sz
+-	setcall data convdata((convdata_fn),#sz)
+-	sd err
+-	SetCall err addtosec(data,sz,code)
+-	return err
+-endfunction
+-#err
+-function callex64_call()
+-	sd conv;setcall conv convdata((convdata_total))
+-	#Stack aligned on 16 bytes.
+-	const callex64_start=!
+-	#bt rsp,3 (bit offset 3)
+-	chars callex64_code={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
+-	#jc @ (jump when rsp=....8)
+-	chars *=0x72;chars *=7+2+4+2+2
+-	#7cmp ecx,5
+-	chars *={REX_Operand_64,0x81,0xf9};data jcase1#1
+-	set jcase1 conv;inc jcase1
+-	#2jb $
+-	chars *=0x72;chars *=4+2+2+7+2+4+2+4
+-	#4bt ecx,0
+-	chars *={0x0F,0xBA,bt_reg_imm8|ecxregnumber,0}
+-	#2jc %
+-	chars *=0x72;chars *=2+7+2+4+2
+-	#2jmp $
+-	chars *=0xEB;chars *=7+2+4+2+4
+-	#7@ cmp ecx,5
+-	chars *={REX_Operand_64,0x81,0xf9};data jcase2#1
+-	set jcase2 conv;inc jcase2
+-	#2jb %
+-	chars *=0x72;chars *=4+2
+-	#4bt ecx,0
+-	chars *={0x0F,0xBA,bt_reg_imm8|ecxregnumber,0}
+-	#2jc $
+-	chars *=0x72;chars *=4
+-	#%
+-	#4 sub rsp,8
+-	chars *={REX_Operand_64,0x83,0xEC};chars *=8
+-	#$
+-	chars *keep_nr_args={REX_Operand_64,0x8b,edxregnumber*toregopcode|ecxregnumber|regregmod}
+-	sd ptrcodesec%ptrcodesec
+-	sd err
+-	SetCall err addtosec(#callex64_code,(!-callex64_start),ptrcodesec)
+-	return err
+-endfunction
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -40,7 +40,7 @@ function get_img_vdata_dataReg()
+ endfunction
+ 
+ #err
+-Function addvarreference(data ptrcontent,data ptrsize,data valsize,data typenumber,data stackoffset)
++Function addvarreference(data ptrcontent,data ptrsize,data valsize,data typenumber,data stackoffset,sd mask)
+ 	#duplications
+ 	Data content#1
+ 	Set content ptrcontent#
+@@ -50,8 +50,6 @@ Function addvarreference(data ptrcontent
+ 	Data errnr#1
+ 	Data noerr=noerror
+ 	data false=0
+-	data mask#1
+-	set mask zero
+ 
+ 	If typenumber!=constantsnr
+ 		SetCall errnr entryvarsfns(content,valsize)
+@@ -102,7 +100,7 @@ Function addvarreference(data ptrcontent
+ EndFunction
+ 
+ #err
+-function addvarreferenceorunref(data ptrcontent,data ptrsize,data valsize,data typenumber,data stackoffset)
++function addvarreferenceorunref(data ptrcontent,data ptrsize,data valsize,data typenumber,data stackoffset,sd mask)
+ 	data err#1
+ 	data noerr=noerror
+ 
+@@ -120,7 +118,7 @@ function addvarreferenceorunref(data ptr
+ 	Chars unrefsign="*"
+ 
+ 	If unrefoption!=unrefsign
+-		SetCall err addvarreference(ptrcontent,ptrsize,valsize,typenumber,stackoffset)
++		SetCall err addvarreference(ptrcontent,ptrsize,valsize,typenumber,stackoffset,mask)
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
+@@ -211,7 +209,7 @@ const nosign=0
+ endfunction
+ 
+ #err
+-Function dataparse(data ptrcontent,data ptrsize,data typenumber,str assigntype,data relocbool,data stack)
++Function dataparse(data ptrcontent,data ptrsize,data typenumber,str assigntype,data relocbool,data stack,sd mask)
+ 	Str content#1
+ 	Data size#1
+ 	Data noerr=noerror
+@@ -233,7 +231,7 @@ Function dataparse(data ptrcontent,data
+ 		data totalmemvariables=totalmemvariables
+ 		add typenumber totalmemvariables
+ 	endif
+-	SetCall err addvarreferenceorunref(ptrcontent,ptrsize,valsize,typenumber,false)
++	SetCall err addvarreferenceorunref(ptrcontent,ptrsize,valsize,typenumber,false,mask)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -1,6 +1,6 @@
+ 
+ #e
+-function writevar(data ptrvalue,data unitsize,data relindex,data stack,data rightstackpointer)
++function writevar(data ptrvalue,data unitsize,data relindex,data stack,data rightstackpointer,sd long_mask)
+ 	data err#1
+ 	data noerr=noerror
+ 	Data ptrrelocbool%ptrrelocbool
+@@ -26,22 +26,26 @@ function writevar(data ptrvalue,data uni
+ 				#data a^dataB
+ 					call inplace_reloc(#inplacevalue)
+ 				endif
+-				SetCall err addtosec(#inplacevalue,(dwsz),ptrdatasec)
++				SetCall err addtosec(#inplacevalue,(dwsz),ptrdatasec);If err!=(noerror);Return err;EndIf
++				setcall err reloc64_post_base(ptrdatasec)
+ 				return err
+ 			endif
+ 		endif
+-		SetCall err addtosec(ptrvalue,unitsize,ptrdatasec)
+-		return err
++		SetCall err addtosec(ptrvalue,unitsize,ptrdatasec);If err!=noerr;Return err;EndIf
++		if long_mask!=0
++			data null=0
++			SetCall err addtosec(#null,(dwsz),ptrdatasec)
++			return err
++		endif
++		return (noerror)
+ 	endif
+ 
+ 	sd for_64;setcall for_64 is_for_64()
+ 	if ptrobject#==1
+ 		If ptrrelocbool#==true
+ 			#code
+-			sd stackoff=rampadd_value_off
+-			if for_64==(TRUE)
+-				inc stackoff
+-			endif
++			sd stackoff
++			setcall stackoff reloc64_offset((rampadd_value_off))
+ 			data ptrextra%ptrextra
+ 			setcall err adddirectrel_base(ptrextra,stackoff,relindex,ptrvalue#)
+ 			If err!=noerr
+@@ -49,13 +53,17 @@ function writevar(data ptrvalue,data uni
+ 			EndIf
+ 		EndIf
+ 	endif
+-	setcall err addtocodeforstack(ptrvalue#,rightstackpointer,for_64)
++	if rightstackpointer!=(NULL)
++		setcall err addtocodeforstack(rightstackpointer,for_64)
++	else
++		setcall err addtocodefordata(ptrvalue#,for_64)
++	endelse
+ 	return err
+ endfunction
+ 
+ const fndecandgroup=1
+ #er
+-Function enumcommas(data ptrcontent,data ptrsize,data sz,data fndecandgroupOrpush,data typenumber,data stack,sd hex)
++Function enumcommas(data ptrcontent,data ptrsize,data sz,data fndecandgroupOrpush,data typenumber,data stack,sd hex,sd long_mask)
+ 	Data zero=0
+ 	Data argsize#1
+ 	Chars comma=","
+@@ -126,7 +134,7 @@ Function enumcommas(data ptrcontent,data
+ 				EndIf
+ 				if hex==(not_hexenum)
+ 					data dataind=dataind
+-					setcall err writevar(ptrvalue,unitsize,dataind,stack,zero)
++					setcall err writevar(ptrvalue,unitsize,dataind,stack,zero,long_mask)
+ 					If err!=noerr
+ 						Return err
+ 					EndIf
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -1,6 +1,6 @@
+ 
+ #err
+-Function unresolvedcallsfn(data struct,data inneroffset,data valuedata,data atend)
++Function unresolvedcallsfn(data struct,data inneroffset,data atend,data valuedata)
+ 	data structure#1
+ 	Data offset#1
+ 	data addatend#1
+@@ -14,10 +14,8 @@ Function unresolvedcallsfn(data struct,d
+ 	Data ptrobject%ptrobject
+ 
+ 	If ptrobject#==true
+-		#Chars elf_rel_info_type={R_386_PC32}
+-		Chars elf_rel_info_type={R_386_32}
+ 		Data ptrextra%ptrextra
+-		SetCall err addrel_base(offset,elf_rel_info_type,valuedata,atend,ptrextra)
++		SetCall err addrel_base(offset,valuedata,atend,ptrextra)
+ 	Else
+ 		#add to resolve at end
+ 		Data unressz=3*dwsz
+@@ -188,7 +186,7 @@ Function parsefunction(data ptrcontent,d
+ 
+ 	If sz!=zero
+ 		#declare is bool
+-		SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,fnnr,(not_used),(not_used))
++		SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,fnnr) #there are 3 more arguments but are not used
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
+@@ -213,7 +211,6 @@ endfunction
+ 
+ #err
+ function prepare_function_call(sd pcontent,sd psize,sd sz,sd p_data,sd p_bool_indirect)
+-	set p_bool_indirect# (FALSE)
+ 	Data fns%ptrfunctions
+ 
+ 	SetCall p_data# vars(pcontent#,sz,fns)
+@@ -234,6 +231,7 @@ function prepare_function_call(sd pconte
+ 	Else
+ 		#at functions
+ 		call is_for_64_is_impX_or_fnX_set(p_data#)
++		set p_bool_indirect# (FALSE)
+ 	EndElse
+ 	Call advancecursors(pcontent,psize,sz)
+ 
+@@ -272,8 +270,8 @@ function write_function_call(sd ptrdata,
+ 	Set fnmask ptrfnmask#
+ 	And fnmask idatafn
+ 
+-	If fnmask==idatafn
+-		If ptrobject#==(FALSE)
++	If ptrobject#==(FALSE)
++		If fnmask==idatafn
+ 			Set boolindirect (TRUE)
+ 		EndIf
+ 	EndIf
+@@ -281,7 +279,6 @@ function write_function_call(sd ptrdata,
+ 	If boolindirect==(FALSE)
+ 		Chars directcall#1
+ 		Data directcalloff#1
+-		chars *={0xff,0xd0}
+ 
+ 		Data ptrdirectcall^directcall
+ 		const directcallsize=1+dwsz
+@@ -292,20 +289,24 @@ function write_function_call(sd ptrdata,
+ 			setcall err unresolvedLocal(1,code,ptrdata,ptrdirectcalloff)
+ 			If err!=(noerror);Return err;EndIf
+ 			SetCall err addtosec(ptrdirectcall,(directcallsize),code)
+-			If err!=(noerror);Return err;EndIf
+ 		Else
+ 			#was: reloc when linking;0-dwsz(appears to be dwsz from Data directcallsize=1+dwsz), no truncation, so direct better
+ 			set directcall 0xb8
+ 			Set directcalloff 0
+-			SetCall err unresolvedcallsfn(code,1,ptrdata#,directcalloff)
+-			If err!=(noerror);Return err;EndIf
+-			SetCall err addtosec(ptrdirectcall,(directcallsize+2),code)
+-			If err!=(noerror);Return err;EndIf
++			sd relocoff
++			setcall relocoff reloc64_offset(1)
++			SetCall err unresolvedcallsfn(code,relocoff,directcalloff,ptrdata#);If err!=(noerror);Return err;EndIf
++			setcall err reloc64_ante();If err!=(noerror);Return err;EndIf
++			SetCall err addtosec(ptrdirectcall,(directcallsize),code);If err!=(noerror);Return err;EndIf
++			setcall err reloc64_post();If err!=(noerror);Return err;EndIf
++			chars callcode={0xff,0xd0}
++			setcall err addtosec(#callcode,2,code)
+ 		EndElse
+ 	Else
++		#this at object is call data() but the reloc is outside of this function
+ 		if fnmask==idatafn
+ 			data ptrvirtualimportsoffset%ptrvirtualimportsoffset
+-			SetCall err unresolvedcallsfn(code,1,ptrdata#,ptrvirtualimportsoffset)
++			SetCall err unresolvedcallsfn(code,1,ptrvirtualimportsoffset) #,ptrdata#
+ 			If err!=(noerror);Return err;EndIf
+ 		endif
+ 		Chars callaction={0xff}
+@@ -314,10 +315,10 @@ function write_function_call(sd ptrdata,
+ 		Data eaxregnumber=eaxregnumber
+ 		call stack64_op_set()
+ 		SetCall err writeoperation(ptrdata,callaction,noreg,(FALSE),callactionopcode,eaxregnumber)#last missing param is at sufix and at declare is not
+-		If err!=(noerror)
+-			Return err
+-		EndIf
+ 	EndElse
++	If err!=(noerror)
++		Return err
++	EndIf
+ 
+ 	sd global_err_pB;setcall global_err_pB global_err_pBool()
+ 	if global_err_pB#!=(FALSE)
+@@ -337,14 +338,17 @@ function write_function_call(sd ptrdata,
+ 			SetCall err addtosec(#g_err_mov,(global_err_ex_sz),code)
+ 		Else
+ 			#mov to ecx is reseting the high part of the rcx
+-			const global_err_obj_start=!
+ 			chars g_err=0xb9
+ 			data *rel=0
+-			chars *g_cmp={0x80,7*toregopcode|ecxregnumber,0}
+-			const global_err_obj_sz=!-global_err_obj_start
+ 			#
+-			setcall err adddirectrel_base(ptrextra,(bsz),global_err_ptr#,0);If err!=(noerror);Return err;EndIf
+-			SetCall err addtosec(#g_err,(global_err_obj_sz),code)
++			sd af_relof
++			setcall af_relof reloc64_offset((bsz))
++			setcall err adddirectrel_base(ptrextra,af_relof,global_err_ptr#,0);If err!=(noerror);Return err;EndIf
++			setcall err reloc64_ante();If err!=(noerror);Return err;EndIf
++			SetCall err addtosec(#g_err,5,code);If err!=(noerror);Return err;EndIf
++			setcall err reloc64_post();If err!=(noerror);Return err;EndIf
++			chars g_cmp={0x80,7*toregopcode|ecxregnumber,0}
++			SetCall err addtosec(#g_cmp,3,code)
+ 		EndElse
+ 		If err!=(noerror);Return err;EndIf
+ 		#jz
+@@ -369,7 +373,7 @@ function write_function_call(sd ptrdata,
+ 		SetCall err addtosec(ret_end_p,ret_end_sz,code);If err!=(noerror);Return err;EndIf
+ 	endif
+ 
+-	return (noerror)
++	return err
+ endfunction
+ 
+ #p
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -23,8 +23,26 @@ Function fndecargs(data ptrcontent,data
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+-	Data vartype#1
++	sd vartype
+ 	setcall vartype commandSubtypeDeclare_to_typenumber(subtype)
++	sd datasize=dwsz
++	sd long_mask=0
++	sd b;setcall b is_for_64()
++	if vartype>=(vnumbers)
++		sub vartype (vnumbers)
++		if vartype==(valuesinnernumber)
++			set vartype (integersnumber)
++			if b==(TRUE)
++				set long_mask (valueslongmask)
++				set datasize (qwsz)
++			endif
++		elseif b==(TRUE)
++			set long_mask (datapointbit)
++			set datasize (qwsz)
++		endelseif
++	elseif vartype==(charsnumber)
++		set datasize (bsz)
++	endelseif
+ 
+ 	#substract from the big size the parsed size
+ 	Sub len sz
+@@ -33,12 +51,10 @@ Function fndecargs(data ptrcontent,data
+ 	Sub length len
+ 	Set ptrsize# length
+ 
+-
+-	Chars stacktransfer1={0,0x84,0x24}
++	Chars stacktransfer1#1;chars *={0x84,0x24}
+ 	Data stackoff#1
+ 	Chars stacktransfer2#1
+ 	Data memoff#1
+-	Data sizeoftransfer=3*bsz+dwsz+bsz+dwsz
+ 
+ 	Data dwrdsz=dwsz
+ 	Set stackoff ptr_stackoffset#
+@@ -49,7 +65,7 @@ Function fndecargs(data ptrcontent,data
+ 	set stackindex stackoff
+ 	addcall stackindex stack64_add((stackinitpush))
+ 
+-	setcall err addvarreferenceorunref(ptrcontent,ptrsize,sz,vartype,stackindex)
++	setcall err addvarreferenceorunref(ptrcontent,ptrsize,sz,vartype,stackindex,long_mask)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+@@ -62,26 +78,20 @@ Function fndecargs(data ptrcontent,data
+ 		return noerr
+ 	endif
+ 
+-	Chars stackt1ini={moveatprocthemem}
+-	Chars stackt2ini={0xA3}
++	Chars stackt1ini=moveatprocthemem
++	Chars stackt2ini=0xA3
+ 
+ 	Set stacktransfer1 stackt1ini
+ 	Set stacktransfer2 stackt2ini
+ 
+ 	setcall memoff get_img_vdata_dataReg()
+ 
+-	Data datasize#1
+-	Data btsz=bsz
+-	Data charsnr=charsnumber
+-	If vartype==charsnr
+-		Set datasize btsz
++	If datasize==(bsz)
+ 		Dec stacktransfer1
+ 		Dec stacktransfer2
+-	Else
+-		Set datasize dwrdsz
+-	EndElse
++	endIf
+ 
+-	Data null=NULL
++	Data null={NULL,NULL}
+ 	Data ptrnull^null
+ 	Data _datasec%ptrdatasec
+ 	SetCall err addtosec(ptrnull,datasize,_datasec)
+@@ -89,32 +99,44 @@ Function fndecargs(data ptrcontent,data
+ 		Return err
+ 	EndIf
+ 
++	if long_mask!=0
++		call rex_w(#err)
++		If err!=noerr;Return err;EndIf
++	endif
++
+ 	data p_is_object%ptrobject
+ 	if p_is_object#==(TRUE)
+-		Const offend^memoff
+-		Const offstart^stacktransfer1
++		Const fndecargs_offend^memoff
++		Const fndecargs_offstart^stacktransfer1
+ 		Data ptrextra%ptrextra
+-		Data reloff=offend-offstart
+ 		Data dataind=dataind
++		sd reloff=fndecargs_offend-fndecargs_offstart
++		if long_mask!=0
++			inc reloff
++		endif
+ 		SetCall err adddirectrel_base(ptrextra,reloff,dataind,memoff)
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
+ 		call inplace_reloc(#memoff)
+ 	endif
+-	Str codeops^stacktransfer1
++
+ 	Data _codesec%ptrcodesec
+-	SetCall err addtosec(codeops,sizeoftransfer,_codesec)
+-	If err!=noerr;Return err;EndIf
+ 
+-	sd b;setcall b is_for_64()
++	SetCall err addtosec(#stacktransfer1,(3*bsz+dwsz),_codesec);If err!=noerr;Return err;EndIf
++	if long_mask!=0
++		call rex_w(#err)
++		If err!=noerr;Return err;EndIf
++	endif
++	SetCall err addtosec(#stacktransfer2,(bsz+dwsz),_codesec);If err!=noerr;Return err;EndIf
++
+ 	if b==(TRUE)
+ 		#at 64 code:
+ 		#A3 XX.XX.XX.XX_XX.XX.XX.XX
+ 		sd z=i386_obj_default_reloc_rah
+ 		SetCall err addtosec(#z,(dwsz),_codesec)
+-		If err!=noerr;Return err;EndIf
++		return err
+ 	endif
+ 
+-	Return err
++	Return (noerror)
+ EndFunction
+\ No newline at end of file
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -66,7 +66,8 @@ function writetake(sd takeindex,sd entry
+ 	if stack==0
+ 		if p_is_object#==(TRUE)
+ 			Data ptrextra%ptrextra
+-			data relocoff=1
++			data relocoff#1
++			setcall relocoff reloc64_offset(1)
+ 			sd var
+ 			setcall var function_in_code()
+ 			if var#==0
+@@ -98,7 +99,9 @@ function writetake(sd takeindex,sd entry
+ 				endif
+ 			endelse
+ 		endif
+-		setcall errnr takewithimm(takeindex,take_loc)
++		setcall errnr reloc64_ante();If errnr!=(noerror);Return errnr;EndIf
++		setcall errnr takewithimm(takeindex,take_loc);If errnr!=(noerror);Return errnr;EndIf
++		setcall errnr reloc64_post()
+ 	else
+ 		chars stack_relative#1
+ 		chars regreg=RegReg
+--- ocompiler-1.orig/src/files/functions/commons/getcommand.s
++++ ocompiler-1/src/files/functions/commons/getcommand.s
+@@ -60,13 +60,6 @@ Const com_size=cSTR-cDATA
+ 			Data *=cDECLARE
+ 			Data *=cSV
+ 			Data *=spacereq
+-#numberofcommandsvars to set these commands to search for them at function parameter declare
+-Const numberofcommandsvars=(!-commandsvars_start)/com_size
+-		Const cCONST=!-cDECLARE_top
+-			data *^cCONST_c
+-			Data *=cDECLARE
+-			Data *=cCONST
+-			Data *=spacereq
+ 		Const cVDATA=!-cDECLARE_top
+ 			data *^cVDATA_c
+ 			Data *=cDECLARE
+@@ -82,6 +75,13 @@ Const numberofcommandsvars=(!-commandsva
+ 			Data *=cDECLARE
+ 			Data *=cVALUE
+ 			Data *=spacereq
++#numberofcommandsvars to set these commands to search for them at function parameter declare
++Const numberofcommandsvars=(!-commandsvars_start)/com_size
++		Const cCONST=!-cDECLARE_top
++			data *^cCONST_c
++			Data *=cDECLARE
++			Data *=cCONST
++			Data *=spacereq
+ #aftercall can be at function parameters but the get_img_vdata_dataReg() is set inside and codding must be done for not a big deal
+ 	Const cDECLAREAFTERCALL=!-coms_start
+ 	Const cDECLAREAFTERCALL_top=!
+@@ -208,18 +208,18 @@ Const numberofcommandsvars=(!-commandsva
+ 		data *^cLIBRARY_c
+ 		Data *=cLIBRARY
+ 		Data *#1
+-		Data *=spacenotreq
++		Data *=spacereq
+ 	Const cIMPORTLINK=!-coms_start;Const cIMPORTLINK_top=!
+ 		const cIMPORT=!-cIMPORTLINK_top
+ 			data *^cIMPORT_c
+ 			Data *=cIMPORTLINK
+ 			Data *=cIMPORT
+-			Data *=spacenotreq
++			Data *=spacereq
+ 		const cIMPORTX=!-cIMPORTLINK_top
+ 			data *^cIMPORTX_c
+ 			Data *=cIMPORTLINK
+ 			Data *=cIMPORTX
+-			Data *=spacenotreq
++			Data *=spacereq
+ 	Const cSTARTFUNCTION=!-coms_start
+ 	Const cSTARTFUNCTION_top=!
+ 		Const cFUNCTION=!-cSTARTFUNCTION_top
+@@ -303,7 +303,7 @@ Const numberofcommandsvars=(!-commandsva
+ 		data *^cINCLUDE_c
+ 		Data *=cINCLUDE
+ 		Data *#1
+-		Data *=spacenotreq
++		Data *=spacereq
+ 	Const cI3=!-coms_start
+ 		data *^cI3_c
+ 		Data *=cI3
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -215,9 +215,9 @@ Function stringsatmemspc(data pcontent,d
+ 		SetCall extbool# stratmem(tocontent,tosize,extstr)
+ 	EndIf
+ 
+-	SetCall bool spaces(tocontent,tosize)
+-	IF bool==zero
+-		If spacereq==nonzero
++	If spacereq==nonzero
++		SetCall bool spaces(tocontent,tosize)
++		IF bool==zero
+ 			Return zero
+ 		EndIf
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -45,7 +45,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 		endelse
+ 		Call getcontReg(pointer_structure,ptroffset)
+ 	EndIf
+-	SetCall err dataparse(ptrcontent,ptrsize,typenumber,assignsign,ptrrelocbool,stack)
++	SetCall err dataparse(ptrcontent,ptrsize,typenumber,assignsign,ptrrelocbool,stack,long_mask)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+@@ -158,7 +158,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 				Str ptrgroupend^groupend
+ 				Return ptrgroupend
+ 			EndIf
+-			SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,stack,(not_hexenum))
++			SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,stack,(not_hexenum),long_mask)
+ 			If err!=noerr
+ 				Return err
+ 			EndIf
+@@ -183,7 +183,9 @@ Function dataassign(sd ptrcontent,sd ptr
+ 					Return err
+ 				EndIf
+ 				Mult value dsz
+-				call enlarge_value(#value,long_mask,pointer_structure,offset)
++				if long_mask!=0
++					mult value 2
++				endif
+ 			EndIf
+ 			If value<zero
+ 				return ptrnegreserve
+@@ -282,8 +284,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 					data stackoff=rampadd_value_off
+ 					set section_offset stackoff
+ 				endelse
+-				#third value is not used at object==false
+-				setcall err unresolvedcallsfn(section,section_offset,0,addatend)
++				setcall err unresolvedcallsfn(section,section_offset,addatend) #this is intentionaly without last arg
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
+@@ -300,7 +301,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 	if skipNumberValue==false
+ 		If typenumber!=constantsnr
+ 			#addtocode(#test,1,code) cannot add to code for test will trick the next compiler, entry is started,will look like a bug
+-			setcall err writevar(ptrvalue,valuewritesize,relocindx,stack,rightstackpointer)
++			setcall err writevar(ptrvalue,valuewritesize,relocindx,stack,rightstackpointer,long_mask)
+ 			If err!=noerr
+ 				Return err
+ 			EndIf
+@@ -383,18 +384,3 @@ function add_string_to_data(sd ptrconten
+ 	endif
+ 	return (noerror)
+ endfunction
+-
+-#v
+-function enlarge_value(sd p_value,sd mask,sd structure,sd oldoffset)
+-	if mask!=0
+-		sd is64;setcall is64 is_for_64()
+-		if is64==(TRUE)
+-			mult p_value# (qwsz/dwsz)
+-			sd c
+-			Call getcont(structure,#c)
+-			Add c oldoffset
+-			add c (maskoffset)
+-			or c# mask
+-		endif
+-	endif
+-endfunction
+--- ocompiler-1.orig/src/files/functions/elf/elf.s
++++ ocompiler-1/src/files/functions/elf/elf.s
+@@ -217,17 +217,19 @@ Data codestrtab#1
+ Data objfnmask#1
+ Const ptrobjfnmask^objfnmask
+ 
+-#not changing inplace
+-#from addrel        before writes
+-#from addrel_base   at call
+-#from adddirect     writetake,function   importaftercall
+-#changing inplace
+-#from adddirect     fndecargs   writevar(examples there)   writevar(sd^arg,will use from writetake)   writetake,data (take_locat),argInCall
++#inplace	direct: at writetake: sd^data
++#			   writevar:  data a^dataB    here is also notinplace data^import
++#			   fndecarg:  (data a)
++#no inplace:  rel: at writes resolves imports at non-object, this is not occuring at 64
++#		 rel_base: call import()
++#		 direct: the other writevar sd^data
++#			   the other writetake (import)
++#			   aftercall
+ #err
+-Function addrel_base(sd offset,sd type,sd symbolindex,sd addend,sd struct)
++Function addrel_base(sd offset,sd symbolindex,sd addend,sd struct)
+ 	#Direct 32 bit
+ 	Const R_386_32=1
+-	#const R_X86_64_64=1
++	const R_X86_64_64=1
+ 	const R_X86_64_32=10
+ 	#PC relative 32 bit
+ 	#const R_386_PC32=2
+@@ -241,7 +243,8 @@ Function addrel_base(sd offset,sd type,s
+ 	sd x;setcall x is_for_64()
+ 	if x==(TRUE)
+ 		Data elf64_r_offset#1;data *=0
+-		data *elf64_r_info_type=R_X86_64_32
++		data elf64_r_info_type#1
++	const p_elf64_r_info_type^elf64_r_info_type
+ 	#const elf64_r_info_symbolindex_offset=2*dwsz
+ 		data elf64_r_info_symbolindex#1
+ 	#const elf64_r_info_symbolindex_size=dwsz
+@@ -259,14 +262,13 @@ Function addrel_base(sd offset,sd type,s
+ 		#offset
+ 		Data elf_r_offset#1
+ 		#Relocation type and symbol index
+-		Chars elf_r_info_type#1
++		Chars *elf_r_info_type=R_386_32
+ 	#const elf_r_info_symbolindex_offset=dwsz+bsz
+ 		chars elf_r_info_symbolindex#3
+ 	#const elf_r_info_symbolindex_size=3
+ 		data elf_r_addend#1
+ 
+ 		Set elf_r_offset offset
+-		Set elf_r_info_type type
+ 		Call memtomem(#elf_r_info_symbolindex,#symbolindex,3)
+ 		set elf_r_addend addend
+ 
+@@ -279,9 +281,9 @@ Function addrel_base(sd offset,sd type,s
+ EndFunction
+ 
+ #err
+-Function addrel(sd offset,sd type,sd symbolindex,sd struct)
++Function addrel(sd offset,sd symbolindex,sd struct)
+ 	sd err
+-	setcall err addrel_base(offset,type,symbolindex,0,struct)
++	setcall err addrel_base(offset,symbolindex,0,struct)
+ 	return err
+ endfunction
+ 
+@@ -301,7 +303,6 @@ Function adddirectrel_base(sd relsec,sd
+ 	EndElse
+ 	Call getcontReg(struct,ptroff)
+ 	Add off extraoff
+-	Chars elf_rel_info_type={R_386_32}
+-	SetCall err addrel_base(off,elf_rel_info_type,index,addend,relsec)
++	SetCall err addrel_base(off,index,addend,relsec)
+ 	Return err
+ EndFunction
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -153,6 +153,7 @@ function initpreferences()
+ 	sd p_nul_res_pref%p_nul_res_pref
+ 	sd sdsv_p;setcall sdsv_p sd_as_sv((sd_as_sv_get))
+ 	sd p_inplace_reloc_pref%p_inplace_reloc_pref
++	sd p_pref_reloc_64%p_pref_reloc_64
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -170,13 +171,14 @@ function initpreferences()
+ 	set p_nul_res_pref# false
+ 	set sdsv_p# false
+ 	set p_inplace_reloc_pref# (addend_reloc)
++	set p_pref_reloc_64# true
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;incst q; set q# p_over_pref;incst q; set q# p_hidden_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q;     set q# p_inplace_reloc_pref
++	set q# ptrwarningsbool;incst q; set q# p_over_pref;incst q; set q# p_hidden_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q;     set q# p_inplace_reloc_pref;incst q; set q# p_pref_reloc_64
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";incst t;      set t# "over_pref";incst t; set t# "hidden_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv";incst t; set t# "inplace_reloc"
++	set t# "warnings";incst t;      set t# "over_pref";incst t; set t# "hidden_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv";incst t; set t# "inplace_reloc";incst t;      set t# "reloc_64"
+ endfunction
+ 
+ #void
+--- ocompiler-1.orig/src/files/functions/stack/stack.s
++++ ocompiler-1/src/files/functions/stack/stack.s
+@@ -109,47 +109,52 @@ function entryscope_verify_code()
+ endfunction
+ 
+ 
+-
+ #er
+-function addtocodeforstack(sd value,sd rightstackpointer,sd for_64)
+-	data eax=eaxregnumber
+-
+-	data null=0
+-	chars movtostack#1
++function addtocode_decstack(sd for_64)
++	chars movtostack=moveatmemtheproc
+ 	chars *modrm=disp32mod|ebxregnumber
+ 	data rampindex#1
+-	data rampvalue#1
+ 
+ 	data stack^movtostack
+-	data size#1
++	data size=2+4
+ 	data ptrcodesec%ptrcodesec
+-	data noerr=noerror
+-	sd err
+-
+-	if rightstackpointer==null
+-		chars movimm=0xc7
+-		set movtostack movimm
+-		data sizeimm=2+4+4
+-		set size sizeimm
+-	else
+-		setcall err writetake(eax,rightstackpointer)
+-		if err!=noerr
+-			return err
+-		endif
+-		chars movreg=moveatmemtheproc
+-		set movtostack movreg
+-		data sizereg=2+4
+-		set size sizereg
+-	endelse
+ 
++	sd err
+ 	if for_64==(TRUE)
+ 		call rex_w(#err);if err!=(noerror);return err;endif
+ 	endif
+ 
+ 	setcall rampindex addramp()
+-	setcall rampindex neg(rampindex)
+-	set rampvalue value
++	neg rampindex
+ 
+ 	setcall err addtosec(stack,size,ptrcodesec)
+ 	return err
+ endfunction
++#er
++function addtocodeforstack(sd rightstackpointer,sd for_64)
++	data noerr=noerror
++
++	sd err
++	setcall err writetake((eaxregnumber),rightstackpointer)
++	if err!=noerr
++		return err
++	endif
++
++	setcall err addtocode_decstack(for_64)
++	return err
++endfunction
++#er
++function addtocodefordata(sd value,sd for_64)
++	chars code=ateaximm
++	data val#1
++
++	sd err
++	setcall err reloc64_ante();If err!=(noerror);Return err;EndIf
++	data ptrcodesec%ptrcodesec
++	set val value
++	setcall err addtosec(#code,5,ptrcodesec);If err!=(noerror);Return err;EndIf
++	setcall err reloc64_post();If err!=(noerror);Return err;EndIf
++
++	setcall err addtocode_decstack(for_64)
++	return err
++endfunction
+--- ocompiler-1.orig/src/files/headers/asm.h
++++ ocompiler-1/src/files/headers/asm.h
+@@ -16,6 +16,7 @@ const REX_R8_15=REX_default|REX_W|REX_R
+ 
+ Const retcom=0xc3
+ const intimm8=0xCD
++const ateaximm=0xb8
+ #Const atedximm=0xba
+ 
+ Const moveatmemtheproc=0x89
+@@ -46,9 +47,8 @@ Const esiregnumber=6
+ Const ediregnumber=7
+ Const ahregnumber=4
+ Const regopcode_mask=0x7
++
+ #mixt
+ Const Notregopcode=2
+ #
+ const bt_reg_imm8=espregnumber*toregopcode|regregmod
+-
+-#rms
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -45,7 +45,6 @@ Const noerror=0
+ #this is win specific Const error=-1
+ Const FORWARD=1
+ Const BACKWARD=-1
+-Const not_used=0
+ Const void=0
+ 
+ Data bytesize=bsz
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -19,7 +19,9 @@ Const stackbit=0x04
+ const x86_64bit=0x40
+ #bit offset 7; pointer bit (sv# with rex, sd# without rex)
+ const pointbit=0x80
++
+ const dummy_mask=0
++const valueslongmask=datapointbit|pointbit
+ 
+ Const maskoffset=dwsz
+ Const nameoffset=maskoffset+dwsz
+@@ -118,12 +120,14 @@ Const memvariablesnumber=0
+ 	Const integersnumber=memvariablesnumber+0
+ 	Const stringsnumber=memvariablesnumber+1
+ 	Const charsnumber=memvariablesnumber+2
++	const valuesinnernumber=charsnumber
+ Const totalmemvariables=charsnumber+1
+ 	Const stackdatanumber=totalmemvariables+integersnumber
+ 	Const stackstringnumber=totalmemvariables+stringsnumber
+-	Const stackvaluenumber=totalmemvariables+charsnumber
+-	#that was +charsnumber because it is compared against 2
++	Const stackvaluenumber=totalmemvariables+valuesinnernumber
++	#that was +charsnumber because it is compared against 2. and more reasons
+ Const numberofvars=stackvaluenumber+1
++const vnumbers=numberofvars
+ #from numberofvars to afterscopes comes inner function local scopes
+ Const afterscopes=numberofvars*2
+ 	Const constantsnumber=afterscopes+0
+@@ -315,7 +319,7 @@ Data ptrsubtype^subtype
+ #chars movtostack={0xc7,0x85}
+ #data rampindex#1
+ #data rampvalue#1
+-const rampadd_value_off=wsz+dwsz
++const rampadd_value_off=bsz
+ 
+ 
+ 
+@@ -373,8 +377,11 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=13
++const nr_of_prefs=14
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+ const nr_of_prefs_pointers_p^nr_of_prefs_pointers;const nr_of_prefs_strings_p^nr_of_prefs_strings
++
++data pref_reloc_64#1
++const p_pref_reloc_64^pref_reloc_64
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -79,3 +79,7 @@ if includedir==(TRUE)
+ else
+ 	set fileendchar (log_fileend_old)
+ endelse
++
++#this is init at start because we don't want to compare if 64 every time
++sd rel64_blankinit%p_elf64_r_info_type
++set rel64_blankinit# (R_X86_64_32)

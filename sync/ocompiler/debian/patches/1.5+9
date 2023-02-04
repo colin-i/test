@@ -1,0 +1,357 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+9) xenial; urgency=medium
+ .
+   * two pass call arguments for stack align
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-07
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -73,4 +73,8 @@ include_sec=0
+ 
+ 18. Ignore FORMAT ...SO .
+ 0 is No; 1 is Yes
+-ignore_format_so=0
+\ No newline at end of file
++ignore_format_so=0
++
++19. At 64, before a call, align stack shadow(windows only) and arguments.
++0 is No; 1 is Yes; 2 is Yes at arguments and No at shadow
++call_align=1
+\ No newline at end of file
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -16,6 +16,7 @@
+ ~/test/pub upapp rpm && \
+ ~/test/pub2 && \
+ ~/test/publp2 && \
+-~/test/keyring && \
++~/test/keyring2 && \
+ ~/test/lp && \
+-~/test/lp x
++~/test/lp x && \
++~/test/del x
+--- ocompiler-1.orig/src/files/functions/64/bit.s
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -45,42 +45,56 @@ endfunction
+ 
+ #get
+ function nr_of_args_64need_p_get();data n#1;return #n;endfunction
+-#er
+-function nr_of_args_64need_set()
++function nr_of_args_64need_count()
+ 	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
+ 	if p_b#==(TRUE)
+-		sd p;setcall p nr_of_args_64need_p_get();set p# 0
+-		#Stack aligned on 16 bytes. Later set, depending on the number of arguments, jumpCarry or jumpNotCarry
++		sd p;setcall p nr_of_args_64need_p_get();inc p#
++	endif
++endfunction
++#er
++function stack_align(sd nr)
++	sd final_nr
++	setcall final_nr pref_call_align(nr)
++	if final_nr!=0
++		#Stack aligned on 16 bytes. Depending on the number of arguments, jumpCarry or jumpNotCarry
+ 		sd err
+-		data code%ptrcodesec
++		vdata code%ptrcodesec
+ 		#bt rsp,3 (offset 3)
+ 		chars hex_x={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
+-		SetCall err addtosec(#hex_x,5,code);If err!=(noerror);Return err;EndIf
+-		#
+-		sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
+-		call getcontReg(code,stack_align_p)
+ 		#j(c|nc);sub rsp,8
+ 		chars jump#1;chars *=4;chars *={REX_Operand_64,0x83,0xEC,8}
+-		SetCall err addtosec(#jump,6,code);If err!=(noerror);Return err;EndIf
++
++		and final_nr 1
++		#Jump short if not carry
++		if final_nr==0
++			set jump (0x73)
++		#Jump short if carry
++		else;set jump (0x72)
++		endelse
++
++		SetCall err addtosec(#hex_x,(5+6),code)
++		return err
+ 	endif
+-	Return (noerror)
++	return (noerror)
+ endfunction
+-function nr_of_args_64need_count()
+-	sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
+-	if p_b#==(TRUE)
+-		sd p;setcall p nr_of_args_64need_p_get();inc p#
++#nr
++function pref_call_align(sd nr)
++	data ptr_call_align%ptr_call_align
++	sd type;set type ptr_call_align#
++	sd conv;setcall conv convdata((convdata_total))
++	if nr<=conv
++		if conv==(ms_convention)
++			if type==(call_align_yes)
++				return conv
++			endif
++		endif
++		return 0
+ 	endif
++	if type!=(call_align_no)
++		return nr
++	endif
++	return 0
+ endfunction
+-#nr_of_args
+-function nr_of_args_64need()
+-	sd n;setcall n nr_of_args_64need_p_get();return n#
+-endfunction
+-#p
+-function stack_align_off_p_get()
+-	data o#1;return #o
+-endfunction
+-
+-
+ 
+ ##REX_W
+ function rex_w(sd p_err)
+@@ -168,7 +182,7 @@ endfunction
+ function convdata(sd type,sd dest)
+ 	if type==(convdata_total)
+ 		data nr_of_args#1
+-		return nr_of_args
++		return nr_of_args   #ms_convention or lin
+ 	elseif type==(convdata_call)
+ 		#rdi
+ 		chars hex_1={REX_Operand_64,moveatprocthemem,ediregnumber*toregopcode|espregnumber,0x24,0}
+@@ -263,37 +277,29 @@ function function_call_64fm(sd nr_of_arg
+ endfunction
+ function function_call_64f(sd hex_n,sd conv,sd code)
+ 	sd err
+-	sd nr_of_args;setcall nr_of_args nr_of_args_64need()
++	sd nr_of_args;setcall nr_of_args nr_of_args_64need_p_get()
++	set nr_of_args nr_of_args#
+ 	#
+-	setcall err function_call_64fm(nr_of_args,hex_n,conv,code);If err!=(noerror);Return err;EndIf
+-	#
+-	if conv==(ms_convention)
+-		if nr_of_args<conv
+-			#shadow space
+-			#sub esp,x;default 4 args stack space convention
+-			chars hex_w={REX_Operand_64,0x83,0xEC};chars argspush#1
+-			set argspush nr_of_args;sub argspush conv;mult argspush (-1*qwsz)
+-			SetCall err addtosec(#hex_w,4,code);If err!=(noerror);Return err;EndIf
+-		endif
+-	elseif nr_of_args>0
+-		#lin_convention
+-		#add esp,x
+-		chars hex_x={REX_Operand_64,0x83,regregmod|espregnumber};chars adjuster#1
+-		if nr_of_args>conv;set adjuster conv;else;set adjuster nr_of_args;endelse
+-		mult adjuster (qwsz)
+-		SetCall err addtosec(#hex_x,4,code);If err!=(noerror);Return err;EndIf
+-	endelseif
+-	#
+-	#stack align,more to see when the offset was taken
+-	sd stack_align_p;setcall stack_align_p stack_align_off_p_get()
+-	ss code_pointer;call getcont(code,#code_pointer)
+-	add code_pointer stack_align_p#
+-	sd against_one;if nr_of_args>conv;set against_one nr_of_args;else;set against_one conv;endelse;and against_one 1
+-	#Jump short if not carry
+-	if against_one==0;set code_pointer# (0x73)
+-	#Jump short if carry
+-	else;set code_pointer# (0x72);endelse
+-	return (noerror)
++	setcall err function_call_64fm(nr_of_args,hex_n,conv,code)
++	If err==(noerror)
++		if conv==(ms_convention)
++			if nr_of_args<conv
++				#shadow space
++				#sub esp,x;default 4 args stack space convention
++				chars hex_w={REX_Operand_64,0x83,0xEC};chars argspush#1
++				set argspush nr_of_args;sub argspush conv;mult argspush (-1*qwsz)
++				SetCall err addtosec(#hex_w,4,code)
++			endif
++		elseif nr_of_args>0
++			#lin_convention
++			#add esp,x
++			chars hex_x={REX_Operand_64,0x83,regregmod|espregnumber};chars adjuster#1
++			if nr_of_args>conv;set adjuster conv;else;set adjuster nr_of_args;endelse
++			mult adjuster (qwsz)
++			SetCall err addtosec(#hex_x,4,code)
++		endelseif
++	endIf
++	return err
+ endfunction
+ function function_call_64(sd is_callex)
+ 	sd conv;setcall conv convdata((convdata_total))
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -78,7 +78,7 @@ endfunction
+ 
+ const fndecandgroup=1
+ #er
+-Function enumcommas(data ptrcontent,data ptrsize,data sz,data fndecandgroupOrpush,data typenumber,data stack,sd hex,sd long_mask)
++Function enumcommas(data ptrcontent,data ptrsize,data sz,data fndecandgroupOrpush,data typenumberOrwrite,data stack,sd hex,sd long_mask)
+ 	Data zero=0
+ 	Data argsize#1
+ 	Chars comma=","
+@@ -99,7 +99,7 @@ Function enumcommas(data ptrcontent,data
+ 
+ 	Data fnnr=functionsnumber
+ 	If fndecandgroupOrpush==true
+-		If typenumber==fnnr
++		If typenumberOrwrite==fnnr
+ 			Data stackoffset#1
+ 			Set stackoffset zero
+ 			Data ptrstackoffset^stackoffset
+@@ -108,7 +108,7 @@ Function enumcommas(data ptrcontent,data
+ 			Data dwSz=dwsz
+ 			Data unitsize#1
+ 			Data charsnr=charsnumber
+-			If typenumber==charsnr
++			If typenumberOrwrite==charsnr
+ 			#ignored at stack value   grep stackfilter2  1
+ 				Set unitsize bSz
+ 			Else
+@@ -135,7 +135,7 @@ Function enumcommas(data ptrcontent,data
+ 			set argumentsize argsize
+ 			sub argumentsize sizeaux
+ 			#
+-			If typenumber==fnnr
++			If typenumberOrwrite==fnnr
+ 				SetCall err fndecargs(ptrcontent,ptrsize,argumentsize,ptrstackoffset)
+ 				If err!=noerr
+ 					Return err
+@@ -163,7 +163,9 @@ Function enumcommas(data ptrcontent,data
+ 			EndElse
+ 		Else
+ 			#push
+-			call nr_of_args_64need_count()
++			if typenumberOrwrite==(FALSE) #for regs at call   and shadow space
++				call nr_of_args_64need_count()
++			endif
+ 			sd delim
+ 			set delim comma
+ 			if sz!=0
+@@ -212,10 +214,12 @@ Function enumcommas(data ptrcontent,data
+ 			Sub negvalue argsize
+ 			Call advancecursors(ptrcontent,ptrsize,negvalue)
+ 			Data ptrargsize^argsize
+-			SetCall err argument(ptrcontent,ptrargsize,zero,backward)
+-			If err!=noerr
+-				Return err
+-			EndIf
++			if typenumberOrwrite==(TRUE)
++				SetCall err argument(ptrcontent,ptrargsize,zero,backward)
++				If err!=noerr
++					Return err
++				EndIf
++			endif
+ 		EndElse
+ 		Sub sz argsize
+ 		If sz!=zero
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -174,7 +174,6 @@ Function parsefunction(data ptrcontent,d
+ 		if err!=(noerror)
+ 			return err
+ 		endif
+-		setcall err nr_of_args_64need_set();if err!=(noerror);return err;endif
+ 	EndElse
+ 
+ 	Call stepcursors(ptrcontent,ptrsize)
+@@ -186,7 +185,27 @@ Function parsefunction(data ptrcontent,d
+ 
+ 	If sz!=zero
+ 		#declare is bool
+-		SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,fnnr) #there are 3 more arguments but are not used
++		if declare==true
++			SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,fnnr) #there are 3 more arguments but are not used
++		else
++			sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get()
++			if p_b#==(FALSE)
++				SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(TRUE)) #there are 3 more arguments but are not used
++			else
++				sd p;setcall p nr_of_args_64need_p_get();set p# 0
++				set content ptrcontent#
++				set size ptrsize#
++				SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(FALSE)) #there are 3 more arguments but are not used
++				if err==noerr
++					setcall err stack_align(p#)
++					if err==noerr
++						set ptrcontent# content
++						set ptrsize# size
++						SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(TRUE)) #there are 3 more arguments but are not used
++					endif
++				endif
++			endelse
++		endelse
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -170,6 +170,7 @@ function initpreferences()
+ 	sd p_exit_end%p_exit_end
+ 	sd p_include_sec%p_include_sec
+ 	sd p_ignore_format_so%p_ignore_format_so
++	sd ptr_call_align%ptr_call_align
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -192,13 +193,14 @@ function initpreferences()
+ 	set p_exit_end# false
+ 	set p_include_sec# false
+ 	set p_ignore_format_so# (No)
++	set ptr_call_align# (call_align_yes)
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so
++	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so; incst q;set q# ptr_call_align
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"
++	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"; incst t;set t# "call_align"
+ endfunction
+ 
+ #void
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -380,7 +380,7 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=18
++const nr_of_prefs=19
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+@@ -403,3 +403,9 @@ const p_include_sec^include_sec
+ 
+ const pointersigndeclare=asciicirc
+ const assignsign=asciiequal
++
++const call_align_no=0
++const call_align_yes=1
++#const call_align_yes_no=2
++data call_align#1
++const ptr_call_align^call_align

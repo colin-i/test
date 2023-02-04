@@ -1,0 +1,80 @@
+This file is parsed by the program to set the preferences. "nameEQUALx" must be preserved.
+
+
+1. Display unreferenced variables/functions/constants warning.
+0 is Hide; 1 is Show
+warnings=1
+
+2. Overflow at constants warning.
+0 is Hide; 1 is Show
+over_pref=1
+
+3. Hidden whitespaces warning.
+0 is Hide; 1 is Show
+hidden_pref=1
+
+4. Showed warnings as errors.
+0 if False; 1 is True
+w_as_e=1
+
+5. Log file. This option creates a file with string lines. The files tree is logged.
+0 is No; 1 is Yes
+logfile=1
+
+6. Take the following action at FUNCTION entries at the object format that are not referred in the object and when the reference warning is enabled. This will also log import functions.
+[if warnings is 1]
+0 is Ignore them; 1 is Show warning; 2 [if logfile is 1] is Write them to the logfile, else take 1
+codeFnObj=2
+
+7. CONST to unreferenced warnings, same as with FUNCTION. This will also log declared/used constants.
+[if warnings is 1]
+0 is Ignore them; 1 is Show warning; 2 [if logfile is 1] is Write them to the logfile, else take 1
+const_warn=2
+
+8. Include active folder. Change the active directory when including and stepping into a file.
+0 is No; 1 is Yes
+includedir=1
+
+9. Write the function names above the function in code section, useful when debugging asm instructions.
+0 is No; 1 is Yes
+function_name=0
+
+10. Ignore elfobj64
+0 is No,use linux convention if ocompiler was compiled for linux,else use microsoft; 1 is Yes; 2 is No,and cross-compile
+conv_64=0
+
+11. Zeroset reserved data section declarations.
+0 is No; 1 is Yes
+nul_res_pref=0
+
+12. SD as SV (old programs don't have sv and may be with 64 logic).
+0 is No; 1 is Yes
+sd_as_sv=0
+
+13. Inplace reloc 0 or the addend for objects? (standard ld wants addend, i686-w64-mingw32-ld wants 0)
+0 is Zero; 1 is Addend
+inplace_reloc=1
+
+14. At objects, when on 64 format, relocs are R_X86_64_64.
+0 is No; 1 is Yes
+reloc_64=1
+
+15. Remove leading underscore at IMPORT?
+0 is No; 1 is Yes
+underscore_pref=0
+
+16. RETURNs at main scope like EXIT.
+0 is No; 1 is Yes
+exit_end=0
+
+17. Take second file path at INCLUDE statement.
+0 is No; 1 is Yes
+include_sec=0
+
+18. Ignore FORMAT ...SO .
+0 is No; 1 is Yes
+ignore_format_so=0
+
+19. At 64, before a call, align stack shadow(windows only) and arguments.
+0 is No; 1 is Yes; 2 is Yes at arguments and No at shadow
+call_align=1

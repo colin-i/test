@@ -1,0 +1,89 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+64) jammy; urgency=medium
+ .
+   * override fix
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-12-26
+
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -97,11 +97,13 @@ if loop==1
+ 						Elseif commandset==(cFORMAT)
+ 						Elseif commandset==(cDECLAREAFTERCALL)  #and import
+ 						elseif commandset==(cWARNING)    #for addaref
++						elseif commandset==(cOVERRIDE)   #example underscore_pref
+ 						else;set commandset (cCOMMENT);endelse
+ 					else
+ 					#pass_calls
+ 						If commandset==(cPRIMSEC);elseif commandset==(cCALL)
+-						elseif commandset==(cENDFUNCTION);elseif commandset==(cINCLUDE)
++						elseif commandset==(cINCLUDE);elseif commandset==(cENDFUNCTION)
++						elseif commandset==(cOVERRIDE)   #example call_align
+ 						else;set commandset (cCOMMENT);endelse
+ 					endelse
+ 				endif
+@@ -155,6 +157,7 @@ if loop==1
+ 		call entryscope_verify_code()
+ 				Include "./index/callex.s"
+ 			ElseIf commandset==(cOVERRIDE)
++				#is at all, example at write hidden_pref
+ 				Include "./index/override.s"
+ 			ElseIf commandset==(cLIBRARY)
+ 				if parses==(pass_init);Include "./index/library.s"
+--- ocompiler-1.orig/src/files/functions/override.s
++++ ocompiler-1/src/files/functions/override.s
+@@ -14,22 +14,25 @@ function override_com(sd pcontent,sd psi
+ 		return "second argument is missing at override"
+ 	endif
+ 	sd err
+-	sd p
+ 	ss t
+-	set t name;add t size;set t# 0
++	charsx aux#1   #override is at all passes coming again here
++	set t name;add t size;set aux t#;set t# 0
+ 	#work can be done do allow line comment here
++	ss p
+ 	set size psize#
+ 	setcall err memoryalloc(size,#p)
+ 	#it is file_get_content memwise (not strwise with null ending)
++	#memoryalloc? the override mimics command line, but this can be changed
+ 	if err==(noerror)
+-		set t size
+ 		inc size
+ 		call memtomem(p,pcontent#,size)
+-		set size t
+-		add t p;set t# 0
++		dec size
++		add p size;set p# 0
++		sub p size
+ 		setcall err prefs_set(name,p)
+ 		call free(p)
+ 		if err==(noerror)
++			set t# aux
+ 			call advancecursors(pcontent,psize,size)
+ 		endif
+ 	endif
+--- ocompiler-1.orig/src/md
++++ ocompiler-1/src/md
+@@ -1,2 +1,2 @@
+ 
+-OFLAGS="function_name 1" make
++OFLAGS="function_name 1" make syms=

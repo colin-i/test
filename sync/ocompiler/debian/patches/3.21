@@ -1,0 +1,46 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-3.21) bionic; urgency=medium
+ .
+   * no empty file
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2021-10-28
+
+--- ocompiler-1.orig/Makefile
++++ ocompiler-1/Makefile
+@@ -5,14 +5,15 @@ OBJ = $(OB).o
+ FULLOBJ = ./src/linux/$(OB)
+ FULLOBJS = $(FULLOBJ).s
+ FULLOBJO = $(FULLOBJ).o
++OBT = $(OB).txt
+ 
+-%.o: %.txt
+-	-if [ -s $< ];then base64 -d $< > $@;else o ${FULLOBJS};fi
++%.o: ${FULLOBJS}
++	-if [ -s $(OBT) ];then base64 -d $(OBT) > $@;else o $<;fi
+ 
+ ATLDCOM = $(LD) -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc
+ 
+ o: $(OBJ)
+-	if [ -f ${OBJ} ];then $(ATLDCOM) ${OBJ};else $(ATLDCOM) ${FULLOBJO};fi
++	if [ -f ${OBJ} ];then $(ATLDCOM) $^;else $(ATLDCOM) ${FULLOBJO};fi
+ 
+ install: o
+ 	install -D o \

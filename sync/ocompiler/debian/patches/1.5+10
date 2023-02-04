@@ -1,0 +1,163 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+10) xenial; urgency=medium
+ .
+   * fix call align all cases
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-07
+
+--- /dev/null
++++ ocompiler-1/.github/workflows/del.yml
+@@ -0,0 +1,20 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ del:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Remove asset
++     uses: mknejp/delete-release-assets@v1
++     env:
++     with:
++      token: ${{ secrets.PAT }}
++      tag: refs/tags/${{ env.tag }}
++      assets: ${{ env.file }}
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -75,6 +75,6 @@ include_sec=0
+ 0 is No; 1 is Yes
+ ignore_format_so=0
+ 
+-19. At 64, before a call, align stack shadow(windows only) and arguments.
+-0 is No; 1 is Yes; 2 is Yes at arguments and No at shadow
++19. At 64, before a call, align stack. Cases for arguments and shadow(windows only).
++0 is No; 1 is Yes; 2 is Yes for arguments and shadow; 3 is Yes for arguments
+ call_align=1
+\ No newline at end of file
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -6,7 +6,7 @@
+ ~/test/ai && \
+ ~/test/pub appimage && \
+ ./makewin32 && \
+-~/test/keyring && \
++~/test/keyring2 && \
+ ~/test/del && \
+ ~/test/rel && \
+ ~/test/pub rel && \
+@@ -16,7 +16,7 @@
+ ~/test/pub upapp rpm && \
+ ~/test/pub2 && \
+ ~/test/publp2 && \
+-~/test/keyring2 && \
+ ~/test/lp && \
+ ~/test/lp x && \
++~/test/keyring && \
+ ~/test/del x
+--- ocompiler-1.orig/src/files/functions/64/bit.s
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -81,17 +81,21 @@ endfunction
+ function pref_call_align(sd nr)
+ 	data ptr_call_align%ptr_call_align
+ 	sd type;set type ptr_call_align#
+-	sd conv;setcall conv convdata((convdata_total))
+-	if nr<=conv
+-		if conv==(ms_convention)
+-			if type==(call_align_yes)
+-				return conv
+-			endif
+-		endif
+-		return 0
+-	endif
+ 	if type!=(call_align_no)
+-		return nr
++		sd conv;setcall conv convdata((convdata_total))
++		if nr<=conv
++			if conv==(lin_convention)
++				if type==(call_align_yes_all)
++					return 2 #to align at no args
++				endif
++			else
++				if type!=(call_align_yes_arg)
++					return conv
++				endif
++			endelse
++		else
++			return nr
++		endelse
+ 	endif
+ 	return 0
+ endfunction
+--- ocompiler-1.orig/src/files/functions/inits.s
++++ ocompiler-1/src/files/functions/inits.s
+@@ -45,11 +45,11 @@ function comline_value(ss v,sd p)
+ 			inc v
+ 			if v#==0
+ 				sub input (asciizero)
+-				if input<=(last_convention_input)
++				if input<=(last_call_align_input)
+ 					set p# input
+ 					return (noerror)
+ 				endif
+-				return "a command line value can have only 0,1 or 2"
++				return "a command line value can have only 0,1,2 or 3"
+ 			endif
+ 			return "command line value must have only one digit"
+ 		endif
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -193,7 +193,7 @@ function initpreferences()
+ 	set p_exit_end# false
+ 	set p_include_sec# false
+ 	set p_ignore_format_so# (No)
+-	set ptr_call_align# (call_align_yes)
++	set ptr_call_align# (call_align_yes_all)
+ 
+ 	#this is used also at arguments
+ 
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -341,7 +341,6 @@ const val64_willbe=1
+ const direct_convention_input=0
+ const ignore_convention_input=1
+ const cross_convention_input=2
+-const last_convention_input=cross_convention_input
+ #
+ const ms_convention=4
+ const lin_convention=6
+@@ -405,7 +404,9 @@ const pointersigndeclare=asciicirc
+ const assignsign=asciiequal
+ 
+ const call_align_no=0
+-const call_align_yes=1
+-#const call_align_yes_no=2
++const call_align_yes_all=1
++#const call_align_yes_arg_sha=2
++const call_align_yes_arg=3
++const last_call_align_input=call_align_yes_arg
+ data call_align#1
+ const ptr_call_align^call_align

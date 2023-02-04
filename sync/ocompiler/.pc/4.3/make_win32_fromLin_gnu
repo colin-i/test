@@ -1,0 +1,25 @@
+
+#this is the new make for windows
+
+i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/user.def -l ./fix/libuser.a
+i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/kernel.def -l ./fix/libkernel.a
+i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/comdlg.def -l ./fix/libcomdlg.a
+i686-w64-mingw32-dlltool --no-leading-underscore -d ./fix/c.def -l ./fix/libc.a
+
+o ./src/windows/obj32.s
+i686-w64-mingw32-ld -s -nostdlib -entry _start ./src/windows/obj32.o -L./fix -luser -l kernel -lcomdlg -lc -o ./o.exe
+
+rm ./src/windows/obj32.o
+rm ./fix/libuser.a
+rm ./fix/libkernel.a
+rm ./fix/libcomdlg.a
+rm ./fix/libc.a
+
+mkdir ocompiler
+mv o.exe ocompiler
+cp .ocompiler.txt ocompiler
+
+zip -r ocompiler.zip ocompiler
+rm -r ./ocompiler
+
+unzip -l ocompiler.zip

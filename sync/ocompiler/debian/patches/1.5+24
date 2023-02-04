@@ -1,0 +1,191 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+24) xenial; urgency=medium
+ .
+   * Fix comp_sec when first is imm
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-13
+
+--- ocompiler-1.orig/src/files/functions/actions/argstwo.s
++++ ocompiler-1/src/files/functions/actions/argstwo.s
+@@ -28,7 +28,7 @@ Function twoargs(data ptrcontent,data pt
+ 	Chars atmemtheproc={moveatmemtheproc}
+ 
+ 	sd imm
+-	call unsetimm()
++	#call unsetimm()
+ 	Data errnr#1
+ 	Data noerr=noerror
+ 	SetCall errnr argfilters(ptrcondition,ptrcontent,ptrsize,ptrdataargprim,ptrlowprim,ptrsufixprim)
+@@ -49,8 +49,8 @@ Function twoargs(data ptrcontent,data pt
+ 	sd remind_first_prefix
+ 	sd p_prefix
+ 	setcall p_prefix prefix_bool()
+-	set remind_first_prefix p_prefix#
+-	set p_prefix# 0
++
++	set remind_first_prefix p_prefix#;set p_prefix# 0
+ 	call storefirst_isimm()
+ 
+ 	Data primcalltype#1
+@@ -58,10 +58,11 @@ Function twoargs(data ptrcontent,data pt
+ 
+ 	Set primcalltype false
+ 
++	#imm second arg can be
++	call setimm()
++
+ 	sd big;sd rem
+ 	If ptrcondition==false
+-		#imm second arg
+-		call setimm()
+ 		sd subtype_test;set subtype_test subtype;and subtype_test (x_call_flag)
+ 		if subtype_test!=0
+ 			xor subtype (x_call_flag)
+@@ -218,7 +219,8 @@ Function twoargs(data ptrcontent,data pt
+ 		else
+ 			if p_prefix#==(FALSE)
+ 				sd comp_at_bigs
+-				setcall comp_at_bigs comp_sec(lowsec,dataargprim,sufixprim,dataargsec,sufixsec,sameimportant,is_prepare)
++				setcall imm getfirst_isimm()
++				setcall comp_at_bigs comp_sec(lowsec,dataargprim,sufixprim,dataargsec,sufixsec,sameimportant,is_prepare,imm)
+ 				setcall errnr writeop_promotes(dataargsec,opsec,sufixsec,regopcode,lowsec,comp_at_bigs)
+ 			else
+ 			#only take at prefix on regcode
+@@ -249,6 +251,8 @@ Function twoargs(data ptrcontent,data pt
+ 	#write first arg, the second already was
+ 	set p_prefix# remind_first_prefix
+ 	call restorefirst_isimm()
++
++	#setcall imm getfirst_isimm() can be this but needing to deactivate imm slot
+ 	setcall imm getisimm()
+ 	if imm==true
+ 		#first argument imm are comparations
+@@ -355,10 +359,10 @@ Function twoargs(data ptrcontent,data pt
+ EndFunction
+ 
+ #-1 normal, 0 unpromote, 1 sign extend, 2 zero extend
+-function comp_sec(sd lowsec,sd dataargprim,sd sufixprim,sd dataargsec,sd sufixsec,sd sameimportant,sd is_prepare)
++function comp_sec(sd lowsec,sd dataargprim,sd sufixprim,sd dataargsec,sd sufixsec,sd sameimportant,sd is_prepare,sd immprim)
+ 	sd prim
+ 	if lowsec==(FALSE)
+-		setcall prim is_big(dataargprim,sufixprim)
++		setcall prim is_big_imm(immprim,dataargprim,sufixprim)
+ 		sd sec;setcall sec is_big(dataargsec,sufixsec)
+ 		if prim!=sec
+ 			if sec==(TRUE)
+@@ -370,7 +374,7 @@ function comp_sec(sd lowsec,sd dataargpr
+ 			endelseif
+ 		endif
+ 	elseif is_prepare==(TRUE)
+-		setcall prim is_big(dataargprim,sufixprim)
++		setcall prim is_big_imm(immprim,dataargprim,sufixprim)
+ 		if prim==(TRUE)
+ 			#zero extend all r64
+ 			sd p;setcall p val64_p_get()
+@@ -381,6 +385,16 @@ function comp_sec(sd lowsec,sd dataargpr
+ 	return -1
+ endfunction
+ 
++#bool
++function is_big_imm(sd imm,sd data,sd sufix)
++	if imm==(FALSE)
++		sd b
++		setcall b is_big(data,sufix)
++		return b
++	endif
++	return (FALSE)
++endfunction
++
+ function writeoper(sd takeindex,sd location,sd sufix)
+ 	sd err
+ 	setcall err writetake(takeindex,location)
+--- ocompiler-1.orig/src/files/functions/argument/arg.s
++++ ocompiler-1/src/files/functions/argument/arg.s
+@@ -59,7 +59,7 @@ Function getarg(data ptrcontent,data ptr
+ 	Data noerr=noerror
+ 	data false=0
+ 
+-	call resetisimm()
++	#call resetisimm()
+ 	sd bool
+ 	setcall bool is_constant_related_ascii(content#)
+ 	if bool==(TRUE)
+@@ -188,7 +188,7 @@ Function getarg(data ptrcontent,data ptr
+ 			endelse
+ 		endelse
+ 	endelse
+-	#
++	call unsetimm()
+ 	If sens==(FORWARD)
+ 		Call advancecursors(ptrcontent,ptrsize,argsize)
+ 		Return noerr
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -79,7 +79,7 @@ Function argument(data ptrcontent,data p
+ 	Set regprepare_bool false
+ 	Set sizeofcontinuation zero
+ 
+-	call unsetimm()
++	#call unsetimm()
+ 	Data forward=FORWARD
+ 	If forwardORcallsens==forward
+ 		If subtype==(cRETURN)
+--- ocompiler-1.orig/src/files/functions/argument/imm.s
++++ ocompiler-1/src/files/functions/argument/imm.s
+@@ -86,6 +86,7 @@ function write_imm(sd dataarg,sd op)
+ 	data code%ptrcodesec
+ 	sd err
+ 	setcall err addtosec(immadd,sz,code)
++	call resetisimm()
+ 	return err
+ endfunction
+ 
+@@ -96,16 +97,20 @@ function storefirst_isimm()
+ 	data ptr%ptr_isimm
+ 	set firstimm ptr#
+ endfunction
+-
+ function restorefirst_isimm()
+ 	data first%ptr_first_isimm
+ 	data ptr%ptr_isimm
+ 	set ptr# first#
+ endfunction
++function getfirst_isimm()
++	data first%ptr_first_isimm
++	return first#
++endfunction
+ 
+ function switchimm()
+ 	data ptr%ptr_isimm
+ 	data true=1
++	#first was false was low at comparations low vs high
+ 	if ptr#==true
+ 		data first%ptr_first_isimm
+ 		set first# true
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -87,3 +87,6 @@ sd el_or_e=FALSE
+ 
+ #needing also at pass call and pass write
+ set functionTagIndex 0
++
++call unsetimm()
++call resetisimm()

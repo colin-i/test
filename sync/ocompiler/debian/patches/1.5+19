@@ -1,0 +1,348 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+19) xenial; urgency=medium
+ .
+   * short optimization
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-11
+
+--- ocompiler-1.orig/src/files/_/cimports.h
++++ ocompiler-1/src/files/_/cimports.h
+@@ -7,4 +7,4 @@ Import "free" free
+ Import "sprintf" sprintf
+ Import "memcpy" memtomem
+ Import "memset" memset
+-Import "exit" exit
+\ No newline at end of file
++Import "exit" exit
+--- ocompiler-1.orig/src/files/actions.s
++++ ocompiler-1/src/files/actions.s
+@@ -25,4 +25,4 @@ Include "./actions/resolve.s"
+ 
+ Include "./actions/write.s"
+ 
+-Call freeclose()
+\ No newline at end of file
++Call freeclose()
+--- ocompiler-1.orig/src/files/actions/fileformat.s
++++ ocompiler-1/src/files/actions/fileformat.s
+@@ -4,4 +4,4 @@ If fileformat==pe_exec
+ 	Include "./fileformat/pe_resolve.s"
+ Else
+ 	Include "./fileformat/elf_resolve.s"
+-EndElse
+\ No newline at end of file
++EndElse
+--- ocompiler-1.orig/src/files/actions/fileformat/pe_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/pe_resolve.s
+@@ -163,4 +163,4 @@ EndIf
+ 
+ Data padtheheaders#1
+ SetCall padtheheaders requiredpad(SizeOfHeaders,FileAlignment)
+-Add SizeOfHeaders padtheheaders
+\ No newline at end of file
++Add SizeOfHeaders padtheheaders
+--- ocompiler-1.orig/src/files/actions/main/index/conditions.s
++++ ocompiler-1/src/files/actions/main/index/conditions.s
+@@ -31,4 +31,4 @@ ElseIf subtype==(cELSEIF)
+ Else
+ #cENDELSEIF
+ 	SetCall errormsg conditionscondend((ifnumber),(elsenumber))
+-EndElse
+\ No newline at end of file
++EndElse
+--- ocompiler-1.orig/src/files/actions/main/index/hex.s
++++ ocompiler-1/src/files/actions/main/index/hex.s
+@@ -1,3 +1,3 @@
+ 
+ 
+-setcall errormsg enumcommas(pcontent,pcomsize,pcomsize#,(fndecandgroup),(charsnumber),(FALSE),(hexenum))
+\ No newline at end of file
++setcall errormsg enumcommas(pcontent,pcomsize,pcomsize#,(fndecandgroup),(charsnumber),(FALSE),(hexenum))
+--- ocompiler-1.orig/src/files/actions/main/index/import.s
++++ ocompiler-1/src/files/actions/main/index/import.s
+@@ -86,4 +86,4 @@ If errormsg==noerr
+ 			EndIf
+ 		EndIf
+ 	EndIf
+-EndIf
+\ No newline at end of file
++EndIf
+--- ocompiler-1.orig/src/files/actions/main/index/onearg.s
++++ ocompiler-1/src/files/actions/main/index/onearg.s
+@@ -1,4 +1,4 @@
+ 
+ 
+ Data forward=FORWARD
+-SetCall errormsg argument(pcontent,pcomsize,subtype,forward)
+\ No newline at end of file
++SetCall errormsg argument(pcontent,pcomsize,subtype,forward)
+--- ocompiler-1.orig/src/files/actions/main/index/primsec.s
++++ ocompiler-1/src/files/actions/main/index/primsec.s
+@@ -1,3 +1,3 @@
+ 
+ 
+-SetCall errormsg twoargs(pcontent,pcomsize,subtype,null)
+\ No newline at end of file
++SetCall errormsg twoargs(pcontent,pcomsize,subtype,null)
+--- ocompiler-1.orig/src/files/actions/main/index/warning.s
++++ ocompiler-1/src/files/actions/main/index/warning.s
+@@ -11,4 +11,4 @@ else
+ 	else
+ 		set errormsg "Expecting 'on' or 'off' command"
+ 	endelse
+-endelse
+\ No newline at end of file
++endelse
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -154,24 +154,26 @@ Function parsefunction(data ptrcontent,d
+ 				EndIf
+ 			EndIf
+ 
+-			setcall scope64 is_funcx_subtype(subtype)
+-			#functionx,entry in 64 conventions
+-			#entrylinux has no return but has argc,aexec,a1...an
+-			if scope64==(TRUE)
+-				setcall scope64 is_for_64()
+-				if scope64==(TRUE)
+-					setcall err function_start_64()
+-					If err!=noerr
+-						Return err
+-					EndIf
+-				endif
+-				call scope64_set(scope64)
+-			elseif subtype==(cENTRYLINUX)
+-				#scope64 not using, never get into getreturn here
+-				setcall err entrylinux_top();if err!=noerr;Return err;EndIf
+-			else
+-				#cFUNCTION
++			if subtype==(cFUNCTION)
+ 				call scope64_set((FALSE))
++			else
++				setcall scope64 is_funcx_subtype(subtype)
++				#functionx,entry in 64 conventions
++				#entrylinux has no return but has argc,aexec,a1...an
++				if scope64==(TRUE)
++					setcall scope64 is_for_64()
++					if scope64==(TRUE)
++						setcall err function_start_64()
++						If err!=noerr
++							Return err
++						EndIf
++					endif
++					call scope64_set(scope64)
++				else
++				#if subtype==(cENTRYLINUX)
++					#scope64 not using, never get into getreturn here
++					setcall err entrylinux_top();if err!=noerr;Return err;EndIf
++				endelse
+ 			endelse
+ 		endelse
+ 	Else
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -139,4 +139,4 @@ Function fndecargs(data ptrcontent,data
+ 	endif
+ 
+ 	Return (noerror)
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/functions/add/addstresc.s
++++ ocompiler-1/src/files/functions/add/addstresc.s
+@@ -55,4 +55,4 @@ Function addtosecstresc(sd pcontent,sd p
+ 	EndIf
+ 
+ 	Return noerr
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/functions/add/addtomem.s
++++ ocompiler-1/src/files/functions/add/addtomem.s
+@@ -126,4 +126,4 @@ Function addtosecstr(str content,data si
+ 	Str ptrnull^null
+ 	SetCall errnr addtosec(ptrnull,sz,dst)
+ 	Return errnr
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/functions/argument/imm.s
++++ ocompiler-1/src/files/functions/argument/imm.s
+@@ -112,4 +112,4 @@ function switchimm()
+ 		data false=0
+ 		set ptr# false
+ 	endif
+-endfunction
+\ No newline at end of file
++endfunction
+--- ocompiler-1.orig/src/files/functions/commands/cond.s
++++ ocompiler-1/src/files/functions/commands/cond.s
+@@ -252,4 +252,4 @@ Function closeifopenelse()
+ 	Data elsenr=elsenumber
+ 	SetCall err condbeginwrite(elsenr)
+ 	Return err
+-EndFunction
+\ No newline at end of file
++EndFunction
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -389,4 +389,4 @@ function quotes_forward(sd p_content,ss
+ 		set p_newlines# newlines
+ 	endif
+ 	return (noerror)
+-endfunction
+\ No newline at end of file
++endfunction
+--- ocompiler-1.orig/src/files/functions/commons/valinmem.s
++++ ocompiler-1/src/files/functions/commons/valinmem.s
+@@ -47,4 +47,4 @@ function valinmem_pipes(str content,data
+ 	setcall sz valinmem(content,size,delim)
+ 	set pipe# sz
+ 	return sz
+-endfunction
+\ No newline at end of file
++endfunction
+--- ocompiler-1.orig/src/files/functions/stack/stack_inits.s
++++ ocompiler-1/src/files/functions/stack/stack_inits.s
+@@ -41,4 +41,4 @@ function stack_get_relative(sd location)
+ 	data regopcode_mask=regopcode_mask
+ 	and mask regopcode_mask
+ 	return mask
+-endfunction
+\ No newline at end of file
++endfunction
+--- ocompiler-1.orig/src/files/headers/ascii.h
++++ ocompiler-1/src/files/headers/ascii.h
+@@ -44,4 +44,4 @@ Const asciiz=0x7A
+ #7b left curly bracket {
+ Const asciivbar=0x7C
+ #7d }
+-Const asciiequiv=0x7E
+\ No newline at end of file
++Const asciiequiv=0x7E
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -60,4 +60,4 @@ Data negative=-1
+ Data i#1
+ Chars dot="."
+ 
+-const sym_with_size=dwsz
+\ No newline at end of file
++const sym_with_size=dwsz
+--- ocompiler-1.orig/src/files/headers/cond.h
++++ ocompiler-1/src/files/headers/cond.h
+@@ -17,4 +17,4 @@ Const whilenumber=2
+ 
+ #Const endelseifnumber=condends+elseifnumber
+ 
+-Const nocondnumber=-1
+\ No newline at end of file
++Const nocondnumber=-1
+--- ocompiler-1.orig/src/files/headers/pe_format.h
++++ ocompiler-1/src/files/headers/pe_format.h
+@@ -114,4 +114,4 @@ Data iVirtualAddress#1
+ Data iSizeOfRawData=0x1000
+ Data iPointerToRawData#1
+ Data *moreatidata={0,0,0}
+-Data idatasectionCharacteristics=IMAGE_SCN_CNT_INITIALIZED_DATA|IMAGE_SCN_MEM_READ
+\ No newline at end of file
++Data idatasectionCharacteristics=IMAGE_SCN_CNT_INITIALIZED_DATA|IMAGE_SCN_MEM_READ
+--- ocompiler-1.orig/src/linux/files/xcomimports.h
++++ ocompiler-1/src/linux/files/xcomimports.h
+@@ -14,4 +14,4 @@ Import "fprintf" fprintf
+ Import "stderr" stderr
+ 
+ import "getenv" getenv
+-import "access" access
+\ No newline at end of file
++import "access" access
+--- ocompiler-1.orig/src/linux/text.s
++++ ocompiler-1/src/linux/text.s
+@@ -13,4 +13,4 @@ endif
+ 
+ Include "../files/actions.s"
+ 
+-Exit zero
+\ No newline at end of file
++Exit zero
+--- ocompiler-1.orig/src/windows/files/platform.s
++++ ocompiler-1/src/windows/files/platform.s
+@@ -33,4 +33,4 @@ function wide_to_ansi(ss in)
+ 		endif
+ 		add in 2
+ 	endwhile
+-endfunction
+\ No newline at end of file
++endfunction
+--- ocompiler-1.orig/src/windows/files/winend.s
++++ ocompiler-1/src/windows/files/winend.s
+@@ -21,4 +21,4 @@ If openfilenamemethod==true
+ 
+ 	Call sprintf(ptrouttime,ptrouttimeformat,seconds,timeatend)
+ 	Call MessageBox(null,ptrouttime,"Time",null)
+-EndIf
+\ No newline at end of file
++EndIf
+--- ocompiler-1.orig/src/windows/files/wingetfile.s
++++ ocompiler-1/src/windows/files/wingetfile.s
+@@ -10,4 +10,4 @@ If path_nofree==null
+ 	Data timeatbegin#1
+ 	SetCall timeatbegin GetTickCount()
+ 	Set openfilenamemethod true
+-EndIf
+\ No newline at end of file
++EndIf
+--- ocompiler-1.orig/src/windows/files/wingetfile/getfilefromcommand.s
++++ ocompiler-1/src/windows/files/wingetfile/getfilefromcommand.s
+@@ -21,4 +21,4 @@ If commname_size!=zero
+ 			endif
+ 		endif
+ 	endif
+-EndIf
+\ No newline at end of file
++EndIf
+--- ocompiler-1.orig/src/windows/files/winheaders.h
++++ ocompiler-1/src/windows/files/winheaders.h
+@@ -13,4 +13,4 @@ const p_argv^argv
+ data argc#1
+ 
+ str path_free#1
+-const p_path_free^path_free
+\ No newline at end of file
++const p_path_free^path_free
+--- ocompiler-1.orig/src/windows/obj32.s
++++ ocompiler-1/src/windows/obj32.s
+@@ -5,4 +5,4 @@
+ Format ElfObj
+ 
+ Include "./files/winobjimports.h"
+-Include "./obj.s"
+\ No newline at end of file
++Include "./obj.s"
+--- ocompiler-1.orig/src/windows/obj64.s
++++ ocompiler-1/src/windows/obj64.s
+@@ -4,4 +4,4 @@
+ Format ElfObj64
+ 
+ Include "./files/winobj64imports.h"
+-Include "./obj.s"
+\ No newline at end of file
++Include "./obj.s"

@@ -1,0 +1,1274 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+58) bionic; urgency=medium
+ .
+   * fix and callx variants
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-10-27
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -2,16 +2,15 @@
+ #1
+ 
+ last=`curl https://api.github.com/repos/colin-i/o/releases/latest -s | jq .tag_name -r` && \
+-~/test/debinit2 "${1}" && \
++~/test/debinit2 "${1}" bionic && \
+ ~/test/keyring2 && \
+ ~/test/deb && \
+ ~/test/publp && \
+ ~/test/ai && \
+-~/test/pub appimage && \
+ ./makewin32 && \
+ ~/test/del && \
+ ~/test/rel && \
+-~/test/pub rel && \
++~/test/pub appimage rel && \
+ ~/test/rpm && \
+ ~/test/upapp && \
+ ~/test/up && \
+@@ -22,8 +21,14 @@ last=`curl https://api.github.com/repos/
+ ~/test/lp x && \
+ ~/test/keyring && \
+ ~/test/del x ${last} && \
+-~/test/arh2 ${last}
+-
++~/test/arh2 ${last} && \
++sed -i '1s/bionic/xenial/' debian/changelog && \
++sed -i '1s/)/x)/' debian/changelog && \
++~/test/deb && \
++~/test/publp && \
++~/test/publp2 && \
++git restore debian/changelog
++#is something wrong with copy package and rebuild (maybe same with copy-package without -b)
+ 
+ #plans:
+ 
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -665,8 +665,11 @@
+ 	All functions can be used in combinations like AddCall, OrCall, XorCall, etc.
+ 	<br>
+ 	<b>CallEx</b> is for prepared calls. This is a 3 argument operation. The first argument is the function name, the second argument is the arguments pointer and the third argument is the number of arguments. The arguments are passed forward respecting the size of the integer(4 bytes on 32-bits app, 8 on 64). One usage can be when there is a call with a number of arguments detected at run-time and want to pass them all to another call.
++	A "SetCallEx" trick is to wrap <b>CallEx</b> in a function and to <b>SetCall</b> that function.
+ 	<br>
+ 	The <b>Entry</b> command acts like a <b>Function</b> command but with some differences: 1. the scope is not changed to a local scope; 2. the function is not added to the unreferences list; 3. the <b>endfunction</b> command is not used at this function.
++	<br>
++	<b>CallX</b>, <b>...CallX</b>, <b>CallExX</b> will call like a <b>FunctionX</b>/<b>ImportX</b>.
+ 	<p>
+ 	Example:
+ 	<a class="code">
+@@ -731,9 +734,17 @@
+ 	<br>
+ 	Greater: &#62;
+ 	<br>
+-	LessorEqual: &#60;=
++	Less or Equal: &#60;=
++	<br>
++	Greater or Equal:&#62;=
++	<br>
++	Unsigned Less: &#60;^
++	<br>
++	Unsigned Greater: &#62;^
++	<br>
++	Unsigned Less or Equal: &#60;=^
+ 	<br>
+-	GreaterorEqual:&#62;=
++	Unsigned Greater or Equal:&#62;=^
+ 	<p>
+ 	Example:
+ 	<a class="code">
+--- ocompiler-1.orig/ostrip/Makefile
++++ ocompiler-1/ostrip/Makefile
+@@ -14,15 +14,25 @@ OCOMP=../src/o
+ 	${OCOMP} $< ${OFLAGS}
+ 
+ syms =-s
+-ATCCCOM = $(CC) ${syms} -o $@
++ATCCCOM = $(CC) ${syms} -o ${OB}
++#ld build is failing, must do pie at bionic
+ 
+-ostrip: ${OBJ}
++ostrip: compile strip
++	@echo
++#without this echo will do a strange cc command
++
++compile: ${OBJ}
+ 	../ounused/ounused ${FULLOBJLOG}
+ 	@echo
+ 	${ATCCCOM} ${FULLOBJO}
+-	#- because it is not ready for a PIE
+-	-./${OB} ${OB} ${FULLOBJLOG} ${FULLOBJO}
+-	-python3 strip.py ./${OB} ./${OB}
++
++strip:
++	if [ "$(shell lsb_release -cs)" != "xenial" ]; then \
++		${FULLOBJ} ${FULLOBJ} ${FULLOBJLOG} ${FULLOBJO}; \
++		if [ "$$?" = "0" ]; then \
++			python3 strip.py ${FULLOBJ} ${FULLOBJ}; \
++		fi; \
++	fi
+ 
+ install: ostrip
+ 	install -D ostrip \
+@@ -31,8 +41,9 @@ install: ostrip
+ clean-compile:
+ 	-rm -f ${FULLOBJO}
+ 	-rm -f ${FULLOBJLOG}
+-	-rm -f .text
+ 	-rm -f .data
++	-rm -f .text
++	-rm -f .rela.dyn
+ 
+ clean-link:
+ 	-rm -f ostrip
+--- ocompiler-1.orig/ostrip/after.s
++++ ocompiler-1/ostrip/after.s
+@@ -73,9 +73,10 @@ function aftercall_replace(sv psym,sv ps
+ 	endif
+ endfunction
+ 
+-function aftercall_in_objects(sv objects,ss astr,sv aoffset)
++function aftercall_in_objects(sv objects,ss astr,sv aoffset,sd textinneroffset)
+ 	sv tphisic%pexetext
+ 	set tphisic tphisic#
++	add tphisic textinneroffset
+ 	while objects#!=(NULL)
+ 		sv object;set object objects#
+ 		sv pointer=to_strtab;add pointer object
+@@ -104,7 +105,7 @@ function aftercall_in_objects(sv objects
+ 			sub pointer (from_symtab_to_text)
+ 			call reloc_item(pointer,sympos,aoffset,tphisic)
+ 		endif
+-		add object (to_text_extra)
++		add object (to_text_extra_a)
+ 		add tphisic object#
+ 		incst objects
+ 	endwhile
+--- ocompiler-1.orig/ostrip/file.s
++++ ocompiler-1/ostrip/file.s
+@@ -16,7 +16,7 @@ const sh64_addr_to_offset=:
+ const sh64_addr_to_size=sh64_addr_to_offset+:
+ 
+ #data size
+-function get_file(sd name,sv p_file,sd type,sv secN,sv p_secN,sd pnrsec,sd psecond_sec,sd only_at_exec)
++function get_file(sd name,sv p_file,sv secN,sv p_secN,sd pnrsec,sd psecond_sec,sd only_at_exec)
+ 	setcall p_file# fopen(name,"rb")
+ 	sd file;set file p_file#
+ 	if file!=(NULL)
+@@ -30,8 +30,8 @@ function get_file(sd name,sv p_file,sd t
+ #chars *elf64_ehd_e_ident_osabi={ELFOSABI_NONE}
+ #chars *elf64_ehd_e_ident_abiversion={EI_ABIVERSION}
+ #chars *elf64_ehd_e_ident_pad={0,0,0,0,0,0,0}
+-		const after_sign_to_type=1+1+1+1+1+7
+ #Chars *elf64_ehd_e_type={ET_REL,0}
++		const after_sign_to_machine=1+1+1+1+1+7+2
+ 		Chars elf64_ehd_e_machine={EM_X86_64,0}
+ #data *elf64_ehd_e_version=EV_CURRENT
+ #data *elf64_ehd_e_entry={0,0}
+@@ -51,60 +51,63 @@ function get_file(sd name,sv p_file,sd t
+ 		sd sign;call read(file,#sign,sz)
+ 		sd c;setcall c memcmp(#sign,#elf64_ehd_e_ident_sign,sz)
+ 		if c==0
+-			call seekc(file,(after_sign_to_type))
++			call seekc(file,(after_sign_to_machine))
+ 			sd wsz=2
+ 			sd w;call read(file,#w,wsz)
+-			setcall c memcmp(#w,#type,wsz)
++			setcall c memcmp(#w,#elf64_ehd_e_machine,wsz)
+ 			if c==0
+-				call read(file,#w,wsz)
+-				setcall c memcmp(#w,#elf64_ehd_e_machine,wsz)
+-				if c==0
+-					call seekc(file,(after_machine_to_shoff))
+-					sd offset;call read(file,#offset,:)
+-					call seekc(file,(after_shoff_to_shentsize))
+-					data shentsize=0
+-					data shnum=0
+-					data shstrndx=0
+-					call read(file,#shentsize,wsz)
+-					call read(file,#shnum,wsz)
+-					call read(file,#shstrndx,wsz)
++				call seekc(file,(after_machine_to_shoff))
++				sd offset;call read(file,#offset,:)
++				call seekc(file,(after_shoff_to_shentsize))
++				data shentsize=0
++				data shnum=0
++				data shstrndx=0
++				call read(file,#shentsize,wsz)
++				call read(file,#shnum,wsz)
++				call read(file,#shstrndx,wsz)
+ 
+-					sd return_value
+-					#get sec indexes from section names table
+-					setcall return_value shnames(file,offset,shentsize,shstrndx,secN,pnrsec,psecond_sec)
++				sd return_value
++				sd size
+ 
+-					#end for iterations
+-					sd end;set end shnum;mult end shentsize;add end offset
++				#end for iterations
++				sd end;set end shnum;mult end shentsize;add end offset
+ 
+-					if psecond_sec!=(NULL)
+-						#get data size
+-						#set return_value 0    #0 can go right now(it is blank section at our objects), but that can be stripped, favorizing
+-						call get_section_item(file,offset,end,#return_value,(sh64_addr_to_size),shentsize)
+-						call get_section_item(file,offset,end,psecond_sec,(sh64_addr_to_size),shentsize)
+-					else
+-						call get_section_item(file,offset,end,#return_value,0,shentsize)
+-						call write_symtab_offset(file,offset,end,shentsize,only_at_exec)
+-					endelse
+-
+-					#get sections
+-					while secN#!=(NULL)
+-						#next at frees
+-						set p_secN# (NULL)  #this is extra only at first
+-						sd size;setcall size get_section_many(file,offset,end,shentsize,pnrsec#,p_secN)
+-						if p_secN#==(NULL)
+-							return return_value
+-						endif
+-						add secN :
+-						add pnrsec (datasize)
+-						add p_secN :
+-						set p_secN# size
+-						add p_secN :
+-					endwhile
+-					return return_value
+-				endif
+-				call erMessages("wrong machine",name)
++				if psecond_sec!=(NULL)
++					#get sec indexes from section names table
++					setcall return_value shnames(file,offset,shentsize,shstrndx,secN,pnrsec,psecond_sec)
++					#get data size
++					#set return_value 0    #0 can go right now(it is blank section at our objects), but that can be stripped, favorizing
++					call get_section_item(file,offset,end,#return_value,(sh64_addr_to_size),shentsize)
++					call get_section_item(file,offset,end,psecond_sec,(sh64_addr_to_size),shentsize)
++				else
++				#exec
++					#get sec indexes from section names table
++					sd reladyn
++					setcall return_value shnames(file,offset,shentsize,shstrndx,secN,pnrsec,(NULL),#reladyn)
++					call get_section_item(file,offset,end,#return_value,0,shentsize)
++					call write_symtab_offset(file,offset,end,shentsize,only_at_exec)
++					if reladyn!=-1
++						setcall frees.execreladynsize get_section_many(file,offset,end,shentsize,reladyn,#frees.execreladyn)
++					endif
++				endelse
++
++				#get sections
++				while secN#!=(NULL)
++					#next at frees
++					set p_secN# (NULL)  #this is extra only at first
++					setcall size get_section_many(file,offset,end,shentsize,pnrsec#,p_secN)
++					if p_secN#==(NULL)
++						return return_value
++					endif
++					add secN :
++					add pnrsec (datasize)
++					add p_secN :
++					set p_secN# size
++					add p_secN :
++				endwhile
++				return return_value
+ 			endif
+-			call erMessages("bad type",name)
++			call erMessages("wrong machine",name)
+ 		endif
+ 		call erMessages("not an elf",name)
+ 	endif
+@@ -142,7 +145,7 @@ function seek(sd file,sd offset,sd whenc
+ endfunction
+ 
+ #datasec
+-function shnames(sd file,sd offset,sd shentsize,sd shstrndx,sv secN,sd pnrsec,sd psecond_sec)  #nrsec is int
++function shnames(sd file,sd offset,sd shentsize,sd shstrndx,sv secN,sd pnrsec,sd psecond_sec,sd only_at_exec)  #nrsec is int
+ 	mult shstrndx shentsize
+ 	add offset shstrndx
+ 
+@@ -159,7 +162,9 @@ function shnames(sd file,sd offset,sd sh
+ 	sd datasec;setcall datasec shnames_find(mem,end,".data")
+ 	if psecond_sec!=(NULL)
+ 		setcall psecond_sec# shnames_find(mem,end,".text")
+-	endif
++	else
++		setcall only_at_exec# shnames_find(mem,end,".rela.dyn")
++	endelse
+ 	#else set datasec firstnrsec
+ 
+ 	call free(mem)
+--- ocompiler-1.orig/ostrip/header.h
++++ ocompiler-1/ostrip/header.h
+@@ -9,9 +9,8 @@ Const SEEK_SET=0
+ Const SEEK_CUR=1
+ Const SEEK_END=2
+ 
+-const ET_REL=1
+-const ET_EXEC=2
+ const EM_X86_64=62
++const R_X86_64_RELATIVE=8
+ 
+ const F_OK=0
+ 
+@@ -27,10 +26,12 @@ Importx "fseek" fseek
+ Importx "ftell" ftell
+ Importx "fwrite" fwrite
+ 
++importx "access" access
++
+ Importx "memcmp" memcmp
+ importx "malloc" malloc
+ importx "free" free
+-importx "access" access
++Importx "memcpy" memcpy
+ 
+ importx "strcmp" strcmp
+ importx "strlen" strlen
+--- ocompiler-1.orig/ostrip/obj.s
++++ ocompiler-1/ostrip/obj.s
+@@ -1,18 +1,30 @@
+ 
++#data extra align at realoffset,concat,reldyn then unaligned at reloc,reldyn
++#text extra aligned
++
+ const object_nr_of_main_sections=2
+ const object_nr_of_secondary_sections=2
+ const object_nr_of_sections=object_nr_of_main_sections+object_nr_of_secondary_sections
+ const section_alloc=:*section_nr_of_values
+ const object_alloc_secs=object_nr_of_sections*section_alloc
+-const to_text_extra=object_alloc_secs+datasize+:
+-const object_alloc=to_text_extra+:
++
+ #const to_text=section_alloc
+ const to_symtab=object_nr_of_main_sections*section_alloc
+ const to_strtab=to_symtab+section_alloc
+ const from_symsize_to_voffset=:+section_alloc
+ const from_strtab_to_symtab=section_alloc
+ const from_symtab_to_text=section_alloc
+-const from_text_to_extra=section_alloc+(object_nr_of_secondary_sections*section_alloc)
++const from_text_to_data_extra=section_alloc+(object_nr_of_secondary_sections*section_alloc)
++
++const to_data_extra=object_alloc_secs
++const from_data_extra_to_data_extra_sz=datasize
++const from_extra_sz_to_extra_sz_a=:
++const from_data_extra_to_data_extra_sz_a=from_data_extra_to_data_extra_sz+from_extra_sz_to_extra_sz_a
++const to_data_extra_sz=object_alloc_secs+from_data_extra_to_data_extra_sz
++const extra_sz=from_extra_sz_to_extra_sz_a+:
++const to_text_extra=to_data_extra_sz+extra_sz
++const to_text_extra_a=to_text_extra+from_extra_sz_to_extra_sz_a
++const object_alloc=to_text_extra+extra_sz
+ 
+ ##stripped size
+ function get_objs(sv pargs,sd end)
+@@ -46,20 +58,26 @@ function get_objs(sv pargs,sd end)
+ 		datax nrs#object_nr_of_sections   #same as previous call
+ 		#blank sections at ocomp?
+ 
+-		sv p=object_alloc_secs
++		sv p=to_data_extra
+ 		add p object
+ 
+ 		setcall p#d^ get_offset(pargs#)  #the ocomp with these sections from that creation time are still respected (32 bits)
+ 
+-		add p (datasize)
++		add p (from_data_extra_to_data_extra_sz)
+ 		incst pargs
+ 
+ 		sd file
+-		sv t=:
++		sv t=extra_sz
+ 		add t p
+-		setcall p# get_file(pargs#,#file,(ET_REL),#oN,object,#nrs,t)
++		#,(ET_REL)
++		setcall p# get_file(pargs#,#file,#oN,object,#nrs,t)
+ 		call fclose(file)
+-		setcall t# objs_align(t#)  #will be in two places used (same value)
++		sv d_unaligned;set d_unaligned p
++		add p (from_extra_sz_to_extra_sz_a)
++		setcall p# objs_align(d_unaligned#)
++		sv t_unaligned;set t_unaligned t
++		add t (from_extra_sz_to_extra_sz_a)
++		setcall t# objs_align(t_unaligned#)
+ 		incst pargs
+ 	endwhile
+ endfunction
+@@ -86,20 +104,23 @@ function get_offset(sd fname)
+ 	call fError(fname)
+ endfunction
+ 
++function write_sec(ss name,sd sec,sd size)
++	if sec!=(NULL)   #is ok only to execute the prog with no data or text, and for reldyn
++		sd file;setcall file fopen(name,"wb")
++		if file!=(NULL)
++			call writeclose(file,sec,size)
++		else
++			call fError(name)
++		endelse
++	endif
++endfunction
+ function write(sv names,sv psections)
+ 	while names#!=(NULL)
+ 		sd sec;set sec psections#
+ 		add psections :
+ 		sd size;set size psections#
+ 		add psections :
+-		if sec!=(NULL)   #is ok only to execute the prog with no data or text
+-			sd file;setcall file fopen(names#,"wb")
+-			if file!=(NULL)
+-				call writeclose(file,sec,size)
+-			else
+-				call fError(names#)
+-			endelse
+-		endif
++		call write_sec(names#,sec,size)
+ 		incst names
+ 	endwhile
+ endfunction
+--- ocompiler-1.orig/ostrip/ostrip.s
++++ ocompiler-1/ostrip/ostrip.s
+@@ -13,14 +13,19 @@ format elfobj64
+ #both exec and shared:
+ #	pointers to dataind at text/data
+ #	aftercall has a copy at .symtab
++#	.rela.dyn:
++#		data section offsets (R_X86_64_64:^printf)
+ 
+ #only exec:
+ #	pointers to aftercall
+ 
+-#only at shared:
++#only at shared and pie:
+ #	.rela.dyn:
+ #		addends from pointers to data section (this and the previous are saying the same thing but maybe is compatibility)
+-#		data section offsets (direct:^printf, pointers to text/data sections)
++#		data section offsets (R_X86_64_RELATIVE pointers to text/data sections)
++#iterate by type,compare offset if is in data or in text,will have 3 go ways from there(at text the offset is ok)(at .._64 no addend)(at data both offset and addend)
++
++#only at shared:
+ #	aftercall value at .dynsym
+ 
+ #pin about .data align at objects that ld respects when concatenating
+@@ -68,6 +73,7 @@ chars s1=".data";chars s2=".text";chars
+ include "file.s"
+ include "obj.s"
+ include "after.s"
++include "reldyn.s"
+ 
+ entry main(sd argc,sv argv) #0,ss exec,ss log1,ss *obj1)   #... logN objN
+ 
+@@ -93,6 +99,7 @@ if argc>=(1+3)  #0 is all the time
+ 	set ps# (NULL)
+ 	#and set data null here, it is useless there for objects call
+ 	set pexe# (NULL)   #data
++	set frees.execreladyn (NULL)
+ 
+ 	sv pobjects%pobjects
+ 	set pobjects# (NULL) #this is on the main plan, is after ss exec at frees
+@@ -101,16 +108,33 @@ if argc>=(1+3)  #0 is all the time
+ 	add argc argv
+ 
+ 	incst argv
+-	sd datavaddr;setcall datavaddr get_file(argv#,pfile,(ET_EXEC),#sN,pexe,#nrs,(NULL),#symtabnr)
++	#,(ET_EXEC)
++	sd datavaddr;setcall datavaddr get_file(argv#,pfile,#sN,pexe,#nrs,(NULL),#symtabnr)
+ 
+ 	incst argv
+ 	call get_objs(argv,argc) #aftercall can be in any object, need to keep memory
+ 
+-	call objs_concat(pobjects#,pexe)
++	#at pie(and everywhere like a good practice), there is a starting offset in data
++	#	need to get our size then sub from full data size and use that instead of data virtual
++	sd datainneroffset;setcall datainneroffset realoffset((to_data_extra_sz),frees.exedatasize)
++	#and same for text
++	sd textinneroffset;setcall textinneroffset realoffset((to_text_extra),frees.exetextsize)
++
++	sd keepdatasize;set keepdatasize frees.exedatasize
++	call objs_concat(pobjects#,pexe,datainneroffset)
++
++	if frees.execreladyn!=(NULL)  #or set size 0
++		sd maximum;set maximum datavaddr
++		add maximum keepdatasize
++		add datavaddr datainneroffset
++		call reloc_dyn(datavaddr,maximum)
++	else
++		add datavaddr datainneroffset
++	endelse
+ 
+-	call reloc(pobjects#,datavaddr)
++	call reloc(pobjects#,datavaddr,datainneroffset,textinneroffset)
+ 
+-	sd acall;setcall acall aftercall_find(pobjects#,#datavaddr)
++	sd acall;setcall acall aftercall_find(pobjects#,#datavaddr) #acall is the string and datavaddr new aftercall virtual
+ 	if acall!=(NULL)
+ 		if ps#!=(NULL)
+ 			#replace if exe symtab
+@@ -124,13 +148,15 @@ if argc>=(1+3)  #0 is all the time
+ 		endelse
+ 
+ 		#replace on the field
+-		call aftercall_in_objects(pobjects#,acall,datavaddr)
++		call aftercall_in_objects(pobjects#,acall,datavaddr,textinneroffset)
+ 	else
+ 		#skip symtab if no aftercall
+ 		set s3c (NULL)  #write will stop there
+ 	endelse
+ 
++	add frees.exedatasize datainneroffset    #set leading size back for write
+ 	call write(#sN,pexe)
++	call write_sec(".rela.dyn",frees.execreladyn,frees.execreladynsize)
+ 
+ 	call frees()
+ 	return (EXIT_SUCCESS)
+--- ocompiler-1.orig/ostrip/rel.s
++++ ocompiler-1/ostrip/rel.s
+@@ -1,28 +1,29 @@
+ 
+ 
+-function reloc(sv objects,sd daddr)
++function reloc(sv objects,sd daddr,sd datainneroffset,sd textinneroffset)
+ 	sd doffset;set doffset daddr
+ 	sv voffset%pexedatasize;   #this is after the new size was set
+ 	set voffset voffset#
+ 	add voffset daddr
+ 	sv dphisic%pexedata
+ 	set dphisic dphisic#
++	add dphisic datainneroffset
+ 	sv tphisic%pexetext
+ 	set tphisic tphisic#
++	add tphisic textinneroffset
+ 	while objects#!=(NULL)
+ 		sv object;set object objects#
+ 		sd d;set d object
+ 		add object (section_alloc)
+ 
+ 		sd t;set t object
+-		add object (from_text_to_extra)
++		add object (from_text_to_data_extra)
+ 
+ 		sd voffset_obj;set voffset_obj object#d^
+-		add object (datasize)
++		add object (from_data_extra_to_data_extra_sz)
+ 
+ 		sv vsize_obj;set vsize_obj object#
+ 		sub vsize_obj voffset_obj
+-		incst object
+ 
+ 		call reloc_sec(d,doffset,voffset,voffset_obj,dphisic)
+ 		call reloc_sec(t,doffset,voffset,voffset_obj,tphisic)
+@@ -30,6 +31,7 @@ function reloc(sv objects,sd daddr)
+ 		add doffset voffset_obj
+ 		add voffset vsize_obj
+ 		add dphisic voffset_obj
++		add object (extra_sz+from_extra_sz_to_extra_sz_a)
+ 		add tphisic object#
+ 
+ 		incst objects
+@@ -46,7 +48,11 @@ function reloc_sec(sv object,sd doffset,
+ #		data elf64_r_info_type#1
+ #		data elf64_r_info_symbolindex#1
+ #		data elf64_r_addend#1;data *=0
+-		const rel_size=:+datasize+datasize+:
++		const rel_to_type=:
++		const rel_from_type_to_addend=datasize+datasize
++		const rel_to_addend=rel_to_type+rel_from_type_to_addend
++		const rel_size=rel_to_addend+:
++
+ 		sv cursor;set cursor pointer
+ 		incst cursor
+ 		if cursor#d^==(R_X86_64_64)
+@@ -90,3 +96,5 @@ function reloc_item(sv object,sd index,s
+ 	endwhile
+ 	call verbose((verbose_flush))
+ endfunction
++
++include "reldynt.s"
+--- /dev/null
++++ ocompiler-1/ostrip/reldyn.s
+@@ -0,0 +1,53 @@
++
++
++function reloc_dyn(sd datavaddrstart,sd datavaddrend)
++	sd pointer;set pointer frees.execreladyn
++	add pointer (rel_to_type)
++	sd end;set end frees.execreladynsize
++	add end pointer
++	sd start
++	while pointer!=end
++		if pointer#==(R_X86_64_64)
++			set start pointer
++			setcall pointer reloc_dyn_sort(pointer,end,(R_X86_64_64),0)
++			call reloc_iteration(start,pointer,datavaddrstart,datavaddrend,-rel_to_type)
++			call verbose((verbose_flush))
++		elseif pointer#==(R_X86_64_RELATIVE)
++			#sort by addend then by offset to let at offset, at start probably is at offset but who cares
++			set start pointer
++			#by addend
++			sd group;setcall group reloc_dyn_sort(pointer,end,(R_X86_64_RELATIVE),(rel_to_addend))
++			call reloc_iteration(start,group,datavaddrstart,datavaddrend,(rel_from_type_to_addend))
++			call verbose((verbose_flush))
++			#by offset
++			setcall pointer reloc_dyn_sort(pointer,end,(R_X86_64_RELATIVE),0)
++			call reloc_iteration(start,pointer,datavaddrstart,datavaddrend,-rel_to_type)
++			call verbose((verbose_flush))
++		else
++			add pointer (rel_size)
++		endelse
++	endwhile
++endfunction
++
++#pointer
++function reloc_dyn_sort(sd pointer,sd end,sd type,sd diff)
++	sv start=-rel_to_type;add start pointer
++	while pointer!=end
++		if pointer#!=type
++			break
++		endif
++		add pointer (rel_size)
++	endwhile
++
++	sd return;set return pointer
++
++	sub pointer (rel_to_type)
++	sd size;set size pointer
++	sub size start
++	sv mem;setcall mem alloc(size)
++	call reloc_sort(start,pointer,mem,diff)
++	call memcpy(start,mem,size)
++	call free(mem)
++
++	return return
++endfunction
+--- /dev/null
++++ ocompiler-1/ostrip/reldynt.s
+@@ -0,0 +1,128 @@
++
++function reloc_sort(sv pointer,sv end,sv dest,sd diff)
++	sv start;set start pointer
++	while start!=end
++		set pointer start
++
++		add pointer diff
++		add end diff
++
++		sd min;set min pointer#
++		sd pos;set pos pointer
++		add pointer (rel_size)
++		while pointer!=end
++			if pointer#<^min
++				set min pointer#
++				set pos pointer
++			endif
++			add pointer (rel_size)
++		endwhile
++
++		sub pos diff
++		sub end diff
++
++		call memcpy(dest,pos,(rel_size))
++		add dest (rel_size)
++		if start!=pos
++		#to fill the gap
++			call memcpy(pos,start,(rel_size))
++		endif
++		add start (rel_size)
++	endwhile
++endfunction
++
++#correctoffset
++function reloc_dyn_value(sd wrongoffset)
++	valuex srcstart#1
++	valuex srcmid#1
++	valuex destd#1
++	valuex destv#1
++
++	if wrongoffset>=^srcmid
++	#virtual
++		sub wrongoffset srcmid
++		add wrongoffset destv
++		return wrongoffset
++	endif
++	#file
++	sub wrongoffset srcstart
++	add wrongoffset destd
++	return wrongoffset
++endfunction
++
++#datavaddr
++function reloc_dyn_initobj(sd datavaddr)
++	valuex objects#1
++	valuex srcend#1
++	valuex destdnext#1
++	valuex destvnext#1
++
++	set reloc_dyn_value.destd destdnext
++	set reloc_dyn_value.destv destvnext
++	set reloc_dyn_value.srcstart datavaddr
++
++	sv obj;set obj objects#
++	add obj (to_data_extra)
++	sd herevirtual;set herevirtual obj#d^
++	set reloc_dyn_value.srcmid datavaddr
++	add reloc_dyn_value.srcmid herevirtual
++	add destdnext herevirtual
++	add obj (from_data_extra_to_data_extra_sz)
++	sub herevirtual obj#
++	neg herevirtual
++	add destvnext herevirtual
++
++	add obj (from_extra_sz_to_extra_sz_a)
++	add datavaddr obj#
++	set srcend datavaddr
++
++	return datavaddr
++endfunction
++
++function reloc_iteration(sv pointer,sd end,sd datavaddr,sd datavaddrend,sd diff)
++	#this is called in all 3 cases (even only at addends there is virtual)
++	add pointer diff
++	add end diff
++	#find the minimum and the maximum
++	while pointer!=end
++		if pointer#>=^datavaddr
++			break
++		endif
++		add pointer (rel_size)
++	endwhile
++	if pointer!=end
++		#can be .text after .data
++		sv cursor;set cursor pointer
++		while pointer!=end
++			if pointer#>=^datavaddrend
++				break
++			endif
++			add pointer (rel_size)
++		endwhile
++		if cursor!=pointer
++			#at first object only virtuals can be corrected
++			set reloc_dyn_initobj.objects frees.objects
++			set reloc_dyn_initobj.destdnext datavaddr
++			set reloc_dyn_initobj.destvnext datavaddr
++			add reloc_dyn_initobj.destvnext frees.exedatasize  #this is after the new size was set
++			setcall datavaddr reloc_dyn_initobj(datavaddr)
++			while cursor!=pointer
++				sd offset;set offset cursor#
++				while offset>=^reloc_dyn_value.srcstart
++					if offset<^reloc_dyn_initobj.srcend
++						break
++					endif
++					incst reloc_dyn_initobj.objects
++					if reloc_dyn_initobj.objects#!=(NULL)
++						setcall datavaddr reloc_dyn_initobj(datavaddr)
++						continue
++					endif
++					ret     #it's not in .data anymore
++				endwhile
++				setcall cursor# reloc_dyn_value(offset)
++				add cursor (rel_size)
++				call verbose((verbose_count))
++			endwhile
++		endif
++	endif
++endfunction
+--- ocompiler-1.orig/ostrip/strip.py
++++ ocompiler-1/ostrip/strip.py
+@@ -44,7 +44,11 @@ if (os.path.exists(s3)):
+ 			f.seek(offset)
+ 			with open(s3,'rb') as s:
+ 				f.write(s.read())
+-proc=subprocess.run(["objcopy",outputfile,"--update-section",s2+"="+s2,"--update-section",s1+"="+s1])
++s4=".rela.dyn"
++if (os.path.exists(s4)):
++	proc=subprocess.run(["objcopy",outputfile,"--update-section",s1+"="+s1,"--update-section",s2+"="+s2,"--update-section",s4+"="+s4])
++else:
++	proc=subprocess.run(["objcopy",outputfile,"--update-section",s1+"="+s1,"--update-section",s2+"="+s2])
+ 
+ if proc.returncode==0:
+ 	import lief
+@@ -86,7 +90,11 @@ if proc.returncode==0:
+ 				x.virtual_size+=dif
+ 				for i in range(found,n):
+ 					a[i].virtual_address+=dif
++					#this is not tested at stdout/stderr that goes into .bss that is after .data
+ 				elffile.write(outputfile)
++				print("virtual_address modifications")
++			else:
++				print("virtual_address modifications were not required")
+ 			st = os.stat(outputfile)
+ 			import stat
+ 			os.chmod(outputfile, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+--- ocompiler-1.orig/ostrip/throwless.s
++++ ocompiler-1/ostrip/throwless.s
+@@ -5,9 +5,10 @@ function frees()
+ 	if exefile!=(NULL)
+ 		call fclose(exefile)
+ 	valuex exedata#1;valuex exedatasize#1
+-	valuex exetext#section_nr_of_values
++	valuex exetext#1;valuex exetextsize#1
+ 	valuex exesym#section_nr_of_values
+ 	valuex exestr#section_nr_of_values
++	valuex execreladyn#1;valuex execreladynsize#1
+ 	const pexedata^exedata;const pexedatasize^exedatasize
+ 	const pexetext^exetext
+ 	const pexesym^exesym
+@@ -24,6 +25,9 @@ function frees()
+ 				endif
+ 			endif
+ 		endif
++		if execreladyn!=(NULL)
++			call free(execreladyn)
++		endif
+ 		valuex objects#1
+ 		const pobjects^objects
+ 		if objects!=(NULL)
+@@ -96,38 +100,39 @@ endfunction
+ 
+ #obj
+ 
+-function objs_concat(sv objects,sv pdata)
++function objs_concat(sv objects,sv pdata,sd datainneroffset)
+ 	sd initial;set initial pdata#
+-	#sd pdatabin%pdatabin;setcall pdatabin# alloc(sz)
++	add initial datainneroffset
+ 	sd dest;set dest initial
+ 	sd src;set src dest
+ 
+ 	#skip first memtomem
+-	sv object=object_alloc_secs;add object objects#
++	sv object=to_data_extra;add object objects#
+ 	add dest object#d^
+-	add object (datasize)
+-	addcall src objs_align(object#)
++	add object (from_data_extra_to_data_extra_sz_a)
++	add src object#
+ 	incst objects
+ 
+ 	while objects#!=(NULL)
+-		set object (object_alloc_secs);add object objects#
++		set object (to_data_extra);add object objects#
+ 		sd stripped;set stripped object#d^
+ 		#we implement own memcpy here because right to left can break all
+ 		call memtomem(dest,src,stripped)
+ 		add dest stripped
+-		add object (datasize)
+-		addcall src objs_align(object#)
++		add object (from_data_extra_to_data_extra_sz_a)
++		add src object#
+ 		incst objects
+ 	endwhile
+ 
+-	add pdata :
++	incst pdata
+ 	#exe data size can have last object aligned/unaligned this way (don't count on initial size)
+ 	sub dest initial
+-	#rewrite size from unstripped to stripped
++	#rewrite size from extra+unstripped to stripped, to be used at rel and reldyn
+ 	sd size;set size pdata#
+ 	set pdata# dest
+ 
+ 	sub size dest
++	sub size datainneroffset
+ 	sv out^stdout
+ 	call fprintf(out#,"Stripped size: %llu bytes",size)
+ 	call messagedelim(out)
+@@ -160,3 +165,26 @@ function objs_align(sd sz)
+ 	and sz (~elf_sec_obj_align_trail)
+ 	return sz
+ endfunction
++
++#realoffset-offset
++function realoffset(sd add,sd sec_size)
++	sv objs;set objs frees.objects
++	sd data_size=0
++	while objs#!=(NULL)
++		sv obj;set obj objs#
++		add obj add
++		sv aligned;set aligned obj
++		add aligned (from_extra_sz_to_extra_sz_a)
++		set aligned aligned#
++		add data_size aligned
++		incst objs
++	endwhile
++	if aligned!=obj#
++	#last object is not aligned
++		sub aligned obj#
++		sub data_size aligned
++	endif
++	sub data_size sec_size
++	neg data_size
++	return data_size
++endfunction
+--- ocompiler-1.orig/src/files/actions/main/index/call.s
++++ ocompiler-1/src/files/actions/main/index/call.s
+@@ -1,4 +1,4 @@
+ 
+ 
+ Data callfn=callfunction
+-SetCall errormsg parsefunction(pcontent,pcomsize,callfn) #there are 2 more arguments but are not used
++SetCall errormsg parsefunction(pcontent,pcomsize,callfn,subtype) #there is 1 more argument but is not used
+--- ocompiler-1.orig/src/files/actions/main/index/callex.s
++++ ocompiler-1/src/files/actions/main/index/callex.s
+@@ -5,7 +5,7 @@ setcall errormsg arg_size(pcontent#,pcom
+ if errormsg==(noerror)
+ 	sd top_data
+ 	sd bool_indirect
+-	setcall errormsg prepare_function_call(pcontent,pcomsize,call_sz,#top_data,#bool_indirect)
++	setcall errormsg prepare_function_call(pcontent,pcomsize,call_sz,#top_data,#bool_indirect,subtype)
+ 	if errormsg==(noerror)
+ 		call spaces(pcontent,pcomsize)
+ 		setcall errormsg twoargs(pcontent,pcomsize,(cCALLEX),(NULL))
+--- ocompiler-1.orig/src/files/functions/64/bit.s
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -29,18 +29,34 @@ endfunction
+ function is_for_64_is_impX_or_fnX_p_get();data b#1;return #b;endfunction
+ #get
+ function is_for_64_is_impX_or_fnX_get();sd p_b;setcall p_b is_for_64_is_impX_or_fnX_p_get();return p_b#;endfunction
+-function is_for_64_is_impX_or_fnX_set(sd ptrdata)
+-	sd p_b
+-	setcall p_b is_for_64_is_impX_or_fnX_p_get()
++function is_for_64_is_impX_or_fnX_set(sd ptrdata,sd subtype)
+ 	sd b
+ 	setcall b is_for_64()
+ 	#importX and functionX used to have a test with is_for_64 outside of this, but at log need to know the type
+ 	if b==(TRUE)
+ 		add ptrdata (maskoffset)
+ 		sd val;set val ptrdata#;and val (x86_64bit)
+-		if val==(x86_64bit);set p_b# (TRUE);return (void);endif
++		sd p_b
++		if val==(x86_64bit)
++			setcall p_b is_for_64_is_impX_or_fnX_p_get()
++			set p_b# (TRUE)
++		elseif subtype==(x_callx_flag)
++			setcall p_b is_for_64_is_impX_or_fnX_p_get()
++			set p_b# (TRUE)
++		endelseif
++	endif
++	#is this required anymore? set p_b# (FALSE)
++endfunction
++function is_for_64_is_impX_or_fnX_set_force(sd subtype)
++	sd b
++	setcall b is_for_64()
++	if b==(TRUE)
++		if subtype==(x_callx_flag)
++			sd p_b
++			setcall p_b is_for_64_is_impX_or_fnX_p_get()
++			set p_b# (TRUE)
++		endif
+ 	endif
+-	set p_b# (FALSE)
+ endfunction
+ 
+ #get
+@@ -345,7 +361,7 @@ function function_call_64(sd is_callex)
+ 		chars *rax_conv={REX_Operand_64,0xb8};data *={lin_convention,0}
+ 		#push qwordsz
+ 		chars *={0x6a,qwsz}
+-		#inc eax
++		#inc al
+ 		chars *={0xfe,regregmod}
+ 		#mul al [esp]
+ 		chars *={0xf6,4*toregopcode|espregnumber,espregnumber*toregopcode|espregnumber}
+@@ -370,8 +386,8 @@ function callex64_call()
+ 	sd conv;setcall conv convdata((convdata_total))
+ 	#Stack aligned on 16 bytes.
+ 	const callex64_start=!
+-	#bt rsp,3 (bit offset 3)
+-	chars callex64_code={REX_Operand_64,0x0F,0xBA,bt_reg_imm8|espregnumber,3}
++	#bt esp,3 (bit offset 3)        rsp for 3 bits is useless
++	chars callex64_code={0x0F,0xBA,bt_reg_imm8|espregnumber,3}
+ 	#jc @ (jump when rsp=....8)
+ 	chars *=0x72;chars *=7+2+4+2+2
+ 	#7cmp ecx,5
+@@ -398,6 +414,7 @@ function callex64_call()
+ 	#4 sub rsp,8
+ 	chars *={REX_Operand_64,0x83,0xEC};chars *=8
+ 	#$
++	#mov rdx,rcx
+ 	chars *keep_nr_args={REX_Operand_64,0x8b,edxregnumber*toregopcode|ecxregnumber|regregmod}
+ 	sd ptrcodesec%ptrcodesec
+ 	sd err
+--- ocompiler-1.orig/src/files/functions/actions/argstwo.s
++++ ocompiler-1/src/files/functions/actions/argstwo.s
+@@ -57,7 +57,8 @@ Function twoargs_ex(sv ptrcontent,sd ptr
+ 				Call advancecursors(ptrcontent,ptrsize,ptrsize#)
+ 			endelse
+ 		else
+-			SetCall errnr parsefunction(ptrcontent,ptrsize,callfn) #there are 2 more arguments but are not used
++			and subtype (x_callx_flag)
++			SetCall errnr parsefunction(ptrcontent,ptrsize,callfn,subtype) #there is 1 more argument but is not used
+ 			return errnr
+ 		endelse
+ 		return (noerror)
+@@ -93,6 +94,7 @@ Function twoargs_ex(sv ptrcontent,sd ptr
+ 		if subtype_test!=0
+ 			xor subtype (x_call_flag)
+ 			Set primcalltype true
++			set subtype_test subtype;and subtype_test (x_callx_flag)
+ 		endif
+ 		if subtype==(cSET)
+ 			Set opprim atmemtheproc
+@@ -167,7 +169,7 @@ Function twoargs_ex(sv ptrcontent,sd ptr
+ 			Return errnr
+ 		EndIf
+ 	Else
+-		SetCall errnr parsefunction(ptrcontent,ptrsize,callfn) #there are 2 more arguments but are not used
++		SetCall errnr parsefunction(ptrcontent,ptrsize,callfn,subtype_test) #there is 1 more argument but is not used
+ 		If errnr!=noerr
+ 			Return errnr
+ 		EndIf
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -191,13 +191,15 @@ Function parsefunction(data ptrcontent,d
+ 		elseif parses==(pass_calls)
+ 			SetCall ptrdata vars_ignoreref(content,sz,fns)
+ 			if ptrdata!=0
+-				call is_for_64_is_impX_or_fnX_set(ptrdata)
+-			endif
++				call is_for_64_is_impX_or_fnX_set(ptrdata,subtype)
++			else
++				call is_for_64_is_impX_or_fnX_set_force(subtype)
++			endelse
+ 			call advancecursors(ptrcontent,ptrsize,sz)
+ 		else
+ 			#pass_write
+ 			data boolindirect#1
+-			setcall err prepare_function_call(ptrcontent,ptrsize,sz,#ptrdata,#boolindirect)
++			setcall err prepare_function_call(ptrcontent,ptrsize,sz,#ptrdata,#boolindirect,subtype)
+ 			if err!=(noerror)
+ 				return err
+ 			endif
+@@ -293,7 +295,7 @@ function fn_text_info()
+ endfunction
+ 
+ #err
+-function prepare_function_call(sd pcontent,sd psize,sd sz,sd p_data,sd p_bool_indirect)
++function prepare_function_call(sd pcontent,sd psize,sd sz,sd p_data,sd p_bool_indirect,sd subtype)
+ 	Data fns%ptrfunctions
+ 
+ 	SetCall p_data# vars(pcontent#,sz,fns)
+@@ -311,10 +313,11 @@ function prepare_function_call(sd pconte
+ 			EndIf
+ 		EndIf
+ 		set p_bool_indirect# (TRUE)
++		call is_for_64_is_impX_or_fnX_set_force(subtype)
+ 	Else
+ 		#at functions
+-		call is_for_64_is_impX_or_fnX_set(p_data#)
+ 		set p_bool_indirect# (FALSE)
++		call is_for_64_is_impX_or_fnX_set(p_data#,subtype)
+ 	EndElse
+ 	Call advancecursors(pcontent,psize,sz)
+ 
+@@ -341,7 +344,7 @@ function write_function_call(sd ptrdata,
+ 	if pb#==(TRUE)
+ 		setcall err function_call_64(is_callex)
+ 		If err!=(noerror);Return err;EndIf
+-		set pb# (FALSE) #can be at start but intern function are more popular and there is also a test in addition
++		set pb# (FALSE) #reset the flag
+ 	endif
+ 
+ 	Data ptrfnmask#1
+--- ocompiler-1.orig/src/files/functions/argument/arg.s
++++ ocompiler-1/src/files/functions/argument/arg.s
+@@ -289,34 +289,21 @@ function argfilters_helper(sd ptrconditi
+ 	Set size ptrsize#
+ 	Data argsz#1
+ 
+-Const enterifNOTequal=0x84
+-	Chars s1="!="
+-	Data *=enterifNOTequal
+-
+-Const enterifLESSorEQUAL=0x8F
+-	Chars *s2="<="
+-	Data *=enterifLESSorEQUAL
+-
+-Const enterifGREATERorEQUAL=0x8C
+-	Chars *s3=">="
+-	Data *=enterifGREATERorEQUAL
+-
+-Const enterifEQUAL=0x85
+-	Chars *s4="=="
+-	Data *=enterifEQUAL
+-
+-Const enterifLESS=0x8D
+-	Chars *s5="<"
+-	Data *=enterifLESS
+-
+-Const enterifGREATER=0x8E
+-	Chars *s6=">"
+-	Data *=enterifGREATER
+-
++	#and same rule like getcommand like elseif then else
++	Chars firstcomp="==";Data *jne=0x85
++	Chars *="!=";        Data *je=0x84
++	Chars *="<=^";       Data *ja=0x87
++	Chars *=">=^";       Data *jb=0x82
++	Chars *="<=";        Data *jg=0x8F
++	Chars *=">=";        Data *jl=0x8C
++	Chars *="<^";        Data *jae=0x83   #wanted cast before but will problem with arg cast that was after to continue at sufix
++	Chars *=">^";        Data *jbe=0x86
++	Chars *="<";         Data *jge=0x8D
++	Chars *=">";         Data *jle=0x8E
+ 	Chars term={0}
+ 
+ 	Data ptr#1
+-	Data ptrini^s1
++	Data ptrini^firstcomp
+ 	Chars byte#1
+ 
+ 	Set ptr ptrini
+@@ -342,12 +329,9 @@ Const enterifGREATER=0x8E
+ 			return noerrnr
+ 		EndIf
+ 		Data sz#1
+-		Data one=1
+-		Data four=4
+ 		SetCall sz strlen(ptr)
+ 		Add ptr sz
+-		Add ptr one
+-		Add ptr four
++		Add ptr (1+4)
+ 		Set byte ptr#
+ 	EndWhile
+ 	Chars conderr="Condition sign(s) expected."
+--- ocompiler-1.orig/src/files/functions/commons/getcommand.s
++++ ocompiler-1/src/files/functions/commons/getcommand.s
+@@ -13,7 +13,7 @@ Chars cDATA_c="DATA";Chars cSTR_c="STR";
+ 	Chars cCONST_c="CONST"
+ Chars cSET_c="SET";Chars cADD_c="ADD";Chars cSUB_c="SUB";Chars cMULT_c="MULT";Chars cDIV_c="DIV";Chars cREM_c="REM";Chars cAND_c="AND";Chars cOR_c="OR";Chars cXOR_c="XOR"
+ Chars cRETURN_c="RETURN";Chars cINCST_c="INCST";Chars cINC_c="INC";Chars cDECST_c="DECST";Chars cDEC_c="DEC";Chars cNEG_c="NEG";Chars cNOT_c="NOT";Chars cSHL_c="SHL";Chars cSHR_c="SHR";Chars cSAR_c="SAR";Chars cEXIT_c="EXIT"
+-Chars cCALL_c="CALL"
++Chars cCALLX_c="CALLX";Chars cCALL_c="CALL"
+ Chars cIF_c="IF";Chars cENDIF_c="ENDIF";Chars cELSEIF_c="ELSEIF";Chars cELSE_c="ELSE";Chars cENDELSEIF_c="ENDELSEIF";Chars cENDELSE_c="ENDELSE";Chars cWHILE_c="WHILE";Chars cENDWHILE_c="ENDWHILE";Chars cBREAK_c="BREAK";Chars cCONTINUE_c="CONTINUE"
+ Chars cIMPORT_c="IMPORT";Chars cIMPORTX_c="IMPORTX"
+ Chars cFUNCTION_c="FUNCTION";Chars cFUNCTIONX_c="FUNCTIONX";Chars cENTRYLINUX_c="ENTRYLINUX";Chars cENTRY_c="ENTRY"
+@@ -23,7 +23,7 @@ Chars cINCLUDE_c="INCLUDE"
+ Chars cFORMAT_c="FORMAT"
+ Chars cIMPORTAFTERCALL_c="IMPORTAFTERCALL";Chars cAFTERCALL_c="AFTERCALL"
+ Chars cWARNING_c="WARNING"
+-Chars cCALLEX_c="CALLEX"
++Chars cCALLEXX_c="CALLEXX";Chars cCALLEX_c="CALLEX"
+ Chars cOVERRIDE_c="OVERRIDE"
+ Chars cLIBRARY_c="LIBRARY"
+ Chars cHEX_c="HEX"
+@@ -230,9 +230,13 @@ Const numberofcommandsvars=(!-commandsva
+ 			Data *=cEXIT
+ 			Data *=spacereq
+ 	Const cCALL=!-coms_start
++		data *^cCALLX_c
++		Data *=cCALL
++		Data *=x_callx_flag
++		Data *=spacereq
+ 		data *^cCALL_c
+ 		Data *=cCALL
+-		Data *#1
++		Data *=0
+ 		Data *=spacereq
+ 	Const cCONDITIONS=!-coms_start
+ 	Const cCONDITIONS_top=!
+@@ -359,9 +363,13 @@ Const numberofcommandsvars=(!-commandsva
+ 		Data *#1
+ 		Data *=spacereq
+ 	Const cCALLEX=!-coms_start
++		data *^cCALLEXX_c
++		Data *=cCALLEX
++		Data *=x_callx_flag
++		Data *=spacereq
+ 		data *^cCALLEX_c
+ 		Data *=cCALLEX
+-		Data *#1
++		Data *=0
+ 		Data *=spacereq
+ 	Const cOVERRIDE=!-coms_start
+ 		data *^cOVERRIDE_c
+@@ -392,6 +400,7 @@ Data pointersvars#numberofcommandsvars+1
+ Const compointersvarsloc^pointersvars
+ 
+ const x_call_flag=0x80000000
++const x_callx_flag=0x40000000
+ 
+ #declare coresp
+ function commandSubtypeDeclare_to_typenumber(sd subtype,sd p_is_expand)
+@@ -439,8 +448,9 @@ Function getcommand(data pcontent,data p
+ 		Chars calldata="CALL"
+ 		Str call^calldata
+ 		Str extstr#1
+-		Data extbooldata#1
+-		Data extbool^extbooldata
++
++		sd extbooldata=FALSE
++		sv extbool^extbooldata
+ 
+ 		If command==(cPRIMSEC)
+ 			Set extstr call
+@@ -449,15 +459,22 @@ Function getcommand(data pcontent,data p
+ 		EndElse
+ 
+ 		SetCall result stringsatmemspc(pcontent,psize,offset,spacebool,extstr,extbool)
+-		If result==true
+-			If command==(cPRIMSEC)
+-				If extbooldata==true
+-					#or first byte at subcommand to recognize the xcall at two args
+-					or ptrsubtype# (x_call_flag)
+-				EndIf
+-			EndIf
++		If extbooldata==true
++			#If command==(cPRIMSEC)  only here atm
++			#or first byte at subcommand to recognize the xcall at two args
++			or ptrsubtype# (x_call_flag)
++			if result==(FALSE)
++				setcall result stratmemspc(pcontent,psize,"X",spacebool)
++				if result==(TRUE)
++					or ptrsubtype# (x_callx_flag)
++					return command
++				endif
++				break
++			endif
++			return command
++		elseIf result==true
+ 			Return command
+-		EndIf
++		endelseIf
+ 		Add pointercommands dsz
+ 		Set cursor pointercommands#
+ 	EndWhile
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -213,6 +213,11 @@ Function stringsatmemspc(data pcontent,d
+ 
+ 	If extstr!=zero
+ 		SetCall extbool# stratmem(tocontent,tosize,extstr)
++		if extbool#==(TRUE)
++			#to work around ...callx, and ok in other cases
++			Set pcontent# content
++			Set psize# size
++		endif
+ 	EndIf
+ 
+ 	If spacereq==nonzero
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -91,3 +91,7 @@ set functionTagIndex 0
+ call resetisimm()
+ 
+ #this is init at main.s and used after that    set datasecSize 0
++
++sd p_b
++setcall p_b is_for_64_is_impX_or_fnX_p_get()
++set p_b# (FALSE)

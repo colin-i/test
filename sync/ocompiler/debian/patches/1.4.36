@@ -1,0 +1,270 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.36) xenial; urgency=medium
+ .
+   * ret command
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-21
+
+--- ocompiler-1.orig/README.md
++++ ocompiler-1/README.md
+@@ -2,7 +2,8 @@
+ 
+ ## Install
+ On Windows here https://github.com/colin-i/o/releases .\
+-On Ubuntu, but other distros may have the same tree and dependencies.
++\
++On Ubuntu from PPA.
+ ```sh
+ sudo add-apt-repository ppa:colin-i/ppa
+ ```
+@@ -11,6 +12,7 @@ Install:
+ ```sh
+ sudo apt-get install ocompiler
+ ```
++\
+ Documentation is at [o.html](https://htmlpreview.github.io/?https://github.com/colin-i/o/blob/master/o.html).
+ 
+ ## Donations
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -342,12 +342,15 @@
+ 	<p>
+ 	1. Return
+ 	<br>
+-	Language command: <b>Return</b>
++	Language command: <b>Return</b> <b>Ret</b> <b>Exit</b>
+ 	<br>
+ 	The return command is used to terminate the program or a function.
+ 	<br>
+-	It returns the value. The asm value termination is <i>ret</i> (0xc3). To return <i>int 0x80</i>(0xcd,0x80;linux sys_exit;eax=1,ebx=return value) use <b>Exit</b>.
+-	To return like <b>Exit</b> at main scope but usign <b>Return</b> set exit_end preference to 1.
++	The asm value termination is <i>ret</i> (0xc3). To return <i>int 0x80</i>(0xcd,0x80;linux sys_exit;eax=1,ebx=return value) use <b>Exit</b>.
++	<br>
++	To return without a value use <b>Ret</b>.
++	<br>
++	To return like <b>Exit</b> at main scope but using returns set exit_end preference to 1.
+ 	<br>
+ 	Example:
+ 	<br>
+@@ -796,6 +799,13 @@
+ 	</p>
+ 	64-bit can be ignored from preferences. Cross-compiles can be made at the same option from preferences.
+   </div>
++  <div>
++	<p>
++	Append <b>SO</b> at format to inform the log parser (ounused) to skip input/output functions and constants.
++	This can be used when building a project as executable and as shared object and wanting to initialize data only at shared object recalls.
++	<br>Example: Format elfobj64so
++	</p>
++  </div>
+ </p>
+ <h3><a name="otheroperations">XIII. Other operations</a></h3>
+ <p>
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -100,6 +100,9 @@ if loop==1
+ 			ElseIf commandset==(cPRIMSEC)
+ 		call entryscope_verify_code()
+ 				Include "./index/primsec.s"
++			ElseIf commandset==(cRET)
++		call entryscope_verify_code()
++				Include "./index/ret.s"
+ 			ElseIf commandset==(cLIBRARY)
+ 				Include "./index/library.s"
+ 			ElseIf commandset==(cIMPORTLINK)
+--- /dev/null
++++ ocompiler-1/src/files/actions/main/index/ret.s
+@@ -0,0 +1,14 @@
++
++sd termswitch
++sd continuation
++sd continuationsize
++setcall termswitch is_linux_end()
++if termswitch==(TRUE)
++	setcall errormsg getexit(#continuation,#continuationsize)
++	if errormsg==(noerror)
++		setcall errormsg addtosec(continuation,continuationsize,ptrcodesec)
++	endif
++else
++	setcall continuationsize getreturn(#continuation)
++	setcall errormsg addtosec(continuation,continuationsize,ptrcodesec)
++endelse
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -1,4 +1,5 @@
+ 
++#sz
+ function getreturn(data ptrptrcontinuation)
+ 	sd b;setcall b scope64_get()
+ 	if b==(TRUE)
+@@ -18,6 +19,47 @@ function getreturn(data ptrptrcontinuati
+ 	set ptrptrcontinuation# ptrreturncontinuation
+ 	return sizeretcontinuation
+ endfunction
++#err
++function getexit(sv ptrptrcontinuation,sd psizeofcontinuation)
++	#if to keep rsp can be leave pop sub rsp,:
++
++	#int 0x80, sys_exit, eax 1,ebx the return number
++	chars sys_exit={0xb8,1,0,0,0}
++	data exinit^sys_exit
++	data exitsize=5
++	Data codeptr%ptrcodesec
++	sd err
++	SetCall err addtosec(exinit,exitsize,codeptr)
++	If err!=(noerror)
++		Return err
++	EndIf
++
++	Chars unixcontinuation={intimm8,0x80}
++	set ptrptrcontinuation# #unixcontinuation
++	set psizeofcontinuation# 2
++	return (noerror)
++endfunction
++
++#err
++function argument_return(sd termswitch,ss pop,ss pimmop,sd pintegerreminder,sv pptrcontinuation,sd psizeofcontinuation,sd pregopcode)
++	call setimm()
++	Set pop# (moveatprocthemem)
++	chars immtake=0xB8
++	set pimmop# immtake
++	Set pintegerreminder# (TRUE)
++
++	if termswitch==(TRUE)
++		data ebxregnumber=ebxregnumber
++		set pregopcode# ebxregnumber
++		add pimmop# ebxregnumber
++		sd err
++		setcall err getexit(pptrcontinuation,psizeofcontinuation)
++		return err
++	endif
++	set pregopcode# (eaxregnumber)
++	setcall psizeofcontinuation# getreturn(pptrcontinuation)
++	return (noerror)
++endfunction
+ 
+ #err
+ Function argument(data ptrcontent,data ptrsize,data subtype,data forwardORcallsens)
+@@ -37,7 +79,6 @@ Function argument(data ptrcontent,data p
+ 
+ 	Str ptrcontinuation#1
+ 	Data sizeofcontinuation#1
+-	data ptrptrcontinuation^ptrcontinuation
+ 
+ 	Set sizeofcontinuation zero
+ 
+@@ -47,56 +88,17 @@ Function argument(data ptrcontent,data p
+ 	Data err#1
+ 	Data noerr=noerror
+ 	chars immop#1
+-	chars immtake=0xB8
+ 
+ 	call unsetimm()
+ 	Data forward=FORWARD
+ 	If forwardORcallsens==forward
+-		sd termswitch=FALSE
+-		if subtype==(cEXIT)
+-			set subtype (cRETURN)
+-			set termswitch (TRUE)
+-		endif
+ 		If subtype==(cRETURN)
+-			call setimm()
+-			set immop immtake
+-			Set integerreminder true
+-			Set op (moveatprocthemem)
+-
+-			if termswitch==(FALSE)
+-				#exit from linux term
+-				setcall termswitch is_linux_end()
+-			endif
+-
+-			if termswitch==true
+-				#if to keep rsp can be leave pop sub rsp,:
+-
+-				#int 0x80, sys_exit, eax 1,ebx the return number
+-				chars sys_exit={0xb8,1,0,0,0}
+-				data exinit^sys_exit
+-				data exitsize=5
+-				SetCall err addtosec(exinit,exitsize,codeptr)
+-				If err!=noerr
+-					Return err
+-				EndIf
+-
+-				#
+-				data ebxregnumber=ebxregnumber
+-				set regopcode ebxregnumber
+-
+-				add immop ebxregnumber
+-
+-				#
+-				Chars unixcontinuation={intimm8,0x80}
+-				data ptrunixcontinuation^unixcontinuation
+-				Data two=2
+-				Set ptrcontinuation ptrunixcontinuation
+-				set sizeofcontinuation two
+-			else
+-				set regopcode (eaxregnumber)
+-				setcall sizeofcontinuation getreturn(ptrptrcontinuation)
+-			endelse
+-			#fileformat#
++			sd termswitch
++			setcall termswitch is_linux_end() #exit from linux term
++			setcall err argument_return(termswitch,#op,#immop,#integerreminder,#ptrcontinuation,#sizeofcontinuation,#regopcode)
++			If err!=noerr
++				Return err
++			EndIf
+ 		ElseIf subtype==(cNOT)
+ 			Chars not={0xF7}
+ 			Chars notregopcode={Notregopcode}
+@@ -124,6 +126,11 @@ Function argument(data ptrcontent,data p
+ 			else;set incs_sz (qwsz);endelse
+ 			set ptrcontinuation #incs_sz
+ 			set sizeofcontinuation (bsz)
++		ElseIf subtype==(cEXIT)
++			setcall err argument_return((TRUE),#op,#immop,#integerreminder,#ptrcontinuation,#sizeofcontinuation,#regopcode)
++			If err!=noerr
++				Return err
++			EndIf
+ 		ElseIf subtype==(cNEG)
+ 			set op (0xf7)
+ 			set regopcode 3
+--- ocompiler-1.orig/src/files/functions/commons/getcommand.s
++++ ocompiler-1/src/files/functions/commons/getcommand.s
+@@ -12,6 +12,7 @@ Chars cAFTERCALL_c="AFTERCALL";Chars cIM
+ Chars cFORMAT_c="FORMAT"
+ Chars cRETURN_c="RETURN";Chars cNOT_c="NOT";Chars cINCST_c="INCST";Chars cINC_c="INC";Chars cDECST_c="DECST";Chars cDEC_c="DEC";Chars cEXIT_c="EXIT";Chars cNEG_c="NEG";Chars cSHL_c="SHL";Chars cSHR_c="SHR";Chars cSAR_c="SAR"
+ Chars cSET_c="SET";Chars cADD_c="ADD";Chars cSUB_c="SUB";Chars cMULT_c="MULT";Chars cDIV_c="DIV";Chars cREM_c="REM";Chars cAND_c="AND";Chars cOR_c="OR";Chars cXOR_c="XOR"
++Chars cRET_c="RET"
+ Chars cLIBRARY_c="LIBRARY"
+ Chars cIMPORTX_c="IMPORTX";Chars cIMPORT_c="IMPORT"
+ Chars cFUNCTIONX_c="FUNCTIONX";Chars cFUNCTION_c="FUNCTION";Chars cENTRYLINUX_c="ENTRYLINUX";Chars cENTRY_c="ENTRY"
+@@ -207,6 +208,11 @@ Const numberofcommandsvars=(!-commandsva
+ 			Data *=cPRIMSEC
+ 			Data *=cXOR
+ 			Data *=spacereq
++	Const cRET=!-coms_start
++		data *^cRET_c
++		Data *=cRET
++		Data *#1
++		Data *=spacenotreq
+ 	Const cLIBRARY=!-coms_start
+ 		data *^cLIBRARY_c
+ 		Data *=cLIBRARY

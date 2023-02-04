@@ -1,0 +1,201 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.21) bionic; urgency=medium
+ .
+   * leading underscore
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-21
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -57,4 +57,8 @@ inplace_reloc=1
+ 
+ 14. At objects, when on 64 format, relocs are R_X86_64_64.
+ 0 is No; 1 is Yes
+-reloc_64=1
+\ No newline at end of file
++reloc_64=1
++
++15. Remove leading underscore at IMPORT?
++0 is No; 1 is Yes
++underscore_pref=0
+\ No newline at end of file
+--- ocompiler-1.orig/compiler.html
++++ ocompiler-1/compiler.html
+@@ -4,7 +4,7 @@
+ 	O Compiler is a tool to compile O programming language code. The language is easy to learn.
+ 	The compiler creates <b>pe</b> (Portable Executable) executable files and <b>elf</b> (Executable and Linking Format) executable and object files.
+ 	Can be used on windows and linux.
+-	There is a documentation file in package.
++	There is a documentation file <i>o.html</i>.
+ 	O Compiler can be used very simple.
+ 	<br>
+ 	To compile a file there are two methods:
+--- ocompiler-1.orig/src/files/actions/main/index/import.s
++++ ocompiler-1/src/files/actions/main/index/import.s
+@@ -45,40 +45,44 @@ If errormsg==noerr
+ 	If errormsg==noerr
+ 		SetCall errormsg quotinmem(pcontent,pcomsize,ptrimpquotsz,ptrimpescapes)
+ 		If errormsg==noerr
++			Call import_leading_underscore(pcontent,pcomsize,ptrimpquotsz)
+ 			If object==true
+ 				#the sym entry
+ 				SetCall errormsg elfaddsym(namesReg,zero,(sym_with_size),STT_NOTYPE,(STB_GLOBAL),null,ptrtable)
+ 			EndIf
+-			sd imp_mark;set imp_mark names;add imp_mark namesReg
+-			SetCall errormsg addtosecstresc(pcontent,pcomsize,impquotsz,impescapes,ptrnames,true)
+ 			If errormsg==noerr
+-				Call stepcursors(pcontent,pcomsize)
+-				Call spaces(pcontent,pcomsize)
+-				#after this will find var in vars/fns and if not add a new
+-				sd imp_size;setcall imp_size find_whitespaceORcomment(content,comsize)
+-				If imp_size==zero
+-					Chars missimportref="Import name for compiler must be specified after the name for output."
+-					Str ptrimpref^missimportref
+-					Set errormsg ptrimpref
+-				Else
+-					SetCall errormsg entryvarsfns(content,imp_size)
+-					If errormsg==noerr
+-						if codeFnObj==(log_warn)
+-							if subtype==(cIMPORT)
+-								sub impquotsz impescapes
+-								setcall errormsg addtolog_withchar_ex_atunused(imp_mark,impquotsz,(log_import))
+-							endif
+-						endif
++				sd imp_mark;set imp_mark namesReg #this is because the null at end makes code harder
++				SetCall errormsg addtosecstresc(pcontent,pcomsize,impquotsz,impescapes,ptrnames,true)
++				If errormsg==noerr
++					Call stepcursors(pcontent,pcomsize)
++					Call spaces(pcontent,pcomsize)
++					#after this will find var in vars/fns and if not add a new
++					sd imp_size;setcall imp_size find_whitespaceORcomment(content,comsize)
++					If imp_size==zero
++						Chars missimportref="Import name for compiler must be specified after the name for output."
++						Str ptrimpref^missimportref
++						Set errormsg ptrimpref
++					Else
++						SetCall errormsg entryvarsfns(content,imp_size)
+ 						If errormsg==noerr
+-							sd import_ref_mask=idatabitfunction
+-							if subtype==(cIMPORTX)
+-								or import_ref_mask (x86_64bit)
++							if codeFnObj==(log_warn)
++								if subtype==(cIMPORT)
++									sub impquotsz impescapes
++									add imp_mark names
++									setcall errormsg addtolog_withchar_ex_atunused(imp_mark,impquotsz,(log_import))
++								endif
+ 							endif
+-							Data functionsnr=functionsnumber
+-							SetCall errormsg addaref(functionoffset,pcontent,pcomsize,imp_size,functionsnr,import_ref_mask)
+-						endIf
+-					EndIf
+-				EndElse
++							If errormsg==noerr
++								sd import_ref_mask=idatabitfunction
++								if subtype==(cIMPORTX)
++									or import_ref_mask (x86_64bit)
++								endif
++								Data functionsnr=functionsnumber
++								SetCall errormsg addaref(functionoffset,pcontent,pcomsize,imp_size,functionsnr,import_ref_mask)
++							endIf
++						EndIf
++					EndElse
++				EndIf
+ 			EndIf
+ 		EndIf
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -40,9 +40,10 @@ Include "./functions/commands/lib.s"
+ Include "./functions/pref/preffuncs.s"
+ Include "./functions/pref/sdsv.s"
+ 
++Include "./functions/64/bit.s"
++Include "./functions/64/reloc.s"
++
+ Include "./functions/incld.s"
+ Include "./functions/dataassign.s"
+ Include "./functions/enumbags.s"
+-
+-Include "./functions/64/bit.s"
+-Include "./functions/64/reloc.s"
++Include "./functions/import.s"
+--- /dev/null
++++ ocompiler-1/src/files/functions/import.s
+@@ -0,0 +1,13 @@
++
++function import_leading_underscore(sv pcontent,sd pcomsize,sd ptrimpquotsz)
++	sd p_underscore_pref%p_underscore_pref
++	if p_underscore_pref#==(TRUE)
++		ss content
++		set content pcontent#
++		#here it is inside quotes
++		if content#==(asciiunderscore)
++			call stepcursors(pcontent,pcomsize)
++			dec ptrimpquotsz#
++		endif
++	endif
++endfunction
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -154,6 +154,7 @@ function initpreferences()
+ 	sd sdsv_p;setcall sdsv_p sd_as_sv((sd_as_sv_get))
+ 	sd p_inplace_reloc_pref%p_inplace_reloc_pref
+ 	sd p_pref_reloc_64%p_pref_reloc_64
++	sd p_underscore_pref%p_underscore_pref
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -172,13 +173,14 @@ function initpreferences()
+ 	set sdsv_p# false
+ 	set p_inplace_reloc_pref# (addend_reloc)
+ 	set p_pref_reloc_64# true
++	set p_underscore_pref# false
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;incst q; set q# p_over_pref;incst q; set q# p_hidden_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q;     set q# p_inplace_reloc_pref;incst q; set q# p_pref_reloc_64
++	set q# ptrwarningsbool;incst q; set q# p_over_pref;incst q; set q# p_hidden_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q;     set q# p_inplace_reloc_pref;incst q; set q# p_pref_reloc_64;incst q; set q# p_underscore_pref
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";incst t;      set t# "over_pref";incst t; set t# "hidden_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv";incst t; set t# "inplace_reloc";incst t;      set t# "reloc_64"
++	set t# "warnings";incst t;      set t# "over_pref";incst t; set t# "hidden_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv";incst t; set t# "inplace_reloc";incst t;      set t# "reloc_64";incst t;      set t# "underscore_pref"
+ endfunction
+ 
+ #void
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -377,7 +377,7 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=14
++const nr_of_prefs=15
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+@@ -385,3 +385,6 @@ const nr_of_prefs_pointers_p^nr_of_prefs
+ 
+ data pref_reloc_64#1
+ const p_pref_reloc_64^pref_reloc_64
++
++data underscore_pref#1
++const p_underscore_pref^underscore_pref

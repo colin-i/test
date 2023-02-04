@@ -1,0 +1,17 @@
+
+#this is the new make for windows
+
+o ./src/windows/obj32.s
+#argc argv?, no. gcc want -8 at rels and ld 0
+i686-w64-mingw32-ld -s -entry=_WinMain@16 ./src/windows/obj32.o -lmsvcrt -luser32 -lkernel32 -lcomdlg32 -o ./o.exe
+
+rm ./src/windows/obj32.o
+
+mkdir ocompiler
+mv o.exe ocompiler
+cp .ocompiler.txt ocompiler
+
+zip -r ocompiler.zip ocompiler
+rm -r ./ocompiler
+
+unzip -l ocompiler.zip

@@ -1,0 +1,212 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.30) bionic; urgency=medium
+ .
+   * fix relocs
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-01-28
+
+--- ocompiler-1.orig/README.md
++++ ocompiler-1/README.md
+@@ -12,7 +12,7 @@ Update and install:
+ sudo apt-get update
+ sudo apt-get install ocompiler
+ ```
+-Documentation is at <i>o.html</i>
++Documentation is at [o.html](https://htmlpreview.github.io/?https://github.com/colin-i/o/blob/master/o.html).
+ 
+ ## Donations
+ The *donations* section is here
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -139,7 +139,7 @@ function getsign(str content,data size,d
+ 	data true=TRUE
+ 	data noerr=noerror
+ 	Data valsize#1
+-	Chars equalsign="="
++	Chars equalsign=assignsign
+ 	SetCall valsize valinmem_pipes(content,size,equalsign,ptrsz)
+ 	If valsize!=size
+ 		Set assigntype# equalsign
+@@ -160,7 +160,7 @@ function getsign(str content,data size,d
+ 	endif
+ 
+ 	Data charsnr=charsnumber
+-	Chars pointersign="^"
++	Chars pointersign=pointersigndeclare
+ 	SetCall valsize valinmem_pipes(content,size,pointersign,ptrsz)
+ 	If valsize!=size
+ 		If typenumber==charsnr
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -16,17 +16,16 @@ function writevar(data ptrvalue,data uni
+ 				Data ptraddresses%ptraddresses
+ 				Data relocoff=0
+ 				SetCall err adddirectrel_base(ptraddresses,relocoff,relindex,ptrvalue#)
+-				If err!=noerr
+-					Return err
+-				EndIf
+-				sd inplacevalue
+-				#data^functionReloc
+-				set inplacevalue ptrvalue#
+-				if relindex==(dataind)
++				If err!=noerr;Return err;EndIf
+ 				#data a^dataB
+-					call inplace_reloc(#inplacevalue)
++				if relindex==(codeind)
++					#data^functionReloc
++					setcall err unresReloc(ptraddresses)
++					If err!=noerr;Return err;EndIf
+ 				endif
+-				SetCall err addtosec(#inplacevalue,(dwsz),ptrdatasec);If err!=(noerror);Return err;EndIf
++				call inplace_reloc(ptrvalue)
++				#endif
++				SetCall err addtosec(ptrvalue,(dwsz),ptrdatasec);If err!=(noerror);Return err;EndIf
+ 				setcall err reloc64_post_base(ptrdatasec)
+ 				return err
+ 			endif
+@@ -48,10 +47,13 @@ function writevar(data ptrvalue,data uni
+ 			setcall stackoff reloc64_offset((rampadd_value_off))
+ 			data ptrextra%ptrextra
+ 			setcall err adddirectrel_base(ptrextra,stackoff,relindex,ptrvalue#)
+-			If err!=noerr
+-				Return err
+-			EndIf
++			If err!=noerr;Return err;EndIf
+ 			#s^dat
++			if relindex==(codeind)
++				#s^fn
++				setcall err unresReloc(ptrextra)
++				If err!=noerr;Return err;EndIf
++			endif
+ 			call inplace_reloc(ptrvalue)
+ 			setcall err addtocodefordata(ptrvalue#,for_64)
+ 			return err
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -90,13 +90,7 @@ function writetake(sd takeindex,sd entry
+ 					Return errnr
+ 				EndIf
+ 				if importbit==0
+-					sd for_64
+-					setcall for_64 is_for_64()
+-					if for_64==(TRUE)
+-						setcall errnr unresLc((-qwsz),ptrextra,0)
+-					else
+-						setcall errnr unresLc((-dwsz),ptrextra,0)
+-					endelse
++					setcall errnr unresReloc(ptrextra)
+ 					If errnr!=(noerror);Return errnr;EndIf
+ 					setcall errnr inplace_reloc_unres(#take_loc)
+ 					If errnr!=(noerror);Return errnr;EndIf
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -94,8 +94,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 	set skipNumberValue false
+ 	set importbittest -1
+ 
+-	Chars equal="="
+-	If sign==equal
++	If sign==(assignsign)
+ 		Chars byte#1
+ 		Set content ptrcontent#
+ 		Set byte content#
+@@ -209,8 +208,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 		Set content ptrcontent#
+ 		data doublepointer#1
+ 		set doublepointer zero
+-		Chars pointersign="^"
+-		if content#==pointersign
++		if content#==(pointersigndeclare)
+ 			inc doublepointer
+ 			call stepcursors(ptrcontent,ptrsize)
+ 			Set content ptrcontent#
+@@ -300,22 +298,23 @@ Function dataassign(sd ptrcontent,sd ptr
+ 	EndElse
+ 	if skipNumberValue==false
+ 		If typenumber!=constantsnr
+-			#addtocode(#test,1,code) cannot add to code for test will trick the next compiler, entry is started,will look like a bug
+-			setcall err writevar(ptrvalue,valuewritesize,relocindx,stack,rightstackpointer,long_mask)
+-			If err!=noerr
+-				Return err
+-			EndIf
+ 			#init -1, 0 is local function in the right
+ 			if importbittest==0
++			#and no problems if inplace_reloc is 0 there
+ 				if stack==false
+-					setcall err unresLc(-4,ptrdatasec,0)
++					setcall err unresLc(0,ptrdatasec,0)
+ 				else
+-					setcall err unresLc(-4,ptrcodesec,0)
++					setcall err unresLc((rampadd_value_off),ptrcodesec,0)
+ 				endelse
+ 				if err!=(noerror)
+ 					return err
+ 				endif
+ 			endif
++			#addtocode(#test,1,code) cannot add to code for test will trick the next compiler, entry is started,will look like a bug
++			setcall err writevar(ptrvalue,valuewritesize,relocindx,stack,rightstackpointer,long_mask)
++			If err!=noerr
++				Return err
++			EndIf
+ 		Else
+ 			Call getcont(constantsstruct,ptrcontainer)
+ 			Add container offset
+--- ocompiler-1.orig/src/files/functions/global/funcs.s
++++ ocompiler-1/src/files/functions/global/funcs.s
+@@ -85,4 +85,17 @@ function unresolvedLocal(sd addition,sd
+ 
+ 	call get_fn_pos(currentfnpointer,ptr_out)
+ 	return (noerror)
+-endfunction
+\ No newline at end of file
++endfunction
++
++#e
++function unresReloc(sd section)
++	sd for_64
++	sd err
++	setcall for_64 is_for_64()
++	if for_64==(TRUE)
++		setcall err unresLc((-qwsz),section,0)
++	else
++		setcall err unresLc((-dwsz),section,0)
++	endelse
++	return err
++endfunction
+--- ocompiler-1.orig/src/files/headers/ascii.h
++++ ocompiler-1/src/files/headers/ascii.h
+@@ -23,6 +23,7 @@ Const asciinine=0x39
+ Const asciicolon=0x3A
+ Const asciisemicolon=0x3B
+ Const asciiless=0x3C
++Const asciiequal=0x3D
+ Const asciigreater=0x3E
+ Const asciiaround=0x40
+ Const asciiA=0x41
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -397,3 +397,6 @@ const p_real_exit_end^real_exit_end
+ 
+ data include_sec#1
+ const p_include_sec^include_sec
++
++const pointersigndeclare=asciicirc
++const assignsign=asciiequal

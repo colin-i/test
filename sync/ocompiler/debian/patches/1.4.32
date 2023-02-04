@@ -1,0 +1,470 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-4.32) bionic; urgency=medium
+ .
+   * format ..so
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-02-18
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -69,4 +69,8 @@ exit_end=0
+ 
+ 17. Take second file path at INCLUDE statement.
+ 0 is No; 1 is Yes
+-include_sec=0
+\ No newline at end of file
++include_sec=0
++
++18. Ignore FORMAT ...SO .
++0 is No; 1 is Yes
++ignore_format_so=0
+\ No newline at end of file
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -816,6 +816,10 @@
+ 	4. Warning
+ 	<br>
+ 	Turn on or off the warnings.
++	<br>
++	5. Override
++	<br>
++	Override preference. Note that preference order is default < preference_file < command_line_argument < override.
+ 	<p>
+ 	Example:
+ 	<br>
+@@ -827,8 +831,12 @@
+         #this will write 3 bytes in the code section<br>
+         warning off<br>
+         import "common_function" common<br>
++        warning on<br>
+         #useful when having a header in multiple objects<br>
+-        warning on</a>
++	  override underscore_pref 0<br>
++	  importx "__errno_location" errno<br>
++	  #if uderscore_pref is 1 the symbol is _errno_location, that can be wrong
++	</a>
+ 	</p>
+ 	<p>
+ 	When the option function_name from the .ocompiler.txt file is set to Yes(1), the name is wrote in the code section above the function, for debugging asm code.<br>
+--- ocompiler-1.orig/src/files/actions/main.s
++++ ocompiler-1/src/files/actions/main.s
+@@ -66,7 +66,7 @@ While includesReg!=null
+ 			EndIf
+ 		EndWhile
+ 		sd log_err
+-		setcall log_err addtolog_withchar_ex((NULL),0,fileendchar) #also ok on win
++		setcall log_err addtolog_char(fileendchar,logfile) #also ok on win
+ 		if log_err!=(noerror)
+ 			set errormsg log_err
+ 			Call Message(errormsg)
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -22,41 +22,50 @@ If formatresponse==false
+ 
+ 		SetCall elfobjformresp stringsatmemspc(pcontent,pcomsize,ptrelfobjformat,false,"64",p_is_for_64_resp)
+ 		If elfobjformresp==true
+-			if p_is_for_64_resp#==(TRUE)
+-				set convention_64 convention_64#
+-				if convention_64==(ignore_convention_input)
+-					set p_is_for_64_resp# (FALSE)
+-				else
+-					call reloc64_init()
+-					if convention_64==(direct_convention_input)
+-						call convdata((convdata_init),(variable_convention))
+-					#cross_convention_input
+-					elseif (variable_convention)==(ms_convention)
+-						call convdata((convdata_init),(lin_convention))
+-					else
+-						call convdata((convdata_init),(ms_convention))
+-					endelse
+-				endelse
++			sd is_so
++			setcall is_so stratmemspc(pcontent,pcomsize,"SO",false)
++			if is_so==true
++				if ignore_format_so==(No)
++					setcall errormsg addtolog_char((log_reusable),logaux)
++				endif
+ 			endif
+-			Set object true
+-			SetCall errormsg elfaddstrsym(ptrnull,null,null,null,null,null,ptrtable)
+ 			If errormsg==noerr
+-				Chars elfdata=".data"
+-				Str ptrelfdata^elfdata
+-				Data dataind=dataind
+-				Set datastrtab namesReg
+-				SetCall errormsg elfaddstrsym(ptrelfdata,null,null,STT_SECTION,(STB_LOCAL),dataind,ptrtable)
++				if p_is_for_64_resp#==(TRUE)
++					set convention_64 convention_64#
++					if convention_64==(ignore_convention_input)
++						set p_is_for_64_resp# (FALSE)
++					else
++						call reloc64_init()
++						if convention_64==(direct_convention_input)
++							call convdata((convdata_init),(variable_convention))
++						#cross_convention_input
++						elseif (variable_convention)==(ms_convention)
++							call convdata((convdata_init),(lin_convention))
++						else
++							call convdata((convdata_init),(ms_convention))
++						endelse
++					endelse
++				endif
++				Set object true
++				SetCall errormsg elfaddstrsym(ptrnull,null,null,null,null,null,ptrtable)
+ 				If errormsg==noerr
+-					Chars elftext=".text"
+-					Str ptrelftext^elftext
+-					Data codeind=codeind
+-					Set codestrtab namesReg
+-					SetCall errormsg elfaddstrsym(ptrelftext,null,null,STT_SECTION,(STB_LOCAL),codeind,ptrtable)
+-			const totallocalsymsaddedatstart=3
++					Chars elfdata=".data"
++					Str ptrelfdata^elfdata
++					Data dataind=dataind
++					Set datastrtab namesReg
++					SetCall errormsg elfaddstrsym(ptrelfdata,null,null,STT_SECTION,(STB_LOCAL),dataind,ptrtable)
++					If errormsg==noerr
++						Chars elftext=".text"
++						Str ptrelftext^elftext
++						Data codeind=codeind
++						Set codestrtab namesReg
++						SetCall errormsg elfaddstrsym(ptrelftext,null,null,STT_SECTION,(STB_LOCAL),codeind,ptrtable)
++				const totallocalsymsaddedatstart=3
++					EndIf
+ 				EndIf
+-			EndIf
+-			Set imagebaseoffset null
+-			Set startofdata null
++				Set imagebaseoffset null
++				Set startofdata null
++			endif
+ 		Else
+ 			Data elf_imagebase=elf_imagebase
+ 			Set imagebaseoffset elf_imagebase
+--- ocompiler-1.orig/src/files/functions/commons/base.s
++++ ocompiler-1/src/files/functions/commons/base.s
+@@ -102,10 +102,7 @@ Function congruentmoduloatsegments(data
+ EndFunction
+ 
+ #err
+-function addtolog_ex(ss content,sd sizetowrite)
+-	data ptrfilehandle%ptrlogfile
+-	data filehandle#1
+-	set filehandle ptrfilehandle#
++function addtolog_handle(ss content,sd sizetowrite,sd filehandle)
+ 	sd err
+ 	setcall err writefile_errversion(filehandle,content,sizetowrite)
+ 	if err!=(noerror);return err;endif
+@@ -117,20 +114,32 @@ function addtolog_ex(ss content,sd sizet
+ 	return err
+ endfunction
+ #err
+-function addtolog_withchar_ex(ss content,sd size,sd type)
+-	data ptrfilehandle%ptrlogfile
+-	if ptrfilehandle#!=-1
++function addtolog_char(sd type,sd handle)
++	sd err
++	setcall err addtolog_withchar_handle((NULL),0,type,handle)
++	return err
++endfunction
++#err
++function addtolog_withchar_handle(ss content,sd size,sd type,sd handle)
++	if handle!=-1
+ 	#this compare only at first chdir is extra
+ 		sd err
+-		setcall err writefile_errversion(ptrfilehandle#,#type,1)
++		setcall err writefile_errversion(handle,#type,1)
+ 		if err==(noerror)
+-			setcall err addtolog_ex(content,size)
++			setcall err addtolog_handle(content,size,handle)
+ 		endif
+ 		return err
+ 	endif
+ 	return (noerror)
+ endfunction
+ #err
++function addtolog_withchar_ex(ss content,sd size,sd type)
++	value ptrfilehandle%ptrlogfile
++	sd err
++	setcall err addtolog_withchar_handle(content,size,type,ptrfilehandle#)
++	return err
++endfunction
++#err
+ function addtolog_withchar(ss content,sd type)
+ 	sd len
+ 	setcall len strlen(content)
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -7,6 +7,9 @@ const p_inplace_reloc_pref^inplace_reloc
+ const zero_reloc=0
+ const addend_reloc=1
+ 
++data ignore_format_so#1
++const p_ignore_format_so^ignore_format_so
++
+ #bool for err2
+ Function warnings(sd searchInAll,sd includes,sd nameoffset,sd p_err)
+ 	Data warningsboolptr%ptrwarningsbool
+@@ -157,6 +160,7 @@ function initpreferences()
+ 	sd p_underscore_pref%p_underscore_pref
+ 	sd p_exit_end%p_exit_end
+ 	sd p_include_sec%p_include_sec
++	sd p_ignore_format_so%p_ignore_format_so
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -178,13 +182,14 @@ function initpreferences()
+ 	set p_underscore_pref# false
+ 	set p_exit_end# false
+ 	set p_include_sec# false
++	set p_ignore_format_so# (No)
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;incst q; set q# p_over_pref;incst q; set q# p_hidden_pref;incst q; set q# p_w_as_e;incst q; set q# ptrlogbool;incst q; set q# ptrcodeFnObj;incst q; set q# cb;incst q;           set q# ptrincludedir;incst q; set q# text_fn_info;incst q;    set q# conv_64;incst q;   set q# p_nul_res_pref;incst q; set q# sdsv_p;incst q;     set q# p_inplace_reloc_pref;incst q; set q# p_pref_reloc_64;incst q; set q# p_underscore_pref;incst q; set q# p_exit_end;incst q; set q# p_include_sec
++	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";incst t;      set t# "over_pref";incst t; set t# "hidden_pref";incst t; set t# "w_as_e";incst t; set t# "logfile";incst t;  set t# "codeFnObj";incst t;  set t# "const_warn";incst t; set t# "includedir";incst t;  set t# "function_name";incst t; set t# "conv_64";incst t; set t# "nul_res_pref";incst t; set t# "sd_as_sv";incst t; set t# "inplace_reloc";incst t;      set t# "reloc_64";incst t;      set t# "underscore_pref";incst t; set t# "exit_end";incst t; set t# "include_sec"
++	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"
+ endfunction
+ 
+ #void
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -3,6 +3,7 @@
+ Const TRUE=1
+ Const FALSE=0
+ Const NULL=0
++Const No=FALSE
+ 
+ #files
+  #open
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -377,7 +377,7 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=17
++const nr_of_prefs=18
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+--- ocompiler-1.orig/src/files/headers/log.h
++++ ocompiler-1/src/files/headers/log.h
+@@ -1,11 +1,22 @@
+ 
++#p
+ const log_pathfolder=0x70
++#n
+ const log_pathname=0x6E
++#e
+ const log_fileend=0x65
++#q
+ const log_fileend_old=0x71
+ 
++#f
+ const log_function=0x66
++#i
+ const log_import=0x69
+ 
++#c
+ const log_constant=0x63
++#d
+ const log_declare=0x64
++
++#r
++const log_reusable=0x72
+--- ocompiler-1.orig/srcres/loop.s
++++ ocompiler-1/srcres/loop.s
+@@ -1,6 +1,8 @@
+ 
+ const NULL=0
+ const void=0
++const asciiperiod=0x2E
++const asciio=0x6F
+ 
+ importx "fopen" fopen
+ importx "fclose" fclose
+@@ -8,6 +10,7 @@ importx "getline" getline
+ importx "feof" feof
+ importx "free" free
+ importx "chdir" chdir
++importx "stdout" stdout
+ 
+ include "../src/files/headers/log.h"
+ 
+@@ -25,13 +28,14 @@ function log_file(ss file)
+ 		set fp# f
+ 		sv p%logf_mem_p
+ 		sd sz=0
++		sd link=TRUE
+ 		while sz!=-1
+ 			sd bsz
+ 			setcall sz getline(p,#bsz,f)
+ 			if sz!=-1
+ 				#knowing line\r\n from ocompiler
+ 				sub sz 2
+-				call log_line(p#,sz)
++				call log_line(p#,sz,#link)
+ 			else
+ 				sd e
+ 				setcall e feof(f)
+@@ -42,28 +46,43 @@ function log_file(ss file)
+ 		endwhile
+ 		call uconst_miniresolve()
+ 		call logclose()
++		if link==(TRUE)
++			call printlink(file)
++		endif
+ 		return (void)
+ 	endif
+ 	call erExit("fopen error")
+ endfunction
+ 
+-function log_line(ss s,sd sz)
++function log_line(ss s,sd sz,sd plink)
+ #i all, f all; at end every f not i, failure. constants are with all includes two types of children declared/already and at every log unused/still unused
+ 	sd type
+ 	set type s#
+ 	inc s;dec sz
+ 	sd skip
+-	if type==(log_declare)
+-		setcall skip skip_test()
+-		if skip==(FALSE)
+-			call constant_add(s,sz)
+-		endif
+-	elseif type==(log_import)
+-		setcall skip skip_test()
+-		if skip==(FALSE)
+-			call import_add(s,sz)
+-		endif
+-	elseif type==(log_pathname)
++	if plink#==(TRUE)
++		if type==(log_declare)
++			setcall skip skip_test()
++			if skip==(FALSE)
++				call constant_add(s,sz)
++			endif
++			return (void)
++		elseif type==(log_import)
++			setcall skip skip_test()
++			if skip==(FALSE)
++				call import_add(s,sz)
++			endif
++			return (void)
++		elseif type==(log_constant)
++			call uconst_add(s,sz)
++			return (void)
++		elseif type==(log_function)
++			sv fns%fn_mem_p
++			call addtocont(fns,s,sz)
++			return (void)
++		endelseif
++	endif
++	if type==(log_pathname)
+ 		call filesplus()
+ 		setcall skip skip_test()
+ 		if skip==(FALSE)
+@@ -87,11 +106,8 @@ function log_line(ss s,sd sz)
+ 		if skip<0
+ 			call decrementfiles()
+ 		endif
+-	elseif type==(log_constant)
+-		call uconst_add(s,sz)
+-	elseif type==(log_function)
+-		sv fns%fn_mem_p
+-		call addtocont(fns,s,sz)
++	elseif type==(log_reusable)
++		set plink# (FALSE)
+ 	endelseif
+ endfunction
+ 
+@@ -141,3 +157,39 @@ function decrementdir()
+ 	neg sz
+ 	call ralloc(cwd,sz)
+ endfunction
++
++function printlink(sd file)
++	ss back
++	set back file
++	addcall back strlen(file)
++	vstr ers="printlink problems with log file name extension."
++	while back!=file
++		dec back
++		if back#==(asciiperiod)
++			while back!=file
++				dec back
++				if back#==(asciiperiod)
++					inc back
++					if back#!=(NULL)
++						set back# (asciio)
++						inc back
++						set back# (NULL)
++						sv st^stdout
++						sd len
++						setCall len fprintf(st#," ")
++						if len==1
++							setCall len fprintf(st#,file)
++							sub back file
++							if len==back
++								return (void)
++							endif
++						endif
++						call erExit("fprintf error.")
++					endif
++					call erExit(ers)
++				endif
++			endwhile
++		endif
++	endwhile
++	call erExit(ers)
++endfunction
+--- ocompiler-1.orig/srcres/resolve.s
++++ ocompiler-1/srcres/resolve.s
+@@ -1,5 +1,6 @@
+ 
+ importx "fwrite" fwrite
++importx "fflush" fflush
+ 
+ function resolve(sd j)
+ 	sv cont%fn_mem_p
+@@ -40,6 +41,9 @@ function resolve(sd j)
+ 	setcall const_sz constssize()
+ 	Call fprintf(st#,"%u logs, %u files, %u unique imports, %u %s, %u %s resolved, %u %s resolved.",j,fls,imps_sz,const_sz,c,i,f,k,c)
+ 	call messagedelim()
++
++	sv so^stdout
++	call fflush(so#) #there is no line end at stdout, then flush is required
+ endfunction
+ 
+ function wrongExit(ss x,ss n,sd len)
+--- ocompiler-1.orig/srcres/uconstres.s
++++ ocompiler-1/srcres/uconstres.s
+@@ -41,6 +41,7 @@ function uconstres_spin(sd f,sd is_new)
+ endfunction
+ 
+ function uconstres_search(sv f,sd is_new)
++#there is a segmentation if from a random (not log) file like "format elfobjso", TO DO when wanted
+ 	sd cursor
+ 	set cursor f#
+ 	add f :

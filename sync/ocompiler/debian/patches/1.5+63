@@ -1,0 +1,84 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+63) jammy; urgency=medium
+ .
+   * fix reloc64 at str
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-11-11
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -40,7 +40,7 @@ git restore debian/files && \
+ git diff
+ #is something wrong with copy package and rebuild (maybe same with copy-package without -b)
+ #restore after last lp where inside publp2 will check version
+-#the xenial ostrip is not working (is just a cc)
++#the xenial ostrip is not working, but was ok on edb testing here on jammy
+ 
+ #plans:
+ 
+--- ocompiler-1.orig/src/files/functions/64/reloc.s
++++ ocompiler-1/src/files/functions/64/reloc.s
+@@ -26,13 +26,21 @@ function reloc64_ante()
+ 	endif
+ 	return (noerror)
+ endfunction
++const reloc64_add=dwsz
++function reloc64_mid()
++	sd a%p_elf64_r_info_type
++	if a#==(R_X86_64_64)
++		return (reloc64_add)
++	endif
++	return 0
++endfunction
+ #er
+ function reloc64_post_base_extension(sd struct,sd fill)
+ 	sd a%p_elf64_r_info_type
+ 	if a#==(R_X86_64_64)
+ 		sd err
+ 		#extension is for example -1 at sd=const, mostly are 0
+-		SetCall err addtosec(#fill,(dwsz),struct)
++		SetCall err addtosec(#fill,(reloc64_add),struct)
+ 		return err
+ 	endif
+ 	return (noerror)
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -111,6 +111,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 								add value (qwsz)
+ 							else
+ 								add value (dwsz)
++								addcall value reloc64_mid()
+ 							endelse
+ 						endif
+ 						if relocbool==true
+@@ -121,6 +122,12 @@ Function dataassign(sd ptrcontent,sd ptr
+ 					else
+ 						#let relocationsign, mess with dataReg, possible error will be catched at pass_write
+ 						inc punitsize#   #null end
++						if stack==false
++							if long_mask==0
++								#for ^ and rel64 write is somewhere else
++								addcall punitsize# reloc64_mid()
++							endif
++						endif
+ 					endelse
+ 				EndElseIf
+ 				if stringtodata==false

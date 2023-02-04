@@ -1,0 +1,584 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+44) xenial; urgency=medium
+ .
+   * section size guardians
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-09-13
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -29,3 +29,4 @@ last=`curl https://api.github.com/repos/
+ #simple and or
+ #={"a","b"}
+ #~(page_sectionalignment-1)
++#SizeofStackReserve against growramp?
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -85,10 +85,10 @@ if loop==1
+ 						#tested at function gather; FORMAT is here starting with FUNCTIONX to set the mask knowing the format
+ 						if formatdefined==0;Set formatdefined 1;endif
+ 						#if commandset==(cDECLARE)        #needing to find virtual start
+-						#at object is difficult, there is no virtual, ostrip will use: ld...-Tdata calculated, objcopy --update-section, write memsize, ounused will include virtual point
++						#at object is difficult, there is no virtual, ostrip will use: ld...-Tdata calculated, objcopy --update-section, write memsize, log file will include virtual point
+ 						#const at virtual start find
+ 						#	use offset on dataReg for !
+-						#	const^ is not ok, use a mempbrk against ^ in declare.s at passes, init without ^,write only ^
++						#	const^ is not ok, init without ^,write only ^
+ 						#virtual.s,virtual_parse
+ 						#else
+ 						If commandset==(cIMPORTLINK) #needing importx here
+--- ocompiler-1.orig/src/files/actions/main/index/declare.s
++++ ocompiler-1/src/files/actions/main/index/declare.s
+@@ -1,34 +1,2 @@
+ 
+-if subtype==(cVDATA)
+-	if p_is_for_64_value#==(TRUE)
+-		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(datapointbit))
+-	else
+-		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),0)
+-	endelse
+-elseif subtype==(cVSTR)
+-	if p_is_for_64_value#==(TRUE)
+-		SetCall errormsg dataassign(pcontent,pcomsize,(stringsnumber),(datapointbit))
+-	else
+-		SetCall errormsg dataassign(pcontent,pcomsize,(stringsnumber),0)
+-	endelse
+-elseif subtype==(cVALUE)
+-	if p_is_for_64_value#==(TRUE)
+-		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),(valueslongmask))
+-	else
+-		SetCall errormsg dataassign(pcontent,pcomsize,(integersnumber),0)
+-	endelse
+-else
+-	sd declare_typenumber
+-	setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype)
+-	sd is_stack
+-	sd typenumber
+-	setcall typenumber stackfilter(declare_typenumber,#is_stack)
+-	if is_stack==true
+-		#must be at the start
+-		call entryscope_verify_code()
+-	endif
+-	#	SetCall errormsg dataassign_ex(pcontent,pcomsize,typenumber,0,(TRUE))
+-	#else
+-		SetCall errormsg dataassign_ex(pcontent,pcomsize,typenumber,0,is_stack)
+-	#endelse
+-endelse
++setcall errormsg declare(pcontent,pcomsize,p_is_for_64_value#,subtype,#relocbool)
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -33,6 +33,7 @@ Include "./functions/actions/fndecargs.s
+ Include "./functions/actions/enumcomma.s"
+ Include "./functions/actions/fn.s"
+ Include "./functions/actions/argstwo.s"
++Include "./functions/actions/declare.s"
+ 
+ Include "./functions/commands/cond.s"
+ Include "./functions/commands/lib.s"
+--- ocompiler-1.orig/src/files/functions/64/bit.s
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -118,7 +118,7 @@ endfunction
+ #	endif
+ #endfunction
+ 
+-function stack64_add(sd val)
++function stack64_enlarge(sd val)
+ 	sd b;setcall b is_for_64()
+ 	if b==(TRUE)
+ 		mult val 2
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -150,11 +150,14 @@ function addvarreferenceorunref(data ptr
+ endfunction
+ 
+ #er
+-function getsign(str content,data size,data typenumber,str assigntype,data relocbool,data ptrsz,data stack)
++function getsign(str content,data size,str assigntype,data ptrsz,data typenumber,data stack,data ptrrelocbool)
+ 	data true=TRUE
+ 	data noerr=noerror
+ 	Data valsize#1
+ 	Chars equalsign=assignsign
++
++	Set ptrrelocbool# (FALSE)
++
+ 	SetCall valsize valinmem_pipes(content,size,equalsign,ptrsz)
+ 	If valsize!=size
+ 		Set assigntype# equalsign
+@@ -188,7 +191,7 @@ function getsign(str content,data size,d
+ 		EndIf
+ 		Set assigntype# pointersign
+ 		If typenumber!=constnr
+-			Set relocbool# true
++			Set ptrrelocbool# true
+ 		EndIf
+ 		return noerr
+ 	endif
+@@ -207,12 +210,11 @@ function getsign(str content,data size,d
+ 			Return ptrptrrelchar
+ 		EndElseIf
+ 		Set assigntype# equalsign
+-		Set relocbool# true
++		Set ptrrelocbool# true
+ 		return noerr
+ 	endif
+ 
+ 	if stack==true
+-const nosign=0
+ 		chars nosign=nosign
+ 		Set assigntype# nosign
+ 		return noerr
+@@ -224,36 +226,14 @@ const nosign=0
+ endfunction
+ 
+ #err
+-Function dataparse(data ptrcontent,data ptrsize,data typenumber,str assigntype,data relocbool,data stack,sd mask)
+-	Str content#1
+-	Data size#1
+-	Data noerr=noerror
++Function dataparse(sv ptrcontent,sd ptrsize,sd valsize,sd typenumber,sd stack,sd mask)
+ 	Data false=FALSE
+ 	Data err#1
+ 
+-	Set content ptrcontent#
+-	Set size ptrsize#
+-
+-	Set relocbool# false
+-
+-	Data valsize#1
+-	data ptrvalsize^valsize
+-	setcall err getsign(content,size,typenumber,assigntype,relocbool,ptrvalsize,stack)
+-	If err!=noerr
+-		Return err
+-	EndIf
+ 	if stack!=false
+ 		data totalmemvariables=totalmemvariables
+ 		add typenumber totalmemvariables
+ 	endif
+ 	SetCall err addvarreferenceorunref(ptrcontent,ptrsize,valsize,typenumber,false,mask)
+-	If err!=noerr
+-		Return err
+-	EndIf
+-
+-	chars nosign=nosign
+-	if assigntype#!=nosign
+-		Call stepcursors(ptrcontent,ptrsize)
+-	endif
+-	Return noerr
++	Return err
+ EndFunction
+--- /dev/null
++++ ocompiler-1/src/files/functions/actions/declare.s
+@@ -0,0 +1,40 @@
++
++#err
++function declare(sv pcontent,sd pcomsize,sd bool_64,sd subtype,sd prelocbool)
++	Data valsize#1
++	Chars sign#1
++	#below also at virtual at get_reserve (with mask there)
++	sd is_stack
++	sd typenumber
++	sd mask
++
++	if subtype==(cVDATA)
++		set is_stack (FALSE);set typenumber (integersnumber)
++		if bool_64==(TRUE);set mask (datapointbit)
++		else;set mask 0;endelse
++	elseif subtype==(cVSTR)
++		set is_stack (FALSE);set typenumber (stringsnumber)
++		if bool_64==(TRUE);set mask (datapointbit)
++		else;set mask 0;endelse
++	elseif subtype==(cVALUE)
++		set is_stack (FALSE);set typenumber (integersnumber)
++		if bool_64==(TRUE);set mask (valueslongmask)
++		else;set mask 0;endelse
++	else
++		sd declare_typenumber
++		setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype)
++		setcall typenumber stackfilter(declare_typenumber,#is_stack)
++		if is_stack==(TRUE)
++			#must be at the start
++			call entryscope_verify_code()
++		endif
++		set mask 0
++	endelse
++
++	sd err
++	setcall err getsign(pcontent#,pcomsize#,#sign,#valsize,typenumber,is_stack,prelocbool)
++	if err==(noerror)
++		SetCall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,is_stack,mask)
++	endif
++	return err
++endfunction
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -50,7 +50,7 @@ function is_funcx_subtype(sd subtype)
+ endfunction
+ #subtype is only when declarefn(not callfn)
+ #err
+-Function parsefunction(data ptrcontent,data ptrsize,data declare,sd subtype,sd el_or_e)
++Function parsefunction(data ptrcontent,data ptrsize,data is_declare,sd subtype,sd el_or_e)
+ 	Data true=TRUE
+ 	#Data false=FALSE
+ 
+@@ -80,7 +80,7 @@ Function parsefunction(data ptrcontent,d
+ 		Return starterr
+ 	EndIf
+ 
+-	If declare==true
++	If is_declare==true
+ 		Data fnnr=functionsnumber
+ 		Data value#1
+ 		Data ptrvalue^value
+@@ -205,9 +205,9 @@ Function parsefunction(data ptrcontent,d
+ 		return err
+ 	endif
+ 
+-	If declare==true
++	If is_declare==true
+ 		If sz!=zero
+-			SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,fnnr) #there are 3 more arguments but are not used
++			SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,fnnr) #there are 3 more arguments but are not used
+ 			if err!=noerr
+ 				return err
+ 			endif
+@@ -222,7 +222,7 @@ Function parsefunction(data ptrcontent,d
+ 			else
+ 				if sz!=zero
+ 					setcall p nr_of_args_64need_p_get();set p# 0
+-					SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(FALSE)) #there are 3 more arguments but are not used
++					SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(FALSE)) #there are 3 more arguments but are not used
+ 					if err==noerr
+ 						setcall err align_ante(p#)
+ 					endif
+@@ -238,20 +238,20 @@ Function parsefunction(data ptrcontent,d
+ 			#pass_write
+ 			if pbool#==(FALSE)
+ 				if sz!=zero
+-					SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(TRUE)) #there are 3 more arguments but are not used
++					SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(TRUE)) #there are 3 more arguments but are not used
+ 				endif
+ 			else
+ 				setcall p nr_of_args_64need_p_get();set p# 0 #also at 0 at win will be sub all shadow space
+ 				if sz!=zero
+ 					set content ptrcontent#
+ 					set size ptrsize#
+-					SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(FALSE)) #there are 3 more arguments but are not used
++					SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(FALSE)) #there are 3 more arguments but are not used
+ 					if err==noerr
+ 						setcall err stack_align(p#)
+ 						if err==noerr
+ 							set ptrcontent# content
+ 							set ptrsize# size
+-							SetCall err enumcommas(ptrcontent,ptrsize,sz,declare,(TRUE)) #there are 3 more arguments but are not used
++							SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(TRUE)) #there are 3 more arguments but are not used
+ 						endif
+ 					endif
+ 				else
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -56,16 +56,21 @@ Function fndecargs(data ptrcontent,data
+ 	Chars stacktransfer2#1
+ 	Data memoff#1
+ 
+-	Data dwrdsz=dwsz
+-	Set stackoff ptr_stackoffset#
+-	AddCall stackoff stack64_add(dwrdsz)
+-	Set ptr_stackoffset# stackoff
+-
+-	data stackindex#1
+-	set stackindex stackoff
+-	addcall stackindex stack64_add((stackinitpush))
++	sd stackindex
++	setcall stackindex stack64_enlarge((dwsz))
++	#file size 0x7ff... ,sd * is 5 at 64 is 8
++	setcall err maxsectioncheck(stackindex,ptr_stackoffset)
++	If err!=noerr
++		Return err
++	EndIf
+ 
+-	setcall err addvarreferenceorunref(ptrcontent,ptrsize,sz,vartype,stackindex,long_mask)
++	Set stackoff ptr_stackoffset#
++	setcall stackindex stack64_enlarge((stackinitpush))
++	setcall err maxsectioncheck(stackindex,#stackoff)
++	If err!=noerr
++		Return err
++	EndIf
++	setcall err addvarreferenceorunref(ptrcontent,ptrsize,sz,vartype,stackoff,long_mask)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+--- ocompiler-1.orig/src/files/functions/add/addtomem.s
++++ ocompiler-1/src/files/functions/add/addtomem.s
+@@ -2,24 +2,19 @@
+ 
+ 
+ 
+-#40...h*2 and can't compare signed<>unsigned and will loose control at alloc
+-#this is also used at reserve *4 will be negative there
+-#Const maxsectionvalue=0x40000000-1
+-#                       aaBBccDD
+-Const maxsectionvalue=0x20000000-1
+-#knowing that enlarge value will qwsz them
++#80...h and can't compare signed<>unsigned and will loose control at alloc
++#this *4 is still positive, this still positive *2 is there a shame check against negative
++#                        aaBBccDD
++#Const maxreservevalue=0x20000000-1
++#1 073 741 823
+ 
+ #err
+-Function maxvaluecheck(data value)
+-	Data secmax=maxsectionvalue
+-	If value>secmax
+-		#Chars secsizeerr="Section size cannot be greater than 1 073 741 823."
+-		Chars secsizeerr="Section size cannot be greater than 536 870 911."
+-		Str ptrsecsizeerr^secsizeerr
+-		Return ptrsecsizeerr
++Function maxsectioncheck(sd a,sd pb)
++	add pb# a
++	if pb#<0
++		return "Section size cannot be greater than 2 147 483 647 (0x7fFFffFF)."
+ 	EndIf
+-	Data noerr=noerror
+-	Return noerr
++	Return (noerror)
+ EndFunction
+ 
+ #errnr
+@@ -64,17 +59,19 @@ Function addtosec(str content,data size,
+ 			Return memerr
+ 		Else
+ 			Data value#1
++			sd err
++
+ 			Set value destData
+-			Add value size
++			setcall err maxsectioncheck(size,#value)
++			If err!=noerr
++				Return err
++			EndIf
+ 			Data pad#1
+ 			Data ptrsecalign%ptrpage_sectionalignment
+ 			Data secalign#1
+ 			Set secalign ptrsecalign#
+ 			SetCall pad requiredpad(value,secalign)
+-			Add value pad
+-
+-			Data err#1
+-			SetCall err maxvaluecheck(value)
++			setcall err maxsectioncheck(pad,#value)
+ 			If err!=noerr
+ 				Return err
+ 			EndIf
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -1,22 +1,12 @@
+ 
+ 
+-
+ #err
+-Function dataassign(sd ptrcontent,sd ptrsize,sd typenumber,sd long_mask)
+-	sd err
+-	setcall err dataassign_ex(ptrcontent,ptrsize,typenumber,long_mask,(FALSE))
+-	return err
+-endfunction
+-
+-#err
+-Function dataassign_ex(sd ptrcontent,sd ptrsize,sd typenumber,sd long_mask,sd stack)
++Function dataassign(sd ptrcontent,sd ptrsize,sd sign,sd valsize,sd typenumber,sd stack,sd long_mask)
+ 	Data false=FALSE
+ 	Data true=TRUE
+ 	Str err#1
+ 	Data noerr=noerror
+-	Chars sign#1
+-	Str assignsign^sign
+-	chars nosign=0
++	chars nosign=nosign
+ 
+ 	Data constantsnr=constantsnumber
+ 	Data charsnr=charsnumber
+@@ -30,6 +20,7 @@ Function dataassign_ex(sd ptrcontent,sd
+ 
+ 	Data ptrrelocbool%ptrrelocbool
+ 
++#parses will enter here and skip this
+ 	#If typenumber!=charsnr
+ 	#for const and at pointer with stack false
+ 	#this can't go after dataparse, addvarref will increase the offset
+@@ -40,15 +31,17 @@ Function dataassign_ex(sd ptrcontent,sd
+ 		#endelse
+ 		Call getcontReg(constantsstruct,ptroffset_const)
+ 	EndIf
+-	SetCall err dataparse(ptrcontent,ptrsize,typenumber,assignsign,ptrrelocbool,stack,long_mask)
++	SetCall err dataparse(ptrcontent,ptrsize,valsize,typenumber,stack,long_mask)
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+-	if assignsign#==nosign
++	if sign==nosign
+ 		#stack variable declared without assignation, only increment stack variables
+-		call addramp()
+-		Return noerr
++		call addramp(#err)
++		Return err
+ 	endif
++#
++	Call stepcursors(ptrcontent,ptrsize)
+ 
+ 	Data size#1
+ 	Set size ptrsize#
+@@ -57,7 +50,7 @@ Function dataassign_ex(sd ptrcontent,sd
+ 		Str ptrrightsideerr^rightsideerr
+ 		Return ptrrightsideerr
+ 	endIf
+-
++#and return unitsize/reserve size  here
+ 	data rightstackpointer#1
+ 
+ 	Data relocindx#1
+@@ -175,7 +168,7 @@ Function dataassign_ex(sd ptrcontent,sd
+ 					call memset(datacont,0,value)
+ 				endif
+ 			else
+-				call growramp(value)
++				call growramp(value,#err)
+ 			endelse
+ 		endif
+ 		Return err
+@@ -374,20 +367,28 @@ function get_reserve_size(sv ptrcontent,
+ 	EndIf
+ 	if is_stack==(FALSE)
+ 		If typenumber!=(charsnumber)
+-			SetCall err maxvaluecheck(ptrvalue#)
+-			If err!=(noerror)
+-				Return err
++			SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++			If err==(noerror)
++				SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++				If err==(noerror)
++					if long_mask!=0
++						SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++					endif
++				endIf
+ 			EndIf
+-			Mult ptrvalue# (dwsz)
+-			if long_mask!=0
+-				mult ptrvalue# 2
+-			endif
+ 		EndIf
+-		If ptrvalue#<0
+-			return ptrnegreserve
+-		endIf
+ 	else
+-		Mult ptrvalue# :
++		SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++		If err==(noerror)
++			SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++			If err==(noerror)
++				#at format 64 can be a *2 at growramp
++				sd b;setcall b is_for_64()
++				if b==(TRUE)
++					SetCall err maxsectioncheck(ptrvalue#,ptrvalue)
++				endIf
++			endIf
++		endIf
+ 	endelse
+-	return (noerror)
++	Return err
+ endfunction
+--- ocompiler-1.orig/src/files/functions/enumbags.s
++++ ocompiler-1/src/files/functions/enumbags.s
+@@ -1,12 +1,12 @@
+ 
+ 
+ #err
+-Function enumbags(data declare)
++Function enumbags(data is_declare)
+ 	sd pointer%containersbegin
+ 	sd cursor=containerssize
+ 	add cursor pointer
+ 	While pointer!=cursor
+-		If declare==(TRUE)
++		If is_declare==(TRUE)
+ 			sd err;setcall err enumbags_alloc(pointer)
+ 			If err!=(noerror)
+ 				Return err
+--- ocompiler-1.orig/src/files/functions/stack/stack.s
++++ ocompiler-1/src/files/functions/stack/stack.s
+@@ -44,18 +44,19 @@ function getptrramp()
+ 	return code
+ endfunction
+ #ind(before)
+-function growramp(data value)
+-	data ptrramp#1
++function growramp(sd value,sv perr)
++	vdata ptrramp#1
+ 	setcall ptrramp getptrramp()
+ 	sd ret;set ret ptrramp#
+-	addcall ptrramp# stack64_add(value)
++	setcall perr# maxsectioncheck(value,ptrramp)
+ 	return ret
+ endfunction
+ #ind(before)
+-function addramp()
+-	data dword=4
++function addramp(sv perr)
++	sd index
++	setcall index stack64_enlarge((dwsz))
+ 	data ramp#1
+-	setcall ramp growramp(dword)
++	setcall ramp growramp(index,perr)
+ 	return ramp
+ endfunction
+ #ind
+@@ -124,10 +125,11 @@ function addtocode_decstack(sd for_64)
+ 		call rex_w(#err);if err!=(noerror);return err;endif
+ 	endif
+ 
+-	setcall rampindex addramp()
++	setcall rampindex addramp(#err)
+ 	#is with sub now     neg rampindex
+-
+-	setcall err addtosec(stack,size,ptrcodesec)
++	if err==(noerror)
++		setcall err addtosec(stack,size,ptrcodesec)
++	endif
+ 	return err
+ endfunction
+ #er
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -419,3 +419,5 @@ const ptrfunctionTagIndex^functionTagInd
+ const pass_init=3
+ const pass_calls=2
+ const pass_write=1
++
++const nosign=0
+--- ocompiler-1.orig/src/files/headers/pe_format.h
++++ ocompiler-1/src/files/headers/pe_format.h
+@@ -57,7 +57,7 @@ Data *CheckSum=0
+ Const IMAGE_SUBSYSTEM_WINDOWS_CUI=3
+ Chars *Subsystem={IMAGE_SUBSYSTEM_WINDOWS_CUI,0}
+ Chars DllCharacteristics#2
+-Data *SizeOfStackReserve=0x1000
++Data *SizeOfStackReserve=0x10000
+ Data *SizeOfStackCommit=0x1000
+ Data *SizeOfHeapReserve=0x10000
+ Data *SizeOfHeapCommit=0x1000

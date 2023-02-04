@@ -1,0 +1,59 @@
+on:
+ workflow_dispatch:
+  inputs:
+   ppa:
+    description: "ppa sufix"
+   unpublished:
+    description: "don't wait to publish, take from build page"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ rpbuild:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-22.04 #focal alien is not testing ok on docker fedora
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   - uses: actions/checkout@v3
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      #proj
+      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+      #get deb
+      if [ "${{ github.event.inputs.unpublished }}" = "" ]; then
+       echo published
+       dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
+       src=ppa.launchpadcontent.net/colin-i/ppa${{ github.event.inputs.ppa }}
+       wget http://${src}/ubuntu/dists/${dist}/main/binary-i386/Packages.xz
+       xz -d Packages.xz
+       debfilename=`grep "^Filename.*/${name}_" Packages | tail -1 | cut -d ' ' -f 2`
+       wget http://${src}/ubuntu/${debfilename} -O ${name}.deb
+      else
+       echo unpublished
+       f=`wget -q https://launchpad.net/~colin-i/+archive/ubuntu/ppa${{ github.event.inputs.ppa }}/+build/${{ github.event.inputs.unpublished }} -O - | grep -Poe "[^\"]*(?=\.deb\")"`
+       wget ${f}.deb -O ${name}.deb
+      fi
+      #make rpm
+      mkdir out
+      cd out
+      sudo apt update
+      sudo apt install alien
+      sudo alien -rk ../${name}.deb
+      #fname first - to .
+      fname=`ls`
+      fnamefinal=`echo ${fname} | sed "s/-/./"`
+      mv ${fname} ../${fnamefinal}
+      echo "file=${fnamefinal}" >> $GITHUB_ENV
+      #get up_url
+      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
+      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
+   - name: Upload Release Asset
+     uses: actions/upload-release-asset@v1
+     env:
+      GITHUB_TOKEN: ${{ secrets.PAT }}
+     with:
+      upload_url: ${{ env.up_url }}
+      asset_path: ./${{ env.file }}
+      asset_name: ${{ env.file }}
+      asset_content_type: application/x-rpm

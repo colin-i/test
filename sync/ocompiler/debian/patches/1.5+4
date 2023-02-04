@@ -1,0 +1,221 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+4) xenial; urgency=medium
+ .
+   * fix at 64 push data
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-01
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -8,10 +8,12 @@
+ ./makewin32 && \
+ ~/test/del && \
+ ~/test/rel && \
++~/test/pub rel && \
+ ~/test/rpm && \
+ ~/test/upapp && \
+ ~/test/up && \
+ ~/test/pub upapp rpm && \
+ ~/test/pub2 && \
++~/test/publp2 && \
+ ~/test/lp && \
+-echo wait lp2
++~/test/lp x
+--- ocompiler-1.orig/src/Makefile
++++ ocompiler-1/src/Makefile
+@@ -6,11 +6,12 @@ FULLOBJ = ./linux/${OB}
+ FULLOBJS = ${FULLOBJ}.s
+ FULLOBJO = ${FULLOBJ}.o
+ OBT = ${OB}.txt
++OCOMP=o
+ 
+ OFLAGS=
+ 
+ %.o: ${FULLOBJS}
+-	if [ -s ${OBT} ];then base64 -d ${OBT} > $@;else o $< ${OFLAGS};fi
++	if [ -s ${OBT} ];then base64 -d ${OBT} > $@;else ${OCOMP} $< ${OFLAGS};fi
+ 
+ syms =-s
+ ATLDCOM = $(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 -o $@ -lc -entry main
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -66,13 +66,7 @@ Function argument(data ptrcontent,data p
+ 	Data false=FALSE
+ 	Data true=TRUE
+ 
+-	Data noreg=noregnumber
+-	Data eaxreg=eaxregnumber
+-	Data intchar#1
+-	Set intchar noreg
+-
+-	Data integerreminder#1
+-	Set integerreminder false
++	Data regprepare_bool#1
+ 
+ 	Chars op#1
+ 	Data zero=0
+@@ -80,8 +74,6 @@ Function argument(data ptrcontent,data p
+ 	Str ptrcontinuation#1
+ 	Data sizeofcontinuation#1
+ 
+-	Set sizeofcontinuation zero
+-
+ 	Data codeptr%ptrcodesec
+ 	Data regopcode#1
+ 
+@@ -89,13 +81,16 @@ Function argument(data ptrcontent,data p
+ 	Data noerr=noerror
+ 	chars immop#1
+ 
++	Set regprepare_bool false
++	Set sizeofcontinuation zero
++
+ 	call unsetimm()
+ 	Data forward=FORWARD
+ 	If forwardORcallsens==forward
+ 		If subtype==(cRETURN)
+ 			sd termswitch
+ 			setcall termswitch is_linux_end() #exit from linux term
+-			setcall err argument_return(termswitch,#op,#immop,#integerreminder,#ptrcontinuation,#sizeofcontinuation,#regopcode)
++			setcall err argument_return(termswitch,#op,#immop,#regprepare_bool,#ptrcontinuation,#sizeofcontinuation,#regopcode)
+ 			If err!=noerr
+ 				Return err
+ 			EndIf
+@@ -127,7 +122,7 @@ Function argument(data ptrcontent,data p
+ 			set ptrcontinuation #incs_sz
+ 			set sizeofcontinuation (bsz)
+ 		ElseIf subtype==(cEXIT)
+-			setcall err argument_return((TRUE),#op,#immop,#integerreminder,#ptrcontinuation,#sizeofcontinuation,#regopcode)
++			setcall err argument_return((TRUE),#op,#immop,#regprepare_bool,#ptrcontinuation,#sizeofcontinuation,#regopcode)
+ 			If err!=noerr
+ 				Return err
+ 			EndIf
+@@ -158,6 +153,7 @@ Function argument(data ptrcontent,data p
+ 	Data ptrdataarg^dataarg
+ 	Data sufix#1
+ 	Data ptrsufix^sufix
++
+ 	SetCall err arg(ptrcontent,ptrsize,ptrdataarg,ptrlowbyte,ptrsufix,forwardORcallsens)
+ 	If err!=noerr
+ 		Return err
+@@ -166,55 +162,56 @@ Function argument(data ptrcontent,data p
+ 	sd imm
+ 	setcall imm getisimm()
+ 	if imm==false
++		Data noreg=noregnumber
++		Data eaxreg=eaxregnumber
++		Data intchar#1
++		Set intchar noreg
+ 		If forwardORcallsens!=forward
+ 		#push
+-			If lowbyte==false
+-				Chars push={0xff}
+-				Chars pushopcode={6}
+-				Set op push
+-				Set regopcode pushopcode
+-				call stack64_op_set()
+-			Else
++			#If lowbyte==false
++			#since with 64 push data will push quad even without rex
++			#	Chars push={0xff}
++			#	Chars pushopcode={6}
++			#	Set op push
++			#	Set regopcode pushopcode
++			#	call stack64_op_set()
++			#Else
++			If lowbyte==true
++				#prepare for eax for al
+ 				Set intchar eaxreg
+-				Chars pushaction={moveatprocthemem}
+-				Set op pushaction
+-				set regopcode (eaxregnumber)
+-
+-				chars pushadvance={0x50}
+-				data pushcontinuationsize=1
+-				data ptrpushcontinuation^pushadvance
+-				Set ptrcontinuation ptrpushcontinuation
+-				set sizeofcontinuation pushcontinuationsize
+-			EndElse
++			EndIf
++			Chars pushaction={moveatprocthemem}
++			Set op pushaction
++			set regopcode (eaxregnumber)
++
++			chars pushadvance={0x50}
++			data pushcontinuationsize=1
++			data ptrpushcontinuation^pushadvance
++			Set ptrcontinuation ptrpushcontinuation
++			set sizeofcontinuation pushcontinuationsize
++			#EndElse
+ 		EndIf
++		If lowbyte==true
++		#imm don't use one byte at the moment
++			Dec op
++			If regprepare_bool==true
++				Set intchar regopcode
++			EndIf
++		EndIf
++		SetCall err writeop(dataarg,op,intchar,sufix,regopcode,lowbyte)
++		call restore_argmask() #before this there is no err!=noerr: it is not a must, only less space
+ 	Else
+-	#imm
++	#imm push/return/exit
+ 		set op immop
+-	EndElse
+-
+-	If lowbyte==true
+-		Dec op
+-		If integerreminder==true
+-			Set intchar regopcode
+-		EndIf
+-	EndIf
+-
+-	if imm==true
+ 		setcall err write_imm(dataarg,op)
+-	else
+-		SetCall err writeop(dataarg,op,intchar,sufix,regopcode,lowbyte)
+-		call restore_argmask()
+-	endelse
++	EndElse
+ 	If err!=noerr
+ 		Return err
+ 	EndIf
+-
+ 	If sizeofcontinuation!=zero
++		#return / exit / (only at noimm):incst/push
+ 		SetCall err addtosec(ptrcontinuation,sizeofcontinuation,codeptr)
+ 		return err
+ 	EndIf
+-
+-	return noerr
+-
++	Return noerr
+ endfunction
+-
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -244,4 +244,4 @@ Function writeop(sd location,sd operatio
+ 	Data edxregnumber=edxregnumber
+ 	SetCall err writeoperation(location,operationopcode,regprepare,sufix,regopcode,edxregnumber,is_low)
+ 	Return err
+-EndFunction
+\ No newline at end of file
++EndFunction

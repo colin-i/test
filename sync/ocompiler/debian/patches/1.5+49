@@ -1,0 +1,83 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+49) xenial; urgency=medium
+ .
+   * extra command
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-09-25
+
+--- ocompiler-1.orig/.github/workflows/appimage.yml
++++ ocompiler-1/.github/workflows/appimage.yml
+@@ -34,7 +34,8 @@ jobs:
+       archfile=${file}${arch_ai}
+       kitpart () {
+        #https://github.com/AppImage/pkg2appimage
+-       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       #this is not working anymore urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       urlpart=AppImage/AppImageKit/releases/latest/download/${archfile}
+       }
+       if [ ! -e "${file}" ]; then
+        kitpart
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -189,6 +189,25 @@
+ 	The pointer is like for stack variables; vdata 4, vstr 1, value 4/8.
+ 	</p>
+ 
++	<p>
++	11 - 16. Virtual variables
++	<br>
++	Language command: <b>DATAX</b>
++	<br>
++	Language command: <b>STRX</b>
++	<br>
++	Language command: <b>CHARSX</b>
++	<br>
++	Language command: <b>VDATAX</b>
++	<br>
++	Language command: <b>VSTRX</b>
++	<br>
++	Language command: <b>VALUEX</b>
++	<br>
++	They will be physically placed after the counterparts and the starting offset will be logged
++	so ostrip can remove them after ld linked the objects.
++	</p>
++
+ 	<br>
+ 
+ 	<p>
+--- /dev/null
++++ ocompiler-1/ostrip/data.s
+@@ -0,0 +1,2 @@
++
++format elfobj
+--- /dev/null
++++ ocompiler-1/ostrip/ostrip.s
+@@ -0,0 +1,2 @@
++
++format elfobj
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -90,4 +90,4 @@ set functionTagIndex 0
+ 
+ call resetisimm()
+ 
+-set datasecSize 0
++#this is init at main.s and used after that    set datasecSize 0

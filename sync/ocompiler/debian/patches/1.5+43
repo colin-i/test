@@ -1,0 +1,127 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+43) xenial; urgency=medium
+ .
+   * old elf format with new rules,but crawling
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-09-10
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -28,3 +28,4 @@ last=`curl https://api.github.com/repos/
+ #plans
+ #simple and or
+ #={"a","b"}
++#~(page_sectionalignment-1)
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -87,6 +87,35 @@ If object==false
+ 		Set elf32_phdr_p_vaddr_dyn elf32_phdr_p_vaddr_interp
+ 		Add elf32_phdr_p_vaddr_dyn interpretersize
+ 
++
++
++
++
++		#the entry is not taken without this
++		data test1#1
++		data test2#1
++		set test1 elf32_phdr_p_vaddr_interp
++		div test1 page_sectionalignment
++		set test2 elf32_phdr_p_vaddr_dyn
++		div test2 page_sectionalignment
++		if test2==test1
++			add elf32_phdr_p_vaddr_dyn page_sectionalignment
++		endif
++		#recent tests (after some years have passed):
++		#	dynamic section must be in a load segment by gdb warning
++		#	segment=program header
++		#	readelf,gdb,objdump are not error/warning but the executable can only run with /lib/ld-linux.so.2 ./prog
++		#		for printf or something else, here at libs
++
++		#"ELF load command address/offset not page-aligned"
++		#but the fact was to align
++		#and elf32_phdr_p_vaddr_dyn (~page_sectionalignment^(page_sectionalignment-1)|page_sectionalignment)
++		#~(page_sectionalignment-1)
++
++
++
++
++
+ 		Set elf32_phdr_p_paddr_dyn elf32_phdr_p_vaddr_dyn
+ 
+ 		Set elf32_phdr_p_filesz_dyn tableReg
+@@ -98,26 +127,20 @@ If object==false
+ 		Inc elf32_ehd_e_phnum
+ 
+ 		Set elf32_phdr_p_offset_lib elf32_phdr_p_offset_dyn
+-		Add elf32_phdr_p_offset_lib elf32_phdr_p_filesz_dyn
++		#Add elf32_phdr_p_offset_lib elf32_phdr_p_filesz_dyn
++		data elf_str_offset#1
++		set elf_str_offset elf32_phdr_p_offset_lib
++		Add elf_str_offset elf32_phdr_p_filesz_dyn
+ 
+ 		set elf32_phdr_p_vaddr_lib elf32_phdr_p_vaddr_dyn
+-		Add elf32_phdr_p_vaddr_lib elf32_phdr_p_filesz_dyn
+-
+-		data test1#1
+-		data test2#1
+-		set test1 elf32_phdr_p_vaddr_interp
+-		div test1 page_sectionalignment
+-		set test2 elf32_phdr_p_vaddr_lib
+-		div test2 page_sectionalignment
+-		if test2==test1
+-			add elf32_phdr_p_vaddr_lib page_sectionalignment
+-		endif
++		#Add elf32_phdr_p_vaddr_lib elf32_phdr_p_filesz_dyn
+ 
+ 		Set elf32_phdr_p_paddr_lib elf32_phdr_p_vaddr_lib
+ 
+ 		##resolve libraries
+ 		###hash
+ 		Set elf32_dyn_d_ptr_hash elf32_phdr_p_vaddr_lib
++		Add elf32_dyn_d_ptr_hash elf32_phdr_p_filesz_dyn
+ 
+ 		#
+ 		Set elf32_phdr_p_filesz_lib elf_hash_minsize
+@@ -161,8 +184,6 @@ If object==false
+ 		Set elf32_dyn_d_val_strsz namesReg
+ 
+ 		#stroff
+-		data elf_str_offset#1
+-		set elf_str_offset elf32_phdr_p_offset_lib
+ 		add elf_str_offset elf32_phdr_p_filesz_lib
+ 
+ 		#
+@@ -226,12 +247,13 @@ If object==false
+ 		Set importfileheaders elf_importfileheaders
+ 		Set sizeimportfileheaders elf_importfileheaders_size
+ 
+-		Set virtualimportsoffset elf32_phdr_p_vaddr_lib
++		Set virtualimportsoffset elf32_dyn_d_ptr_hash
+ 		Add virtualimportsoffset elf32_phdr_p_filesz_lib
+ 		#commons#
+ 
+ 		#
+ 		Add elf32_phdr_p_filesz_lib elf_rel_entries_size
++		add elf32_phdr_p_filesz_lib elf32_phdr_p_filesz_dyn
+ 		#
+ 
+ 		Set elf32_phdr_p_memsz_lib elf32_phdr_p_filesz_lib

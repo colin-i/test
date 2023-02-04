@@ -1,0 +1,135 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+8) xenial; urgency=medium
+ .
+   * fix
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-08-05
+
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -6,6 +6,7 @@
+ ~/test/ai && \
+ ~/test/pub appimage && \
+ ./makewin32 && \
++~/test/keyring && \
+ ~/test/del && \
+ ~/test/rel && \
+ ~/test/pub rel && \
+@@ -15,5 +16,6 @@
+ ~/test/pub upapp rpm && \
+ ~/test/pub2 && \
+ ~/test/publp2 && \
++~/test/keyring && \
+ ~/test/lp && \
+ ~/test/lp x
+--- ocompiler-1.orig/src/files/functions/actions/argstwo.s
++++ ocompiler-1/src/files/functions/actions/argstwo.s
+@@ -428,7 +428,8 @@ function writeoper(sd takeindex,sd locat
+ 	setcall err writetake(takeindex,location)
+ 	If err==(noerror)
+ 		if sufix==(TRUE)
+-			setcall err sufix_take(takeindex)
++			sd t;setcall t sufix64(location)
++			setcall err sufix_take(takeindex,t)
+ 		endif
+ 	endif
+ 	return err
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -131,24 +131,12 @@ Function writeoperation_take(sd p_errnr,
+ 		set p_errnr# errnr;return (void)
+ 	EndIf
+ 
+-
+-	sd for_64;setcall for_64 is_for_64()
+-	sd take64=FALSE;sd v_64=val64_no
++	sd v_64
+ 	sd prefix
+-	sd bittest;setcall bittest bigbits(location)
+-	if bittest!=0
+-		#p test
+-		if for_64==(TRUE)
+-			set take64 (TRUE)
+-			set v_64 (val64_willbe)
+-			#rex if p
+-		endif
+-		#take on takeindex
+-	endif
++	setcall v_64 sufix64(location)
+ 	If sufix==(TRUE)
+-		if take64==(TRUE)
+-			call rex_w(#errnr);If errnr!=noerr
+-				set p_errnr# errnr;return (void);EndIf
++		sd take64;set take64 v_64
++		if v_64==(val64_willbe)
+ 			if is_low==(TRUE)
+ 			#not ss, rex.w op r/m8 is ok but is useless
+ 				set v_64 (val64_no)
+@@ -164,8 +152,9 @@ Function writeoperation_take(sd p_errnr,
+ 				endif
+ 			endelse
+ 		endif
+-		setcall p_errnr# sufix_take(takeindex)
++		setcall p_errnr# sufix_take(takeindex,take64)
+ 	Else
++		sd for_64;setcall for_64 is_for_64()
+ 		if for_64==(TRUE)
+ 			setcall prefix prefix_bool()
+ 			if prefix#!=0
+@@ -178,9 +167,14 @@ Function writeoperation_take(sd p_errnr,
+ 	Return v_64
+ EndFunction
+ #er
+-function sufix_take(sd takeindex)
+-	Data ptrcodesec%ptrcodesec
++function sufix_take(sd takeindex,sd take64)
+ 	sd err
++	if take64==(val64_willbe)
++		call rex_w(#err)
++		if err!=(noerror)
++			return err;endif
++	endif
++	Data ptrcodesec%ptrcodesec
+ 	Chars newtake=moveatprocthemem
+ 	Chars newtakemodrm#1
+ 	Str ptrnewtake^newtake
+@@ -189,6 +183,21 @@ function sufix_take(sd takeindex)
+ 	SetCall err addtosec(ptrnewtake,sz2,ptrcodesec)
+ 	return err
+ endfunction
++#v64
++function sufix64(sd location)
++	sd bittest;setcall bittest bigbits(location)
++	if bittest!=0
++		sd for_64;setcall for_64 is_for_64()
++		#p test
++		if for_64==(TRUE)
++			return (val64_willbe)
++			#rex if p
++		endif
++		#take on takeindex
++	endif
++	return (val64_no)
++endfunction
++
+ #er
+ Function writeoperation_op(sd operationopcode,sd regprepare,sd regopcode,sd takeindex)
+ 	Data ptrcodesec%ptrcodesec
