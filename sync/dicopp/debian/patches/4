@@ -1,0 +1,168 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ dicopp (1-jammy4) jammy; urgency=medium
+ .
+   * async hublist
+Author: pi <pi@pi-desktop>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-05
+
+--- dicopp-1.orig/README.md
++++ dicopp-1/README.md
+@@ -1,27 +1,26 @@
+ # Direct Connect ++ client
+ 
+ ## Install
+-On Ubuntu, but other distros may have the same tree and dependencies.
++On Ubuntu from PPA.
+ ```sh
+ sudo add-apt-repository ppa:colin-i/ppa
+ ```
+ Or the *manual installation step* from this link *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6* \
+-Update and install:
++Install:
+ ```sh
+-sudo apt-get update
+ sudo apt-get install dicopp
+ ```
+-
+-## From source
+-Using eiskaltdcpp-daemon through json rpc and gtk4 bound with PyGObject.\
+-With setup.py or the other python setup script.
+-
+-## From pypi
++\
++From pypi:
+ ```sh
+ pip3 install dicopp
+ ```
+ And having the dependencies.
+ 
++## From source
++Using eiskaltdcpp-daemon through json rpc and gtk4 bound with PyGObject.\
++With setup.py or the other python setup script.
++
+ ## Donations
+ The *donations* section is here
+ *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6*
+--- dicopp-1.orig/dicopp/daem.py
++++ dicopp-1/dicopp/daem.py
+@@ -63,4 +63,8 @@ def close(inter):
+ 		else:
+ 			p=psutil.Process(runs().pid)
+ 			reqs.req("daemon.stop")
+-			p.wait()
+\ No newline at end of file
++			p.wait()
++#-11 (SIGSEGV)
++#			instobj.communicate() is same
++#			terminate is SIGTERM, SIGINT or daemon.stop is same
++#apport is catching first two tries
+--- dicopp-1.orig/dicopp/hubs.py
++++ dicopp-1/dicopp/hubs.py
+@@ -1,9 +1,10 @@
+ 
+-from gi.repository import Gtk
++from gi.repository import Gtk,GLib
+ 
+ import xml.etree.ElementTree as ET
+ import urllib.request
+ import math
++import threading
+ 
+ listdef=lambda:Gtk.ListStore(str,int,str,str)
+ 
+@@ -15,6 +16,9 @@ from . import overrides
+ addr=Gtk.EntryBuffer(text='https://www.te-home.net/?do=hublist&get=hublist.xml')
+ file=Gtk.EntryBuffer()
+ lim=Gtk.EntryBuffer(text='200')
++labelA="Searching..."
++labelB="HubList"
++label=Gtk.Label()
+ 
+ list=listdef()
+ sort=Gtk.TreeModelSort.new_with_model(list)
+@@ -98,18 +102,36 @@ def show():
+ 	return wn
+ 
+ def ini():
++	label.set_text(labelA)
++	global async_th
++	async_th = threading.Thread(target=ini_async)
++	async_th.start()
++def ini_async():
+ 	try:
+-		tree = ET.ElementTree(file=urllib.request.urlopen(addr.get_text()))
+-		root = tree.getroot()
++		urlresult=urllib.request.urlopen(addr.get_text())
+ 	except Exception:
+-		print("hubs list error")
+-		if file.get_text():
+-			tree = ET.parse(file.get_text())
++		print("urlopen exception")
++		urlresult=None
++	GLib.idle_add(ini_main,(urlresult,threading.current_thread()))
++def ini_main(mixt):
++	urlresult,th=mixt
++	if async_th==th:
++		try:
++			label.set_text(labelB)
++			tree = ET.ElementTree(file=urlresult)
+ 			root = tree.getroot()
+-		else:
+-			#if the module has never been imported before (== not present in sys.modules), then it is loaded and added to sys.modules.
+-			from . import hublist
+-			root = ET.fromstring(hublist.a)
++		except Exception:
++			print("hubs list error")
++			if file.get_text():
++				tree = ET.parse(file.get_text())
++				root = tree.getroot()
++			else:
++				#if the module has never been imported before (== not present in sys.modules), then it is loaded and added to sys.modules.
++				from . import hublist
++				root = ET.fromstring(hublist.a)
++		ini_result(root)
++	return False
++def ini_result(root):
+ 	try:
+ 		hbs=root.find("Hubs").findall("Hub")
+ 	except Exception:
+--- dicopp-1.orig/dicopp/layout.py
++++ dicopp-1/dicopp/layout.py
+@@ -25,7 +25,7 @@ def show(w):
+ 	e.connect('activate',search.send,pags)
+ 	box.append(e)
+ 	bx.append(box)
+-	pags.append_page(hubs.show(),Gtk.Label(label="HubList"))
++	pags.append_page(hubs.show(),hubs.label)
+ 	pags.append_page(hubson.show(pags),Gtk.Label(label="Hubs"))
+ 	pags.append_page(users.show(pags,w),Gtk.Label(label=users.intro))
+ 	pags.append_page(usersloc.show(pags),Gtk.Label(label="Users"))
+--- dicopp-1.orig/setup.py
++++ dicopp-1/setup.py
+@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text(
+ from setuptools import setup
+ setup(name=pkname,
+ 	packages=[pkname],
+-	version='1.0.29',
++	version='1.0.30',
+ 	#opt
+ 	python_requires='>=3',
+ 	install_requires=["PyGObject>=3.40","requests>=2.21","appdirs>=1.4.3",\
