@@ -1,0 +1,85 @@
+
+#name: deb
+
+on:
+ workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ dbuild:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-18.04
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+   - uses: actions/checkout@v3
+     with:
+      path: in
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      if [ -n "${{ env.init }}" ]; then
+       exit
+      fi
+      sudo dpkg --add-architecture i386
+      if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
+       sudo apt update #Err:1 http://ppa.launchpad.net ... libxml2-utils amd64 2.9.13 ... Not Found
+       sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential libgstreamer-plugins-base1.0-dev \
+                           libc6 \
+                           libc6:i386
+      fi
+      downdeb () {
+       #pkg=${2}
+       pkg=ocompiler
+       maindeb=${pkg}.deb
+       if [ ! -e "${maindeb}" ]; then
+        arch=i386
+        #nr=${3}
+        inter=Packages${arch}
+        #                    ${nr}
+        #src=${1}
+        src="ppa.launchpadcontent.net/colin-i/ppa"
+        if [ ! -e "${inter}" ]; then
+         #sfx=${4}
+         wget http://${src}/ubuntu/dists/bionic/main/binary-${arch}/Packages.xz -O ${inter}.xz
+         #                                     ${sfx}
+         xz -d ${inter}.xz #f for multiple times
+        fi
+        debfilename=`grep "^Filename.*/${pkg}_" ${inter} | tail -1 | cut -d ' ' -f 2`
+        wget_url=http://${src}/ubuntu/${debfilename}
+        #echo ${wget_url}
+        wget ${wget_url} -O ${maindeb}
+        dpkgs+=" ${maindeb}"
+       fi
+      }
+      #dpkgs=
+      #array=( gcc-8-base libgcc1 libc6 )
+      #for var in "${array[@]}"
+      #do
+      # downdeb "ro.archive.ubuntu.com" ${var} 1 -updates
+      #done
+      #downdeb "ppa.launchpadcontent.net/colin-i/ppa" ocompiler 2
+      downdeb
+      if [ -n "${dpkgs}" ]; then
+        sudo dpkg -i ${dpkgs}
+      fi
+      origf=ovideo-1.tar.gz
+      if [ ! -e "${origf}" ]; then
+       origln=ovideo_1.orig.tar.gz
+       wget https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu/pool/main/o/ovideo/${origln} -O ${origf}
+       ln -s ${origf} ${origln}
+      fi
+      cd in
+      debuild -S -us -uc
+      #cd ..
+      #ls -l
+   - name: unsigned debs
+     uses: actions/upload-artifact@v3
+     with:
+      name: sdebs
+      path: |
+       ./*.dsc
+       ./*.changes
+       ./*.buildinfo
+       ./*.debian.tar.xz

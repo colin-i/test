@@ -1,0 +1,204 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-180b) bionic; urgency=medium
+ .
+   * extra off
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-13
+
+--- /dev/null
++++ ovideo-1/.github/workflows/appimage.yml
+@@ -0,0 +1,78 @@
++
++#name: appimage
++
++on:
++ # Triggers the workflow on push or pull request events but only for the main branch
++ #push:
++ # branches: [ main ]
++ #pull_request:
++ # branches: [ main ]
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ build:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
++   #- uses: actions/checkout@v3
++   #with:
++   # repository: colin-i/irc
++   # path: my-tools
++   #- uses: dsaltares/fetch-gh-release-asset@master
++   #with:
++   # repo: 'colin-i/test'
++   # #version: 'tags/1.1'
++   # file: 'gpg.gpg'
++   # #target: 'tmp/' #plague-linux.zip'
++   # #token: ${{ secrets.PAT }}
++   #Runs a set of commands using the runners shell
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       echo a
++      fi
++      debfileversion=`cat ./debian/changelog | head -n 1 | cut -d '(' -f 2 | cut -d ')' -f 1`
++      cd in
++      file=/squashfs-root/AppRun
++      if [ ! -e "${file}" ]; then
++       urlpart=`wget -q https://github.com/AppImage/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2`
++       wget -c https://github.com/${urlpart}
++       #chmod +x ./pkg2appimage-*.AppImage
++       file=`echo ./${urlpart} | cut -d '/' -f 7`
++       chmod +x ${file}
++       ./${file} --appimage-extract #modprobe not found,fuse not found
++       file=./squashfs-root/AppRun
++      fi
++      wget_url=https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/ovideo_${debfileversion}_i386.deb
++      wget ${wget_url} -O ovideo.deb
++      #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
++      #echo -n ${{ secrets.PASS }} > pas.txt
++      #echo "tag=refs/tags/1.1" >> $GITHUB_ENV
++      #echo $tag ${{ env.tag }}
++      ARCH=i686 ${file} ../ovideo.yml
++      cd ..
++      sudo rm -r in
++   #- name: Create Release
++   #  id: create_release
++   #  uses: actions/create-release@v1
++   #  env:
++   #   GITHUB_TOKEN: ${{ secrets.PAT }}
++   #  with:
++   #   tag_name: ${{ env.tag }}
++   #   release_name: Release ${{ env.tag }}
++   #   draft: false
++   #   rerelease: false
++   #- name: Upload Release Asset
++   #  uses: actions/upload-release-asset@v1
++   #  env:
++   #   GITHUB_TOKEN: ${{ secrets.PAT }}
++   #  with:
++   #   upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
++   #   asset_path: ./LD-.glibc2.27-x86_64.AppImage
++   #   asset_name: LD-.glibc2.27-x86_64.AppImage
++   #   asset_content_type: application/x-executable
+--- /dev/null
++++ ovideo-1/ovideo.yml
+@@ -0,0 +1,31 @@
++app:
++  ovideo
++
++#ingredients:
++#  dist: bionic
++#  sources:
++#    - deb http://ppa.launchpad.net/colin-i/ppa/ubuntu bionic main
++#    - deb http://archive.ubuntu.com/ubuntu/ bionic main universe
++#  ppas:
++#    - colin-i/ppa
++#  packages:
++#    - ovideo
++#    - libgtk2.0-0
++#  script:
++#     #this was working only ingredients and this (not with dist)
++#     - wget 'https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/ovideo_1-179b_i386.deb' -O ovideo.deb
++#https://launchpad.net/ubuntu/bionic/i386/libgtk2.0-0
++#click last version
++#    - wget 'http://launchpadlibrarian.net/361893712/libgtk2.0-0_2.24.32-1ubuntu1_i386.deb'
++#gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad
++
++script:
++  - cp ../../ovideo.png .
++  - cat > ovideo.desktop <<EOF
++  - [Desktop Entry]
++  - Type=Application
++  - Name=OVideo
++  - Exec=ovideo
++  - Icon=ovideo
++  - Categories=GNOME;GTK;
++  - EOF
+--- ovideo-1.orig/src/obj/containers.s
++++ ovideo-1/src/obj/containers.s
+@@ -196,32 +196,31 @@ function dialog_modal_texter_drawwidget(
+     endelse
+ endfunction
+ function dialog_modal_texter_draw(ss text)
+-    sd widget
+-    setcall widget dialog_modal_texter_drawwidget((value_get))
+-    if widget!=0
+-        call dialogfield_modal_texter_drawtext((value_set),text)
+-        importx "_gdk_threads_add_timeout" gdk_threads_add_timeout
+-        #the drawing commands must be called from the main thread or sometimes will crash
+-        data f^dialog_modal_texter_draw_main_thread
+-        call gdk_threads_add_timeout(0,f,0)
+-    endif
++#	sd widget
++#	setcall widget dialog_modal_texter_drawwidget((value_get))
++#	if widget!=0
++	call dialogfield_modal_texter_drawtext((value_set),text)
++	importx "_g_idle_add" g_idle_add
++	#the drawing commands must be called from the main thread or sometimes will crash
++	call g_idle_add(dialog_modal_texter_draw_main_thread,(void))
++#	endif
+ endfunction
+ #FALSE=stop timeout
+ function dialog_modal_texter_draw_main_thread(sd *data)
+-    sd widget
+-    setcall widget dialog_modal_texter_drawwidget((value_get))
+-    if widget!=0
+-        import "widget_redraw" widget_redraw
+-        importx "_gtk_widget_get_window" gtk_widget_get_window
+-        call widget_redraw(widget)
+-        sd window
+-        setcall window gtk_widget_get_window(widget)
+-        if window!=0
+-            importx "_gdk_window_process_updates" gdk_window_process_updates
+-            call gdk_window_process_updates(window,(FALSE))
+-        endif
+-    endif
+-    return (FALSE)
++	sd widget
++	setcall widget dialog_modal_texter_drawwidget((value_get))
++	if widget!=0 #this,at audiovideo,can come later in main after g_thread_join/gtk_widget_destroy
++		import "widget_redraw" widget_redraw
++		importx "_gtk_widget_get_window" gtk_widget_get_window
++		call widget_redraw(widget)
++		sd window
++		setcall window gtk_widget_get_window(widget)
++		if window!=0
++			importx "_gdk_window_process_updates" gdk_window_process_updates
++			call gdk_window_process_updates(window,(FALSE))
++		endif
++	endif
++	return (FALSE)
+ endfunction
+ 
+ #void
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.179
+\ No newline at end of file
++1.180
+\ No newline at end of file

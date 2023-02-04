@@ -1,0 +1,515 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-159) xenial; urgency=medium
+ .
+   * playback fix
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/readme.md
++++ ovideo-1/readme.md
+@@ -1,7 +1,7 @@
+ # O Video
+ 
+ ## Install
+-On Ubuntu, but other distros may have the same tree and dependencies.
++On Ubuntu from PPA.
+ ```sh
+ sudo add-apt-repository ppa:colin-i/ppa
+ ```
+@@ -10,6 +10,7 @@ Install:
+ ```sh
+ sudo apt-get install ovideo
+ ```
++\
+ On Windows the program is at this [link](https://github.com/colin-i/ostream/releases).
+ The requirement is the program <i>gstreamer sdk x86 (0.10)</i>.
+ 
+--- ovideo-1.orig/src/_exec/uristream.s
++++ ovideo-1/src/_exec/uristream.s
+@@ -31,63 +31,149 @@ function streamerror(data *bus,data mess
+     call stream_error(message)
+ endfunction
+ 
+-function ldiv_lowdivisor(sd p,sd dividendlow,sd dividendhigh,sd divisor)
+-	sd n
+-	#20 and a null
+-	chars input#21
+-	vstr instr^input
+-	call sprintf(instr,"%llu",dividendlow,dividendhigh)
+-	sd size
+-	setcall size strlen(instr)
++importx "_ulltoa" ulltoa
++
++const u64bytes=20
++#18,446,744,073,684,385,791
++
++function ldiv_lowdivisor(sv p,sd dividendlow,sd dividendhigh,sd divisor)
++	#sd input#(4/:*3)+3
++	chars input#u64bytes+1
++	ss instr^input
++
++	#%llu linux ok
++	#windows? %I64u this is not working
++	#call sprintf(instr,"%llu",dividendlow,dividendhigh)
++	#call texter(instr)
++	call ulltoa(dividendlow,dividendhigh,instr,10)
++
++	# As result can be very large store it in string
++	#sd quotient#(4/:*3)+3
++	chars quotient#u64bytes
++	sd rem
++	ss dest;set dest instr
++	addcall dest strlen(instr)
++	setcall dest ldiv_lowdivisor_s(#quotient,instr,dest,divisor,#rem)
++	if instr!=dest
++		# set quotient and remainder
++
++		#set dest# 0;call sscanf(#quotient,"%llu",p) #same as above but _strtoull is problematic at libmingwex.a
++		call memto64(#quotient,dest,p)
++
++		add p (2*:)
++		set p# rem
++	else
++		# If divisor is greater than number
++		set p# 0
++		add p :
++		set p# 0
++		add p :
++		set p# dividendlow
++	endelse
++endfunction
++function ldiv_lowdivisor_s(ss outstr,ss instr,ss dest,sd divisor,sd p_rem)
++	sd start;set start instr
++	if divisor>(0xcCCccCC) #(this-1)*10+9=0x7f...F7 +0xa=0x8...1
++		#there will be troubles in two places without this
++		dec dest
++		if instr==dest
++			return start
++		endif
++		set dest# 0
++		div divisor 10
++	endif
+ 	# Find prefix of number that is larger than divisor.
+-	sd idx=0
++	sd n
+ 	sd temp
+ 	set temp instr#
+ 	sub temp (_0)
+ 	while temp<divisor
+ 		inc instr
+-		inc idx
++		if instr==dest
++			return start
++		endif
+ 		set n instr#
+ 		sub n (_0)
++		#sd test
++		#...
++		#dec instr
++		#else
+ 		mult temp 10
+ 		add temp n
+ 	endwhile
+-	# As result can be very large store it in string
+-	chars quotient#21
+-	vstr outstr^quotient
+ 	# Repeatedly divide divisor with temp. After every division, update temp to include one more digit.
+-	set outstr# 0
+-	while size>idx
++	while instr!=dest
+ 		# Store result in answer i.e. temp / divisor
+ 		set n temp
+ 		div n divisor
+ 		add n (_0)
+ 		set outstr# n
+ 		inc outstr
+-		set outstr# 0
+ 		# Take next digit of number
+ 		rem temp divisor
+-		mult temp 10
+ 		inc instr
+-		inc idx
+-		add temp instr#
+-		sub temp (_0)
++		if instr!=dest
++			mult temp 10
++			add temp instr#
++			sub temp (_0)
++		endif
+ 	endwhile
+-	# If divisor is greater than number
+-	setcall size strlen(#quotient)
+-	if size==0
+-		set p# 0
+-		add p (DWORD)
+-		set p# 0
+-		add p (DWORD)
+-		set p# dividendlow
++	set p_rem# temp
++	return outstr
++endfunction
++function memto64(sd in,ss dest,sd out)
++	const hconv64=16+1
++	chars h#hconv64
++	#sd h#(4/:*2)+3
++	ss hex^h
++	add hex (hconv64-1)
++	sd sz;set sz hex
++	set hex# 0
++	chars quotient#u64bytes
++	sd in2;set in2 #quotient
++	sd rem
++
++	sd prev
++	set prev dest
++	setcall dest ldiv_lowdivisor_s(in2,in,dest,16,#rem)
++	while in!=dest
++		dec hex
++		setcall hex# inttohchar(rem)
++		sd aux;set aux in2
++		set in2 in;set in aux
++		set prev dest
++		setcall dest ldiv_lowdivisor_s(in2,in,dest,16,#rem)
++	endwhile
++	set prev# 0;call sscanf(in,"%u",#rem)
++	dec hex;setcall hex# inttohchar(rem)
++
++	sd high
++	sub sz hex
++	if sz>8
++		set high hex
++		sub sz 8
++		add hex sz
++	else
++		set high (NULL)
++	endelse
++	call sscanf(hex,"%x",out)
++	add out :
++	if high!=(NULL)
++		set hex# 0
++		call sscanf(high,"%x",out)
+ 		return (void)
+ 	endif
+-	# set quotient and remainder
+-	call sscanf(#quotient,"%llu",p)
+-	add p (2*DWORD)
+-	set p# temp
++	set out# 0
++endfunction
++function inttohchar(sd a)
++	if a<10
++		add a (_0)
++	else
++		add a (A-10)
++	endelse
++	return a
+ endfunction
++
+ function splitGstClockTime(data ptrclock,data ptrtime)
+     data dword=4
+ 
+@@ -107,11 +193,11 @@ function splitGstClockTime(data ptrclock
+ 
+     data nomLow#1
+     #data nomHigh=0
+-    data resLow#1
+-    data resHigh#1
+-    data remLow#1
++    sd resLow
++    sd resHigh
++    sd remLow
+     #data *remHigh#1
+-    data ptrresult^resLow
++    sd ptrresult^resLow
+ 
+     data gstsec=GST_SECOND
+     set nomLow gstsec
+@@ -137,60 +223,58 @@ endfunction
+ importx "_gst_element_query_position" gst_element_query_position
+ #false=stop timer,true=displayed
+ function streamtimer(data *data)
+-    data playbool#1
+-    const globalplaybool^playbool
+-    data true=1
+-    data false=0
+-
+-    if playbool==true
+-        data duration64low#1
+-        data duration64high#1
+-        data ptrduration^duration64low
+-        const ptrduration^duration64low
+-
+-        data current64low#1
+-        data *current64high#1
+-        data ptrcurrent^current64low
+-
+-        data CLOCK_NONE=GST_CLOCK_TIME_NONE_lowhigh
+-        if duration64low!=CLOCK_NONE
+-            if duration64high!=CLOCK_NONE
+-                data bool#1
+-                data ptrplaybin#1
+-                data format=GST_FORMAT_TIME
+-                data ptrformat^format
+-
+-                setcall ptrplaybin getplaybin2ptr()
+-                setcall bool gst_element_query_position(ptrplaybin#,ptrformat,ptrcurrent)
+-                if bool==false
+-                    str poserr="Could not query current position."
+-                    call texter(poserr)
+-                else
+-                    chars printduration#200
+-                    str print^printduration
+-
+-                    data durH#1
+-                    data durM#1
+-                    data durS#1
+-                    data posH#1
+-                    data posM#1
+-                    data posS#1
+-
+-                    data ptrdur^durH
+-                    data ptrpos^posH
+-
+-                    call splitGstClockTime(ptrduration,ptrdur)
+-                    call splitGstClockTime(ptrcurrent,ptrpos)
+-
+-                    str timeformat="%u:%02u:%02u / %u:%02u:%02u"
+-                    call sprintf(print,timeformat,posH,posM,posS,durH,durM,durS)
+-                    call texter(print)
+-                    return true
+-                endelse
+-            endif
+-        endif
+-    endif
+-    return false
++	data playbool#1
++	const globalplaybool^playbool
++	data true=1
++	data false=0
++
++	if playbool==true
++		data duration64low#1
++		data *duration64high#1
++		data ptrduration^duration64low
++		const ptrduration^duration64low
++
++		data current64low#1
++		data *current64high#1
++		data ptrcurrent^current64low
++
++		data bool#1
++		data ptrplaybin#1
++		data format=GST_FORMAT_TIME
++		data ptrformat^format
++
++		setcall ptrplaybin getplaybin2ptr()
++		setcall bool gst_element_query_position(ptrplaybin#,ptrformat,ptrcurrent)
++		if bool==false
++			str poserr="Could not query current position."
++			call texter(poserr)
++		else
++			chars printduration#10+1+2+1+2+3+10+1+2+1+2+1
++			str print^printduration
++
++			data durH#1
++			data durM#1
++			data durS#1
++			data posH#1
++			data posM#1
++			data posS#1
++
++			data ptrdur^durH
++			data ptrpos^posH
++
++			call splitGstClockTime(ptrduration,ptrdur)
++			call splitGstClockTime(ptrcurrent,ptrpos)
++
++			str timeformat="%u:%02u:%02u / %u:%02u:%02u"
++			call sprintf(print,timeformat,posH,posM,posS,durH,durM,durS)
++			call texter(print)
++			return true
++		endelse
++	endif
++	data threadID=-1
++	const p_threadID^threadID
++	set threadID -1
++	return false
+ endfunction
+ 
+ function unset_playbool()
+@@ -206,37 +290,47 @@ endfunction
+ importx "_gst_message_parse_state_changed" gst_message_parse_state_changed
+ importx "_gdk_threads_add_timeout" gdk_threads_add_timeout
+ function statechanged(data *bus,data message)
+-    data newstate#1
+-    data ptrnewstate^newstate
+-    data null=0
+-    data true=1
+-    data ptrplaybool%globalplaybool
+-
+-    call gst_message_parse_state_changed(message,null,ptrnewstate,null)
+-
+-    data GST_STATE_PLAYING=GST_STATE_PLAYING
+-    data duration%ptrduration
+-    data clock_none=GST_CLOCK_TIME_NONE_lowhigh
+-    data quadword=8
+-    if newstate==GST_STATE_PLAYING
+-        set ptrplaybool# true
+-        data msec=1000
+-        data tm^streamtimer
+-        call gdk_threads_add_timeout(msec,tm,null)
+-
+-        str playing="Playing..."
+-        call texter(playing)
+-
+-        import "setmem" setmem
+-        call setmem(duration,quadword,clock_none)
+-
+-        importx "_gst_element_query_duration" gst_element_query_duration
+-        data format=GST_FORMAT_TIME
+-        data ptrformat^format
+-        data ptrplaybin#1
+-        setcall ptrplaybin getplaybin2ptr()
+-        call gst_element_query_duration(ptrplaybin#,ptrformat,duration)
+-    endif
++	data newstate#1
++	data ptrnewstate^newstate
++	data null=0
++	call gst_message_parse_state_changed(message,null,ptrnewstate,null)
++
++	data GST_STATE_PLAYING=GST_STATE_PLAYING
++	if newstate==GST_STATE_PLAYING
++		data quadword=8
++
++		sd duration%ptrduration
++
++		import "setmem" setmem
++		call setmem(duration,quadword,(GST_CLOCK_TIME_NONE_lowhigh))
++
++		importx "_gst_element_query_duration" gst_element_query_duration
++		data format=GST_FORMAT_TIME
++		data ptrformat^format
++		data ptrplaybin#1
++		setcall ptrplaybin getplaybin2ptr()
++		call gst_element_query_duration(ptrplaybin#,ptrformat,duration)
++
++		if duration#!=(GST_CLOCK_TIME_NONE_lowhigh)
++			add duration (DWORD)
++			if duration#!=(GST_CLOCK_TIME_NONE_lowhigh)
++				vdata p_threadID%p_threadID
++				if p_threadID#<0
++
++					data ptrplaybool%globalplaybool
++					data true=1
++
++					set ptrplaybool# true
++					data msec=1000
++					data tm^streamtimer
++					setcall p_threadID# gdk_threads_add_timeout(msec,tm,null)
++
++					str playing="Playing..."
++					call texter(playing)
++				endif
++			endif
++		endif
++	endif
+ endfunction
+ 
+ import "rec_unset" rec_unset
+@@ -269,5 +363,3 @@ function play_click()
+     data forward^streamuri
+     call editWidgetBufferForward(forward)
+ endfunction
+-
+-
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.158
+\ No newline at end of file
++1.159
+\ No newline at end of file
+--- ovideo-1.orig/wmake
++++ ovideo-1/wmake
+@@ -1,12 +1,19 @@
+ 
+-if [ -z "$1" ]
++if [ -z "$1" ] || [ -n "$2" ]
+ then
+ cd src
+-./wmake
++./wmake $2
+ if [ "$?" != 0 ]; then
+ exit
+ fi
+ cd ..
++fi
++
++
++
++if [ "$2" != "clean" ]; then
++
++if [ -z "$1" ]; then
+ f=ovideo
+ else
+ f=$1
+@@ -27,16 +34,24 @@ cp build/sys/* $f/sys
+ 
+ mkdir $f/captures
+ 
+-if [ -z "$1" ]
++fi
++
++
++
++if [ -z "$1" ] || [ -n "$2" ]
+ then
+ cd soundrecorder
+-make
++make $2
+ if [ "$?" != 0 ]; then
+ exit
+ fi
+ cd ..
+ fi
+ 
++
++
++if [ "$2" != "clean" ]; then
++
+ cp soundrecorder/src/soundrecorder.exe $f
+ cp soundrecorder/options.txt $f
+ 
+@@ -52,6 +67,14 @@ rm -r ./ovideo && \
+ unzip -l ovideo.zip
+ fi
+ 
++fi
++
++
++
+ #wine regedit
+ #HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
++#PATH
++#+=
+ #;C:\gstreamer-sdk\0.10\x86\bin
++#file:///d:/some/path/to/repos/on/d/drive
++#file:///var/www/html/s.webm

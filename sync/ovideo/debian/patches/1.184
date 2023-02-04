@@ -1,0 +1,205 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-184) bionic; urgency=medium
+ .
+   * off reg gst fork only at fedora
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-06-21
+
+--- ovideo-1.orig/.github/workflows/appimage.yml
++++ ovideo-1/.github/workflows/appimage.yml
+@@ -26,7 +26,8 @@ jobs:
+   # Steps represent a sequence of tasks that will be executed as part of the job
+   steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+-   #- uses: actions/checkout@v3
++   - uses: actions/checkout@v3
++     if: ${{ env.init != '' }}
+    #with:
+    # repository: colin-i/irc
+    # path: my-tools
+@@ -70,7 +71,7 @@ jobs:
+         xz -d ${inter}.xz #f for multiple times
+        fi
+        #pipe to true to not stop the workflow if grep exits!=0
+-       debfilename=`grep "^Filename.*/${pkg}_" ${inter} || true`
++       debfilename=`grep "^Filename.*/${pkg}_" ${inter}` # || true   is ok now but if package is not, without this, will be workflow fail
+        #if [ -z "${debfilename}" ]; then
+        # next time with if arch = i386 :i386 and reform array and try on
+        # not_are+=" ${pkg}"
+--- ovideo-1.orig/.github/workflows/rpm.yml
++++ ovideo-1/.github/workflows/rpm.yml
+@@ -3,8 +3,6 @@ on:
+   inputs:
+    ppa:
+     description: "ppa sufix"
+-   artifact:
+-    description: "result is artifact"
+    unpublished:
+     description: "don't wait to publish, take from build page"
+ 
+@@ -34,7 +32,7 @@ jobs:
+       else
+        echo unpublished
+        f=`wget -q https://launchpad.net/~colin-i/+archive/ubuntu/ppa${{ github.event.inputs.ppa }}/+build/${{ github.event.inputs.unpublished }} -O - | grep -Poe "[^\"]*(?=\.deb\")"`
+-       wget ${f} -O ${name}.deb
++       wget ${f}.deb -O ${name}.deb
+       fi
+       #make rpm
+       mkdir out
+@@ -45,21 +43,7 @@ jobs:
+       fname=`ls`
+       mv ${fname} ../
+       echo "file=${fname}" >> $GITHUB_ENV
+-      #get up_url
+-      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
+-      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
+-   - name: Upload Release Asset
+-     if: ${{ github.event.inputs.artifact = '' }}
+-     uses: actions/upload-release-asset@v1
+-     env:
+-      GITHUB_TOKEN: ${{ secrets.PAT }}
+-     with:
+-      upload_url: ${{ env.up_url }}
+-      asset_path: ./${{ env.file }}
+-      asset_name: ${{ env.file }}
+-      asset_content_type: application/x-rpm
+    - name: artifact
+-     if: ${{ github.event.inputs.artifact != '' }}
+      uses: actions/upload-artifact@v3
+      with:
+       name: rpm
+--- /dev/null
++++ ovideo-1/.github/workflows/uprpm.yml
+@@ -0,0 +1,28 @@
++
++on:
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ urbuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit 1
++      fi
++      wget https://github.com/colin-i/test/releases/download/1.5/${{ env.proj }} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.file }}
++      asset_content_type: application/x-rpm
+--- ovideo-1.orig/arh/a
++++ ovideo-1/arh/a
+@@ -20,11 +20,18 @@ p="libc6-i386 libgtk2.0-0:i386 gstreamer
+ #dpkg -s libgtk2.0-0:i386
+ sudo apt install --dry-run ${p}
+ 
++#there are more ideas here: https://github.com/aferrero2707/appimage-helper-scripts/blob/master/bundle-gtk2.sh
++
+ #convert rgba to rgb24
+ #ffmpeg -i a.png -pix_fmt rgb24 b.png
+ 
+ 
+ #rpmrebuild -enp ./*.rpm
+ 
+-#libgstgdkpixbuf.so
+-#libgstmxf.so
++#this is a blocker
++#BuildArch:     i386
++
++#Requires:      libgstgdkpixbuf.so
++#Requires:      libgstmxf.so
++
++#touch /tmp/usr/share/ovideo/regforkoff
+--- ovideo-1.orig/src/_dif/difl.s
++++ ovideo-1/src/_dif/difl.s
+@@ -1,15 +1,24 @@
+ 
+ entrylinux _start(sd argc,sv argv)
+ 
+-#this is because fedora will wrong all plugin cache on 64 for 32
+-sd argv0
+-ss *argv1="--gst-disable-registry-fork"
+-set argv0 argv
+ 
+ import "init_args" init_args
+ call init_args(argc,#argv)
+ 
+-set argc 2
+-set argv #argv0
+-
+-call gst_init(#argc,#argv)
++importx "_access" access
++import "move_to_share_core" move_to_share_core
++ss testfile="regforkoff"
++call move_to_share_core(#testfile)
++sd is
++setcall is access(testfile,(F_OK))
++if is==-1
++	call gst_init(0,(NULL))
++else
++	#this is because fedora will wrong all plugin cache on 64 for 32
++	sd argv0
++	ss *argv1="--gst-disable-registry-fork"
++	set argv0 argv
++	set argc 2
++	set argv #argv0
++	call gst_init(#argc,#argv)
++endelse
+--- ovideo-1.orig/src/_exec/init.s
++++ ovideo-1/src/_exec/init.s
+@@ -3,8 +3,6 @@ format elfobj
+ 
+ include "../_include/include.h" #files/olang.h
+ 
+-const F_OK=0
+-
+ importx "_strlen" strlen
+ importx "_access" access
+ importx "_mkdir" mkdir
+--- ovideo-1.orig/src/_include/files/commons.h
++++ ovideo-1/src/_include/files/commons.h
+@@ -15,6 +15,7 @@ Const SEEK_SET=0
+ Const SEEK_CUR=1
+ Const SEEK_END=2
+ 
++const F_OK=0
+ 
+ const bitsperbyte=8
+ 
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.183
+\ No newline at end of file
++1.184
+\ No newline at end of file

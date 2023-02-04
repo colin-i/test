@@ -1,0 +1,12 @@
+p/home/bc/v/ovideo-1/src/_prepare/frame
+p/home/bc/v/ovideo-1/src/_prepare/frame
+n./rotate.s
+istage_get_selection_pixbuf
+ipixbuf_get_wh
+inew_pixbuf
+ipixbuf_get_pixel
+ipixbuf_set_pixel
+istage_sel_replace_pixbuf
+e
+fstage_rotate_left
+fstage_rotate_right

@@ -1,0 +1,126 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-185) bionic; urgency=medium
+ .
+   * for logos, 100 text size maximum is ok for now
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-06-21
+
+--- ovideo-1.orig/arh/a
++++ ovideo-1/arh/a
+@@ -24,7 +24,7 @@ sudo apt install --dry-run ${p}
+ 
+ #convert rgba to rgb24
+ #ffmpeg -i a.png -pix_fmt rgb24 b.png
+-
++#at 128 , text 85 max
+ 
+ #rpmrebuild -enp ./*.rpm
+ 
+--- ovideo-1.orig/src/_prepare/frame/imagetools.s
++++ ovideo-1/src/_prepare/frame/imagetools.s
+@@ -208,7 +208,7 @@ function headline_dlg(sd action,sd vbox)
+         str format="%u"
+         sd nr=10
+         importx "_sprintf" sprintf
+-        while nr!=51
++        while nr!=101
+             call sprintf(nr_ascii,format,nr)
+             importx "_gtk_combo_box_text_append_text" gtk_combo_box_text_append_text
+             call gtk_combo_box_text_append_text(size_entry,nr_ascii)
+--- ovideo-1.orig/src/obj/images.s
++++ ovideo-1/src/obj/images.s
+@@ -758,15 +758,15 @@ function pixbuf_draw_text(sd pixbuf,ss t
+         sd p_text_height^text_height
+         call pango_layout_get_pixel_size(pangolayout,p_text_width,p_text_height)
+ 
+-        sd available_w
+-        set available_w width
+-        sub available_w text_width
+-        setcall available_w get_higher(available_w,0)
+-
+-        sd available_h
+-        set available_h height
+-        sub available_h text_height
+-        setcall available_h get_higher(available_h,0)
++		import "get_higher_warn" get_higher_warn
++		sd available_w
++		set available_w width
++		sub available_w text_width
++		setcall available_w get_higher_warn(available_w,0,"big text width")
++		sd available_h
++		set available_h height
++		sub available_h text_height
++		setcall available_h get_higher_warn(available_h,0,"big text height")
+ 
+         inc x
+         inc y
+--- ovideo-1.orig/src/util/numbers.s
++++ ovideo-1/src/util/numbers.s
+@@ -370,18 +370,24 @@ endfunction
+ 
+ 
+ function get_lower(sd A,sd B)
+-    if A<B
+-        return A
+-    else
+-        return B
+-    endelse
++	if A<B
++		return A
++	endif
++	return B
+ endfunction
+ function get_higher(sd A,sd B)
+-    if A>B
+-        return A
+-    else
+-        return B
+-    endelse
++	if A>B
++		return A
++	endif
++	return B
++endfunction
++function get_higher_warn(sd A,sd B,sd warn)
++	if A>=B
++		return A
++	endif
++	import "printer" printer
++	call printer(warn)
++	return B
+ endfunction
+ 
+ ##char,short,int
+@@ -572,7 +578,3 @@ function numbers_proportion(sd unknown_n
+     div known_denom known_nom
+     return known_denom
+ endfunction
+-
+-
+-
+-
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.184
+\ No newline at end of file
++1.185
+\ No newline at end of file

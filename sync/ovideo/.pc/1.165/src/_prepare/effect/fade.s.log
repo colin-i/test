@@ -1,0 +1,14 @@
+p/home/bc/v/ovideo-1/src/_prepare/effect
+p/home/bc/v/ovideo-1/src/_prepare/effect
+n./fade.s
+istage_frame_dialog
+istage_effect_common_fields
+istage_effect_new
+irgb_px_get
+irgb_uint_to_colors
+dfadein
+irule3_offset
+irgb_colors_to_uint
+irgb_px_set
+e
+fstage_fade

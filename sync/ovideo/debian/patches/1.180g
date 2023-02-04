@@ -1,0 +1,79 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-180g) bionic; urgency=medium
+ .
+   * libc6:i386 there
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-27
+
+--- ovideo-1.orig/.github/workflows/deb.yml
++++ ovideo-1/.github/workflows/deb.yml
+@@ -22,21 +22,23 @@ jobs:
+       if [ -n "${{ env.init }}" ]; then
+        exit
+       fi
++      sudo dpkg --add-architecture i386
+       if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
+        sudo apt update #Err:1 http://ppa.launchpad.net ... libxml2-utils amd64 2.9.13 ... Not Found
+        sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential libgstreamer-plugins-base1.0-dev \
+-                           libc6 libc6:i386
++                           libc6
+       fi
+       downdeb () {
+-       pkg=ocompiler
++       pkg=${3}
++       #pkg=ocompiler
+        maindeb=${pkg}.deb
+        if [ ! -e "${maindeb}" ]; then
+         arch=i386
+-        #nr=${2}
++        nr=${2}
+         inter=Packages${arch}${nr}
+-        src="ppa.launchpadcontent.net/colin-i/ppa"
++        src=${1}
+         if [ ! -e "${inter}" ]; then
+-         sfx=-updates
++         sfx=${4}
+          wget http://${src}/ubuntu/dists/bionic${sfx}/main/binary-${arch}/Packages.xz -O ${inter}.xz
+          xz -d ${inter}.xz #f for multiple times
+         fi
+@@ -47,15 +49,13 @@ jobs:
+         dpkgs+=" ${maindeb}"
+        fi
+       }
+-      sudo dpkg --add-architecture i386
+-      #dpkgs=
+-      #array=( gcc-8-base libgcc1 libc6 )
+-      #for var in "${array[@]}"
+-      #do
+-      # downdeb "ro.archive.ubuntu.com" 1 ${var} -updates
+-      #done
+-      #downdeb "ppa.launchpadcontent.net/colin-i/ppa" 2 ocompiler
+-      downdeb
++      dpkgs=
++      array=( gcc-8-base libgcc1 libc6 )
++      for var in "${array[@]}"
++      do
++       downdeb "ro.archive.ubuntu.com" 1 ${var} -updates
++      done
++      downdeb "ppa.launchpadcontent.net/colin-i/ppa" 2 ocompiler
+       if [ -n "${dpkgs}" ]; then
+         sudo dpkg -i ${dpkgs}
+       fi
