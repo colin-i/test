@@ -1,7 +1,8 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
-to=`dirname ${0}`/${name}/
+base=`dirname ${0}`
+to=${base}/${name}/
 
 echo ${to}
 
@@ -16,7 +17,8 @@ rsync -av --delete ${patches} ${to}${deb} && \
 cd ${to} && \
 git add .pc && \
 git add ${patches} && \
-git commit --author="sync <costin.b.84@gmail.com>" -am "sync" && \
+cd ${base} && \
 cc a.c -lyuarel && \
+git commit --author="sync <costin.b.84@gmail.com>" -am "sync" && \
 ~/test/push $(./a.out $(git config --get remote.origin.url)) 2 && \
 rm a.out
