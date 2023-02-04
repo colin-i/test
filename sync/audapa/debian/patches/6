@@ -1,0 +1,98 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ audapa (1-6) jammy; urgency=medium
+ .
+   * fix
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-04-15
+
+--- audapa-1.orig/audapa/build.py
++++ audapa-1/audapa/build.py
+@@ -12,17 +12,18 @@ def init():
+ 	return button
+ 
+ def create(b,d):
+-	f=play.entry.get_text()
+-	#read points and build info
+-	info=points.read(f)
+-	if info:
+-		sampwidth,channels,rate,draw.length=info
+-		play.open(sampwidth,channels,rate)
+-		#samples
+-		draw.samples=[0] * draw.length # [0 for i in range(draw.length)]
+-		save.apply()
+-		#for playback
+-		play.save_file(f,sampwidth,channels,rate)
+-		play.waveopen(f)
+-	else:
+-		error.open("The file "+f+" does not exist.")
++	try:
++		f=play.entry.get_text()
++		#read points and build info
++		info=points.read(f,True)
++		if info:
++			sampwidth,channels,rate,draw.length=info
++			play.open(sampwidth,channels,rate)
++			#samples
++			draw.samples=[0] * draw.length # [0 for i in range(draw.length)]
++			save.apply()
++			#for playback
++			play.save_file(f,sampwidth,channels,rate)
++			play.waveopen(f)
++	except Exception as e:
++		error.open(e.__str__())
+--- audapa-1.orig/audapa/play.py
++++ audapa-1/audapa/play.py
+@@ -60,7 +60,7 @@ def launch():
+ 		#pyaudio/draw/bar
+ 		open(sampwidth,channels,rate)
+ 		#points
+-		points.read(f)
++		points.read(f,False)
+ 		#samples from file
+ 		draw.get_samples(sampwidth,channels,data)
+ 		#only if size is less than the screen
+--- audapa-1.orig/audapa/points.py
++++ audapa-1/audapa/points.py
+@@ -127,9 +127,11 @@ def write(f_in):
+ 			print(f_out)
+ 	elif os.path.exists(f_out):
+ 		os.remove(f_out)
+-def read(f_in):
++def read(f_in,fast):
+ 	f_out=fpath(f_in,fpath_js)
+-	if os.path.exists(f_out):
++	if not fast:
++		fast=os.path.exists(f_out)
++	if fast:
+ 		with open(f_out) as f:
+ 			if data:=f.read():
+ 				d=json.loads(data)
+--- audapa-1.orig/setup.py
++++ audapa-1/setup.py
+@@ -13,7 +13,7 @@ README = (HERE / "info.md").read_text()
+ 
+ from setuptools import setup
+ setup(name=pkname,
+-	version='1.0.5',
++	version='1.0.6',
+ 	packages=[pkname],
+ 	#optionals
+ 	python_requires='>=3.8',
