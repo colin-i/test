@@ -1,0 +1,41 @@
+
+#1 switch to
+
+z=
+
+git switch $1
+
+m=`git show-ref | grep master | head -1 | cut -d ' ' -f1`
+t=`git show-ref | grep test | head -1 | cut -d ' ' -f1`
+if [ "$m" != "$t" ]; then
+	echo `git show -s --format="%ad" ${m}` `git show -s --format="%ad" ${t}`
+
+	mt=`git show -s --format="%at" ${m}`
+	tt=`git show -s --format="%at" ${t}`
+	if [ "$1" = "master" ]; then
+		if [ ${mt} -lt ${tt} ]; then
+			z=test
+		else
+			echo is recent, no merge
+		fi
+	else
+		if [ ${tt} -lt ${mt} ]; then
+			z=master
+		else
+			echo is recent, no merge
+		fi
+	fi
+fi
+
+if [ "${z}" != "" ]; then
+	echo merge ${z} ? y ?
+
+	read -n1 -t $((60*60*24)) ans
+
+	if [ "${ans}" = "y" ]; then
+		echo yes
+		git merge ${z}
+	else
+		echo no
+	fi
+fi

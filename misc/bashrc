@@ -8,10 +8,11 @@ export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PKG_CONFIG_PATH=${PKG_CONFIG_PATH} PATH=${PATH}
 
-alias grep='grep --color=auto -r --exclude-dir={.git,.pc,patches}'
+alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches}'
 
 
-#grep --color=auto because alias will list aliases and that was at grep
+#if set grep will stop working for example: echo a | grep a, is with -r will not search at stdin
+#alias will list aliases and grep is 'grep --color=auto'
 
 #PATh :/home/bc/.local/bin:/snap/bin is already
 #doar act 26 poate upload_release_asset
