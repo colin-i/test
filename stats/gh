@@ -6,6 +6,7 @@ cd ${1}
 ins=( `cat h3` )
 rms=( `cat h4` )
 
+#these, index array, are not working; need associative array
 declare -A adds
 declare -A dels
 

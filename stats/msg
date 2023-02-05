@@ -53,17 +53,31 @@ datecalc () {
 	time=$(date -u -d @${time} '+%Y')
 }
 
-echo "https://github.com/colin-i" >${out}
+echo "https://github.com/colin-i">${out}
 echo -n "From ">>${out}
 datecalc ${from}
 echo -n "${time} until ">>${out}
 datecalc ${to}
-echo "${time} I totalized $(echo -n ${commits}) changesets." >>${out}
-echo "The number of rows was increased by ${total} (${totalplus} added and ${totalminus} removed)." >>${out}
-echo "The top 3 projects by the number of rows:" >>${out}
+echo -n "${time} ">>${out}
+echo "I made $(echo -n ${commits}) commits.">>${out}
+echo -n "The number of rows was">>${out}
+echo -n " increased by">>${out}
+echo " ${total} (${totalplus} added, ${totalminus} removed).">>${out}
+echo "The top 3 projects by the number of rows:">>${out}
+n="${#data[@]}"
+i=1
 for var in "${data[@]}"
 do
 	ar=( ${var} )
-	echo -e "\t${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})" >>${out}
+	if [ ${n} != ${i} ]; then
+		#at the moment, tabs are displaying in tweet editor but not on the final tweet, and are counted in tweet editor
+		#echo -e "\t"
+		echo "  ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+		i=$((i+1))
+	else
+		echo -n "  ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+	fi
 done
 cat ${out}
+cat ${out} | xclip -selection clipboard
+rm ${out}

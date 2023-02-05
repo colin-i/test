@@ -3,6 +3,8 @@
 
 y=${1}
 
+#first step must be h,h2,h3,h4 concatenation
+
 mkdir ${y} && \
 cd ${y} && \
 echo $(date -u -d $(date -u +%Y)-01-01 +%s) date && \
@@ -11,3 +13,5 @@ cp -P date prevdate && \
 ./g0 ${y} && \
 ./gh ${y} && \
 ./msg
+
+#last step must be all-time top
