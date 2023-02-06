@@ -1,4 +1,5 @@
 
+#optional 1,2 year,month
 
 from=`cat prevdate`
 to=`cat date`
@@ -54,11 +55,17 @@ datecalc () {
 }
 
 echo "https://github.com/colin-i">${out}
-echo -n "From ">>${out}
-datecalc ${from}
-echo -n "${time} until ">>${out}
-datecalc ${to}
-echo -n "${time} ">>${out}
+if [ $((to-from)) -gt 31622400 ]; then  #greater than 366 days, this is all time
+	echo -n "From ">>${out}
+	datecalc ${from}
+	echo -n "${time} until ">>${out}
+	datecalc ${to}
+	echo -n "${time} ">>${out}
+else
+	#month
+	echo -n "In $(LANG=en_us_88591; date -u -d @${from} '+%B %Y') ">>${out}
+	more_data=1
+fi
 echo "I made $(echo -n ${commits}) commits.">>${out}
 echo -n "The number of rows was">>${out}
 echo -n " increased by">>${out}
@@ -78,6 +85,26 @@ do
 		echo -n "  ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
 	fi
 done
+
+if [ "${more_data}" != ""]; then
+	y=${1}
+	m=${2}
+	if [ "${m}" = "1" ]; then
+		./concat $((y-1))/12
+	else
+		./concat ${y}/$((m-1))
+	fi
+	./gh .
+	echo >>${out}
+	echo >>${out}
+	echo "All time commits, rows, additions, deletions:">>${out}
+	commits=`cat hh2`
+	totalplus=`cat hh3`
+	totalminus=`cat hh4`
+	total=`cat hh5`
+	echo -n "${commits}, ${total}, ${totalplus}, ${totalminus}">>${out}
+fi
+
 cat ${out}
 cat ${out} | xclip -selection clipboard
 rm ${out}
