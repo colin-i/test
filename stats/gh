@@ -63,10 +63,10 @@ do
 done
 
 echo ${commits} > hh2
-cat hh2
+echo commits `cat hh2`
 echo ${totalplus} > hh3
-cat hh3
+echo additions `cat hh3`
 echo ${totalminus} > hh4
-cat hh4
+echo deletions `cat hh4`
 echo ${total} > hh5
-cat hh5
+echo delta `cat hh5`

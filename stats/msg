@@ -4,7 +4,8 @@
 from=`cat prevdate`
 to=`cat date`
 
-start=`pwd`
+#with / for multiple cd later
+start=`pwd`/
 
 cd $(dirname $(readlink date))
 
@@ -86,23 +87,35 @@ do
 	fi
 done
 
-if [ "${more_data}" != ""]; then
+if [ "${more_data}" != "" ]; then
 	y=${1}
 	m=${2}
+
+	#store current state in case something bad happens
 	if [ "${m}" = "1" ]; then
-		./concat $((y-1))/12
+		cd $((y-1))/12
 	else
-		./concat ${y}/$((m-1))
+		cd ${y}/$((m-1))
+	fi
+	mkdir arh
+	if [ "$?" = "0" ]; then
+		#to allow message modifications without concat
+		cd arh
+		cp ${start}h .
+		cp ${start}h2 .
+		cp ${start}h3 .
+		cp ${start}h4 .
+		cd ..
+		git add arh
+		cd ${start}
+		./concat ${y}/${m}
+	else
+		cd ${start}
 	fi
 	./gh .
 	echo >>${out}
 	echo >>${out}
-	echo "All time commits, rows, additions, deletions:">>${out}
-	commits=`cat hh2`
-	totalplus=`cat hh3`
-	totalminus=`cat hh4`
-	total=`cat hh5`
-	echo -n "${commits}, ${total}, ${totalplus}, ${totalminus}">>${out}
+	echo -n "All time: `cat hh2` commits, `cat hh5` rows, `cat hh3` added, `cat hh4` removed.">>${out}
 fi
 
 cat ${out}
