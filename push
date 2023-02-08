@@ -1,5 +1,5 @@
 
-#optional  1 gist/git  2 how to handle  3 diffs  4 if mounting  5 push args
+#1 gist/git  optional  2 how to handle  3 diffs  4 if mounting  5 push args
 
 #git remote add origin https://github.com/colin-i/.git
 #no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config

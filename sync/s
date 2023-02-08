@@ -10,6 +10,8 @@ deb=debian
 patches=${deb}/patches
 
 #--delete is not required
+#revert:
+#	rsync -av --delete .pc/ /home/bc/e/edor-1/.pc
 
 rsync -av --delete .pc ${to} && \
 rsync -av --delete ${patches} ${to}${deb} && \
