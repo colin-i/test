@@ -1,12 +1,26 @@
 
 #1 switch to
 
-z=
+if [ "${1}" = "" ]; then
+	echo arg 1 required
+	exit 1
+fi
+m=`git show-ref | grep master | head -1 | cut -d ' ' -f1`
+if [ "${m}" = "" ]; then
+	echo no master
+	exit 1
+fi
+t=`git show-ref | grep test | head -1 | cut -d ' ' -f1`
+if [ "${t}" = "" ]; then
+	echo no test
+	exit 1
+fi
 
 git switch $1
 
-m=`git show-ref | grep master | head -1 | cut -d ' ' -f1`
-t=`git show-ref | grep test | head -1 | cut -d ' ' -f1`
+z=
+
+
 if [ "$m" != "$t" ]; then
 	echo `git show -s --format="%ad" ${m}` `git show -s --format="%ad" ${t}`
 
