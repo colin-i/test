@@ -3,4 +3,5 @@
 
 ~/test/debinitbase "$@" && \
 ~/test/debinitpush "${1}" && \
+~/test/sync/s && \
 gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`
