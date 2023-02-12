@@ -1,7 +1,7 @@
 
 #same as arh
 
-echo delete ${1} ? y ?
+echo delete ${1} \? y \?
 
 read -n1 -t $((60*60*24)) ans
 
