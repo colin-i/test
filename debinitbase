@@ -15,7 +15,7 @@ else
  dist=${2}
 fi
 
-echo version=${version} - is on clipboard. paste, modify, enter
+echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter
 echo -n "${version}" | xclip -selection clipboard
 read -r version
 msg=${1}
