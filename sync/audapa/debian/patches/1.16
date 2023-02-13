@@ -1,0 +1,131 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ audapa (1-16) lunar; urgency=medium
+ .
+   * pyaudio for 3.10 is fixed at lunar
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-13
+
+--- audapa-1.orig/.github/workflows/appimage.yml
++++ audapa-1/.github/workflows/appimage.yml
+@@ -44,11 +44,15 @@ jobs:
+        OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version} amd64)
+        wget ${OUTPUT}/+files/${name}_${version}_all.deb -O ${name}.deb
+        dpkg -x ${name}.deb AppDir
++       #
+        mv AppDir/usr/lib/python3.10 AppDir/usr/lib/python3 #it's ok on jammy
+-       pya=`wget -q https://raw.githubusercontent.com/colin-i/pyaudioo/master/debian/changelog -O - | head -1 | grep -Poe "[^\(]*(?=\))"`
+-       OUTPUT=$(python3 lp2.py ppa pyaudioo ${pya} amd64)
+-       wget ${OUTPUT}/+files/pyaudioo_${pya}_all.deb -O pyaudio.deb
+-       dpkg -x pyaudio.deb AppDir
++       pyanm=pyaudio
++       pya=`wget -q https://raw.githubusercontent.com/colin-i/${pyanm}/master/debian/changelog -O - | head -1 | grep -Poe "[^\(]*(?=\))"`
++       pyanme=${pyanm}o
++       OUTPUT=$(python3 lp2.py ppa ${pyanme} ${pya} amd64)
++       wget ${OUTPUT}/+files/${pyanme}_${pya}_all.deb -O ${pyanm}.deb
++       dpkg -x ${pyanm}.deb AppDir
++       #
+       fi
+       #dependencies
+       downdeb () {
+--- /dev/null
++++ audapa-1/.github/workflows/del.yml
+@@ -0,0 +1,20 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ del:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Remove asset
++     uses: mknejp/delete-release-assets@v1
++     env:
++     with:
++      token: ${{ secrets.PAT }}
++      tag: refs/tags/${{ env.tag }}
++      assets: ${{ env.file }}
+--- /dev/null
++++ audapa-1/.github/workflows/delrel.yml
+@@ -0,0 +1,15 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   tag:
++    description: "project version"
++
++jobs:
++ delrel:
++   runs-on: ubuntu-latest
++   steps:
++    - uses: cb80/delrel@latest
++      with:
++       tag: ${{ github.event.inputs.tag }}
++       token: ${{ secrets.PAT }}
+--- /dev/null
++++ audapa-1/arh/pub
+@@ -0,0 +1,40 @@
++
++#optional 2 dist
++
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | jq .tag_name -r) && \
++~/test/debinit "${1}" ${2} && \
++~/test/pub deb && \
++~/test/keyring2 && \
++~/test/deb && \
++~/test/publp && \
++~/test/ai && \
++~/test/rpm && \
++~/test/pub appimage rpm && \
++~/test/rerpm && \
++~/test/del && \
++~/test/rel && \
++~/test/pub rel && \
++~/test/upapp && \
++~/test/uprpm && \
++~/test/pub upapp && \
++~/test/pub2 && \
++~/test/publp2 && \
++~/test/lp && \
++~/test/lp x && \
++~/test/keyring && \
++~/test/del x ${last} && \
++~/test/arh2 ${last} && \
++echo pypi.org \? y \? && \
++read -n1 -t $((60*60*24)) ans && \
++if [ "${ans}" = "y" ]; then
++\
++#version at v2
++\
++~/test/pyin && \
++~/test/pyout && \
++~/test/pyin x
++# && \ yank
++else
++echo no
++fi
++# && \
