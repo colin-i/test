@@ -3,4 +3,5 @@
 
 ~/test/debinitbase "$@" && \
 ~/test/debuild && \
-~/test/debinitpush "${1}"
+~/test/debinitpush "${1}" && \
+~/test/sync/s
