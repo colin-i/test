@@ -1,0 +1,987 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+67) xenial; urgency=medium
+ .
+   * SHT_NOBITS data section with pointer/relocations
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-16
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -77,4 +77,8 @@ ignore_format_so=0
+ 
+ 19. At 64, before a call, align stack. Cases for arguments and shadow(windows only).
+ 0 is No; 1 is Yes; 2 is Yes for arguments and shadow; 3 is Yes for arguments
+-call_align=1
+\ No newline at end of file
++call_align=1
++
++20. Virtual data to a SHT_NOBITS at object
++0 is No; 1 is Yes
++nobits_virtual=1
+\ No newline at end of file
+--- ocompiler-1.orig/arh/pub
++++ ocompiler-1/arh/pub
+@@ -1,8 +1,8 @@
+ 
+-#1
++#1 msg  optional 2 dist
+ 
+ last=`curl https://api.github.com/repos/colin-i/o/releases/latest -s | jq .tag_name -r` && \
+-~/test/debinit2 "${1}" jammy && \
++~/test/debinit2 "${1}" ${2} && \
+ ~/test/keyring2 && \
+ ~/test/deb && \
+ ~/test/publp && \
+@@ -19,32 +19,34 @@ last=`curl https://api.github.com/repos/
+ ~/test/publp2 && \
+ ~/test/keyring && \
+ ~/test/del x ${last} && \
+-~/test/arh2 ${last} && \
+-sed -i '1s/jammy/bionic/' debian/changelog && \
+-sed -i '1s/)/b)/' debian/changelog && \
+-~/test/debuild && \
+-~/test/deb && \
+-~/test/publp && \
+-~/test/publp2 && \
+-~/test/lp 0 "focal" && \
+-~/test/lp x "focal" && \
+-git restore debian/changelog && \
+-sed -i '1s/jammy/xenial/' debian/changelog && \
+-sed -i '1s/)/x)/' debian/changelog && \
+-~/test/debuild && \
+-~/test/deb && \
+-~/test/publp && \
+-~/test/publp2 && \
+-git restore debian/changelog && \
+-git restore debian/files && \
+-echo git diff = `git diff && echo $?`
++~/test/arh2 ${last}
++
++# && \
++#sed -i '1s/jammy/bionic/' debian/changelog && \
++#sed -i '1s/)/b)/' debian/changelog && \
++#~/test/debuild && \
++#~/test/deb && \
++#~/test/publp && \
++#~/test/publp2 && \
++#~/test/lp 0 "focal" && \
++#~/test/lp x "focal" && \
++#git restore debian/changelog && \
++#sed -i '1s/jammy/xenial/' debian/changelog && \
++#sed -i '1s/)/x)/' debian/changelog && \
++#~/test/debuild && \
++#~/test/deb && \
++#~/test/publp && \
++#~/test/publp2 && \
++#git restore debian/changelog && \
++#git restore debian/files && \
++#git diff && echo git-diff=$? && \
++
+ #is something wrong with copy package and rebuild (maybe same with copy-package without -b)
+ #restore after last lp where inside publp2 will check version
+ #the xenial ostrip is not working, but was ok on edb testing here on jammy
+ 
+ #plans:
+ 
+-#SHT_NOBITS at virtual
+ #simple and or
+ #={"a","b"}
+ #~(page_sectionalignment-1)
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -204,7 +204,8 @@
+ 	<br>
+ 	Language command: <b>VALUEX</b>
+ 	<br>
+-	They will be physically placed after the counterparts and the starting offset will be logged
++	These will be in a nobits section at object. Set nobits_virtual preference to 0 for old behavior:
++	these will be physically placed after the counterparts and the starting offset will be logged
+ 	so ostrip can remove them after ld linked the objects.
+ 	</p>
+ 
+@@ -274,6 +275,8 @@
+ 	Used at the object format. It acts like equal sign and then the offset is added to the REL section.
+ 	At executables it translated to '='. At Str and quotations declaration the equal sign adds at object to Rel and this sign cannot be used here. At Chars the sign cannot be used.
+ 	<br>
++	Add another '%' sign to point to .dtnb section instead of .data if applicable.
++	<br>
+ 	Example:
+ 	<br>
+ 	<a class="code">
+@@ -337,7 +340,7 @@
+ 	All the constants are in the global scope.
+ 	When a function is declared all the variables declared in the function can not be used outside that function because they are in the function scope.
+ 	<br>
+-	The "!" character represents the data section cursor and can be used in place of a number.
++	The "!" character represents the data section cursor and can be used in place of a number. "!X" represents the nobits data section cursor if applicable.
+ 	<br>
+ 	The ":" character represents the size of an integer and can be used in the place of a number. Returns 4B on 32-bits, 8B on 64-bits.
+ 	<br>
+--- ocompiler-1.orig/ostrip/Makefile
++++ ocompiler-1/ostrip/Makefile
+@@ -19,14 +19,18 @@ ATCCCOM = $(CC) ${syms} -o ${OB}
+ 
+ strippy=ostriputil
+ 
++nobits_virtual=1
++
+ ostrip: ${OBJ}
+ 	${OUNUSED} ${FULLOBJLOG}
+ 	@echo
+ 	${ATCCCOM} ${FULLOBJO}
+-	if [ "$(shell lsb_release -cs)" = "jammy" ]; then \
+-		${FULLOBJ} ${FULLOBJ} ${FULLOBJLOG} ${FULLOBJO}; \
+-		if [ "$$?" = "0" ]; then \
+-			${strippy} ${FULLOBJ} ${FULLOBJ}; \
++	if [ "${nobits_virtual}" != "1" ]; then \
++		if [ "$(shell lsb_release -cs)" = "jammy" ]; then \
++			${FULLOBJ} ${FULLOBJ} ${FULLOBJLOG} ${FULLOBJO}; \
++			if [ "$$?" = "0" ]; then \
++				${strippy} ${FULLOBJ} ${FULLOBJ}; \
++			fi; \
+ 		fi; \
+ 	fi
+ #	@echo
+--- ocompiler-1.orig/src/files/actions/fileformat.s
++++ ocompiler-1/src/files/actions/fileformat.s
+@@ -4,13 +4,17 @@ if errormsg!=(noerror)
+ 	call msgerrexit(errormsg)
+ endif
+ 
+-#this is temporary
+-sub datasecSize datasecReg
+-setcall errormsg set_reserve(datasecSize)
+-if errormsg!=(noerror)
+-	Call msgerrexit(errormsg)
++#also needed at dtnb
++#sub datasecSize datasecReg
++
++if nobits_virtual==(No)
++	#in case old style virtual
++	#setcall errormsg set_reserve(datasecSize)
++	setcall errormsg set_reserve(nobitssecReg)
++	if errormsg!=(noerror)
++		Call msgerrexit(errormsg)
++	endif
+ endif
+-#
+ 
+ If fileformat==pe_exec
+ 	Include "./fileformat/pe_struct.s"
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -276,31 +276,13 @@ Else
+ 	#######
+ 	call memtomem(ptrelf32_ehd_e_phnum,ptrnull,wordsize)
+ 	#######
+-	Const elf_sec_nr=7
+-	Const elf_sec_strtab_nr=elf_sec_nr-1
+-	Data elf_sec_nr=elf_sec_nr
+-	data ptrelf_sec_nr^elf_sec_nr
+ 	#######
+-	Data elf_sec_strtab_nr=elf_sec_strtab_nr
+-	data ptrelf_sec_strtab_nr^elf_sec_strtab_nr
++	sd elf_sec_nr=7
++	sd ptrelf_sec_nr^elf_sec_nr
++	#######
++	sd elf_sec_strtab_nr=-1
++	sd ptrelf_sec_strtab_nr^elf_sec_strtab_nr
+ 	#######
+-
+-	sd syment;sd relent
+-	if p_is_for_64_value#==(TRUE)
+-		Set elf64_ehd_e_shoff (elf64_fileheaders_size)
+-		call memtomem(#elf64_ehd_e_shnum,ptrelf_sec_nr,wordsize)
+-		call memtomem(#elf64_ehd_e_shstrndx,ptrelf_sec_strtab_nr,wordsize)
+-		Set fileheaders #elf64_ehd_e_ident_sign
+-		Set sizefileheaders (elf64_fileheaders_size)
+-		set syment (elf64_dyn_d_val_syment);set relent (elf64_dyn_d_val_relent)
+-	else
+-		Set elf32_ehd_e_shoff elf_fileheaders_size
+-		call memtomem(ptrelf32_ehd_e_shnum,ptrelf_sec_nr,wordsize)
+-		call memtomem(ptrelf32_ehd_e_shstrndx,ptrelf_sec_strtab_nr,wordsize)
+-		Set fileheaders elf_fileheaders
+-		Set sizefileheaders elf_fileheaders_size
+-		set syment elf32_dyn_d_val_syment;set relent elf32_dyn_d_val_relent
+-	endelse
+ 
+ 	Data SHT_PROGBITS=SHT_PROGBITS
+ 	Data elf_sec_fileoff#1
+@@ -324,18 +306,47 @@ Else
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+ 
++	sd symind=symind
++
++	if nobits_virtual==(Yes)
++		SetCall errormsg elfaddsec(dtnbstrtab,(SHT_NOBITS),elf_sec_flags_data,elf_sec_fileoff,#clownEntry,null,null,(elf_sec_obj_align),null)
++		If errormsg!=noerr
++			Call msgerrexit(errormsg)
++		EndIf
++		inc elf_sec_nr
++		inc symind
++	endif
++
++	add elf_sec_strtab_nr elf_sec_nr
++	sd syment;sd relent
++	if p_is_for_64_value#==(TRUE)
++		Set elf64_ehd_e_shoff (elf64_fileheaders_size)
++		call memtomem(#elf64_ehd_e_shnum,ptrelf_sec_nr,wordsize)
++		call memtomem(#elf64_ehd_e_shstrndx,ptrelf_sec_strtab_nr,wordsize)
++		Set fileheaders #elf64_ehd_e_ident_sign
++		Set sizefileheaders (elf64_fileheaders_size)
++		set syment (elf64_dyn_d_val_syment);set relent (elf64_dyn_d_val_relent)
++	else
++		Set elf32_ehd_e_shoff elf_fileheaders_size
++		call memtomem(ptrelf32_ehd_e_shnum,ptrelf_sec_nr,wordsize)
++		call memtomem(ptrelf32_ehd_e_shstrndx,ptrelf_sec_strtab_nr,wordsize)
++		Set fileheaders elf_fileheaders
++		Set sizefileheaders elf_fileheaders_size
++		set syment elf32_dyn_d_val_syment;set relent elf32_dyn_d_val_relent
++	endelse
++
+ 	Chars elfsymtab=".symtab"
+ 	Str ptrelfsymtab^elfsymtab
+ 	Data SHT_SYMTAB=2
+ 	Add elf_sec_fileoff codesecReg
+ 
+-	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,(totallocalsymsaddedatstart),dwordsize,syment)
++	#                                                                                                     totallocalsymsaddedatstart
++	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,symind,dwordsize,syment)
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+ 
+ 	Data SHT_RELA=4
+-	Data symind=symind
+ 
+ 	Chars elfreldata=".rela.data"
+ 	Str ptrelfreldata^elfreldata
+--- ocompiler-1.orig/src/files/actions/main.s
++++ ocompiler-1/src/files/actions/main.s
+@@ -101,6 +101,7 @@ While includesReg!=null
+ 
+ 						set datasecSize datasecReg
+ 						set datasecReg 0
++						set nobitsDataStart datasecSize
+ 
+ 						set logbackup logfile
+ 						set logfile negative   #will reiterate tree. and will also have reusable,imports and constants
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -83,7 +83,12 @@ if loop==1
+ 				if commandset!=(cCOMMENT)
+ 					if parses==(pass_init)
+ 						#tested at function gather; FORMAT is here starting with FUNCTIONX to set the mask knowing the format
+-						if formatdefined==0;Set formatdefined 1;endif
++						if formatdefined==0
++							if commandset!=(cFORMAT)
++								set nobits_virtual (No)   #this is default pe_exe format, same behavior for nobits
++							endif
++							Set formatdefined 1
++						endif
+ 						#needing to find virtual start
+ 						if commandset==(cDECLARE)
+ 						ElseIf commandset==(cPRIMSEC)
+@@ -171,6 +176,27 @@ if loop==1
+ 				Include "./index/i3.s"
+ 			EndElse
+ 			If errormsg==(noerror)
++				#after the first noncomment command, the format command cannot be changed
++				#this can be at line 0
++				if formatdefined==1;Set formatdefined 2;endif
++
++				#set when code started
++				#this can be at line 0
++				If fnavailable==two
++					#retain the file and line where the main scope was started for functions separated from main code
++					#fnavailable two was set by code detectors
++					Data currentfile#1
++					Set currentfile includes
++					Add currentfile nameofstoffile
++					Data sizeshortstr=shortstrsize
++					Call memtomem(ptrentrystartfile,currentfile,sizeshortstr)
++
++					Set entrylinenumber lineoffile
++					Inc entrylinenumber
++
++					Set fnavailable zero
++				EndIf
++
+ 				If comsize!=zero
+ 					setcall was_whitespaces spaces(pcontent,pcomsize)
+ 					If comsize!=zero
+@@ -188,24 +214,7 @@ if loop==1
+ 							setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
+ 						endif
+ 					endelseIf
+-				#twoparse==2 more
+-				#after the first noncomment command, the format command cannot be changed
+-				elseif formatdefined==1;Set formatdefined 2
+-				#twoparse==1 more
+-				ElseIf fnavailable==two
+-					#retain the file and line where the main scope was started for functions separated from main code
+-					#fnavailable two was set by code detectors
+-					Data currentfile#1
+-					Set currentfile includes
+-					Add currentfile nameofstoffile
+-					Data sizeshortstr=shortstrsize
+-					Call memtomem(ptrentrystartfile,currentfile,sizeshortstr)
+-
+-					Set entrylinenumber lineoffile
+-					Inc entrylinenumber
+-
+-					Set fnavailable zero
+-				EndElseIf
++				endIf
+ 			EndIf
+ 		EndIf
+ 	Elseif cursor_start!=content
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -1,5 +1,4 @@
+ 
+-
+ Data formatresponse#1
+ 
+ #exe format
+@@ -58,7 +57,14 @@ If formatresponse==false
+ 						Data codeind=codeind
+ 						Set codestrtab namesReg
+ 						SetCall errormsg elfaddstrsym(ptrelftext,null,null,STT_SECTION,(STB_LOCAL),codeind,ptrtable)
+-				const totallocalsymsaddedatstart=3
++						#sd totallocalsymsaddedatstart=3
++						If errormsg==noerr
++							if nobits_virtual==(Yes)
++								Set dtnbstrtab namesReg
++								SetCall errormsg elfaddstrsym(".dtnb",null,null,STT_SECTION,(STB_LOCAL),(dtnbind),ptrtable)
++								#inc totallocalsymsaddedatstart
++							endif
++						EndIf
+ 					EndIf
+ 				EndIf
+ 				Set imagebaseoffset null
+@@ -69,9 +75,13 @@ If formatresponse==false
+ 			Set imagebaseoffset elf_imagebase
+ 
+ 			Set startofdata elf_startofdata
++
++			set nobits_virtual (No) #.dtnb is not yet at exec format
+ 		EndElse
+ 	EndIf
+-EndIf
++Else
++	set nobits_virtual (No) #.dtnb is not yet at exe format
++EndElse
+ 
+ If errormsg==noerr
+ 	If formatresponse==false
+--- ocompiler-1.orig/src/files/actions/main/index/hex.s
++++ ocompiler-1/src/files/actions/main/index/hex.s
+@@ -1,3 +1,3 @@
+ 
+ 
+-setcall errormsg enumcommas(pcontent,pcomsize,pcomsize#,(fndecandgroup),(charsnumber),(NULL),(hexenum)) #there are 3 more arguments but are not used
++setcall errormsg enumcommas(pcontent,pcomsize,pcomsize#,(fndecandgroup),(charsnumber),(NULL),(hexenum)) #there are 4 more arguments but are not used
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -45,6 +45,12 @@ function get_img_vdata_dataSize()
+ 	sd reg;setcall reg get_img_vdata()
+ 	vdata ptrdataSize%ptrdataSize
+ 	add reg ptrdataSize#
++	vdata ptr_nobits_virtual%ptr_nobits_virtual
++	if ptr_nobits_virtual#==(Yes)
++		#this is here because this function is called from fndecargs and from simple declare add reference
++		vdata ptr_nobitsDataStart%ptr_nobitsDataStart
++		sub reg ptr_nobitsDataStart#
++	endif
+ 	return reg
+ endfunction
+ 
+@@ -71,6 +77,10 @@ Function addvarreference(sv ptrcontent,s
+ 		if stack==false
+ 			if is_expand==(TRUE)
+ 				setcall value get_img_vdata_dataSize()
++				sd ptr_nobits_virtual%ptr_nobits_virtual
++				if ptr_nobits_virtual#==(Yes)
++					or mask (expandbit)
++				endif
+ 			else
+ 				setcall value get_img_vdata_dataReg()
+ 			endelse
+@@ -167,8 +177,6 @@ function getsign(str content,data size,s
+ 	Data valsize#1
+ 	Chars equalsign=assignsign
+ 
+-	#Set ptrrelocbool# (FALSE)
+-
+ 	SetCall valsize valinmem_pipes(content,size,equalsign,ptrsz)
+ 	If valsize!=size
+ 		Set assigntype# equalsign
+@@ -207,7 +215,7 @@ function getsign(str content,data size,s
+ 		return noerr
+ 	endif
+ 
+-	Chars relsign="%"
++	Chars relsign=relsign
+ 	SetCall valsize valinmem_pipes(content,size,relsign,ptrsz)
+ 	If valsize!=size
+ 		Chars ptrrelchar="Incorrect relocation sign ('%') used at CHARS/CONST declaration."
+--- ocompiler-1.orig/src/files/functions/actions/declare.s
++++ ocompiler-1/src/files/functions/actions/declare.s
+@@ -14,12 +14,13 @@ function declare(sv pcontent,sd pcomsize
+ 	sd is_expand
+ 	setcall declare_typenumber commandSubtypeDeclare_to_typenumber(subtype,#is_expand)
+ 
+-	if is_expand==(TRUE)
+-		if parses==(pass_init)
+-			call advancecursors(pcontent,pcomsize,pcomsize#)
+-			return (noerror)
+-		endif
+-	endif
++	#still can be ok at nobits=No, let natural selection because pnobitsReg is implemented instead of datasecSize at writes for simplicity
++	#if is_expand==(TRUE)
++	#	if parses==(pass_init)
++	#		call advancecursors(pcontent,pcomsize,pcomsize#)
++	#		return (noerror)
++	#	endif
++	#endif
+ 
+ 	if declare_typenumber==(vintegersnumber)
+ 		set is_stack (FALSE);set typenumber (integersnumber)
+@@ -83,7 +84,7 @@ function declare(sv pcontent,sd pcomsize
+ 	endelse
+ 
+ 	sd err
+-	sd relocbool
++	sd relocbool=FALSE
+ 	setcall err getsign(pcontent#,pcomsize#,#sign,#valsize,typenumber,is_stack,#relocbool)
+ 	if err==(noerror)
+ 		if parses==(pass_init)
+@@ -94,7 +95,8 @@ function declare(sv pcontent,sd pcomsize
+ 						call advancecursors(pcontent,pcomsize,pcomsize#)
+ 						return (noerror)
+ 					endif
+-					setcall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,(NULL),mask) #there are 2 more argument but are not used
++					setcall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,(NULL),mask,relocbool) #there are 2 more argument but are not used
++					#                                                                            since %%|
+ 				endif
+ 			else
+ 				if unitsize==0
+@@ -117,9 +119,15 @@ function declare(sv pcontent,sd pcomsize
+ 						endif
+ 					endif
+ 				endelse
+-				setcall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,#unitsize,mask,is_stack) #there is 1 more argument but is not used
+-				sd pdataReg%ptrdataReg
+-				add pdataReg# unitsize    #this is init by 0
++				setcall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,#unitsize,mask,relocbool,is_stack) #there is 1 more argument but is not used
++				#                                                                               since %%|
++				if is_expand==(FALSE)
++					sd pdataReg%ptrdataReg
++					add pdataReg# unitsize    #this is init by 0
++				else
++					sd pnobitsReg%ptrnobitsReg
++					add pnobitsReg# unitsize    #this is init by 0
++				endelse
+ 			endelse
+ 		else
+ 			if typenumber==(constantsnumber)
+@@ -132,7 +140,7 @@ function declare(sv pcontent,sd pcomsize
+ 					return "Virtual declarations can have only the reserve sign."
+ 				endif
+ 			endelseif
+-			SetCall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,(NULL),mask,is_stack,relocbool,is_expand)
++			SetCall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,(NULL),mask,relocbool,is_stack,is_expand)
+ 		endelse
+ 	endif
+ 	return err
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -19,7 +19,6 @@ function writevar(sd ptrvalue,sd unitsiz
+ 
+ 				SetCall err adddirectrel_base(ptraddresses,relocoff,relindex,ptrvalue#)
+ 				If err!=noerr;Return err;EndIf
+-				#data a^dataB
+ 				if relindex==(codeind)
+ 					#data^functionReloc
+ 					#this is at relocs not at data
+@@ -28,6 +27,7 @@ function writevar(sd ptrvalue,sd unitsiz
+ 					#ptrvalue# it is an addresses value (nothing related to the real value)
+ 					#	that will be resolved and overwritten at resolve.s
+ 				endif
++				#else data a^dataB
+ 
+ 				call inplace_reloc(ptrvalue)
+ 
+@@ -57,12 +57,12 @@ function writevar(sd ptrvalue,sd unitsiz
+ 			data ptrextra%ptrextra
+ 			setcall err adddirectrel_base(ptrextra,stackoff,relindex,ptrvalue#)
+ 			If err!=noerr;Return err;EndIf
+-			#s^dat
+ 			if relindex==(codeind)
+ 				#s^fn
+ 				setcall err unresReloc(ptrextra)
+ 				If err!=noerr;Return err;EndIf
+ 			endif
++			#else s^dat
+ 			call inplace_reloc(ptrvalue)
+ 			setcall err addtocodefordata(ptrvalue#,for_64,(NULL))
+ 			return err
+@@ -87,7 +87,7 @@ endfunction
+ 
+ const fndecandgroup=1
+ #er
+-Function enumcommas(sv ptrcontent,sd ptrsize,sd sz,sd fndecandgroupOrpush,sd typenumberOrparses,sd punitsizeOrparses,sd hexOrunitsize,sd stack,sd long_mask,sd relocbool)
++Function enumcommas(sv ptrcontent,sd ptrsize,sd sz,sd fndecandgroupOrpush,sd typenumberOrparses,sd punitsizeOrparses,sd hexOrunitsize,sd stack,sd long_mask,sd relocbool,sd relocindx)
+ 	Data zero=0
+ 	vstrx argsize#1
+ 	Chars comma=","
+@@ -160,8 +160,7 @@ Function enumcommas(sv ptrcontent,sd ptr
+ 						Return err
+ 					EndIf
+ 					if hexOrunitsize==(not_hexenum)
+-						data dataind=dataind
+-						setcall err writevar(ptrvalue,unitsize,dataind,stack,zero,long_mask,relocbool)
++						setcall err writevar(ptrvalue,unitsize,relocindx,stack,zero,long_mask,relocbool)
+ 						If err!=noerr
+ 							Return err
+ 						EndIf
+@@ -221,7 +220,7 @@ Function enumcommas(sv ptrcontent,sd ptr
+ 			Call advancecursors(ptrcontent,ptrsize,negvalue)
+ 			Data ptrargsize^argsize
+ 			if typenumberOrparses==(pass_init)
+-				setcall err getarg(ptrcontent,ptrargsize,ptrargsize#,(allow_later),sens) #there are 4 more arguments but are not used
++				setcall err getarg(ptrcontent,ptrargsize,argsize,(allow_later),sens) #there are 4 more arguments but are not used
+ 				If err!=noerr
+ 					Return err
+ 				EndIf
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -215,7 +215,7 @@ Function parsefunction(data ptrcontent,d
+ 
+ 	If is_declare==true
+ 		If sz!=zero
+-			SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,fnnr,parses) #there are 4 more arguments but are not used
++			SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,fnnr,parses) #there are 5 more arguments but are not used
+ 			if err!=noerr
+ 				return err
+ 			endif
+@@ -226,7 +226,7 @@ Function parsefunction(data ptrcontent,d
+ 	Else
+ 		if parses==(pass_init)
+ 			if sz!=zero
+-				SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 5 more arguments but are not used
++				SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 6 more arguments but are not used
+ 				if err!=noerr
+ 					return err
+ 				endif
+@@ -240,7 +240,7 @@ Function parsefunction(data ptrcontent,d
+ 				else
+ 					if sz!=zero
+ 						setcall p nr_of_args_64need_p_get();set p# 0
+-						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 5 more arguments but are not used
++						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 6 more arguments but are not used
+ 						if err==noerr
+ 							setcall err align_ante(p#)
+ 						endif
+@@ -256,20 +256,20 @@ Function parsefunction(data ptrcontent,d
+ 				#pass_write
+ 				if pbool#==(FALSE)
+ 					if sz!=zero
+-						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 5 more arguments but are not used
++						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 6 more arguments but are not used
+ 					endif
+ 				else
+ 					setcall p nr_of_args_64need_p_get();set p# 0 #also at 0 at win will be sub all shadow space
+ 					if sz!=zero
+ 						set content ptrcontent#
+ 						set size ptrsize#
+-						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(pass_calls)) #there are 5 more arguments but are not used
++						SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,(pass_calls)) #there are 6 more arguments but are not used
+ 						if err==noerr
+ 							setcall err stack_align(p#)
+ 							if err==noerr
+ 								set ptrcontent# content
+ 								set ptrsize# size
+-								SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 5 more arguments but are not used
++								SetCall err enumcommas(ptrcontent,ptrsize,sz,is_declare,parses) #there are 6 more arguments but are not used
+ 							endif
+ 						endif
+ 					else
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -96,10 +96,15 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 		return noerr
+ 	endif
+ 
++	sd sectionind=dataind
+ 	if is_expand==(TRUE)
+ 		setcall memoff get_img_vdata_dataSize()
+ 		vdata ptrdataSize%ptrdataSize
+ 		add ptrdataSize# datasize
++		sd ptr_nobits_virtual%ptr_nobits_virtual
++		if ptr_nobits_virtual#==(Yes)
++			set sectionind (dtnbind)
++		endif
+ 	else
+ 		setcall memoff get_img_vdata_dataReg()
+ 		Data null={NULL,NULL}
+@@ -132,12 +137,11 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 		Const fndecargs_offend^memoff
+ 		Const fndecargs_offstart^stacktransfer1
+ 		Data ptrextra%ptrextra
+-		Data dataind=dataind
+ 		sd reloff=fndecargs_offend-fndecargs_offstart
+ 		if long_mask!=0
+ 			inc reloff
+ 		endif
+-		SetCall err adddirectrel_base(ptrextra,reloff,dataind,memoff)
++		SetCall err adddirectrel_base(ptrextra,reloff,sectionind,memoff)
+ 		If err!=noerr
+ 			Return err
+ 		EndIf
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -62,7 +62,7 @@ function datatake_reloc(sd takeindex,sd
+ 		sd relocoff
+ 		setcall relocoff reloc64_offset(1)
+ 		sd errnr
+-		setcall errnr adddirectrel_base_inplace(relocoff,#take_loc)
++		setcall errnr adddirectrel_base_inplace(relocoff,#take_loc,(dataind))
+ 		If errnr!=(noerror)
+ 			Return errnr
+ 		EndIf
+@@ -79,11 +79,10 @@ function datatake(sd takeindex,sd take_l
+ 	return errnr
+ endfunction
+ #err
+-function adddirectrel_base_inplace(sd relocoff,sd p_take_loc)
++function adddirectrel_base_inplace(sd relocoff,sd p_take_loc,sd sectionind)
+ 	Data ptrextra%ptrextra
+-	Data dataind=dataind
+ 	sd errnr
+-	SetCall errnr adddirectrel_base(ptrextra,relocoff,dataind,p_take_loc#)
++	SetCall errnr adddirectrel_base(ptrextra,relocoff,sectionind,p_take_loc#)
+ 	If errnr==(noerror)
+ 		call inplace_reloc(p_take_loc)
+ 	EndIf
+@@ -104,7 +103,18 @@ function writetake(sd takeindex,sd entry
+ 			sd var
+ 			setcall var function_in_code()
+ 			if var#==0
+-				setcall errnr adddirectrel_base_inplace(relocoff,#take_loc)
++				sd expand;setcall expand expandbit(entry)
++				sd sectionind
++				if expand!=0
++					#this test is already at var declaration
++					#sd ptr_nobits_virtual%ptr_nobits_virtual
++					#if ptr_nobits_virtual#==(Yes)
++					set sectionind (dtnbind)
++					#endif
++				else
++					set sectionind (dataind)
++				endelse
++				setcall errnr adddirectrel_base_inplace(relocoff,#take_loc,sectionind)
+ 				If errnr!=(noerror)
+ 					Return errnr
+ 				EndIf
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -1,7 +1,7 @@
+ 
+ 
+ #err
+-Function dataassign(sd ptrcontent,sd ptrsize,sd sign,sd valsize,sd typenumber,sd punitsize,sd long_mask,sd stack,sd relocbool,sd is_expand)
++Function dataassign(sd ptrcontent,sd ptrsize,sd sign,sd valsize,sd typenumber,sd punitsize,sd long_mask,sd relocbool,sd stack,sd is_expand)
+ 	Data false=FALSE
+ 	Data true=TRUE
+ 	Str err#1
+@@ -88,6 +88,23 @@ Function dataassign(sd ptrcontent,sd ptr
+ 		Chars byte#1
+ 		Set content ptrcontent#
+ 		Set byte content#
++		if byte==(relsign)
++			Call stepcursors(ptrcontent,ptrsize)
++			Call stepcursors(#content,#size)
++			If size==0
++				#to not set byte in vain
++				Return ptrrightsideerr
++			endIf
++			#this comparation is not for chars and const is excluded at getsign
++			if relocbool!=true
++				return "Unexpected relocation sign."
++			endif
++			vdata ptr_nobits_virtual%ptr_nobits_virtual
++			if ptr_nobits_virtual#==(Yes)
++				set relocindx (dtnbind)
++			endif
++			Set byte content#
++		endif
+ 		Chars groupstart="{"
+ 		If byte!=groupstart
+ 			chars stringstart=asciidoublequote
+@@ -180,11 +197,11 @@ Function dataassign(sd ptrcontent,sd ptr
+ 				Return ptrgroupend
+ 			EndIf
+ 			if punitsize==(NULL)
+-				SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,(NULL),(not_hexenum),stack,long_mask,relocbool)
++				SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,(NULL),(not_hexenum),stack,long_mask,relocbool,relocindx)
+ 			else
+ 				sd aux;set aux punitsize#
+ 				set punitsize# 0   #will add unit sizes inside
+-				SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,punitsize,aux) #there are 3 more arguments but are not used
++				SetCall err enumcommas(ptrcontent,ptrsize,sz,true,typenumber,punitsize,aux) #there are 4 more arguments but are not used
+ 			endelse
+ 			If err!=noerr
+ 				Return err
+@@ -234,10 +251,20 @@ Function dataassign(sd ptrcontent,sd ptr
+ 			setcall rightstackbit stackbit(pointer)
+ 			if rightstackbit==0
+ 				Set value pointer#
++
++				#vdata ptr_nobits_virtual%ptr_nobits_virtual
++				#if ptr_nobits_virtual#==(Yes)
++				#data^datax or sd^datax
++				#expandbit already has nobits_virtual previous test
++				sd expand;setcall expand expandbit(pointer)
++				if expand!=0
++					set relocindx (dtnbind)
++				endif
+ 			else
+ 				set relocbool false
+ 				if stack==false
+ 					If typenumber!=constantsnr
++					#data^stack
+ 						setcall err writetake((eaxregnumber),pointer)
+ 						If err!=noerr
+ 							Return err
+--- ocompiler-1.orig/src/files/functions/elf/elf.s
++++ ocompiler-1/src/files/functions/elf/elf.s
+@@ -58,7 +58,7 @@ function elfaddsec_base(sd stringname,sd
+ 
+ 	Const SHT_NULL=0
+ 	Const SHT_PROGBITS=1
+-	#Const SHT_NOBITS=8
++	Const SHT_NOBITS=8
+ 
+ 	const SHF_WRITE=1
+ 		#Occupies memory during execution,1 << 1
+@@ -208,10 +208,13 @@ Data STT_NOTYPE=STT_NOTYPE
+ Data STT_FUNC=STT_FUNC
+ Data STT_SECTION=STT_SECTION
+ 
++#const dataind=1
+ Const codeind=2
++const dtnbind=3
+ Const symind=3
+ Data datastrtab#1
+ Data codestrtab#1
++Data dtnbstrtab#1
+ 
+ #Data objfnmask#1
+ #Const ptrobjfnmask^objfnmask
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -166,6 +166,7 @@ function initpreferences()
+ 	sd p_include_sec%p_include_sec
+ 	sd p_ignore_format_so%p_ignore_format_so
+ 	sd ptr_call_align%ptr_call_align
++	sd ptr_nobits_virtual%ptr_nobits_virtual
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -189,13 +190,14 @@ function initpreferences()
+ 	set p_include_sec# false
+ 	set p_ignore_format_so# (No)
+ 	set ptr_call_align# (call_align_yes_all)
++	set ptr_call_align# (Yes)
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so; incst q;set q# ptr_call_align
++	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so; incst q;set q# ptr_call_align; incst q;set q# ptr_nobits_virtual
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"; incst t;set t# "call_align"
++	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"; incst t;set t# "call_align"; incst t;set t# "nobits_virtual"
+ endfunction
+ 
+ #void
+--- ocompiler-1.orig/src/files/functions/stack/stack_inits.s
++++ ocompiler-1/src/files/functions/stack/stack_inits.s
+@@ -28,6 +28,11 @@ function datapointbit(sd pointer)
+ 	setcall bit data_get_maskbit(pointer,(datapointbit))
+ 	return bit
+ endfunction
++function expandbit(sd pointer)
++	sd bit
++	setcall bit data_get_maskbit(pointer,(expandbit))
++	return bit
++endfunction
+ 
+ function stack_get_relative(sd location)
+ 	sd mask
+--- ocompiler-1.orig/src/files/functions/values/numbersandconstants.s
++++ ocompiler-1/src/files/functions/values/numbersandconstants.s
+@@ -166,12 +166,33 @@ function numbertoint(str content,data si
+ 	#test to see if the ! sign is present that means the current data cursor
+ 	chars data_cursor=asciiexclamationmark
+ 	if content#==data_cursor
+-		setcall outval# get_img_vdata_dataReg()
+-		if size!=1
+-			str er="The text after the data cursor sign isn't recognized."
+-			return er
++		if size==1
++			setcall outval# get_img_vdata_dataReg()
++			return (noerror)
+ 		endif
+-		return (noerror)
++		if size==2
++			inc content
++			charsx against#1
++			set against content#
++			if against!=(asciix)
++			#maybe is X
++				add against (az_to_AZ)
++			endif
++			if against==(asciix)
++				#main.ptr_nobits_virtual not yet at ocompiler, we have WinMain or nothing at windows
++				vdata ptr_nobits_virtual%ptr_nobits_virtual
++				if ptr_nobits_virtual#==(Yes)
++					vdata pnobitsReg%ptrnobitsReg
++					set outval# pnobitsReg#
++					#add outval# get_img_vdata()
++					return (noerror)
++				endif
++				return "At the moment, !X is not calculated for this format (example: is calculated at object with nobits section)."
++			endif
++			return "Expecting !X ."
++		endif
++		str er="The text after the data cursor sign isn't recognized."
++		return er
+ 	#test for : sign (the size of a stack value, 4B on 32-bits, 8B on 64-bits)
+ 	chars int_size=asciicolon
+ 	elseif content#==int_size
+--- ocompiler-1.orig/src/files/headers/ascii.h
++++ ocompiler-1/src/files/headers/ascii.h
+@@ -34,12 +34,14 @@ Const asciiF=0x46
+ Const asciiL=0x4c
+ Const asciiS=0x53
+ Const asciiV=0x56
++Const asciiX=0x58
+ Const asciiZ=0x5A
+ Const asciibs=0x5C
+ Const asciicirc=0x5E
+ Const asciiunderscore=0x5F
+ Const asciia=0x61
+ Const asciif=0x66
++Const asciix=0x78
+ Const asciiz=0x7A
+ #7b left curly bracket {
+ Const asciivbar=0x7C
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -4,6 +4,7 @@ Const TRUE=1
+ Const FALSE=0
+ Const NULL=0
+ Const No=FALSE
++Const Yes=TRUE
+ 
+ #files
+  #open
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -12,7 +12,8 @@ Const stackbit=0x04
+ Const stack_relative=0x08
+ 	#nostackbit: datapointbit
+ Const datapointbit=0x08
+-#bit offset 4:
++#bit offset 4: 1 means is nobits
++const expandbit=0x10
+ #bit offset 5: 1 means ignore aftercall
+ const aftercallthrowlessbit=0x20
+ #bit offset 6: is functionX/importX
+@@ -215,6 +216,19 @@ Data dummyEntryReg#1
+ data ptrdummyEntry^dummyEntryMax
+ Const ptrdummyEntry^dummyEntryMax
+ 
++data clownEntry#1
++data *#1
++data nobitssecReg#1
++const ptrnobitsReg^nobitssecReg
++#used at !x offset
++
++Data datasecSize#1
++const ptrdataSize^datasecSize
++
++#when taking offset at nobits
++data nobitsDataStart#1
++const ptr_nobitsDataStart^nobitsDataStart
++
+ #fileformat#
+ #file format variable
+ Data fileformat#1
+@@ -382,7 +396,7 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=19
++const nr_of_prefs=20
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+@@ -410,6 +424,7 @@ const p_include_sec^include_sec
+ 
+ const pointersigndeclare=asciicirc
+ const assignsign=asciiequal
++const relsign=asciipercent
+ 
+ const call_align_no=0
+ const call_align_yes_all=1
+@@ -439,8 +454,8 @@ const allow_yes=1
+ 
+ const getarg_str=asciidoublequote
+ 
+-Data datasecSize#1
+-const ptrdataSize^datasecSize
+-
+ #x
+ const log_expand=0x78
++
++data nobits_virtual#1
++const ptr_nobits_virtual^nobits_virtual
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -91,6 +91,7 @@ set functionTagIndex 0
+ call resetisimm()
+ 
+ #this is init at main.s and used after that    set datasecSize 0
++set nobitssecReg 0
+ 
+ sd p_b
+ setcall p_b is_for_64_is_impX_or_fnX_p_get()
+--- ocompiler-1.orig/src/md
++++ ocompiler-1/src/md
+@@ -1,2 +1,2 @@
+ 
+-OFLAGS="function_name 1" make syms=
++OFLAGS="function_name 1" make syms= $@
