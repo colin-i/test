@@ -16,6 +16,20 @@ if [ "${t}" = "" ]; then
 	exit 1
 fi
 
+current=`git rev-parse HEAD`
+
+if [ "$1" = "test" ]; then
+	if [ "${current}" = "${t}" ]; then
+		echo same branch, no switch
+		exit 1
+	fi
+else
+	if [ "${current}" = "${m}" ]; then
+		echo same branch, no switch
+		exit 1
+	fi
+fi
+
 git switch $1
 
 z=
