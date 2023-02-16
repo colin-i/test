@@ -1,0 +1,54 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-179) xenial; urgency=medium
+ .
+   * fix idle
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/_prepare/output/sound.s
++++ ovideo-1/src/_prepare/output/sound.s
+@@ -251,12 +251,14 @@ function stage_sound_closedialog()
+ 	importx "_g_idle_add" g_idle_add
+ 	call g_idle_add(stage_sound_realclosedialog,(void))
+ endfunction
++#bool
+ function stage_sound_realclosedialog()
+-    sd dialog
+-    setcall dialog stage_sound_dialog((value_get))
+-    importx "_gtk_dialog_response" gtk_dialog_response
+-    call gtk_dialog_response(dialog,(GTK_RESPONSE_OK))
+-    call sound_global_flag_set(0)
++	sd dialog
++	setcall dialog stage_sound_dialog((value_get))
++	importx "_gtk_dialog_response" gtk_dialog_response
++	call gtk_dialog_response(dialog,(GTK_RESPONSE_OK))
++	call sound_global_flag_set(0)
++	return (FALSE) #to not call again
+ endfunction
+ 
+ 
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.178
+\ No newline at end of file
++1.179
+\ No newline at end of file

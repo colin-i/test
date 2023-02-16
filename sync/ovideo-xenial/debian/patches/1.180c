@@ -1,0 +1,451 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-180c) bionic; urgency=medium
+ .
+   * first arg for mount share access
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-21
+
+--- ovideo-1.orig/.github/workflows/appimage.yml
++++ ovideo-1/.github/workflows/appimage.yml
+@@ -24,39 +24,126 @@ jobs:
+    # repository: colin-i/irc
+    # path: my-tools
+    #- uses: dsaltares/fetch-gh-release-asset@master
+-   #with:
+-   # repo: 'colin-i/test'
++   #this is locally: throw new Error("Parameter token or opts.auth is required");
++   #  with:
++   #   repo: 'colin-i/test'
++   #   file: 'ovideo.png'
++   #   target: 'in/' #plague-linux.zip'
+    # #version: 'tags/1.1'
+-   # file: 'gpg.gpg'
+-   # #target: 'tmp/' #plague-linux.zip'
+    # #token: ${{ secrets.PAT }}
+    #Runs a set of commands using the runners shell
+    - name: Run a multi-line script
+      run: |
+       if [ -n "${{ env.init }}" ]; then
+-       echo a
++       exit
+       fi
+-      debfileversion=`cat ./debian/changelog | head -n 1 | cut -d '(' -f 2 | cut -d ')' -f 1`
+-      cd in
+-      file=/squashfs-root/AppRun
++      mkdir -p AppDir
++      file=runtime
++      arch=-x86_64
++      archfile=${file}${arch}
++      kitpart () {
++       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++      }
+       if [ ! -e "${file}" ]; then
+-       urlpart=`wget -q https://github.com/AppImage/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2`
++       kitpart
++       #"pkg2appimage-.*-x86_64.AppImage"
+        wget -c https://github.com/${urlpart}
+-       #chmod +x ./pkg2appimage-*.AppImage
+-       file=`echo ./${urlpart} | cut -d '/' -f 7`
+-       chmod +x ${file}
+-       ./${file} --appimage-extract #modprobe not found,fuse not found
+-       file=./squashfs-root/AppRun
++       mv ${archfile} ${file}
++       chmod a+x ${file}
+       fi
+-      wget_url=https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/ovideo_${debfileversion}_i386.deb
+-      wget ${wget_url} -O ovideo.deb
++      downdeb () {
++       maindeb=${4}.deb
++       if [ ! -e "${maindeb}" ]; then
++        inter=Packages${2}${3}
++        if [ ! -e "${inter}" ]; then
++         wget http://${1}/ubuntu/dists/bionic/main/binary-${2}/Packages.xz -O ${inter}.xz
++         xz -d ${inter}.xz #f for multiple times
++        fi
++        debfilename=`grep "^Filename.*/${4}_" ${inter} | tail -1 | cut -d ' ' -f 2`
++        wget_url=http://${1}/ubuntu/${debfilename}
++        #https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/${debfilename}	| grep -o '[^/]*$'
++        wget ${wget_url} -O ${maindeb}
++        dpkg -x ${maindeb} AppDir
++        #ar x ${maindeb} data.tar.xz
++        #xz -fd data.tar.xz
++        #tar -xf data.tar -C AppDir
++       fi
++      }
++      downdeb "ppa.launchpadcontent.net/colin-i/ppa" i386 1 ovideo
++      downdeb "ro.archive.ubuntu.com" amd64 1 libc6-i386
++      array=( libgtk2.0-0 libpangocairo-1.0-0 libatk1.0-0 libcairo2 libgdk-pixbuf2.0-0 \
++              libglib2.0-0 libpangoft2-1.0-0 libpango-1.0-0 libfontconfig1 libfreetype6 \
++              libgstreamer-plugins-base1.0-0 libgstreamer1.0-0 libjpeg-turbo8 libsoup2.4-1 libasound2 \
++              libx11-6 libxfixes3 libxrender1 libxinerama1 libxi6 libxrandr2 libxcursor1 libxcomposite1 libxdamage1 libxext6 \
++              libpixman-1-0 libpng16-16 libxcb-shm0 libxcb1 libxcb-render0 \
++              zlib1g libselinux1 libmount1   libharfbuzz0b libthai0   libexpat1 liborc-0.4-0 libffi6   libpcre3 \
++              libxml2 libsqlite3-0 libgssapi-krb5-2 libxau6 libxdmcp6   libblkid1   libgraphite2-3 libdatrie1 libicu60   liblzma5 \
++              libkrb5-3 libk5crypto3   libcom-err2   libkrb5support0   libbsd0 libuuid1   libstdc++6   libgcc1 libkeyutils1 )
++      #libgtk-x11-2.0.so.0 libpangocairo-1.0.so.0 libatk-1.0.so.0 libcairo.so.2 libgdk_pixbuf-2.0.so.0
++      #libglib-2.0.so.0 libpangoft2-1.0.so.0 libpango-1.0.so.0 libfontconfig.so.1 libfreetype.so.6
++      #libgstpbutils-1.0.so.0 libgstreamer-1.0.so.0 libjpeg.so.8 libsoup-2.4.so.1 libasound.so.2
++      #libX11.so.6 libXfixes.so.3 libXrender.so.1 libXinerama.so.1 libXi.so.6 libXrandr.so.2 libXcursor.so.1 libXcomposite.so.1 libXdamage.so.1 libXext.so.6
++      #libpixman-1.so.0 libpng16.so.16 libxcb-shm.so.0 libxcb.so.1 libxcb-render.so.0
++      #libz.so.1 libselinux.so.1 libmount.so.1   libharfbuzz.so.0 libthai.so.0   libexpat.so.1 liborc-0.4.so.0 libffi.so.6   libpcre.so.3
++      #libxml2.so.2 libsqlite3.so.0 libgssapi_krb5.so.2 libXau.so.6 libXdmcp.so.6   libblkid.so.1   libgraphite2.so.3 libdatrie.so.1 libicuuc.so.60   liblzma.so.5
++      #libkrb5.so.3 libk5crypto.so.3   libcom_err.so.2   libkrb5support.so.0   libbsd.so.0 libuuid.so.1   libstdc++.so.6   libgcc_s.so.1 libkeyutils.so.1
++      for var in "${array[@]}"
++      do
++       #var=`echo $var | tr 'Q' '\n' | xargs echo `
++       downdeb "ro.archive.ubuntu.com" i386 2 ${var}
++      done
++      cd AppDir
++      file2=AppRun
++      if [ ! -e "${file2}" ]; then
++       if [ -z "${urlpart}" ]; then
++        kitpart
++       fi
++       archfile2=${file2}${arch}
++       urlpart=${urlpart:0:`echo ${urlpart} | grep -ob '[^/]*$' | cut -d ':' -f 1`}${archfile2}
++       wget -c https://github.com/${urlpart}
++       chmod a+x ${archfile2}
++       mv ${archfile2} ${file2}
++      fi
++      pngfile=ovideo.png
++      if [ ! -e "${pngfile}" ]; then
++       wget https://github.com/colin-i/test/releases/download/1.1/ovideo.png -O ${pngfile} #O for multiple times
++       cat > ovideo.desktop <<EOF
++      [Desktop Entry]
++      Type=Application
++      Name=OVideo
++      Exec=ovideo
++      Icon=ovideo
++      Categories=GNOME;GTK;
++      EOF
++       ln -s ${pngfile} .DirIcon #f for multiple times
++      fi
++      if [ ! -e "usr/bin/ostream" ]; then
++      cd usr/bin
++       mv ovideo ostream
++       #live64 is not having /lib/ld-linux.so.2. without librarypath will wrong libc bionic to jammy
++       #../lib since zlib1g
++       cat > ovideo <<EOF
++      #!/bin/bash
++      cd "\$(dirname "\$0")"
++      cd ../../
++      ./lib32/ld-linux.so.2 --library-path ./lib32:./usr/lib/i386-linux-gnu:./lib/i386-linux-gnu ./usr/bin/ostream `pwd`
++      EOF
++       chmod 755 ovideo
++       cd ../../
++      fi
++      cd ..
++      if [ ! -e "ovideo.AppImage" ]; then
++       mksquashfs AppDir ovideo.squashfs -root-owned -noappend
++       cat runtime >> ovideo.AppImage
++       cat ovideo.squashfs >> ovideo.AppImage
++       chmod a+x ovideo.AppImage
++      fi
++      #http://ro.archive.ubuntu.com/ubuntu/dists/bionic/main/binary-i386/Packages.xz
+       #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
+       #echo -n ${{ secrets.PASS }} > pas.txt
+       #echo "tag=refs/tags/1.1" >> $GITHUB_ENV
+       #echo $tag ${{ env.tag }}
+-      ARCH=i686 ${file} ../ovideo.yml
+-      cd ..
+-      sudo rm -r in
++      #ARCH=i686 ${file} ./ovideo.yml
+    #- name: Create Release
+    #  id: create_release
+    #  uses: actions/create-release@v1
+--- /dev/null
++++ ovideo-1/.github/workflows/deb.yml
+@@ -0,0 +1,73 @@
++
++#name: deb
++
++on:
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ build:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
++   - uses: actions/checkout@v3
++     with:
++      path: in
++   #Runs a set of commands using the runners shell
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit
++      fi
++      if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
++       sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential libgstreamer-plugins-base1.0-dev
++      fi
++      downdeb () {
++       maindeb=${3}.deb
++       if [ ! -e "${maindeb}" ]; then
++        arch=i386
++        inter=Packages${arch}${2}
++        if [ ! -e "${inter}" ]; then
++         wget http://${1}/ubuntu/dists/bionic${4}/main/binary-${arch}/Packages.xz -O ${inter}.xz
++         xz -d ${inter}.xz #f for multiple times
++        fi
++        debfilename=`grep "^Filename.*/${3}_" ${inter} | tail -1 | cut -d ' ' -f 2`
++        wget_url=http://${1}/ubuntu/${debfilename}
++        #echo ${wget_url}
++        wget ${wget_url} -O ${maindeb}
++        dpkgs+=" ${maindeb}"
++       fi
++      }
++      sudo dpkg --add-architecture i386
++      dpkgs=
++      array=( gcc-8-base libgcc1 libc6 )
++      for var in "${array[@]}"
++      do
++       downdeb "ro.archive.ubuntu.com" 1 ${var} -updates
++      done
++      downdeb "ppa.launchpadcontent.net/colin-i/ppa" 2 ocompiler
++      if [ -n "${dpkgs}" ]; then
++        sudo dpkg -i ${dpkgs}
++      fi
++      origf=ovideo-1.tar.gz
++      if [ ! -e "${origf}" ]; then
++       origln=ovideo_1.orig.tar.gz
++       wget https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu/pool/main/o/ovideo/${origln} -O ${origf}
++       ln -s ${origf} ${origln}
++      fi
++      cd in
++      debuild -S -us -uc
++      #cd ..
++      #ls -l
++   - name: unsigned debs
++     uses: actions/upload-artifact@v3
++     with:
++      name: sdebs
++      path: |
++       ./*.dsc
++       ./*.changes
++       ./*.buildinfo
++       ./*.debian.tar.xz
+--- /dev/null
++++ ovideo-1/arh/x
+@@ -0,0 +1,11 @@
++
++mv AppDir/AppRun .
++cd AppDir
++rm -r ./*
++cd ..
++ar=( `find -name "*deb" | xargs echo` )
++for var in "${ar[@]}"
++do
++ dpkg -x ${var} AppDir
++done
++mv AppRun AppDir
+--- /dev/null
++++ ovideo-1/arh/y
+@@ -0,0 +1,7 @@
++
++ar=( `find -name "*deb" | xargs echo` )
++for var in "${ar[@]}"
++do
++ dpkg -f ${var} | grep libstdc -B 10 -A 10
++ #dpkg -f ${var} | grep -e q -e w
++done
+--- ovideo-1.orig/ovideo.yml
++++ /dev/null
+@@ -1,31 +0,0 @@
+-app:
+-  ovideo
+-
+-#ingredients:
+-#  dist: bionic
+-#  sources:
+-#    - deb http://ppa.launchpad.net/colin-i/ppa/ubuntu bionic main
+-#    - deb http://archive.ubuntu.com/ubuntu/ bionic main universe
+-#  ppas:
+-#    - colin-i/ppa
+-#  packages:
+-#    - ovideo
+-#    - libgtk2.0-0
+-#  script:
+-#     #this was working only ingredients and this (not with dist)
+-#     - wget 'https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/ovideo_1-179b_i386.deb' -O ovideo.deb
+-#https://launchpad.net/ubuntu/bionic/i386/libgtk2.0-0
+-#click last version
+-#    - wget 'http://launchpadlibrarian.net/361893712/libgtk2.0-0_2.24.32-1ubuntu1_i386.deb'
+-#gstreamer1.0-plugins-good, gstreamer1.0-plugins-bad
+-
+-script:
+-  - cp ../../ovideo.png .
+-  - cat > ovideo.desktop <<EOF
+-  - [Desktop Entry]
+-  - Type=Application
+-  - Name=OVideo
+-  - Exec=ovideo
+-  - Icon=ovideo
+-  - Categories=GNOME;GTK;
+-  - EOF
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -7,6 +7,7 @@ ifeq (${platform},win)
+ 	OFLAGS = inplace_reloc 0 include_sec 1
+ else
+ 	OFLAGS = underscore_pref 1
++	dynlink=/lib/ld-linux.so.2
+ endif
+ 
+ cap = _capture/capture
+@@ -60,7 +61,7 @@ ounused:
+ 
+ share:
+ 	if [ "${platform}" = "lin" ]; then \
+-		echo return \"${sharefolderpackage}\" > ${lshare}; \
++		echo chars prestart=0x2e\;chars simplestart=\"${sharefolderpackage}\"\;return \#simplestart > ${lshare}; \
+ 	fi
+ 
+ #at bionic
+@@ -83,7 +84,7 @@ share:
+ lnk:
+ 	if [ "${platform}" = "lin" ]; then \
+ 		export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/:${PKG_CONFIG_PATH}; \
+-		$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${obs} -o ${items_prefix}${projname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lpthread -lgthread-2.0; \
++		$(LD) ${syms} -melf_i386 --dynamic-linker=${dynlink} ${obs} -o ${items_prefix}${projname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lpthread -lgthread-2.0; \
+ 	else \
+ 		i686-w64-mingw32-ld --large-address-aware ${syms} ${obs} -o ${wprojname} -entry _start --start-group \
+ 		`dpkg -L mingw-w64-i686-dev | grep '\.a' | sed 's/..$$//' | grep -o '[^\/]*$$' | sed 's/^lib/-l/' | xargs echo` \
+--- /dev/null
++++ ovideo-1/src/_dif/difl.s
+@@ -0,0 +1,4 @@
++
++entrylinux _start(sd argc,sd argv)
++import "init_args" init_args
++call init_args(argc,#argv)
+--- /dev/null
++++ ovideo-1/src/_dif/difw.s
+@@ -0,0 +1,2 @@
++
++entry _start()
+--- ovideo-1.orig/src/_dif/dif~lin.s
++++ ovideo-1/src/_dif/dif~lin.s
+@@ -18,12 +18,14 @@ function movetoScriptfolder(data forward
+ #at this first call img/version and then sys
+ 	call prog_init()
+ 	sd f
+-	setcall f share_folder()
+ 	sd err
+-	setcall err move_to_folder(f)
++	setcall f share_folder(#err)
+ 	if err==(noerror)
+-		call forward()
+-		return (void)
++		setcall err move_to_folder(f)
++		if err==(noerror)
++			call forward()
++			return (void)
++		endif
+ 	endif
+ 	call texter(err)
+ endfunction
+@@ -788,8 +790,11 @@ function move_to_home_core(sv p)
+ endfunction
+ function move_to_share_v()
+ 	sd f
+-	setcall f share_folder()
+-	call dirch(f)
++	sd err
++	setcall f share_folder(#err)
++	if err==(noerror)
++		call dirch(f)
++	endif
+ endfunction
+ function move_to_share_core(sv p)
+ 	sv mem
+@@ -797,11 +802,14 @@ function move_to_share_core(sv p)
+ 	set mem mem#
+ 	if mem!=(NULL)
+ 		sd f
+-		setcall f share_folder()
+-		sd b
+-		setcall b cat_absolute_verif(mem,f,p#,(NULL))
+-		if b==(TRUE)
+-			set p# mem
++		sd err
++		setcall f share_folder(#err)
++		if err==(noerror)
++			sd b
++			setcall b cat_absolute_verif(mem,f,p#,(NULL))
++			if b==(TRUE)
++				set p# mem
++			endif
+ 		endif
+ 	endif
+ endfunction
+@@ -838,9 +846,27 @@ function home_folder_r(sd p)
+ 	call texter(er)
+ 	return (NULL)
+ endfunction
++function init_args(sd argc,sv argv)
++	value shareprefix#1
++	const shareprefix_p^shareprefix
++	if argc<2
++		set shareprefix (NULL)
++		return (void)
++	endif
++	add argv :
++	set shareprefix argv#
++endfunction
+ #string
+-function share_folder()
+-	include "share.txt"
++function share_folder(sv p_err)
++	value a%shareprefix_p
++	if a#==(NULL)
++		set p_err# (noerror)
++		include "share.txt"
++	endif
++	setcall p_err# move_to_folder(a#)
++	if p_err#==(noerror)
++		return #prestart
++	endif
+ endfunction
+ 
+ const PATH_MAX=4096
+@@ -912,6 +938,7 @@ function cat_absolute_verif(sd mem,sd v,
+ 	return (FALSE)
+ endfunction
+ 
++
+ function ulltoa(sd low,sd high,sd str)
+ 	call sprintf(str,"%llu",low,high)
+ endfunction
+--- ovideo-1.orig/src/_exec/ostream.s
++++ ovideo-1/src/_exec/ostream.s
+@@ -10,7 +10,7 @@ importx "_gtk_main" gtk_main
+ 
+ import "initfn" initfn
+ 
+-entry _start()
++include "../_dif/difl.s" "../_dif/difw.s"
+ 
+ call gtk_init(0,0)
+ call gst_init(0,0)

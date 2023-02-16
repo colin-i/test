@@ -1,0 +1,1142 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-167b) bionic; urgency=medium
+ .
+   * debuild trouble
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-04-26
+
+--- ovideo-1.orig/readme.md
++++ ovideo-1/readme.md
+@@ -11,8 +11,8 @@ Install:
+ sudo apt-get install ovideo
+ ```
+ \
+-On Windows the program is at this [link](https://github.com/colin-i/ostream/releases).
+-The requirement is the program <i>gstreamer sdk x86 (0.10)</i>.
++On Windows the program is at this [link](https://github.com/colin-i/ostream/releases).\
++<i>Gstreamer sdk</i> is [here](https://www.freedesktop.org/software/gstreamer-sdk/data/packages/windows/x86/).
+ 
+ ## From source
+ Compile with [O Compiler](https://github.com/colin-i/o) and link with
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -61,32 +61,27 @@ share:
+ 		echo return \"${sharefolder}\" > ${lshare}; \
+ 	fi
+ 
+-#at jammy
++#at bionic
+ #libgtk2.0-dev:i386	libgtk2.0-0:i386
+-#libjpeg8-dev:i386 is already	libjpeg8:i386 is already
+-#libgstreamer1.0-dev:i386	libgstreamer1.0-0:i386 is already
+-#	gst_implements_interface_cast	video_realize
+-#	gst_buffer_set_caps	stage_file_need_fn
+ #libgstreamer-plugins-base1.0-dev:i386	libgstreamer-plugins-base1.0-0:i386 is already
+-#	gst_app_buffer_new	stage_file_need_fn
+ #no apt-file search libgstinterfaces 0.10 in xenial
+-#	gst_x_overlay_get_type	video_realize
+-#	gst_x_overlay_set_window_handle	video_realize
+-#libsoup2.4-1:i386 is already
++#libsoup2.4-dev:i386      libsoup2.4-1:i386 is already
+ #libasound2-dev:i386	libasound2:i386 is already
++#libjpeg8-dev:i386	libjpeg8:i386 is already
++#libgstreamer1.0-dev:i386 is already	libgstreamer1.0-0:i386 is already
+ 
+ #at xenial
+ #dev gtk libgstreamer-plugins-base0.10-dev  soup jpeg asound
+ #gtk gstreamer0.10-plugins-good
+ #for mxf, gstreamer0.10-plugins-bad was deleted at ubuntu
+-
+-#		export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/:${PKG_CONFIG_PATH}; \
+-#		$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${obs} -o ${projname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lgthread-2.0; \
+ #cc because -pthread not for ld
+ #nostdlib because is complaining about main
++#		$(CC) -nostdlib ${syms} ${obs} -o ${projname} `pkg-config --libs gtk+-2.0 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10 gstreamer-app-0.10` -lsoup-2.4 -ljpeg -lasound -lm -lpthread -lc; \
++
+ lnk:
+ 	if [ "${platform}" = "lin" ]; then \
+-		$(CC) -nostdlib ${syms} ${obs} -o ${projname} `pkg-config --libs gtk+-2.0 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10 gstreamer-app-0.10` -lsoup-2.4 -ljpeg -lasound -lm -lpthread -lc; \
++		export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/:${PKG_CONFIG_PATH}; \
++		$(LD) ${syms} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${obs} -o ${projname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lpthread -lgthread-2.0; \
+ 	else \
+ 		i686-w64-mingw32-ld --large-address-aware ${syms} ${obs} -o ${wprojname} -entry _start --start-group \
+ 		`dpkg -L mingw-w64-i686-dev | grep '\.a' | sed 's/..$$//' | grep -o '[^\/]*$$' | sed 's/^lib/-l/' | xargs echo` \
+@@ -120,8 +115,6 @@ test:
+ 	echo "Nothing"
+ 
+ install-proc:
+-	install -D ${projname} \
+-		$(DESTDIR)$(prefix)/bin/${projname}
+ 	cd ../build; \
+ 	find ./img -type f -exec install -Dm 664 {} ${sharefolder}/{} \;
+ 	install -d ${sharefolder}/html
+@@ -129,6 +122,8 @@ install-proc:
+ 	install -Dm 664 html/use.html ${sharefolder}/html/
+ 	cd ..; \
+ 	install -m 664 ./version.txt ${sharefolder}/
++	install -D ${projname} \
++		$(DESTDIR)$(prefix)/bin/${projname}
+ 
+ install: all install-proc
+ 
+--- ovideo-1.orig/src/_dif/dif~lin.s
++++ ovideo-1/src/_dif/dif~lin.s
+@@ -39,13 +39,6 @@ endfunction
+ 
+ 
+ 
+-importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
+-function gdkGetdrawable(data window)
+-    data windraw#1
+-    setcall windraw gdk_x11_drawable_get_xid(window)
+-    return windraw
+-endfunction
+-
+ function system_variables_alignment_pad(data *value,data *greatest)
+     data noalignment=0
+     return noalignment
+@@ -923,3 +916,148 @@ function ulltoa(sd low,sd high,sd str)
+ 	call sprintf(str,"%llu",low,high)
+ endfunction
+ 
++
++importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
++importx "gst_video_overlay_get_type" gst_video_overlay_get_type
++importx "g_type_check_instance_cast" g_type_check_instance_cast
++importx "gst_video_overlay_set_window_handle" gst_video_overlay_set_window_handle
++
++import "getplaybin2ptr" getplaybin2ptr
++import "widget_gdk_window_native_get" widget_gdk_window_native_get
++
++function video_realize(sd widget)
++	sd window
++	setcall window widget_gdk_window_native_get(widget)
++	if window!=(NULL)
++		sd windraw
++		setcall windraw gdk_x11_drawable_get_xid(window)
++
++		sd g_type
++		setcall g_type gst_video_overlay_get_type()
++
++		sv playbin2
++		setcall playbin2 getplaybin2ptr()
++		set playbin2 playbin2#
++
++		sd c_type
++		setcall c_type g_type_check_instance_cast(playbin2,g_type)
++
++		call gst_video_overlay_set_window_handle(c_type,windraw)
++	endif
++endfunction
++
++
++#1.0 function
++function get_new_buffer(sd mem,sd framesize)
++	importx "gst_buffer_new_wrapped" gst_buffer_new_wrapped
++	#const GST_MEMORY_FLAG_READONLY=2
++	sd buffer
++	#setcall buffer gst_buffer_new_wrapped_full(0,mem,framesize,0,framesize,(NULL),(NULL)) #The memory will be freed with g_free and will be marked writable.
++	setcall buffer gst_buffer_new_wrapped(mem,framesize)
++	sd timestamp;set timestamp buffer
++	#go to pts member from GstBuffer
++	#cannot be GST_CLOCK_TIME_NONE_lowhigh
++	add timestamp 40;set timestamp# 0;add timestamp (DWORD);set timestamp# 0
++	return buffer
++endfunction
++
++function get_playbin_str()
++	return "playbin"
++endfunction
++
++function get_mxf_caps()
++	import "stage_nthwidgetFromcontainer" stage_nthwidgetFromcontainer
++	import "stage_file_frame_main_set" stage_file_frame_main_set
++    sd firstframe
++    setcall firstframe stage_nthwidgetFromcontainer(0)
++    sd pixbuf
++    sd w
++    sd h
++    sd ptr_pack^pixbuf
++    call stage_file_frame_main_set(ptr_pack,firstframe)
++	ss capsformat="caps=video/x-raw,format=(string)RGBA,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
++	chars capsdata#4*10+150+1-4-4
++	str gstcaps^capsdata
++	sd bpp=stage_bpp
++	sd fps
++	import "stage_file_options_fps" stage_file_options_fps
++	setcall fps stage_file_options_fps()
++	call sprintf(gstcaps,capsformat,w,h,bpp,fps)
++	return gstcaps
++endfunction
++
++function get_mxf_inputformat()
++	return "videoconvert"
++endfunction
++
++function get_decodebin_str()
++	return "decodebin"
++endfunction
++
++importx "gst_iterator_next" gst_iterator_next
++importx "g_value_get_object" g_value_get_object
++importx "g_value_unset" g_value_unset
++function iterate_next_forward_free(sd iter,sd forward)
++	#gvalue = one GType ul(QWORD) and two pointers
++	const gvalue_stacks=:&DWORD/DWORD*3+3
++	sd elem#gvalue_stacks
++	sd ptr_elem^elem
++	const gvalue_sz=gvalue_stacks*:
++	call setmemzero(ptr_elem,(gvalue_sz)) #this is G_VALUE_INIT,elem must have been initialized to the type of the iterator or initialized to zeroes
++	sd ret
++	setcall ret gst_iterator_next(iter,ptr_elem)
++	if ret==(GST_ITERATOR_OK)
++		sd obj
++		setcall obj g_value_get_object(ptr_elem)
++		call forward(obj)
++		call g_value_unset(ptr_elem)
++		return (void)
++	endif
++	call texter("Iterator error")
++endfunction
++
++function stage_sound_caps()
++	chars out#65-2-2+(dword_max*2)+1
++	vstr format="audio/x-raw,format=S16LE,channels=%u,rate=%u,signed=(boolean)true"
++	sd channels
++	setcall channels stage_sound_channels((value_get))
++	sd rate
++	setcall rate stage_sound_rate((value_get))
++	call sprintf(#out,format,channels,rate)
++	return #out
++endfunction
++
++function stage_sound_sample(sd appsink)
++	#new buffer signal
++	import "connect_signal" connect_signal
++	call connect_signal(appsink,"new-sample",stage_sound_buffer)
++endfunction
++#flow
++function stage_sound_buffer(sd gstappsink,sd *user_data)
++	sd ret
++	importx "gst_app_sink_pull_sample" gst_app_sink_pull_sample
++	sd s
++	setcall s gst_app_sink_pull_sample(gstappsink)
++	importx "gst_sample_get_buffer" gst_sample_get_buffer
++	sd b
++	setcall b gst_sample_get_buffer(s)
++	importx "gst_buffer_map" gst_buffer_map
++	sd map#13 #with sizeof
++	const GST_MAP_READ=1
++	sd bool
++	setcall bool gst_buffer_map(b,#map,(GST_MAP_READ)) #this is bool, but
++	if bool==(TRUE)
++		import "stage_sound_expand" stage_sound_expand
++		call stage_sound_expand(#map,(2*:),(3*:))
++		importx "gst_buffer_unmap" gst_buffer_unmap
++		call gst_buffer_unmap(b,#map)
++		set ret (GST_FLOW_OK)
++	else
++		const GST_FLOW_ERROR=-5
++		set ret (GST_FLOW_ERROR)
++		call texter("Failed to map buffer")
++	endelse
++	importx "gst_mini_object_unref" gst_mini_object_unref
++	call gst_mini_object_unref(s)
++	return ret
++endfunction
+--- ovideo-1.orig/src/_dif/dif~win.s
++++ ovideo-1/src/_dif/dif~win.s
+@@ -101,13 +101,6 @@ function geterrno()
+ endfunction
+ 
+ 
+-importx "_gdk_win32_drawable_get_handle" gdk_win32_drawable_get_handle
+-function gdkGetdrawable(data window)
+-    data windraw#1
+-    setcall windraw gdk_win32_drawable_get_handle(window)
+-    return windraw
+-endfunction
+-
+ function system_variables_alignment_pad(data value,data greatest)
+     sub greatest value
+     return greatest
+@@ -937,3 +930,137 @@ function ulltoa(sd low,sd high,sd instr)
+ 	call ulltoa_extern(low,high,instr,10)
+ endfunction
+ 
++
++#void gtkwidget::realize
++importx "_gst_x_overlay_set_window_handle" gst_x_overlay_set_window_handle
++importx "_gst_x_overlay_get_type" gst_x_overlay_get_type
++importx "_gst_implements_interface_cast" gst_implements_interface_cast
++importx "_gst_element_implements_interface" gst_element_implements_interface
++importx "_gdk_win32_drawable_get_handle" gdk_win32_drawable_get_handle
++
++import "getplaybin2ptr" getplaybin2ptr
++import "widget_gdk_window_native_get" widget_gdk_window_native_get
++
++function video_realize(data widget)
++	sd window
++	setcall window widget_gdk_window_native_get(widget)
++	if window!=(NULL)
++		#Pass it to playbin2, which implements XOverlay and will forward it to the video sink
++		#on >= ubuntu 12 with debs from 2012.11(almost same place with 2012.11 msi file) this is a not
++		sv playbin2
++		setcall playbin2 getplaybin2ptr()
++		set playbin2 playbin2#
++		sd overlaytype
++		setcall overlaytype gst_x_overlay_get_type()
++		sd bool
++		setcall bool gst_element_implements_interface(playbin2,overlaytype)
++		if bool==(TRUE)
++			sd interfacecast
++			setcall interfacecast gst_implements_interface_cast(playbin2,overlaytype)
++			sd drawablehandle
++			setcall drawablehandle gdk_win32_drawable_get_handle(window)
++			call gst_x_overlay_set_window_handle(interfacecast,drawablehandle)
++			return (void)
++		endif
++		import "printer" printer
++		call printer("gst_element_implements_interface false.")
++	endif
++endfunction
++
++#0.10 function
++function get_new_buffer(sd mem,sd framesize,sd w,sd h)
++	importx "_gst_app_buffer_new" gst_app_buffer_new
++	vdata free_fn^free
++	sd buffer
++	setcall buffer gst_app_buffer_new(mem,framesize,free_fn,mem)
++	#
++	ss capsformat="video/x-raw-rgb,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
++	chars capsdata#4*10+130+1-4-4
++	str gstcaps^capsdata
++	sd bpp=stage_bpp
++	sd fps
++	import "stage_file_options_fps" stage_file_options_fps
++	setcall fps stage_file_options_fps()
++	importx "_sprintf" sprintf
++	call sprintf(gstcaps,capsformat,w,h,bpp,fps)
++	importx "_gst_caps_from_string" gst_caps_from_string
++	sd caps
++	setcall caps gst_caps_from_string(gstcaps)
++	importx "_gst_buffer_set_caps" gst_buffer_set_caps
++	call gst_buffer_set_caps(buffer,caps)
++	importx "_gst_caps_unref" gst_caps_unref
++	call gst_caps_unref(caps)
++	#
++	return buffer
++endfunction
++
++function get_playbin_str()
++	return "playbin2"
++endfunction
++
++function get_mxf_caps()
++	return ""
++endfunction
++
++function get_mxf_inputformat()
++	return "ffmpegcolorspace"
++endfunction
++
++function get_decodebin_str()
++	return "decodebin2"
++endfunction
++
++importx "_gst_iterator_next" gst_iterator_next
++importx "_gst_object_unref" gst_object_unref
++function iterate_next_forward_free(sd iter,sd forward)
++	sd elem
++	sd ptr_elem^elem
++	sd ret
++	setcall ret gst_iterator_next(iter,ptr_elem)
++	if ret==(GST_ITERATOR_OK)
++		call forward(elem)
++		call gst_object_unref(elem)
++		return (void)
++	endif
++	call texter("Iterator error")
++endfunction
++
++function stage_sound_caps()
++	chars out#88-5-5+(dword_max*5)+1
++	vstr format="audio/x-raw-int,channels=%u,rate=%u,signed=(boolean)true,width=%u,depth=%u,endianness=%u"
++	sd channels
++	setcall channels stage_sound_channels((value_get))
++	sd rate
++	setcall rate stage_sound_rate((value_get))
++	sd bps
++	setcall bps stage_sound_bps((value_get))
++	call sprintf(#out,format,channels,rate,bps,bps,(sound_endian_def))
++	return #out
++endfunction
++
++function stage_sound_sample(sd appsink)
++	#new buffer signal
++	import "connect_signal" connect_signal
++	call connect_signal(appsink,"new-buffer",stage_sound_buffer)
++endfunction
++function stage_sound_buffer(sd gstappsink,sd *user_data)
++    importx "_g_signal_emit_by_name" g_signal_emit_by_name
++    ss method="pull-buffer"
++    sd buffer
++    sd p_buffer^buffer
++    call g_signal_emit_by_name(gstappsink,method,p_buffer)
++
++    #GstBuffer
++        #GstMiniObject
++            #GTypeInstance instance
++            #gint refcount
++            #guint flags
++        #guint8              *data
++        #guint               size
++
++	import "stage_sound_expand" stage_sound_expand
++	call stage_sound_expand(buffer,0x10,0x14)
++
++    importx "_gst_mini_object_unref" gst_mini_object_unref
++    call gst_mini_object_unref(buffer)
++endfunction
+--- ovideo-1.orig/src/_exec/capture/save.s
++++ ovideo-1/src/_exec/capture/save.s
+@@ -119,20 +119,27 @@ const ptr_chain_uri^chain_uri
+ const ptr_chain_streams^chain_streams
+ 
+ function save_get_main_format()
++#plugins base
+     str mediaform="uridecodebin uri=\"%s\" %s ! queue ! %s ! oggmux name=mux ! filesink location=\"%s\"%s"
+     return mediaform
+ endfunction
+ function save_get_sec_format()
+-    str mediasecform=" %s ! queue ! %s ! mux."
+-    return mediasecform
++const save_get_sec_format_a=!
++    chars mediasecform=" %s ! queue ! %s ! mux."
++const save_get_sec_format_sz=!-save_get_sec_format_a-2-2-1
++    return #mediasecform
+ endfunction
+ function save_get_video_format()
+-    str video="theoraenc"
++#plugins base
++    vstr video="theoraenc"
+     return video
+ endfunction
+ function save_get_audio_format()
+-    str audio="vorbisenc"
+-    return audio
++const save_get_audio_format_a=!
++#plugins base
++    chars audio="vorbisenc"
++const save_get_audio_format_sz=!-save_get_audio_format_a-1
++    return #audio
+ endfunction
+ function save_get_ogg_dest()
+ #these formats are related to format_max
+@@ -157,13 +164,14 @@ function save_stream_dest_ready(str dest
+     setcall audio save_get_audio_format()
+ 
+     str srcname="src"
++const srcname_sz=3
+ 
+     str nullstr=""
+ 
+     data flagA=audio
+     data flagVA=audiovideo
+ 
+-    chars src_prop_data#20
++    chars src_prop_data#5+srcname_sz+1
+ 
+     str format#1
+     str sr#1
+@@ -183,10 +191,11 @@ function save_stream_dest_ready(str dest
+     set m1 video
+     if streams==flagVA
+         str makename="%s."
+-        chars save_secname_data#15
++const makename_sz=srcname_sz+1
++        chars save_secname_data#makename_sz+1
+         str save_src_name^save_secname_data
+         call sprintf(save_src_name,makename,srcname)
+-        chars save_va_data#40
++        chars save_va_data#save_get_sec_format_sz+makename_sz+save_get_audio_format_sz+1
+         str save_va^save_va_data
+         ss secformat
+         setcall secformat save_get_sec_format()
+--- ovideo-1.orig/src/_exec/uri.s
++++ ovideo-1/src/_exec/uri.s
+@@ -17,48 +17,6 @@ function getplaybin2ptr()
+     return propagateplaybin2
+ endfunction
+ 
+-#void gtkwidget::realize
+-importx "_gtk_widget_get_window" gtk_widget_get_window
+-importx "_gdk_window_ensure_native" gdk_window_ensure_native
+-importx "_gst_x_overlay_set_window_handle" gst_x_overlay_set_window_handle
+-importx "_gst_x_overlay_get_type" gst_x_overlay_get_type
+-importx "_gst_implements_interface_cast" gst_implements_interface_cast
+-importx "_gst_element_implements_interface" gst_element_implements_interface
+-
+-import "gdkGetdrawable" gdkGetdrawable
+-
+-function video_realize(data widget)
+-	data window#1
+-	setcall window gtk_widget_get_window(widget)
+-
+-	data false=0
+-	sd bool
+-	setcall bool gdk_window_ensure_native(window)
+-	if bool==false
+-		str noNative="Couldn't create native window needed for GstXOverlay!"
+-		call texter(noNative)
+-	endif
+-
+-	#Pass it to playbin2, which implements XOverlay and will forward it to the video sink
+-	#on >= ubuntu 12 with debs from 2012.11(almost same place with 2012.11 msi file) this is a not
+-	sv playbin2
+-	setcall playbin2 getplaybin2ptr()
+-	set playbin2 playbin2#
+-	sd overlaytype
+-	setcall overlaytype gst_x_overlay_get_type()
+-	setcall bool gst_element_implements_interface(playbin2,overlaytype)
+-	if bool==(TRUE)
+-		sd interfacecast
+-		setcall interfacecast gst_implements_interface_cast(playbin2,overlaytype)
+-		sd drawablehandle
+-		setcall drawablehandle gdkGetdrawable(window)
+-		call gst_x_overlay_set_window_handle(interfacecast,drawablehandle)
+-		return (void)
+-	endif
+-	import "printer" printer
+-	call printer("gst_element_implements_interface false.")
+-endfunction
+-
+ import "unset_playbool" unset_playbool
+ 
+ function gstset()
+@@ -119,6 +77,9 @@ function addSignals(data bus,sd *callbac
+ endfunction
+ 
+ importx "_gst_element_factory_make" gst_element_factory_make
++
++import "video_realize" video_realize
++
+ #void/err
+ function gstplayinit(data videowidget)
+     data null=0
+@@ -127,8 +88,10 @@ function gstplayinit(data videowidget)
+     call rec_set(null)
+ 
+     data playbin2ptr#1
+-    str playbin2str="playbin2"
+     setcall playbin2ptr getplaybin2ptr()
++	import "get_playbin_str" get_playbin_str
++	ss playbin2str
++	setcall playbin2str get_playbin_str()
+ 
+     setcall playbin2ptr# gst_element_factory_make(playbin2str,playbin2str)
+     #needing gstreamer0.10-plugins-good
+@@ -155,3 +118,19 @@ function gstplayinit(data videowidget)
+     call bus_signals(playbin2,add_signals)
+ endfunction
+ 
++importx "_gtk_widget_get_window" gtk_widget_get_window
++importx "_gdk_window_ensure_native" gdk_window_ensure_native
++
++#wind
++function widget_gdk_window_native_get(sd widget)
++	sd window
++	setcall window gtk_widget_get_window(widget)
++	sd bool
++	setcall bool gdk_window_ensure_native(window)
++	if bool==(TRUE)
++		return window
++	endif
++	str noNative="Couldn't create native window needed for GstXOverlay!"
++	call texter(noNative)
++	return (NULL)
++endfunction
+--- ovideo-1.orig/src/_include/files/gst.h
++++ ovideo-1/src/_include/files/gst.h
+@@ -23,4 +23,4 @@ const GST_DISCOVERER_TIMEOUT=3
+ const GST_DISCOVERER_BUSY=4
+ const GST_DISCOVERER_MISSING_PLUGINS=5
+ 
+-const GST_ITERATOR_ERROR=3
++const GST_ITERATOR_OK=1
+--- ovideo-1.orig/src/_prepare/output/all.s
++++ ovideo-1/src/_prepare/output/all.s
+@@ -118,7 +118,7 @@ endfunction
+ 
+ import "texter" texter
+ 
+-function stage_prepare_pixbuf(sd pixbuf,sd mem,sd w,sd h)
++function stage_prepare_pixbuf(sd pixbuf,ss mem,sd w,sd h)
+     sd px_pixels
+     importx "_gdk_pixbuf_get_pixels" gdk_pixbuf_get_pixels
+     setcall px_pixels gdk_pixbuf_get_pixels(pixbuf)
+@@ -157,8 +157,7 @@ function stage_prepare_pixbuf(sd pixbuf,
+         set x rowstart
+         while x!=w
+             call rgb_get_set(mem,px_pixels,x,y,px_bps,px_nchan,px_rowstride,(get_rgb))
+-            data a=4
+-            add mem a
++            add mem 4 #there is already alpha set inside
+             inc x
+         endwhile
+         inc y
+@@ -244,29 +243,10 @@ function stage_file_need_fn(sd appsrc)
+ 
+         call stage_prepare_pixbuf(pixbuf,mem,w,h)
+ 
+-        importx "_gst_app_buffer_new" gst_app_buffer_new
+-        data free_fn^free
+         sd buffer
+-        setcall buffer gst_app_buffer_new(mem,framesize,free_fn,mem)
+ 
+-        ss capsformat="video/x-raw-rgb,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
+-        chars capsdata#200
+-        str gstcaps^capsdata
+-        sd bpp=stage_bpp
+-        sd fps
+-        import "stage_file_options_fps" stage_file_options_fps
+-        setcall fps stage_file_options_fps()
+-        call sprintf(gstcaps,capsformat,w,h,bpp,fps)
+-
+-        importx "_gst_caps_from_string" gst_caps_from_string
+-        sd caps
+-        setcall caps gst_caps_from_string(gstcaps)
+-
+-        importx "_gst_buffer_set_caps" gst_buffer_set_caps
+-        call gst_buffer_set_caps(buffer,caps)
+-
+-        importx "_gst_caps_unref" gst_caps_unref
+-        call gst_caps_unref(caps)
++	import "get_new_buffer" get_new_buffer
++	setcall buffer get_new_buffer(mem,framesize,w,h)
+ 
+         sd flow
+         sd ptr_flow^flow
+@@ -414,14 +394,21 @@ function stage_save_all()
+     data file_frames_portions%stage_file_frames_portions
+     set file_frames_portions 0
+ 
+-    ss pipeformat="appsrc is-live=true name=%s ! ffmpegcolorspace ! %s ! filesink location=\"%s\""
++	#mxf wants plugins-bad
++    ss pipeformat="appsrc is-live=true name=%s %s ! %s ! %s ! filesink location=\"%s\""
+     ss srcname
++	ss extra
++	ss informat
+     ss outformat
+     ss location
+     sd *=0
+     sd strings^pipeformat
+ 
+     setcall srcname stage_get_src_name()
++	import "get_mxf_caps" get_mxf_caps
++	setcall extra get_mxf_caps()
++	import "get_mxf_inputformat" get_mxf_inputformat
++	setcall informat get_mxf_inputformat()
+     import "stage_file_get_format_name" stage_file_get_format_name
+     setcall outformat stage_file_get_format_name()
+ 
+@@ -440,7 +427,7 @@ function stage_save_all()
+         return err
+     endif
+ 
+-    call sprintf(mem,pipeformat,srcname,outformat,location)
++    call sprintf(mem,pipeformat,srcname,extra,informat,outformat,location)
+ 
+     call stage_file_command(mem)
+ 
+@@ -628,6 +615,3 @@ function stage_files_read()
+ 
+     call free(filename)
+ endfunction
+-
+-
+-
+--- ovideo-1.orig/src/_prepare/output/sound.s
++++ ovideo-1/src/_prepare/output/sound.s
+@@ -131,55 +131,48 @@ function stage_sound()
+     call sound_pixbuf_redraw()
+ endfunction
+ 
++importx "_free" free
+ 
+ ##the pipe mechanism
+ 
+ function stage_sound_init_appsink(sd filepath)
+-    #the command for gst-launch
+-    ss launchformat="filesrc location=\"%s\" ! decodebin2 ! audioconvert ! audioresample ! audio/x-raw-int,channels=%u,rate=%u,signed=(boolean)true,width=%u,depth=%u,endianness=%u ! appsink emit-signals=TRUE sync=false"
+-    sd flocation
+-    sd *=0
+-    str sound_format^launchformat
+-
+-    #location
+-    #escape path
+-    import "string_alloc_escaped" string_alloc_escaped
+-    ss escapedpath
+-    setcall escapedpath string_alloc_escaped(filepath)
+-    if escapedpath==0
+-        return 0
+-    endif
+-    #set
+-    set flocation escapedpath
+-
+-    import "allocsum_numbers_null" allocsum_numbers_null
+-    sd command
+-    sd p_command^command
+-
+-    sd err
+-    setcall err allocsum_numbers_null(sound_format,5,p_command)
+-    if err!=(noerror)
+-        return err
+-    endif
+-
+-    #concatenate the command
+-    importx "_sprintf" sprintf
+-    sd channels
+-    setcall channels stage_sound_channels((value_get))
+-    sd rate
+-    setcall rate stage_sound_rate((value_get))
+-    sd bps
+-    setcall bps stage_sound_bps((value_get))
+-    call sprintf(command,launchformat,flocation,channels,rate,bps,bps,(sound_endian_def))
+-    sd com
+-    setcall com stage_sound_comm()
+-    set com# command
+-    call stage_sound_command()
+-
+-    #clean
+-    importx "_free" free
+-    call free(escapedpath)
+-    call free(command)
++	#the command for gst-launch
++	ss launchformat="filesrc location=\"%s\" ! %s ! audioconvert ! audioresample ! %s ! appsink emit-signals=true sync=false" #it's playing normal clock with sync
++	sd flocation
++	sd bin
++	sd caps
++	sd *=0
++	vstr sound_format^launchformat
++
++	#location
++	#escape path
++	import "string_alloc_escaped" string_alloc_escaped
++	setcall flocation string_alloc_escaped(filepath)
++	if flocation!=(NULL)
++		import "get_decodebin_str" get_decodebin_str
++		setcall bin get_decodebin_str()
++
++		import "stage_sound_caps" stage_sound_caps
++		setcall caps stage_sound_caps()
++
++		import "allocsum_null" allocsum_null
++		sd command
++		sd p_command^command
++
++		sd err
++		setcall err allocsum_null(sound_format,p_command)
++		if err==(noerror)
++			#concatenate the command
++			importx "_sprintf" sprintf
++			call sprintf(command,launchformat,flocation,bin,caps)
++			sd com
++			setcall com stage_sound_comm()
++			set com# command
++			call stage_sound_command()
++			call free(command)
++		endif
++		call free(flocation)
++	endif
+ endfunction
+ function stage_sound_command()
+     #sync mem
+@@ -204,42 +197,40 @@ function stage_sound_command()
+ endfunction
+ 
+ function stage_sound_command_init(sd *vbox,sd dialog)
+-    #keep the dialog for eos at appsink or error at pipe
+-    call stage_sound_dialog((value_set),dialog)
++	#keep the dialog for eos at appsink or error at pipe
++	call stage_sound_dialog((value_set),dialog)
+ 
+-    #make the pipe
+-    sd com
+-    setcall com stage_sound_comm()
+-    import "launch_pipe_start" launch_pipe_start
+-    sd pipeline
+-    setcall pipeline launch_pipe_start(com#)
+-    if pipeline==0
+-        return 0
+-    endif
+-
+-    #put the pipeline to a static place
+-    call stage_sound_pipe((value_set),pipeline)
+-
+-    #add error signal to pipe
+-    #sd pipe
+-    #setcall pipe stage_sound_pipe((value_get))
+-    import "err_signal_modal" err_signal_modal
+-    data f^stage_sound_closedialog
+-    call err_signal_modal(pipeline,f)
+-
+-    import "iterate_firstsink" iterate_firstsink
+-    #new-buffer signal to appsink, and eos
+-    data f_newbuffer^stage_sound_connect_appsink
+-    call iterate_firstsink(pipeline,f_newbuffer)
++	#make the pipe
++	sd com
++	setcall com stage_sound_comm()
++	import "launch_pipe_start" launch_pipe_start
++	sd pipeline
++	setcall pipeline launch_pipe_start(com#)
++	if pipeline!=(NULL)
++		#put the pipeline to a static place
++		call stage_sound_pipe((value_set),pipeline)
++
++		#add error signal to pipe
++		#sd pipe
++		#setcall pipe stage_sound_pipe((value_get))
++		import "err_signal_modal" err_signal_modal
++		data f^stage_sound_closedialog
++		call err_signal_modal(pipeline,f)
++
++		#get appskink and add signals
++		import "iterate_firstsink" iterate_firstsink
++		call iterate_firstsink(pipeline,stage_sound_connect_appsink)
++	endif
+ endfunction
+ 
+ function stage_sound_connect_appsink(sd appsink)
+-    #new buffer signal
+-    import "connect_signal" connect_signal
+-    ss buffer="new-buffer"
+-    data f_nb^stage_sound_expand
+-    call connect_signal(appsink,buffer,f_nb)
++	#importx "_gst_app_sink_set_emit_signals" gst_app_sink_set_emit_signals
++	#call gst_app_sink_set_emit_signals(appsink,(TRUE))
+ 
++	import "stage_sound_sample" stage_sound_sample
++	call stage_sound_sample(appsink)
++
++	import "connect_signal" connect_signal
+     #add eos at appsink(sometimes eos comes only here)
+     ss eos="eos"
+     data f_eos^stage_sound_closedialog
+@@ -718,38 +709,18 @@ function stage_sound_alloc(sd action,sd
+     endelse
+ endfunction
+ 
+-function stage_sound_expand(sd gstappsink,sd *user_data)
+-    importx "_g_signal_emit_by_name" g_signal_emit_by_name
+-    ss method="pull-buffer"
+-    sd buffer
+-    sd p_buffer^buffer
+-    call g_signal_emit_by_name(gstappsink,method,p_buffer)
+-
+-    import "structure_get_int" structure_get_int
+-    sd data
+-    sd size
+-
+-    #GstBuffer
+-        #GstMiniObject
+-            #GTypeInstance instance
+-            #gint refcount
+-            #guint flags
+-        #guint8              *data
+-        #guint               size
+-
+-    setcall data structure_get_int(buffer,0x10)
+-    setcall size structure_get_int(buffer,0x14)
+-
+-    #append the new buffer at the sound memory
+-    call stage_sound_alloc((stage_sound_alloc_expand),data,size)
+-    #print time
+-    call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+-
+-    importx "_gst_mini_object_unref" gst_mini_object_unref
+-    call gst_mini_object_unref(buffer)
++function stage_sound_expand(sd struct,sd a,sd b)
++	import "structure_get_int" structure_get_int
++	sd data
++	sd size
++	setcall data structure_get_int(struct,a)
++	setcall size structure_get_int(struct,b)
++	#append the new buffer at the sound memory
++	call stage_sound_alloc((stage_sound_alloc_expand),data,size)
++	#print time
++	call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+ endfunction
+ 
+-
+ function stage_sound_sizedone(sd action,sd value)
+     data done#1
+     if action==(value_set)
+--- ovideo-1.orig/src/_prepare/pipe.s
++++ ovideo-1/src/_prepare/pipe.s
+@@ -305,6 +305,7 @@ function stage_connect_signals(sd bus,sd
+ endfunction
+ 
+ function stage_start_pipe(ss uri)
++#gdkpixbufsink plugins-good
+     ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
+     ss str
+     sd *=0
+--- ovideo-1.orig/src/_search/previews.s
++++ ovideo-1/src/_search/previews.s
+@@ -40,72 +40,57 @@ function search_photo_set(sd pixbuf,sd i
+     call pixbuf_scale_forward_data(pixbuf,scale_w,scale_h,fn,img)
+ endfunction
+ 
+-function search_photo_prepare(sd elem,sd msg)
+-    import "object_get_dword_name" object_get_dword_name
+-    sd img
+-    setcall img object_get_dword_name(elem)
+-
+-    data fn^search_photo_set
+-    import "msgelement_pixbuf_forward_data" msgelement_pixbuf_forward_data
+-    call msgelement_pixbuf_forward_data(msg,fn,img)
+-endfunction
+-
+-
+-function search_photo_get(sd iter,sd msg)
+-    import "iterate_next_forward_data_free" iterate_next_forward_data_free
+-    data f^search_photo_prepare
+-    call iterate_next_forward_data_free(iter,f,msg)
+-endfunction
+-
+ 
+-function search_photo_received(sd *bus,sd msg,sd pipe)
+-    import "set_pipe_null" set_pipe_null
+-    call set_pipe_null(pipe)
++function search_photo_received(sd *bus,sd msg,sv combo)
++	sd pipe
++	set pipe combo#
++
++	import "set_pipe_null" set_pipe_null
++	call set_pipe_null(pipe)
++
++	add combo :
++	import "msgelement_pixbuf_forward_data" msgelement_pixbuf_forward_data
++	call msgelement_pixbuf_forward_data(msg,search_photo_set,combo#)
+ 
+-    import "iterate_sinks_data" iterate_sinks_data
+-    data f^search_photo_get
+-
+-    call iterate_sinks_data(pipe,f,msg)
+-
+-    import "unset_pipe_and_watch" unset_pipe_and_watch
+-    call unset_pipe_and_watch(pipe)
++	import "unset_pipe_and_watch" unset_pipe_and_watch
++	call unset_pipe_and_watch(pipe)
+ endfunction
+ 
+ 
++importx "_sprintf" sprintf
++importx "_free" free
+ 
+-function search_connect_pixbuf(sd bus,sd pipe)
+-    str px="message::element"
+-    import "connect_signal_data" connect_signal_data
+-    data fn^search_photo_received
+-    call connect_signal_data(bus,px,fn,pipe)
++function search_connect_pixbuf(sd bus,sd combo)
++	#add_watch(and maybe not here, it is not spec a subelement) is not posting, maybe gtk_main isn't GMainLoop
++	importx "_g_signal_connect_data" g_signal_connect_data
++	call g_signal_connect_data(bus,"message::element",search_photo_received,combo,free,0)
+ endfunction
+ 
+-importx "_sprintf" sprintf
+-
++#void
+ function search_get_image(ss uri,sd handle)
+-    ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink %s=%u"
++    ss launcher="uridecodebin uri=\"%s\" ! %s ! gdkpixbufsink"
+     ss src
+-    ss nm
++	ss inter
+     sd *term=0
+ 
++	import "get_mxf_inputformat" get_inputformat
+     set src uri
+-    setcall nm getsubject()
++	setcall inter get_inputformat()
+ 
+     sd strs^launcher
+-    sd nrs=1
+ 
+     sd mem
+     sd ptrmem^mem
+ 
+-    import "allocsum_numbers_null" allocsum_numbers_null
++    import "allocsum_null" allocsum_null
+     sd err
+     data noerr=noerror
+ 
+-    setcall err allocsum_numbers_null(strs,nrs,ptrmem)
++    setcall err allocsum_null(strs,ptrmem)
+     if err!=noerr
+         return err
+     endif
+-    call sprintf(mem,launcher,uri,nm,handle)
++    call sprintf(mem,launcher,uri,inter)
+ 
+     import "launch_pipe" launch_pipe
+     sd pipeline
+@@ -113,7 +98,6 @@ function search_get_image(ss uri,sd hand
+ 
+     setcall pipeline launch_pipe(mem)
+ 
+-    importx "_free" free
+     call free(mem)
+     if pipeline==n
+         return n
+@@ -128,7 +112,16 @@ function search_get_image(ss uri,sd hand
+     import "bus_default_signals" bus_default_signals
+     call bus_default_signals(pipeline)
+ 
+-    import "bus_signals_bin" bus_signals_bin
+-    data fn^search_connect_pixbuf
+-    call bus_signals_bin(pipeline,fn)
++	import "memalloc" memalloc
++	sv data
++	setcall data memalloc((2*:))
++	if data!=(NULL)
++		set data# pipeline
++		sv img=:
++		add img data
++		set img# handle
++		import "bus_signals_data" bus_signals_data
++		data fn^search_connect_pixbuf
++		call bus_signals_data(pipeline,fn,data)
++	endif
+ endfunction
+--- ovideo-1.orig/src/gnu/gst.s
++++ ovideo-1/src/gnu/gst.s
+@@ -217,36 +217,22 @@ function err_signal_modal(sd pipe,sd clo
+     call bus_signals_data(pipe,f,closemodalForward)
+ endfunction
+ 
++#function iterate_sinks_data(sd pipe,sd forward,sd data)
++#    sd iter
++#    setcall iter gst_bin_iterate_sinks(pipe)
++#    call forward(iter,data)
++#    call gst_iterator_free(iter)
++#endfunction
++
+ importx "_gst_bin_iterate_sinks" gst_bin_iterate_sinks
+ importx "_gst_iterator_free" gst_iterator_free
+-function iterate_sinks_data(sd pipe,sd forward,sd data)
+-    sd iter
+-    setcall iter gst_bin_iterate_sinks(pipe)
+-    call forward(iter,data)
+-    call gst_iterator_free(iter)
+-endfunction
+ 
+ function iterate_firstsink(sd pipe,sd forward)
+     sd iter
+     setcall iter gst_bin_iterate_sinks(pipe)
+ 
+-    call iterate_next_forward_data_free(iter,forward,0)
++	import "iterate_next_forward_free" iterate_next_forward_free
++    call iterate_next_forward_free(iter,forward)
+ 
+     call gst_iterator_free(iter)
+ endfunction
+-
+-importx "_gst_iterator_next" gst_iterator_next
+-function iterate_next_forward_data_free(sd iter,sd forward,sd data)
+-    sd elem
+-    sd ptr_elem^elem
+-    sd ret
+-    setcall ret gst_iterator_next(iter,ptr_elem)
+-    data er=GST_ITERATOR_ERROR
+-    if ret==er
+-        str e="Iterator error"
+-        call texter(e)
+-        return e
+-    endif
+-    call forward(elem,data)
+-    call gst_object_unref(elem)
+-endfunction
+--- ovideo-1.orig/src/mem/alloc.s
++++ ovideo-1/src/mem/alloc.s
+@@ -56,7 +56,8 @@ endfunction
+ import "slen" slen
+ #e
+ #s1+s1+\+...sn+1
+-function allocsum_numbers_null(sd strings,sd numbers_total,sd ptrmem)
++function allocsum_null(sd strings,sd ptrmem)
++#function allocsum_numbers_null(sd strings,sd numbers_total,sd ptrmem)
+     data sizetoalloc#1
+     data z=0
+     data dword=4
+@@ -67,13 +68,13 @@ function allocsum_numbers_null(sd string
+         add strings dword
+     endwhile
+ 
+-    if numbers_total!=z
+-        data nr=sign_int_null
+-        while numbers_total!=z
+-            add sizetoalloc nr
+-            dec numbers_total
+-        endwhile
+-    endif
++#    if numbers_total!=z
++#        data nr=sign_int_null
++#        while numbers_total!=z
++#            add sizetoalloc nr
++#            dec numbers_total
++#        endwhile
++#    endif
+ 
+     inc sizetoalloc
+ 
+@@ -83,12 +84,12 @@ function allocsum_numbers_null(sd string
+ endfunction
+ 
+ #e
+-function allocsum_null(sd strings,sd ptrmem)
+-    data null=0
+-    sd err
+-    setcall err allocsum_numbers_null(strings,null,ptrmem)
+-    return err
+-endfunction
++#function allocsum_null(sd strings,sd ptrmem)
++#    data null=0
++#    sd err
++#    setcall err allocsum_numbers_null(strings,null,ptrmem)
++#    return err
++#endfunction
+ 
+ #################################################################
+ 
+--- ovideo-1.orig/wmake
++++ ovideo-1/wmake
+@@ -78,3 +78,7 @@ fi
+ #;C:\gstreamer-sdk\0.10\x86\bin
+ #file:///d:/some/path/to/repos/on/d/drive
+ #file:///var/www/html/s.webm
++
++#gstreamer1.0-plugins-bad
++#gst-launch-1.0 -v playbin uri=file:///home/bc/v/b/captures/1650430132.mxf
++#./e && GST_DEBUG=2 ./a.out #7 is max

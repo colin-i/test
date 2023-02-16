@@ -1,0 +1,63 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-162) xenial; urgency=medium
+ .
+   * prefs fix
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/_exec/init.s
++++ ovideo-1/src/_exec/init.s
+@@ -132,14 +132,14 @@ function init_dir(sd f)
+ endfunction
+ 
+ function init_sys_file(sd f,sd data,sd sz,sv perr)
++	chars buf#biggest_string+1+4+1
++	call sprintf(#buf,"%s.data",f)
+ 	sd is
+-	setcall is access(f,(F_OK))
++	setcall is access(#buf,(F_OK))
+ 	if is==-1
+ 		#open
+ 		const O_WRONLY=0x0001
+ 		sd fd
+-		chars buf#biggest_string+1+4+1
+-		call sprintf(#buf,"%s.data",f)
+ 		setcall fd open(#buf,(O_WRONLY|flag_O_BINARY|flag_O_CREAT),(flag_fmode))
+ 		#write
+ 		sd len
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -23,7 +23,7 @@ endfunction
+ function update_got_localversion(data mem,data size)
+     data msg#1
+     data ptrmsg^msg
+-    str uri="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/cc2e882722aaa60f95b1b5271e65457dc99321dd/gistfile1.txt"
++    str uri="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/7e78ef00f27f6a8fdbe259ebc76b39f3a5eeaa55/gistfile1.txt"
+     str msgmem#1
+     data msgsize#1
+     data ptrmsgmem^msgmem
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.161
+\ No newline at end of file
++1.162
+\ No newline at end of file

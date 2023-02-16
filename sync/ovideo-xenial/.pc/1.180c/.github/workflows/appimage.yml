@@ -1,0 +1,78 @@
+
+#name: appimage
+
+on:
+ # Triggers the workflow on push or pull request events but only for the main branch
+ #push:
+ # branches: [ main ]
+ #pull_request:
+ # branches: [ main ]
+ # Allows you to run this workflow manually from the Actions tab
+ workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ build:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-18.04
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+   #- uses: actions/checkout@v3
+   #with:
+   # repository: colin-i/irc
+   # path: my-tools
+   #- uses: dsaltares/fetch-gh-release-asset@master
+   #with:
+   # repo: 'colin-i/test'
+   # #version: 'tags/1.1'
+   # file: 'gpg.gpg'
+   # #target: 'tmp/' #plague-linux.zip'
+   # #token: ${{ secrets.PAT }}
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      if [ -n "${{ env.init }}" ]; then
+       echo a
+      fi
+      debfileversion=`cat ./debian/changelog | head -n 1 | cut -d '(' -f 2 | cut -d ')' -f 1`
+      cd in
+      file=/squashfs-root/AppRun
+      if [ ! -e "${file}" ]; then
+       urlpart=`wget -q https://github.com/AppImage/pkg2appimage/releases -O - | grep "pkg2appimage-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2`
+       wget -c https://github.com/${urlpart}
+       #chmod +x ./pkg2appimage-*.AppImage
+       file=`echo ./${urlpart} | cut -d '/' -f 7`
+       chmod +x ${file}
+       ./${file} --appimage-extract #modprobe not found,fuse not found
+       file=./squashfs-root/AppRun
+      fi
+      wget_url=https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/ovideo_${debfileversion}_i386.deb
+      wget ${wget_url} -O ovideo.deb
+      #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
+      #echo -n ${{ secrets.PASS }} > pas.txt
+      #echo "tag=refs/tags/1.1" >> $GITHUB_ENV
+      #echo $tag ${{ env.tag }}
+      ARCH=i686 ${file} ../ovideo.yml
+      cd ..
+      sudo rm -r in
+   #- name: Create Release
+   #  id: create_release
+   #  uses: actions/create-release@v1
+   #  env:
+   #   GITHUB_TOKEN: ${{ secrets.PAT }}
+   #  with:
+   #   tag_name: ${{ env.tag }}
+   #   release_name: Release ${{ env.tag }}
+   #   draft: false
+   #   rerelease: false
+   #- name: Upload Release Asset
+   #  uses: actions/upload-release-asset@v1
+   #  env:
+   #   GITHUB_TOKEN: ${{ secrets.PAT }}
+   #  with:
+   #   upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+   #   asset_path: ./LD-.glibc2.27-x86_64.AppImage
+   #   asset_name: LD-.glibc2.27-x86_64.AppImage
+   #   asset_content_type: application/x-executable

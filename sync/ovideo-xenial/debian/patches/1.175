@@ -1,0 +1,472 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-175) xenial; urgency=medium
+ .
+   * fix alpha inputs
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/_exec/start.s
++++ ovideo-1/src/_exec/start.s
+@@ -98,7 +98,7 @@ import "buttons_lots_ex" buttons_lots_ex
+ 
+ function setimages()
+     #icon
+-    str icon="1616.png"
++    str icon="1616.jpg"
+     data widget#1
+     setcall widget mainwidget()
+     call setwndicon(widget,icon)
+--- ovideo-1.orig/src/_prepare/effect/base.s
++++ ovideo-1/src/_prepare/effect/base.s
+@@ -154,11 +154,11 @@ function stage_effect_new(sd forward,sd
+     call stage_get_sel_pixbuf(p_pixbuf)
+ 
+     #test for not accessing invalid memory
+-    import "rgb_test" rgb_test
+-    setcall bool rgb_test(pixbuf)
+-    if bool==0
+-        return 0
+-    endif
++    #import "rgb_test" rgb_test
++    #setcall bool rgb_test(pixbuf)
++    #if bool==0
++    #    return 0
++    #endif
+ 
+     #get dimensions
+     importx "_gdk_pixbuf_get_pixels" gdk_pixbuf_get_pixels
+--- ovideo-1.orig/src/_prepare/frame/add.s
++++ ovideo-1/src/_prepare/frame/add.s
+@@ -79,16 +79,16 @@ function stage_pixbuf_in_container_pixbu
+     setcall width rectangle_fit_container_rectangle(width,height,c_width,c_height,p_height)
+ 
+     #test for not accessing invalid memory
+-    import "rgb_test" rgb_test
+-    sd bool
+-    setcall bool rgb_test(containerpixbuf)
+-    if bool==0
+-        return 0
+-    endif
+-    setcall bool rgb_test(newpixbuf)
+-    if bool==0
+-        return 0
+-    endif
++    #import "rgb_test" rgb_test
++    #sd bool
++    #setcall bool rgb_test(containerpixbuf)
++    #if bool==0
++    #    return 0
++    #endif
++    #setcall bool rgb_test(newpixbuf)
++    #if bool==0
++    #    return 0
++    #endif
+ 
+     import "pixbuf_scale_forward_data" pixbuf_scale_forward_data
+     data f^stage_pixbuf_in_container_pixbuf_set
+--- ovideo-1.orig/src/_prepare/output/mkv.s
++++ ovideo-1/src/_prepare/output/mkv.s
+@@ -1023,73 +1023,73 @@ function mkv_simpleblock(sd file,sd size
+             return 0
+         endif
+ 
+-        import "rgb_test" rgb_test
+-        setcall bool rgb_test(pixbuf)
+-        if bool==0
+-            return 0
+-        else
+-            #info prepare
+-            import "av_display_info" av_display_info
+-            call av_display_info((value_get),file)
+-            if encoder==(format_mkv_i420)
+-                sd pixels
+-                sd width
+-                sd height
+-                setcall pixels gdk_pixbuf_get_pixels(pixbuf)
+-                setcall width gdk_pixbuf_get_width(pixbuf)
+-                setcall height gdk_pixbuf_get_height(pixbuf)
+-
+-                import "rgb_to_yuvi420_write" rgb_to_yuvi420_write
+-                setcall err rgb_to_yuvi420_write(pixels,width,height,file)
+-                if err!=(noerror)
+-                    return 0
+-                endif
+-            elseif encoder==(format_mkv_mjpg)
+-                import "stage_jpeg_write" stage_jpeg_write
+-                setcall bool stage_jpeg_write(file,pixbuf)
+-                if bool!=1
+-                    return 0
+-                endif
+-            elseif encoder==(format_mkv_xvid)
+-                import "mpeg_file_mem" mpeg_file_mem
+-                setcall bool mpeg_file_mem((value_filewrite))
+-                if bool!=1
+-                    return 0
+-                endif
+-            else
+-            #if encoder==(format_avi_rgb24)
+-                import "pixbuf_get_wh" pixbuf_get_wh
+-                sd rgb_pixels
+-                sd rgb_sz
+-                setcall rgb_pixels gdk_pixbuf_get_pixels(pixbuf)
+-                sd rgb_width
+-                sd rgb_height
+-                sd rgb_dim^rgb_width
+-                call pixbuf_get_wh(pixbuf,rgb_dim)
+-                setcall rgb_sz rgb_get_size(rgb_width,rgb_height)
+-
+-                sd capture_flag
+-                setcall capture_flag mkv_capture((value_get))
+-                if capture_flag==0
+-                    sd reverse_pixbuf
+-                    setcall reverse_pixbuf pixbuf_from_pixbuf_reverse(pixbuf)
+-                    setcall rgb_pixels gdk_pixbuf_get_pixels(reverse_pixbuf)
+-                endif
+-                #
+-                setcall err file_write(rgb_pixels,rgb_sz,file)
+-                #
+-                if capture_flag==0
+-                    importx "_g_object_unref" g_object_unref
+-                    call g_object_unref(reverse_pixbuf)
+-                endif
+-
+-                if err!=(noerror)
+-                    return 0
+-                endif
+-            endelse
+-            #info display
+-            call av_display_info((value_write),file,currentframe)
+-        endelse
++		#import "rgb_test" rgb_test
++		#setcall bool rgb_test(pixbuf)
++		#if bool==0
++		#    return 0
++		#else
++		#info prepare
++		import "av_display_info" av_display_info
++		call av_display_info((value_get),file)
++		if encoder==(format_mkv_i420)
++		    sd pixels
++		    sd width
++		    sd height
++		    setcall pixels gdk_pixbuf_get_pixels(pixbuf)
++		    setcall width gdk_pixbuf_get_width(pixbuf)
++		    setcall height gdk_pixbuf_get_height(pixbuf)
++
++		    import "rgb_to_yuvi420_write" rgb_to_yuvi420_write
++		    setcall err rgb_to_yuvi420_write(pixels,width,height,file)
++		    if err!=(noerror)
++		        return 0
++		    endif
++		elseif encoder==(format_mkv_mjpg)
++		    import "stage_jpeg_write" stage_jpeg_write
++		    setcall bool stage_jpeg_write(file,pixbuf)
++		    if bool!=1
++		        return 0
++		    endif
++		elseif encoder==(format_mkv_xvid)
++		    import "mpeg_file_mem" mpeg_file_mem
++		    setcall bool mpeg_file_mem((value_filewrite))
++		    if bool!=1
++		        return 0
++		    endif
++		else
++		#if encoder==(format_avi_rgb24)
++		    import "pixbuf_get_wh" pixbuf_get_wh
++		    sd rgb_pixels
++		    sd rgb_sz
++		    setcall rgb_pixels gdk_pixbuf_get_pixels(pixbuf)
++		    sd rgb_width
++		    sd rgb_height
++		    sd rgb_dim^rgb_width
++		    call pixbuf_get_wh(pixbuf,rgb_dim)
++		    setcall rgb_sz rgb_get_size(rgb_width,rgb_height)
++
++		    sd capture_flag
++		    setcall capture_flag mkv_capture((value_get))
++		    if capture_flag==0
++		        sd reverse_pixbuf
++		        setcall reverse_pixbuf pixbuf_from_pixbuf_reverse(pixbuf)
++		        setcall rgb_pixels gdk_pixbuf_get_pixels(reverse_pixbuf)
++		    endif
++		    #
++		    setcall err file_write(rgb_pixels,rgb_sz,file)
++		    #
++		    if capture_flag==0
++		        importx "_g_object_unref" g_object_unref
++		        call g_object_unref(reverse_pixbuf)
++		    endif
++
++		    if err!=(noerror)
++		        return 0
++		    endif
++		endelse
++		#info display
++		call av_display_info((value_write),file,currentframe)
++		#endelse
+ 
+         setcall pixbuf mkv_frames(1,0,file)
+ 
+--- ovideo-1.orig/src/_prepare/pipe.s
++++ ovideo-1/src/_prepare/pipe.s
+@@ -259,21 +259,28 @@ function stage_element(sd *bus,sd messag
+             endif
+         endif
+         #
+-        if skip==0
+-            str text="Received frames: "
+-            call stage_new_pix(pixbuf,text)
+-        else
+-            importx "_g_object_unref" g_object_unref
+-            call g_object_unref(pixbuf)
+-            if skip==1
+-                call strdworddisp("Skipped frame: ",pos#)
+-            else
+-                call stage_display_index("Total frames: ",1)
+-            endelse
+-        endelse
+-        #
+-        inc pos#
+-    endif
++		if skip==0
++			import "rgb_test" rgb_test
++			setcall pixbuf rgb_test(pixbuf)
++			if pixbuf!=(NULL)
++				vstr text="Received frames: "
++				call stage_new_pix(pixbuf,text)
++			else
++				set skip 1
++			endelse
++		endif
++		if skip!=0
++			importx "_g_object_unref" g_object_unref
++			call g_object_unref(pixbuf)
++			if skip==1
++				call strdworddisp("Skipped frame: ",pos#)
++			else
++				call stage_display_index("Total frames: ",1)
++			endelse
++		endif
++		#
++		inc pos#
++	endif
+ endfunction
+ 
+ 
+@@ -305,6 +312,7 @@ function stage_connect_signals(sd bus,sd
+ endfunction
+ 
+ function stage_start_pipe(ss uri)
++#gdkpixbufsink plugins-good
+     ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
+     ss str
+     sd *=0
+--- ovideo-1.orig/src/obj/images.s
++++ ovideo-1/src/obj/images.s
+@@ -276,6 +276,8 @@ function rgb_to_yuvi420(ss bitmap_rgb,ss
+ ###################################################
+ endfunction
+ 
++importx "_free" free
++
+ #e/forward
+ function rgb_to_yuvi420_forward_data(sd rgb,sd width,sd height,sd forward,sd data)
+     sd size
+@@ -308,7 +310,6 @@ function rgb_to_yuvi420_forward_data(sd
+     call rgb_to_yuvi420(rgb,yuv,width,height)
+ 
+     setcall err forward(yuv,size,data)
+-    importx "_free" free
+     call free(yuv)
+     return err
+ endfunction
+@@ -480,35 +481,73 @@ function rgb_to_yuvi420_write(sd rgb,sd
+ endfunction
+ 
+ importx "_gdk_pixbuf_get_rowstride" gdk_pixbuf_get_rowstride
++importx "_gdk_pixbuf_get_pixels" gdk_pixbuf_get_pixels
++importx "_g_object_unref" g_object_unref
++import "texter" texter
+ 
+-#bool
++#pixbuf
+ function rgb_test(sd pixbuf)
+-    if pixbuf==0
+-        return 0
+-    endif
+-
+-    importx "_gdk_pixbuf_get_width" gdk_pixbuf_get_width
+-    importx "_gdk_pixbuf_get_height" gdk_pixbuf_get_height
+-    sd w
+-    sd h
+-    setcall w gdk_pixbuf_get_width(pixbuf)
+-    setcall h gdk_pixbuf_get_height(pixbuf)
+-
+-    sd testsize
+-    setcall testsize gdk_pixbuf_get_rowstride(pixbuf)
+-    mult testsize h
+-    sd guess_size
+-    set guess_size w
+-    mult guess_size 3
+-    setcall guess_size multiple_of_nr(guess_size,4)
+-    mult guess_size h
+-    if guess_size<testsize
+-        import "texter" texter
+-        str sizelowrgb="RGB array expected"
+-        call texter(sizelowrgb)
+-        return 0
+-    endif
+-    return 1
++#    if pixbuf==0
++#        return 0
++#    endif
++	importx "_gdk_pixbuf_get_width" gdk_pixbuf_get_width
++	sd w
++	setcall w gdk_pixbuf_get_width(pixbuf)
++	sd teststride
++	setcall teststride gdk_pixbuf_get_rowstride(pixbuf)
++	sd stride
++	set stride w
++	mult stride 3
++	sd multiple_of_3
++	set multiple_of_3 stride
++	setcall stride multiple_of_nr(stride,4)
++	if stride!=teststride
++	#this is with alpha
++		importx "_gdk_pixbuf_get_height" gdk_pixbuf_get_height
++		sd h
++		setcall h gdk_pixbuf_get_height(pixbuf)
++		sd size
++		set size stride
++		mult size h
++		import "memalloc" memalloc
++		sd newmem
++		setcall newmem memalloc(size)
++		if newmem!=(NULL)
++			ss bytes
++			setcall bytes gdk_pixbuf_get_pixels(pixbuf)
++			sd end
++			set end h
++			mult end teststride
++			add end bytes
++			ss pointer
++			set pointer newmem
++			while bytes!=end
++				sd row
++				set row bytes
++				add row teststride
++				while bytes!=row
++					set pointer# bytes#
++					inc pointer;inc bytes;set pointer# bytes#
++					inc pointer;inc bytes;set pointer# bytes#
++					inc pointer;add bytes 2
++				endwhile
++				if multiple_of_3!=stride
++					inc pointer
++				endif
++			endwhile
++			importx "_gdk_pixbuf_new_from_data" gdk_pixbuf_new_from_data
++			sd newpixbuf
++			setcall newpixbuf gdk_pixbuf_new_from_data(newmem,(GDK_COLORSPACE_RGB),(FALSE),8,w,h,stride,free,newmem)
++			if newpixbuf!=(NULL)
++				call g_object_unref(pixbuf)
++				return newpixbuf
++			endif
++			call texter("error at new pixbuf")
++			call free(newmem)
++		endif
++		return (NULL)
++	endif
++	return pixbuf
+ endfunction
+ 
+ #bool
+@@ -587,8 +626,6 @@ function rgb_px_set(sd value,ss bytes,sd
+     call rgb_get_set(p_value,bytes,x,y,bps,n_chan,rowstride,(set_rgb))
+ endfunction
+ 
+-importx "_gdk_pixbuf_get_pixels" gdk_pixbuf_get_pixels
+-
+ function rgb_pixbuf_get_pixel(ss pixbuf,sd x,sd y,sd bps,sd n_chan)
+     sd pixels
+     setcall pixels gdk_pixbuf_get_pixels(pixbuf)
+@@ -737,7 +774,6 @@ function pixbuf_draw_text(sd pixbuf,ss t
+     sd pix_buf
+     setcall pix_buf gdk_pixbuf_get_from_drawable((NULL),pixmap,(NULL),0,0,0,0,width,height)
+ 
+-    importx "_g_object_unref" g_object_unref
+     importx "_g_free" g_free
+     call g_free(markup)
+     call g_object_unref(pangolayout)
+--- ovideo-1.orig/src/obj/items.s
++++ ovideo-1/src/obj/items.s
+@@ -752,18 +752,23 @@ import "gerrtoerr" gerrtoerr
+ import "getptrgerr" getptrgerr
+ #function pixbuf from file
+ function pixbuf_from_file(ss filename)
+-    sd pixbuf#1
+-    data null=NULL
+-    sd ptrgerror#1
++	sd pixbuf#1
++	sd ptrgerror#1
+ 
+-    setcall ptrgerror getptrgerr()
++	setcall ptrgerror getptrgerr()
+ 
+-    setcall pixbuf gdk_pixbuf_new_from_file(filename,ptrgerror)
+-    if pixbuf==null
+-            call gerrtoerr(ptrgerror)
+-            return null
+-    endif
+-    return pixbuf
++	setcall pixbuf gdk_pixbuf_new_from_file(filename,ptrgerror)
++	if pixbuf!=(NULL)
++		import "rgb_test" rgb_test
++		setcall pixbuf rgb_test(pixbuf)
++		if pixbuf!=(NULL)
++			return pixbuf
++		endif
++		call g_object_unref(pixbuf)
++		return (NULL)
++	endif
++	call gerrtoerr(ptrgerror)
++	return (NULL)
+ endfunction
+ #returns the forward or null
+ function pixbuf_from_file_forward_data(ss filename,sd forward,sd data)
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -76,7 +76,7 @@ function update()
+ 	endif
+ 
+ 	import "uri_queue_content" uri_queue_content
+-	ss s="https://gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/e5ec6981087d3cd965422a472fdba34c7de1fe82/gistfile1.txt"
++	ss s="https://gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/9d451cb4061e2e07dd61f4d9409c1dbfcd165669/gistfile1.txt"
+ 	#ss s="http://localhost/b.php"
+ 
+ 	call uri_queue_content(s,update_async_callback)
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.174
+\ No newline at end of file
++1.175
+\ No newline at end of file

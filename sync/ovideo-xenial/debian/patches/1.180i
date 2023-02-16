@@ -1,0 +1,108 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-180i) bionic; urgency=medium
+ .
+   * path environment vars
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-05-28
+
+--- ovideo-1.orig/.github/workflows/appimage.yml
++++ ovideo-1/.github/workflows/appimage.yml
+@@ -82,7 +82,8 @@ jobs:
+               libxml2 libsqlite3-0 libgssapi-krb5-2 libxau6 libxdmcp6   libblkid1   libgraphite2-3 libdatrie1 libicu60   liblzma5 \
+               libkrb5-3 libk5crypto3   libcom-err2   libkrb5support0   libbsd0 libuuid1   libstdc++6   libgcc1 libkeyutils1 \
+               \
+-              gstreamer1.0-plugins-good )
++              gstreamer1.0-plugins-base gstreamer1.0-plugins-good )
++              #base for playback, good for pixbuf
+       #libgtk-x11-2.0.so.0 libpangocairo-1.0.so.0 libatk-1.0.so.0 libcairo.so.2 libgdk_pixbuf-2.0.so.0
+       #libglib-2.0.so.0 libpangoft2-1.0.so.0 libpango-1.0.so.0 libfontconfig.so.1 libfreetype.so.6
+       #libgstpbutils-1.0.so.0 libgstreamer-1.0.so.0 libjpeg.so.8 libsoup-2.4.so.1 libasound.so.2
+@@ -97,6 +98,7 @@ jobs:
+        downdeb "ro.archive.ubuntu.com" i386 2 ${var} main
+       done
+       downdeb "ro.archive.ubuntu.com" i386 3 gstreamer1.0-plugins-bad universe
++      #bad for mxf
+       cd AppDir
+       file2=AppRun
+       if [ ! -e "${file2}" ]; then
+@@ -122,21 +124,12 @@ jobs:
+       EOF
+        ln -s ${pngfile} .DirIcon #f for multiple times
+       fi
+-      loader="./lib32/ld-linux.so.2 --library-path ./lib32:./usr/lib/i386-linux-gnu:./lib/i386-linux-gnu"
+-      #pixbuf
+-      gpixd=/usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/
+-      gpixf=${gpixd}`ls -1 .${gpixd} | head -1`/loaders
+-      gpixc=.${gpixf}.cache
+-      if [ ! -e "${gpixc}" ]; then
+-       echo pixbuf
+-       sudo mkdir -p ${gpixf}
+-       sudo cp .${gpixf}/* ${gpixf}
+-       ${loader} .${gpixd}gdk-pixbuf-query-loaders > ${gpixc}
+-       sed -i -e "s|^\"/usr|\"./usr|g" "${gpixc}"
+-      fi
+       #
+       if [ ! -e "usr/bin/ostream" ]; then
+        echo launcher
++       loader="./lib32/ld-linux.so.2 --library-path ./lib32:./usr/lib/i386-linux-gnu:./lib/i386-linux-gnu"
++       gpixd=/usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/
++       gpixf=${gpixd}`ls -1 .${gpixd} | head -1`/loaders
+        cd usr/bin
+        mv ovideo ostream
+        #live64 is not having /lib/ld-linux.so.2. without librarypath will wrong libc bionic to jammy
+@@ -145,7 +138,15 @@ jobs:
+       #!/bin/bash
+       cd "\$(dirname "\$0")"
+       cd ../../
+-      GDK_PIXBUF_MODULE_FILE=${gpixc} ${loader} ./usr/bin/ostream "\`pwd\`"
++      hom=\${HOME}/ovideo
++      mkdir -p "\${hom}"
++      gpmf=\${hom}/loaders.cache
++      rootbase=\$(pwd)
++      if [ ! -e "\${gpmf}" ]; then
++       GDK_PIXBUF_MODULEDIR="\${rootbase}${gpixf}" ${loader} .${gpixd}gdk-pixbuf-query-loaders > "\${gpmf}"
++      fi
++      GDK_PIXBUF_MODULE_FILE="\${gpmf}" GST_PLUGIN_SYSTEM_PATH="\${rootbase}usr/lib/i386-linux-gnu/gstreamer-1.0" ${loader} \
++       ./usr/bin/ostream "\${rootbase}"
+       EOF
+        chmod 755 ovideo
+        cd ../../
+--- ovideo-1.orig/.github/workflows/deb.yml
++++ ovideo-1/.github/workflows/deb.yml
+@@ -28,6 +28,7 @@ jobs:
+        sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential libgstreamer-plugins-base1.0-dev \
+                            libc6 \
+                            libc6:i386
++       #libc6:i386 must be the same version with libc6:amd64
+       fi
+       downdeb () {
+        #pkg=${2}
+--- ovideo-1.orig/src/_exec/uri.s
++++ ovideo-1/src/_exec/uri.s
+@@ -94,7 +94,7 @@ function gstplayinit(data videowidget)
+ 	setcall playbin2str get_playbin_str()
+ 
+     setcall playbin2ptr# gst_element_factory_make(playbin2str,playbin2str)
+-    #needing gstreamer0.10-plugins-good
++    #playback at plugins base
+ 
+     data playbin2#1
+     set playbin2 playbin2ptr#

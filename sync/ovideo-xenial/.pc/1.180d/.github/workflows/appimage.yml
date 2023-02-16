@@ -1,0 +1,165 @@
+
+#name: appimage
+
+on:
+ # Triggers the workflow on push or pull request events but only for the main branch
+ #push:
+ # branches: [ main ]
+ #pull_request:
+ # branches: [ main ]
+ # Allows you to run this workflow manually from the Actions tab
+ workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ build:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-18.04
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+   #- uses: actions/checkout@v3
+   #with:
+   # repository: colin-i/irc
+   # path: my-tools
+   #- uses: dsaltares/fetch-gh-release-asset@master
+   #this is locally: throw new Error("Parameter token or opts.auth is required");
+   #  with:
+   #   repo: 'colin-i/test'
+   #   file: 'ovideo.png'
+   #   target: 'in/' #plague-linux.zip'
+   # #version: 'tags/1.1'
+   # #token: ${{ secrets.PAT }}
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      if [ -n "${{ env.init }}" ]; then
+       exit
+      fi
+      mkdir -p AppDir
+      file=runtime
+      arch=-x86_64
+      archfile=${file}${arch}
+      kitpart () {
+       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
+      }
+      if [ ! -e "${file}" ]; then
+       kitpart
+       #"pkg2appimage-.*-x86_64.AppImage"
+       wget -c https://github.com/${urlpart}
+       mv ${archfile} ${file}
+       chmod a+x ${file}
+      fi
+      downdeb () {
+       maindeb=${4}.deb
+       if [ ! -e "${maindeb}" ]; then
+        inter=Packages${2}${3}
+        if [ ! -e "${inter}" ]; then
+         wget http://${1}/ubuntu/dists/bionic/main/binary-${2}/Packages.xz -O ${inter}.xz
+         xz -d ${inter}.xz #f for multiple times
+        fi
+        debfilename=`grep "^Filename.*/${4}_" ${inter} | tail -1 | cut -d ' ' -f 2`
+        wget_url=http://${1}/ubuntu/${debfilename}
+        #https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/${debfilename}	| grep -o '[^/]*$'
+        wget ${wget_url} -O ${maindeb}
+        dpkg -x ${maindeb} AppDir
+        #ar x ${maindeb} data.tar.xz
+        #xz -fd data.tar.xz
+        #tar -xf data.tar -C AppDir
+       fi
+      }
+      downdeb "ppa.launchpadcontent.net/colin-i/ppa" i386 1 ovideo
+      downdeb "ro.archive.ubuntu.com" amd64 1 libc6-i386
+      array=( libgtk2.0-0 libpangocairo-1.0-0 libatk1.0-0 libcairo2 libgdk-pixbuf2.0-0 \
+              libglib2.0-0 libpangoft2-1.0-0 libpango-1.0-0 libfontconfig1 libfreetype6 \
+              libgstreamer-plugins-base1.0-0 libgstreamer1.0-0 libjpeg-turbo8 libsoup2.4-1 libasound2 \
+              libx11-6 libxfixes3 libxrender1 libxinerama1 libxi6 libxrandr2 libxcursor1 libxcomposite1 libxdamage1 libxext6 \
+              libpixman-1-0 libpng16-16 libxcb-shm0 libxcb1 libxcb-render0 \
+              zlib1g libselinux1 libmount1   libharfbuzz0b libthai0   libexpat1 liborc-0.4-0 libffi6   libpcre3 \
+              libxml2 libsqlite3-0 libgssapi-krb5-2 libxau6 libxdmcp6   libblkid1   libgraphite2-3 libdatrie1 libicu60   liblzma5 \
+              libkrb5-3 libk5crypto3   libcom-err2   libkrb5support0   libbsd0 libuuid1   libstdc++6   libgcc1 libkeyutils1 )
+      #libgtk-x11-2.0.so.0 libpangocairo-1.0.so.0 libatk-1.0.so.0 libcairo.so.2 libgdk_pixbuf-2.0.so.0
+      #libglib-2.0.so.0 libpangoft2-1.0.so.0 libpango-1.0.so.0 libfontconfig.so.1 libfreetype.so.6
+      #libgstpbutils-1.0.so.0 libgstreamer-1.0.so.0 libjpeg.so.8 libsoup-2.4.so.1 libasound.so.2
+      #libX11.so.6 libXfixes.so.3 libXrender.so.1 libXinerama.so.1 libXi.so.6 libXrandr.so.2 libXcursor.so.1 libXcomposite.so.1 libXdamage.so.1 libXext.so.6
+      #libpixman-1.so.0 libpng16.so.16 libxcb-shm.so.0 libxcb.so.1 libxcb-render.so.0
+      #libz.so.1 libselinux.so.1 libmount.so.1   libharfbuzz.so.0 libthai.so.0   libexpat.so.1 liborc-0.4.so.0 libffi.so.6   libpcre.so.3
+      #libxml2.so.2 libsqlite3.so.0 libgssapi_krb5.so.2 libXau.so.6 libXdmcp.so.6   libblkid.so.1   libgraphite2.so.3 libdatrie.so.1 libicuuc.so.60   liblzma.so.5
+      #libkrb5.so.3 libk5crypto.so.3   libcom_err.so.2   libkrb5support.so.0   libbsd.so.0 libuuid.so.1   libstdc++.so.6   libgcc_s.so.1 libkeyutils.so.1
+      for var in "${array[@]}"
+      do
+       #var=`echo $var | tr 'Q' '\n' | xargs echo `
+       downdeb "ro.archive.ubuntu.com" i386 2 ${var}
+      done
+      cd AppDir
+      file2=AppRun
+      if [ ! -e "${file2}" ]; then
+       if [ -z "${urlpart}" ]; then
+        kitpart
+       fi
+       archfile2=${file2}${arch}
+       urlpart=${urlpart:0:`echo ${urlpart} | grep -ob '[^/]*$' | cut -d ':' -f 1`}${archfile2}
+       wget -c https://github.com/${urlpart}
+       chmod a+x ${archfile2}
+       mv ${archfile2} ${file2}
+      fi
+      pngfile=ovideo.png
+      if [ ! -e "${pngfile}" ]; then
+       wget https://github.com/colin-i/test/releases/download/1.1/ovideo.png -O ${pngfile} #O for multiple times
+       cat > ovideo.desktop <<EOF
+      [Desktop Entry]
+      Type=Application
+      Name=OVideo
+      Exec=ovideo
+      Icon=ovideo
+      Categories=GNOME;GTK;
+      EOF
+       ln -s ${pngfile} .DirIcon #f for multiple times
+      fi
+      if [ ! -e "usr/bin/ostream" ]; then
+      cd usr/bin
+       mv ovideo ostream
+       #live64 is not having /lib/ld-linux.so.2. without librarypath will wrong libc bionic to jammy
+       #../lib since zlib1g
+       cat > ovideo <<EOF
+      #!/bin/bash
+      cd "\$(dirname "\$0")"
+      cd ../../
+      ./lib32/ld-linux.so.2 --library-path ./lib32:./usr/lib/i386-linux-gnu:./lib/i386-linux-gnu ./usr/bin/ostream `pwd`
+      EOF
+       chmod 755 ovideo
+       cd ../../
+      fi
+      cd ..
+      if [ ! -e "ovideo.AppImage" ]; then
+       mksquashfs AppDir ovideo.squashfs -root-owned -noappend
+       cat runtime >> ovideo.AppImage
+       cat ovideo.squashfs >> ovideo.AppImage
+       chmod a+x ovideo.AppImage
+      fi
+      #http://ro.archive.ubuntu.com/ubuntu/dists/bionic/main/binary-i386/Packages.xz
+      #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
+      #echo -n ${{ secrets.PASS }} > pas.txt
+      #echo "tag=refs/tags/1.1" >> $GITHUB_ENV
+      #echo $tag ${{ env.tag }}
+      #ARCH=i686 ${file} ./ovideo.yml
+   #- name: Create Release
+   #  id: create_release
+   #  uses: actions/create-release@v1
+   #  env:
+   #   GITHUB_TOKEN: ${{ secrets.PAT }}
+   #  with:
+   #   tag_name: ${{ env.tag }}
+   #   release_name: Release ${{ env.tag }}
+   #   draft: false
+   #   rerelease: false
+   #- name: Upload Release Asset
+   #  uses: actions/upload-release-asset@v1
+   #  env:
+   #   GITHUB_TOKEN: ${{ secrets.PAT }}
+   #  with:
+   #   upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+   #   asset_path: ./LD-.glibc2.27-x86_64.AppImage
+   #   asset_name: LD-.glibc2.27-x86_64.AppImage
+   #   asset_content_type: application/x-executable

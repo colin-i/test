@@ -1,0 +1,63 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-173) xenial; urgency=medium
+ .
+   * dark/light colors
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/obj/items.s
++++ ovideo-1/src/obj/items.s
+@@ -268,7 +268,7 @@ endfunction
+ 
+ #field
+ function edit_info_prepare_green(ss text)
+-    chars infocolors={0xe0,0xff,0xe0}
++    chars infocolors={0x70,0x90,0x70} #system themes are making this hard
+     data infoptrcolors^infocolors
+     sd widget
+     setcall widget edit_info_prepare(infoptrcolors,text)
+@@ -277,7 +277,7 @@ endfunction
+ 
+ #field
+ function edit_info_prepare_blue(ss text)
+-    chars infocolors={0xe0,0xe0,0xff}
++    chars infocolors={0x70,0x70,0x90}
+     data infoptrcolors^infocolors
+     sd widget
+     setcall widget edit_info_prepare(infoptrcolors,text)
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -76,7 +76,7 @@ function update()
+ 	endif
+ 
+ 	import "uri_queue_content" uri_queue_content
+-	ss s="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/d01af2cae343893d08f25fe2690dd35af941b292/gistfile1.txt"
++	ss s="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/7ec94d7de047933738bfa53ed6c2acd3521f541d/gistfile1.txt"
+ 	#ss s="http://localhost/b.php"
+ 	call uri_queue_content(s,update_async_callback)
+ endfunction
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.172
+\ No newline at end of file
++1.173
+\ No newline at end of file

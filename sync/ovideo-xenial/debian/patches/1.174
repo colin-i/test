@@ -1,0 +1,359 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-174) xenial; urgency=medium
+ .
+   * color independent
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -142,4 +142,4 @@ uninstall:
+ 
+ .NOTPARALLEL:
+ 
+-#make compile && make link syms= LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage items_prefix=/home/bc/v/ovideo-1/src/
++#make compile prefix=/usr && make link syms= LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage items_prefix=/home/bc/v/ovideo-1/src/
+--- ovideo-1.orig/src/_exec/mix.s
++++ ovideo-1/src/_exec/mix.s
+@@ -53,30 +53,26 @@ function mix_timeout(sd *data)
+         return 0
+     endif
+ 
+-    #append one dot or set one dot
+-    str maxdots="........"
+-    import "get_current_texter_pointer" get_current_texter_pointer
+-    sd texter_ptr
+-    setcall texter_ptr get_current_texter_pointer()
+-    sd widget
+-    set widget texter_ptr#
+-    sd text
+-    setcall text gtk_entry_get_text(widget)
+-    import "cmpstr" cmpstr
+-    sd cmpresult
+-    setcall cmpresult cmpstr(text,maxdots)
+-    str onedot="."
+-    if cmpresult==0
+-        call texter(onedot)
+-        return 1
+-    endif
+-    importx "_gtk_editable_insert_text" gtk_editable_insert_text
+-    sd pos
+-    sd ptr_pos^pos
+-    import "slen" slen
+-    setcall pos slen(text)
+-    call gtk_editable_insert_text(widget,onedot,1,ptr_pos)
+-    return 1
++	#append one dot or set one dot
++	import "get_current_texter_pointer" get_current_texter_pointer
++	sd texter_ptr
++	setcall texter_ptr get_current_texter_pointer()
++	sd widget
++	set widget texter_ptr#
++	sd text
++	setcall text gtk_entry_get_text(widget)
++	sd pos
++	sd ptr_pos^pos
++	chars onedot={Period,0}
++	import "slen" slen
++	setcall pos slen(text)
++	if pos==3
++		call texter(#onedot)
++		return 1
++	endif
++	importx "_gtk_editable_insert_text" gtk_editable_insert_text
++	call gtk_editable_insert_text(widget,#onedot,1,ptr_pos)
++	return 1
+ endfunction
+ 
+ function mix_init_save(sd vbox,sd dialog)
+@@ -274,7 +270,7 @@ function mix_init(sd vbox,sd *dialog)
+     set tm# entryt
+ 
+     importx "_gtk_entry_set_text" gtk_entry_set_text
+-    str defaulttimeout="5"
++    str defaulttimeout="10"
+     call gtk_entry_set_text(entryt,defaulttimeout)
+ 
+     import "tablefield_cells" tablefield_cells
+--- ovideo-1.orig/src/_search/parse.s
++++ ovideo-1/src/_search/parse.s
+@@ -5,8 +5,6 @@ format elfobj
+ 
+ include "../_include/include.h"
+ 
+-import "edit_info_prepare_green" edit_info_prepare_green
+-
+ function search_parse_URIs_launch(ss str,sd table)
+     import "table_add_row" table_add_row
+ 
+@@ -20,6 +18,7 @@ function search_parse_URIs_launch(ss str
+     call table_add_row(table,hseparator)
+ 
+     sd newedit
++	import "edit_info_prepare_green" edit_info_prepare_green
+     setcall newedit edit_info_prepare_green(str)
+     call table_add_row(table,newedit)
+ 
+@@ -118,19 +117,22 @@ function search_parse_got_uri(ss uri,sd
+ 
+     #row1
+     importx "_gtk_label_new" gtk_label_new
+-    str uristr="URI: "
++    str uristr="URI:"
+ 
+     setcall urilabel gtk_label_new(uristr)
+ 
+     setcall uritext edit_info_prepare_green(uri)
+ 
+     #row2
+-    str itemsstr="Items: "
++    str itemsstr="Items:"
+ 
+     setcall itemslabel gtk_label_new(itemsstr)
+ 
+-    str init=""
+-    setcall itemstext edit_info_prepare_green(init)
++    sd table
++    sd extradata
++
++	import "edit_info_prepare_texter_green" edit_info_prepare_texter_green
++    setcall itemstext edit_info_prepare_texter_green("",#extradata)
+ 
+     #scroll panel
+     import "scrollfield" scrollfield
+@@ -143,14 +145,11 @@ function search_parse_got_uri(ss uri,sd
+ 
+     import "tablefield_cells" tablefield_cells
+     ##begin the table
+-    sd table
+-    sd extradata
+     setcall table tablefield_cells(scroll,rows,cols,widgets)
+ 
+     #entries
+     data nextFn^search_parse_got_body
+     sd pass^table
+-    set extradata itemstext
+     call uri_get_content_forward_data(uri,nextFn,pass)
+ 
+     #lastrow
+--- ovideo-1.orig/src/obj/items.s
++++ ovideo-1/src/obj/items.s
+@@ -229,9 +229,8 @@ function new_texter_close(sd *dialog,sd
+ endfunction
+ 
+ function new_texter_modal(sd container,sd dialog)
+-    import "editinfofield_green" editinfofield_green_
+     sd newtexter
+-    setcall newtexter editinfofield_green_(container)
++    setcall newtexter editinfofield_green(container)
+ 
+     import "connect_signal_data" connect_signal_data
+     str destr="destroy"
+@@ -253,43 +252,82 @@ function editfield_pack(sd container)
+     return edit
+ endfunction
+ 
++importx "_gtk_box_pack_start" gtk_box_pack_start
++
+ #field
+-function edit_info_prepare(sd ptrcolors,ss text)
+-    importx "_gtk_editable_set_editable" gtk_editable_set_editable
+-    import "setWidgetBase" setWidgetBase
+-    sd info
+-    setcall info gtk_entry_new()
+-    data false=0
+-    call gtk_editable_set_editable(info,false)
+-    call setWidgetBase(info,ptrcolors)
+-    call gtk_entry_set_text(info,text)
+-    return info
++function edit_info_prepare_texter(sd ptrcolors,ss text,sv p_texter)
++	importx "_gtk_editable_set_editable" gtk_editable_set_editable
++	import "setWidgetBase" setWidgetBase
++	sd info
++	setcall info gtk_entry_new() #this can be label but GtkEditable is used once and is ok for now. https://developer-old.gnome.org/gtk2/stable/GtkEditable.html
++	call gtk_editable_set_editable(info,(FALSE))
++	call gtk_entry_set_text(info,text)
++	if p_texter!=(NULL)
++		set p_texter# info
++	endif
++	#importx "_gtk_container_set_border_width" gtk_container_set_border_width
++	#call gtk_container_set_border_width(info,10)
++
++	importx "_gtk_vbox_new" gtk_vbox_new
++	importx "_gtk_container_add" gtk_container_add
++	sd f
++	setcall f gtk_vbox_new((FALSE),0)
++	importx "_gtk_hseparator_new" gtk_hseparator_new
++	sd s
++	setcall s gtk_hseparator_new()
++	call setWidgetBase(s,ptrcolors)
++	call gtk_container_add(f,s)
++
++	importx "_gtk_hbox_new" gtk_hbox_new
++	importx "_gtk_vseparator_new" gtk_vseparator_new
++	sd h
++	setcall h gtk_hbox_new((FALSE),0)
++	setcall s gtk_vseparator_new()
++	call setWidgetBase(s,ptrcolors)
++	call gtk_box_pack_start(h,s,(FALSE),(FALSE),0)
++	call gtk_box_pack_start(h,info,(TRUE),(TRUE),0)
++	setcall s gtk_vseparator_new()
++	call setWidgetBase(s,ptrcolors)
++	call gtk_box_pack_start(h,s,(FALSE),(FALSE),0)
++	call gtk_container_add(f,h)
++
++	setcall s gtk_hseparator_new()
++	call setWidgetBase(s,ptrcolors)
++	call gtk_container_add(f,s)
++	return f
+ endfunction
+ 
+ #field
+ function edit_info_prepare_green(ss text)
+-    chars infocolors={0x70,0x90,0x70} #system themes are making this hard
++	sd w
++	setcall w edit_info_prepare_texter_green(text,(NULL))
++	return w
++endfunction
++
++#field
++function edit_info_prepare_blue(ss text)
++    chars infocolors={0x00,0x00,0xff}
+     data infoptrcolors^infocolors
+     sd widget
+-    setcall widget edit_info_prepare(infoptrcolors,text)
++    setcall widget edit_info_prepare_texter(infoptrcolors,text,(NULL))
+     return widget
+ endfunction
+ 
+ #field
+-function edit_info_prepare_blue(ss text)
+-    chars infocolors={0x70,0x70,0x90}
++function edit_info_prepare_texter_green(ss text,sd p_texter)
++    chars infocolors={0x00,0xff,0x00}
+     data infoptrcolors^infocolors
+     sd widget
+-    setcall widget edit_info_prepare(infoptrcolors,text)
++    setcall widget edit_info_prepare_texter(infoptrcolors,text,p_texter)
+     return widget
+ endfunction
+ 
+ function editinfofield_green(sd box)
+-    str x=""
+-    sd field
+-    setcall field edit_info_prepare_green(x)
+-    call packstart_default(box,field)
+-    return field
++	sd wid
++	sd field
++	setcall field edit_info_prepare_texter_green("",#wid)
++	call packstart_default(box,field)
++	return wid
+ endfunction
+ 
+ function editfield_with_int(sd int)
+@@ -411,7 +449,6 @@ function hscale_get(sd hscale)
+ endfunction
+ 
+ ##############hseparator
+-importx "_gtk_hseparator_new" gtk_hseparator_new
+ function hseparatorfield(sd box)
+     sd hsep
+     setcall hsep gtk_hseparator_new()
+@@ -941,7 +978,6 @@ importx "_gtk_progress_bar_new" gtk_prog
+ function progressfield(sd container)
+     sd wid
+     setcall wid gtk_progress_bar_new()
+-    importx "_gtk_box_pack_start" gtk_box_pack_start
+     data true=1
+     data false=0
+     call gtk_box_pack_start(container,wid,true,false,false)
+--- ovideo-1.orig/src/obj/tool.s
++++ ovideo-1/src/obj/tool.s
+@@ -5,34 +5,21 @@ format elfobj
+ include "../_include/include.h"
+ 
+ #color(base) to a widget
+-importx "_gtk_widget_modify_base" gtk_widget_modify_base
+-#void
+-function setWidgetBase(data widget,data in_colors)
+-    data guint32_pixel=0
+-    chars guint16_red={0,0}
+-    chars *guint16_green={0,0}
+-    chars *guint16_blue={0,0}
+-
+-    data GdkColor^guint32_pixel
+-
+-    data colorize^guint16_red
+-    str colorptr#1
+-    set colorptr colorize
+-
+-    inc colorptr
+-    set colorptr# in_colors#
++#importx "_gtk_widget_modify_base" gtk_widget_modify
++#importx "_gtk_widget_modify_text" gtk_widget_modify
++importx "_gtk_widget_modify_bg" gtk_widget_modify
++#importx "_gtk_widget_modify_fg" gtk_widget_modify
+ 
+-    data word=2
+-    add colorptr word
+-    inc in_colors
+-    set colorptr# in_colors#
+-
+-    add colorptr word
+-    inc in_colors
+-    set colorptr# in_colors#
+-
+-    data GTK_STATE_NORMAL=GTK_STATE_NORMAL
+-    call gtk_widget_modify_base(widget,GTK_STATE_NORMAL,GdkColor)
++#void
++function setWidgetBase(sd widget,ss in_colors)
++	data guint32_pixel=0
++	chars *=0;chars guint16_red#1
++	chars *=0;chars guint16_green#1
++	chars *=0;chars guint16_blue#1
++	set guint16_red in_colors#
++	inc in_colors;set guint16_green in_colors#
++	inc in_colors;set guint16_blue in_colors#
++	call gtk_widget_modify(widget,(GTK_STATE_NORMAL),#guint32_pixel)
+ endfunction
+ 
+ ###container preadd actions
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -76,8 +76,9 @@ function update()
+ 	endif
+ 
+ 	import "uri_queue_content" uri_queue_content
+-	ss s="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/7ec94d7de047933738bfa53ed6c2acd3521f541d/gistfile1.txt"
++	ss s="https://gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/e5ec6981087d3cd965422a472fdba34c7de1fe82/gistfile1.txt"
+ 	#ss s="http://localhost/b.php"
++
+ 	call uri_queue_content(s,update_async_callback)
+ endfunction
+ 
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.173
+\ No newline at end of file
++1.174
+\ No newline at end of file

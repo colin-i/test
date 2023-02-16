@@ -1,0 +1,356 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-186x+2) xenial; urgency=medium
+ .
+   * new ocomp rules
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-01-08
+
+--- /dev/null
++++ ovideo-1/arh/pub
+@@ -0,0 +1,5 @@
++
++~/test/debinit2 "${1}" && \
++~/test/keyring && \
++~/test/deb && \
++~/test/publp
+--- ovideo-1.orig/soundrecorder/src/soundrecorder.s
++++ ovideo-1/soundrecorder/src/soundrecorder.s
+@@ -204,6 +204,8 @@ function record_fileandsizes(sd thread_i
+ endfunction
+ 
+ function record_got_file(sd file,sd thread_id)
++#const _RIFF^riff
++const _RIFF=!
+     chars riff={R,I,F,F}
+     data riffsize#1
+ 
+@@ -224,9 +226,10 @@ function record_got_file(sd file,sd thre
+     chars datatag={d,a,t,a}
+     data datasize#1
+ 
++#const RIFF_^RIFF
++const RIFF_=!
++
+     data RIFF^riff
+-    const _RIFF^riff
+-    const RIFF_^RIFF
+     const RIFF_size=RIFF_-_RIFF
+ 
+     const _WAVEFORMATEX^wFormatTag
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -4,9 +4,9 @@ OCOMP=o
+ syms=-s
+ 
+ ifeq (${platform},win)
+-	OFLAGS = inplace_reloc 0 include_sec 1
++	OFLAGS = inplace_reloc 0 include_sec 1 ${OFLAGSEXTRA}
+ else
+-	OFLAGS = underscore_pref 1
++	OFLAGS = underscore_pref 1 ${OFLAGSEXTRA}
+ endif
+ 
+ cap = _capture/capture
+@@ -63,12 +63,10 @@ share:
+ 		echo return \"${sharefolderpackage}\" > ${lshare}; \
+ 	fi
+ 
+-#at jammy
+-#libgtk2.0-dev:i386	libgtk2.0-0:i386
+-#libjpeg8-dev:i386 is already	libjpeg8:i386 is already
+-#libgstreamer1.0-dev:i386	libgstreamer1.0-0:i386 is already
+-#	gst_implements_interface_cast	video_realize
+-#	gst_buffer_set_caps	stage_file_need_fn
++#at jammy libgtk2.0-dev:i386,libgstreamer-plugins-base1.0-dev:i386,libsoup2.4-dev:i386,libasound2-dev:i386
++
++#at bionic
++#libgtk2.0-dev:i386	libgtk2.0-0:i386 is already
+ #libgstreamer-plugins-base1.0-dev:i386	libgstreamer-plugins-base1.0-0:i386 is already
+ #	gst_app_buffer_new	stage_file_need_fn
+ #no apt-file search libgstinterfaces 0.10 in xenial
+--- ovideo-1.orig/src/_dif/dif~win.s
++++ ovideo-1/src/_dif/dif~win.s
+@@ -680,6 +680,7 @@ function sound_preview_write_buffer(sd b
+     if hwaveout#==0
+         return (void)
+     endif
++	const wvhd=!
+     data lpData#1
+     data dwBufferLength#1
+     data *dwBytesRecorded#1
+@@ -689,7 +690,7 @@ function sound_preview_write_buffer(sd b
+     data *lpNext#1
+     data *reserved#1
+     #lpData, dwBufferLength, and dwFlags members must be set
+-    const wvhd^lpData
++#    const wvhd^lpData
+     const wvhd_size=!-wvhd
+     data wavehd%wvhd
+ 
+--- ovideo-1.orig/src/_prepare/output/mkv.s
++++ ovideo-1/src/_prepare/output/mkv.s
+@@ -375,6 +375,7 @@ function mkv_info(sd file)
+         endif
+     endif
+ 
++const _SegmentUID=!
+     chars SegmentUID={0x73,0xA4}
+     chars *SegmentUID_size=0x80|16
+     data SegmentUID_value#4
+@@ -384,6 +385,7 @@ function mkv_info(sd file)
+     chars *Duration={0x44,0x89}
+     #unsigned integer
+     chars *Duration_size=0x84
++const ptr_Duration=!
+     data Duration_value#1
+     chars *DateUTC={0x44,0x61}
+     chars *DateUTC_size=0x80|8
+@@ -391,21 +393,18 @@ function mkv_info(sd file)
+     data DateUTC_value_low#1
+     chars *MuxingApp={0x4D,0x80}
+     chars MuxingApp_size#1
+-    chars MuxingApp_value={O,A,p,p,l,i,c,a,t,i,o,n,s}
+-    chars WritingApp={0x57,0x41}
++const _MuxingApp=!
++    chars *MuxingApp_value={O,A,p,p,l,i,c,a,t,i,o,n,s}
++const App=!-_MuxingApp
++    chars *WritingApp={0x57,0x41}
+     chars WritingApp_size#1
+     chars WritingApp_value={O,A,p,p,l,i,c,a,t,i,o,n,s}
+ 
+-    const _MuxingApp^MuxingApp_value
+-    const MuxingApp_^WritingApp
+-    const App=MuxingApp_-_MuxingApp
+-    const _SegmentUID^SegmentUID
+     const WritingApp_value_^WritingApp_value
+     data info_sz=WritingApp_value_-_SegmentUID+App
+     data ptr_seg^SegmentUID
+ 
+     #the muxer timecode
+-    const ptr_Duration^Duration_value
+     const Duration_offset=ptr_Duration-_SegmentUID
+     data Dur_offset=Duration_offset
+ 
+@@ -577,7 +576,8 @@ function mkv_track_entry(sd file,sd *siz
+     #no lacing used
+     chars *Name={0x53,0x6E}
+     chars *Name_size=0x85
+-    chars Name_value={V,i,d,e,o}
++const track_last_=!
++    chars *Name_value={V,i,d,e,o}
+ 
+     chars *CodecPrivate={0x63,0xA2}
+     chars *CodecPrivate_size=0x80+bitmapInfoHeader_size
+@@ -594,7 +594,6 @@ function mkv_track_entry(sd file,sd *siz
+ ##############
+ 
+     const _track^TrackNumber
+-    const track_last_^Name_value
+     const track_=track_last_+5
+     data track_data^TrackNumber
+     data track_sz_init=track_-_track
+@@ -656,6 +655,7 @@ function mkv_track_video_entry(sd file,s
+     data DisplayHeight_value#1
+     chars *FrameRate={0x23,0x83,0xE3}
+     chars *FrameRate_size=0x84
++const video_track_last_=!
+     data FrameRate_value#1
+ 
+     chars *ColourSpace={0x2E,0xB5,0x24}
+@@ -667,7 +667,6 @@ function mkv_track_video_entry(sd file,s
+     setcall io mkv_write_read_get()
+     if io==(mkv_write)
+         const _video_track^PixelWidth
+-        const video_track_last_^FrameRate_value
+         const video_track_=video_track_last_+4
+         data video_track^PixelWidth
+         data video_track_sz_init=video_track_-_video_track
+@@ -1792,6 +1791,7 @@ endfunction
+ #sound entry
+ #bool
+ function mkv_sound(sd file,sd *size,sd *filepos)
++const _audio=!
+     chars CodecID=0x86
+  chars *CodecID_size=0x80+1+1+1+1+1+1+    1+1+1+1+    1+1+1
+     chars *CodecID_value={A,_,P,C,M,Slash,I,N,T,Slash,L,I,T}
+@@ -1815,7 +1815,8 @@ function mkv_sound(sd file,sd *size,sd *
+ 
+     chars *Audio={0xE1}
+     chars Audio_size=0x80
+-    chars SamplingFrequency=0xB5
++const _audiospec=!
++    chars *SamplingFrequency=0xB5
+     chars *SamplingFrequency_size=0x84
+     data SamplingFrequency_value#1
+     chars *Channels=0x9F
+@@ -1823,13 +1824,12 @@ function mkv_sound(sd file,sd *size,sd *
+     data Channels_value#1
+     chars *BitDepth={0x62,0x64}
+     chars *BitDepth_size=0x84
++const audiospec_=!
+     data BitDepth_value#1
+ 
+     sd io
+     setcall io mkv_write_read_get()
+     if io==(mkv_write)
+-        const _audiospec^SamplingFrequency
+-        const audiospec_^BitDepth_value
+         const audiospec_@=audiospec_+4
+         const audiospec_size=audiospec_@-_audiospec
+         or Audio_size (audiospec_size)
+@@ -1848,7 +1848,6 @@ function mkv_sound(sd file,sd *size,sd *
+         setcall BitDepth_value dword_reverse(BitDepth_value)
+     endif
+ 
+-    const _audio^CodecID
+     const audio_size=audiospec_@-_audio
+     data audio^CodecID
+ 
+--- ovideo-1.orig/src/_search/dialog_fns.s
++++ ovideo-1/src/_search/dialog_fns.s
+@@ -17,47 +17,45 @@ function search_preferences_set_init()
+ 
+     #FIELDS
+     #group1
+-    DATA startlabel#1
++const search_structures=!
++    DATA *startlabel#1
+     #
+-    const search_structures^startlabel
++const search_start_entry=!
++    DATA *startentry#1
+     #
+-    DATA startentry#1
+-    #
+-    const search_start_entry^startentry
+     const search_start=search_start_entry-search_structures
+     #
+     DATA *get_uri#1
+-    DATA endentry#1
++const search_end_entry=!
++    DATA *endentry#1
+     #
+-    const search_end_entry^endentry
+     const search_end=search_end_entry-search_structures
+     #
+     DATA *endlabel#1
+     #group2
+-    DATA search_wrap_begin#1
++const search_group2=!
++    DATA *search_wrap_begin#1
+     const search_start_wrap=0
+-    const search_group2^search_wrap_begin
+     const search_fields_struct_size=search_group2-search_structures
+     DATA *#3
+-    DATA search_wrap_end#1
+-    const search_end_wrap_entry^search_wrap_end
++const search_end_wrap_entry=!
++    DATA *search_wrap_end#1
+     const search_end_wrap=search_end_wrap_entry-search_group2
+     #
+ 
+     #VARS
+     #group1
+-    DATA search_preferences_uri_start#1
+-    #
+-    const search_first_var_offset^search_preferences_uri_start
++const search_first_var_offset=!
++    DATA *search_preferences_uri_start#1
+     #
+     DATA *search_preferences_uri_end#1
+     #group2
+-    DATA search_preferences_wrap_start#1
+-    const search_group2_vars^search_preferences_wrap_start
++const search_group2_vars=!
++    DATA *search_preferences_wrap_start#1
+     const search_vars_struct_size=search_group2_vars-search_first_var_offset
+     #
+-    DATA search_preferences_wrap_end#1
+-    const search_last_var_offset^search_preferences_wrap_end
++const search_last_var_offset=!
++    DATA *search_preferences_wrap_end#1
+     const search_after_last_var_offset=search_last_var_offset+DWORD
+     const search_vars_size=search_after_last_var_offset-search_first_var_offset
+     #
+--- ovideo-1.orig/src/media/mp4.s
++++ ovideo-1/src/media/mp4.s
+@@ -46,12 +46,40 @@ import "av_dialog_run" av_dialog_run
+ import "av_dialog_close" av_dialog_close
+ import "av_dialog_stop" av_dialog_stop
+ 
++
++
++#importx "_fread" fread
++#importx "_fwrite" fwrite
++#function extragere(ss location)
++#	data extragere_off1#1
++#	const extr_1^extragere_off1
++#	data extragere_off2#1
++#	const extr_2^extragere_off2
++#	sd file
++#	call openfile(#file,location,"rb")
++#	sd mp3_file
++#	call openfile(#mp3_file,"captures/file.mp3","wb")
++#	sd mp3_sz;set mp3_sz extragere_off2;sub mp3_sz extragere_off1
++#	call file_seek_set(file,extragere_off1)
++#	sd mp3Mem;setcall mp3Mem memalloc(mp3_sz)
++#	Call fread(mp3Mem,1,mp3_sz,file)
++#	Call fwrite(mp3Mem,1,mp3_sz,mp3_file)
++#	call fclose(mp3_file)
++#	call fclose(file)
++#endfunction
++
++
++
++
+ function mp4_write()
+     call mp4_write_expand_set((mp4_write))
+     ss location
+     import "stage_get_output_container" stage_get_output_container
+     setcall location stage_get_output_container()
+     call av_dialog_run(mp4_dialog,location)
++
++#call extragere(location)
++
+ endfunction
+ #
+ function mp4_filewrite(sd file)
+@@ -1234,6 +1262,10 @@ import "file_seekSet_setDwRev_goEnd" fil
+ 
+ #bool
+ function mp4_mdat(sd file)
++
++#data off1%extr_1
++#call file_tell(file,off1)
++
+     sd bool
+     setcall bool mp4_mdat_sound(file)
+     if bool!=1
+@@ -1255,6 +1287,9 @@ function mp4_mdat(sd file)
+         return (FALSE)
+     endif
+ 
++#data off2%extr_2
++#set off2# file_pos
++
+     #
+     sd all_size_of_sample
+     sd p_all_size_of_sample^all_size_of_sample

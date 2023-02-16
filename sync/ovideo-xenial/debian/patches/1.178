@@ -1,0 +1,254 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-178) xenial; urgency=medium
+ .
+   * lots of fixes
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/_capture/capture.s
++++ ovideo-1/src/_capture/capture.s
+@@ -934,8 +934,7 @@ function capture_direct_run(sd output_fi
+     setcall rgb_rect_size rgb_get_size(width,height)
+     #draw a text
+     import "dialog_modal_texter_draw" dialog_modal_texter_draw
+-    ss text="Recording.."
+-    call dialog_modal_texter_draw(text)
++    call dialog_modal_texter_draw("Recording..")
+     #loop the screenshots
+     while 1==1
+         #take screenshot
+--- ovideo-1.orig/src/_dif/dif~lin.s
++++ ovideo-1/src/_dif/dif~lin.s
+@@ -922,4 +922,3 @@ endfunction
+ function ulltoa(sd low,sd high,sd str)
+ 	call sprintf(str,"%llu",low,high)
+ endfunction
+-
+--- ovideo-1.orig/src/_include/files/olang.h
++++ ovideo-1/src/_include/files/olang.h
+@@ -148,3 +148,5 @@ const avi_expand=1
+ #
+ 
+ #const sound_preview_buffers=32
++
++const modal_texter_mark=dword_max+dword_max
+--- ovideo-1.orig/src/_prepare/frame/imagetools.s
++++ ovideo-1/src/_prepare/frame/imagetools.s
+@@ -616,9 +616,10 @@ function stage_lines_thread_loop()
+         import "dialog_modal_texter_draw" dialog_modal_texter_draw
+         sd totalframes
+         setcall totalframes stage_get_frames()
+-        chars buf#50
+-        str buffer^buf
++        const imagetoolsbufstart=!
+         ss format="Images: %u/%u"
++        chars buf#!-imagetoolsbufstart-2-2+dword_max+dword_max
++        str buffer^buf
+         call sprintf(buffer,format,img_nr,totalframes)
+         call dialog_modal_texter_draw(buffer)
+     endwhile
+--- ovideo-1.orig/src/_prepare/output/sound.s
++++ ovideo-1/src/_prepare/output/sound.s
+@@ -247,6 +247,11 @@ function stage_sound_connect_appsink(sd
+ endfunction
+ #close the dialog when it is called
+ function stage_sound_closedialog()
++	#not in main is here
++	importx "_g_idle_add" g_idle_add
++	call g_idle_add(stage_sound_realclosedialog,(void))
++endfunction
++function stage_sound_realclosedialog()
+     sd dialog
+     setcall dialog stage_sound_dialog((value_get))
+     importx "_gtk_dialog_response" gtk_dialog_response
+@@ -704,10 +709,11 @@ function stage_sound_alloc(sd action,sd
+         setcall sec_rest rule3(bytesrest,bytespersec,(10$numbers-1))
+ 
+         #print
+-        chars datastring#dword_null+1+numbers+30
+-        str print^datastring
+-        str format="Prepared sound time: %u.%u"
+-        call sprintf(print,format,seconds,sec_rest)
++        const sountformbufstart=!
++        chars format="Prepared sound time: %u.%u"
++        chars datastring#!-sountformbufstart-2-2+modal_texter_mark
++        vstr print^datastring
++        call sprintf(print,#format,seconds,sec_rest)
+         if action==(stage_sound_alloc_printtexter_time)
+             import "dialog_modal_texter_draw" dialog_modal_texter_draw
+             call dialog_modal_texter_draw(print)
+--- ovideo-1.orig/src/media/audiovideo.s
++++ ovideo-1/src/media/audiovideo.s
+@@ -253,7 +253,7 @@ function av_dialog_run(sd forward,sd dat
+         call dialog_modal_texter_drawwidget((value_set),0)
+         #free dialog
+         importx "_gtk_widget_destroy" gtk_widget_destroy
+-        call gtk_widget_destroy(dialog)
++        call gtk_widget_destroy(dialog) #here is not saying critical at windows, but also on linux the dialog needs to be destroyed
+     endif
+ 
+     return bool
+@@ -377,19 +377,20 @@ const av_info_simple=1
+ #at write
+ function av_display_progress(sd image_nr,sd flag_simple)
+     #capture_flag and read info both goes in flag_simple
+-    chars data#100
+-    str string^data
+-    str format_stage="Processed images: %u/%u"
+-    str format_capture="Processed images: %u"
++	const procimgstrstart=!
++	chars format_stage="Processed images: %u/%u"
++	chars data#!-procimgstrstart-2-2+dword_max+dword_max
++	vstr string^data
++	chars format_capture="Processed images: %u"
+     importx "_sprintf" sprintf
+     if flag_simple==(av_info_all)
+         import "stage_get_frames" stage_get_frames
+         sd totalframes
+         setcall totalframes stage_get_frames()
+-        call sprintf(string,format_stage,image_nr,totalframes)
++        call sprintf(string,#format_stage,image_nr,totalframes)
+     else
+     #on
+-        call sprintf(string,format_capture,image_nr)
++        call sprintf(string,#format_capture,image_nr)
+     endelse
+     call dialog_modal_texter_draw(string)
+ endfunction
+--- ovideo-1.orig/src/media/mp4.s
++++ ovideo-1/src/media/mp4.s
+@@ -1572,6 +1572,11 @@ function mp4_mdat_sound(sd file)
+         sd samples=0
+         sd loop=1
+         while loop==1
++            sd stop_question
++            setcall stop_question av_dialog_stop((value_get))
++            if stop_question==1
++                return 0
++            endif
+             setcall err file_tell(file,ptr_file_pos)
+             if err!=(noerror)
+                 return 0
+@@ -1603,10 +1608,11 @@ function mp4_mdat_sound(sd file)
+             importx "_sprintf" sprintf
+             sd bytesleft
+             setcall bytesleft stage_sound_alloc_getremainingsize()
+-            chars buffer#100
+-            str buf^buffer
+-            str format="Sound Bytes Left: %u"
+-            call sprintf(buf,format,bytesleft)
++            const soundbufstart=!
++            chars format="Sound Bytes Left: %u"
++            chars buffer#!-soundbufstart-2+dword_max
++            vstr buf^buffer
++            call sprintf(buf,#format,bytesleft)
+             call dialog_modal_texter_draw(buf)
+             #
+             import "mp3_encode_test" mp3_encode_test
+--- ovideo-1.orig/src/obj/containers.s
++++ ovideo-1/src/obj/containers.s
+@@ -127,26 +127,29 @@ function dialogfield(ss title,sd modal_f
+ endfunction
+ #true to not propagate
+ function dialogfield_modal_texter_expose(sd widget)
+-    import "draw_expose_text" draw_expose_text
+-    sd txt
+-    setcall txt dialogfield_modal_texter_drawtext((value_get))
+-    call draw_expose_text(widget,txt)
+-    return (TRUE)
++	call dialogfield_modal_texter_drawtext((value_get),widget)
++	return (TRUE)
+ endfunction
+-const modal_texter_draw_data_size=100
+ import "cpymem" cpymem
+ import "slen" slen
++#const modal_texter_draw_data_size=100
+ function dialogfield_modal_texter_drawtext(sd procedure,sd text)
+-    chars text_data#modal_texter_draw_data_size
+-    str strtext^text_data
+-    if procedure==(value_set)
+-        sd len
+-        setcall len slen(text)
+-        inc len
+-        call cpymem(strtext,text,len)
+-    else
+-        return strtext
+-    endelse
++	chars text_data#22+modal_texter_mark+1
++	vstr strtext^text_data
++	if procedure==(value_set)
++	#this is not main thread
++		sd len
++		setcall len slen(text)
++		inc len
++		call cpymem(strtext,text,len)
++	elseif procedure==(value_get)
++	#this is main thread
++		import "draw_expose_text" draw_expose_text
++		call draw_expose_text(text,strtext)
++	else
++	#value_unset
++		set strtext# 0
++	endelse
+ endfunction
+ #
+ const modal_texter_parentdialog_width=500
+@@ -159,11 +162,10 @@ function dialogfield_modal_texter_init(s
+     import "connect_signal" connect_signal
+     sd draw
+     setcall draw drawfield(vbox)
+-    ss txt
+-    setcall txt dialogfield_modal_texter_drawtext((value_get))
+-    #it's not ok to access at the same time txt[modal_texter_draw_data_size] by threads but it's no problem
+-    import "setmemzero" setmemzero
+-    call setmemzero(txt,(modal_texter_draw_data_size))
++    call dialogfield_modal_texter_drawtext((value_unset))
++    #old remark: it's not ok to access at the same time txt[modal_texter_draw_data_size] by threads but it's no problem
++    #import "setmemzero" setmemzero
++    #call setmemzero(txt,(modal_texter_draw_data_size))
+     call dialog_modal_texter_drawwidget((value_set),draw)
+     #
+     str expose="expose-event"
+--- ovideo-1.orig/src/obj/images.s
++++ ovideo-1/src/obj/images.s
+@@ -680,8 +680,14 @@ function draw_expose_text(sd widget,ss t
+     sd cairo_double_high
+     sd p_cairo_double^cairo_double_low
+ 
++	importx "_cairo_set_source_rgb" cairo_set_source_rgb
++
++	#set white, double 1
++	call cairo_set_source_rgb(cairo,0,0x3fF00000,0,0x3fF00000,0,0x3fF00000)
++	importx "_cairo_paint" cairo_paint
++	call cairo_paint(cairo)
++
+     #set a black source
+-    importx "_cairo_set_source_rgb" cairo_set_source_rgb
+     call cairo_set_source_rgb(cairo,0,0,0,0,0,0)
+ 
+     #set text size
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.177
+\ No newline at end of file
++1.178
+\ No newline at end of file

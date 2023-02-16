@@ -1,0 +1,43 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-177) xenial; urgency=medium
+ .
+   * version check
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -76,7 +76,7 @@ function update()
+ 	endif
+ 
+ 	import "uri_queue_content" uri_queue_content
+-	ss s="https://gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/9d451cb4061e2e07dd61f4d9409c1dbfcd165669/gistfile1.txt"
++	ss s="https://gist.github.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw"
+ 	#ss s="http://localhost/b.php"
+ 
+ 	call uri_queue_content(s,update_async_callback)
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.175
+\ No newline at end of file
++1.177
+\ No newline at end of file
