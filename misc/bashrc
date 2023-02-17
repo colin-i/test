@@ -2,10 +2,14 @@
 if [ -z "${choose_term_profile}" ]; then
 	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 	#	${SSH_CONNECTION} , ${SSH_CLIENT}
-		if [ -z "`php -f /home/bc/test/misc/is_day.php`" ]; then
-			choose_term_profile=1 gnome-terminal --tab-with-profile=alb && exit
+		nexttime=`php -f /home/bc/test/misc/is_day.php`
+		if [ "${nexttime:0:1}" = "-" ]; then
+			choose_term_profile=${nexttime:1} gnome-terminal --tab-with-profile=alb && exit
 		fi
+		echo ${nexttime}
 	fi
+else
+	echo ${choose_term_profile}
 fi
 
 uname -a

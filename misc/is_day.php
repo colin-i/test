@@ -8,5 +8,13 @@ if($argc==2){
 		echo "$key: " . date("H:i:s", $val) . "\n";
 	}
 }
-if($a['sunrise']<=$t && $t<=$a['sunset'])echo "1";
+if($a['sunrise']<=$t && $t<=$a['sunset']){
+	$remaining=$a['sunset']-$t;
+}else{
+	$remaining=$t-$a['sunrise'];
+	if($a['sunset']<$t){
+		$remaining=-(3600*24-$remaining);
+	}
+}
+echo (int)($remaining/60);
 ?>
