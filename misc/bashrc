@@ -1,3 +1,13 @@
+
+if [ -z "${choose_term_profile}" ]; then
+	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
+	#	${SSH_CONNECTION} , ${SSH_CLIENT}
+		if [ -z "`php -f /home/bc/test/misc/is_day.php`" ]; then
+			choose_term_profile=1 gnome-terminal --tab-with-profile=alb && exit
+		fi
+	fi
+fi
+
 uname -a
 if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
 
