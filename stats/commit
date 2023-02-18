@@ -1,6 +1,6 @@
 
 #1 year  2 month
 
-git add ${1}/${2} && \
+git add -f ${1}/${2} && \
 cd ../sync && \
 ./commit stats
