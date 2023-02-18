@@ -5,4 +5,4 @@
 ./gx ${1}/${2} && \
 git commit -a && \
 ~/test/push test && \
-./commit
+./commit ${1} ${2}
