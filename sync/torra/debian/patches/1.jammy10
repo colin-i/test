@@ -1,0 +1,379 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ torra (1-jammy10) jammy; urgency=medium
+ .
+   * list_peers, seeds, leeches, next announce, last upload
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-18
+
+--- /dev/null
++++ torra-1/.github/FUNDING.yml
+@@ -0,0 +1,13 @@
++# These are supported funding model platforms
++
++github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
++patreon: # Replace with a single Patreon username
++open_collective: # Replace with a single Open Collective username
++ko_fi: # Replace with a single Ko-fi username
++tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
++community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
++liberapay: costin
++issuehunt: # Replace with a single IssueHunt username
++otechie: # Replace with a single Otechie username
++lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
++custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+--- torra-1.orig/.github/workflows/appimage.yml
++++ torra-1/.github/workflows/appimage.yml
+@@ -21,7 +21,11 @@ jobs:
+       archfile=${file}${arch_ai}
+       kitpart () {
+        #https://github.com/AppImage/pkg2appimage
+-       urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       #in searching for fuse3, was latest
++       #this is not today urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/continuous -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       #this is at o urlpart=AppImage/AppImageKit/releases/latest/download/${archfile}
++       #this is from a browser, not tested at this comment
++       urlpart=AppImage/AppImageKit/releases/download/continuous/${archfile}
+       }
+       if [ ! -e "${file}" ]; then
+        kitpart
+@@ -89,6 +93,25 @@ jobs:
+       EOF
+        ln -s ${pngfile} .DirIcon
+       fi
++      #launcher
++      sname=tora
++      if [ ! -e "usr/bin/${sname}" ]; then
++       echo launcher
++       cd usr/bin
++       mv ${name} ${sname}
++       #PYTHONHOME is also set by AppRun wrong
++       cat > ${name} <<EOF
++      #!/bin/bash
++      cd "\$(dirname "\$0")"
++      cd ../
++      unset PYTHONHOME
++      LD_LIBRARY_PATH="\$(pwd)/lib/x86_64-linux-gnu" \
++       PYTHONPATH="\$(pwd)/lib/python3/dist-packages" \
++       python3 bin/${sname}
++      EOF
++       chmod 755 ${name}
++       cd ../../
++      fi
+       #metadata file
+       mi=usr/share/metainfo
+       mif=${mi}/com.colin.${name}.appdata.xml
+--- /dev/null
++++ torra-1/.github/workflows/del.yml
+@@ -0,0 +1,20 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ del:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Remove asset
++     uses: mknejp/delete-release-assets@v1
++     env:
++     with:
++      token: ${{ secrets.PAT }}
++      tag: refs/tags/${{ env.tag }}
++      assets: ${{ env.file }}
+--- /dev/null
++++ torra-1/.github/workflows/delrel.yml
+@@ -0,0 +1,15 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   tag:
++    description: "project version"
++
++jobs:
++ delrel:
++   runs-on: ubuntu-latest
++   steps:
++    - uses: cb80/delrel@latest
++      with:
++       tag: ${{ github.event.inputs.tag }}
++       token: ${{ secrets.PAT }}
+--- torra-1.orig/.github/workflows/rpm.yml
++++ torra-1/.github/workflows/rpm.yml
+@@ -29,7 +29,7 @@ jobs:
+       sudo apt install alien
+       sudo alien -rk ../${name}.deb
+       fname=`ls`
+-      mv ${fname} ../${fnamefinal}
++      mv ${fname} ../${fname}
+       echo "file=${fname}" >> $GITHUB_ENV
+    - name: artifact
+      uses: actions/upload-artifact@v3
+--- /dev/null
++++ torra-1/.github/workflows/upapp.yml
+@@ -0,0 +1,40 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ uabuild:
++  runs-on: ubuntu-latest
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++      #get appimage artifact
++      id=$(gh run list --workflow=appimage.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
++      repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
++      #
++      url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
++      url=${url:1:-1}
++      echo ${url}
++      curl -L -H "Authorization: token ${{ secrets.PAT }}" ${url} --output a.zip
++      #to env
++      unzip ./a.zip
++      echo "file=${name}.AppImage" >> $GITHUB_ENV
++      echo "fullfile=${name}.amd64.AppImage" >> $GITHUB_ENV
++     env:
++      #for gh
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.fullfile }}
++      asset_content_type: application/x-executable
+--- torra-1.orig/README.md
++++ torra-1/README.md
+@@ -11,6 +11,8 @@ Install:
+ sudo apt-get install torra
+ ```
+ \
++On linux distributions, <i>.AppImage</i> file from [releases](https://github.com/colin-i/tora/releases).
++\
+ On Fedora, <i>.rpm</i> file from [releases](https://github.com/colin-i/tora/releases).
+ ```sh
+ yum install torra-*.*.rpm
+--- /dev/null
++++ torra-1/a
+@@ -0,0 +1,8 @@
++
++if [ -z "$1" ]; then
++z="python"
++else
++z=${1}
++fi
++
++${z} -m torra.main
+--- /dev/null
++++ torra-1/arh/pub
+@@ -0,0 +1,25 @@
++
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | jq .tag_name -r) && \
++~/test/debinit "${1}" && \
++~/test/pub deb && \
++~/test/keyring2 && \
++~/test/deb && \
++~/test/publp && \
++~/test/ai && \
++~/test/rpm && \
++~/test/pub appimage rpm && \
++~/test/rerpm && \
++~/test/del && \
++~/test/rel && \
++~/test/pub rel && \
++~/test/upapp && \
++~/test/uprpm && \
++~/test/pub upapp && \
++~/test/pub2 && \
++~/test/publp2 && \
++~/test/lp && \
++~/test/lp x && \
++~/test/keyring && \
++~/test/del x ${last} && \
++~/test/arh2 ${last} && \
++~/test/pypi
+--- /dev/null
++++ torra-1/arh/re
+@@ -0,0 +1,16 @@
++
++ver=`cat ${1}/v2`
++
++#this is warning is absolute
++#ln -s /usr/lib/python3/dist-packages/torra-${ver}.egg-info ./usr/lib64/python3.10/site-packages/torra-${ver}.egg-info && \
++#ln -s /usr/lib/python3/dist-packages/torra ./usr/lib64/python3.10/site-packages/torra && \
++#%%{buildroot}  there is an example without http://rpm.rutgers.edu/guide.html   the solution can be: it is a mount, then ln -s
++
++#sudo sed is still permission
++
++mkdir -p ./usr/lib64/python3.10/site-packages && \
++sed '/^Requires.*\/python3.*$/a Requires:      python3-appdirs\nRequires:      rb_libtorrent-python3\nRequires:      libgtk-4.so.1' text > text2 && \
++sed "/^%doc.*copyright.*$/a %ghost \"/usr/lib64/python3.10/site-packages/torra-${ver}.egg-info\"\n%ghost \"/usr/lib64/python3.10/site-packages/torra\"" text2 > text3 && \
++printf "\n%%post\nln -s /usr/lib/python3/dist-packages/torra-${ver}.egg-info /usr/lib64/python3.10/site-packages/torra-${ver}.egg-info\nln -s /usr/lib/python3/dist-packages/torra /usr/lib64/python3.10/site-packages/torra\n" >> text3 && \
++rm text2 && \
++sudo mv text3 text
+--- torra-1.orig/arh/re2
++++ /dev/null
+@@ -1,15 +0,0 @@
+-
+-
+-#this is warning is absolute
+-#ln -s /usr/lib/python3/dist-packages/torra-1.0.26.egg-info ./usr/lib64/python3.10/site-packages/torra-1.0.26.egg-info && \
+-#ln -s /usr/lib/python3/dist-packages/torra ./usr/lib64/python3.10/site-packages/torra && \
+-#%%{buildroot}  there is an example without http://rpm.rutgers.edu/guide.html   the solution can be: it is a mount, then ln -s
+-
+-#sudo sed is still permission
+-
+-mkdir -p ./usr/lib64/python3.10/site-packages && \
+-sed '/^Requires.*\/python3.*$/a Requires:      python3-appdirs\nRequires:      rb_libtorrent-python3\nRequires:      libgtk-4.so.1' text > text2 && \
+-sed '/^%doc.*copyright.*$/a %ghost "/usr/lib64/python3.10/site-packages/torra-1.0.26.egg-info"\n%ghost "/usr/lib64/python3.10/site-packages/torra"' text2 > text3 && \
+-printf "\n%%post\nln -s /usr/lib/python3/dist-packages/torra-1.0.26.egg-info /usr/lib64/python3.10/site-packages/torra-1.0.26.egg-info\nln -s /usr/lib/python3/dist-packages/torra /usr/lib64/python3.10/site-packages/torra" >> text3 && \
+-rm text2 && \
+-sudo mv text3 text
+--- /dev/null
++++ torra-1/b
+@@ -0,0 +1,2 @@
++
++./a pdb
+--- /dev/null
++++ torra-1/c
+@@ -0,0 +1,8 @@
++
++if [ -z "$1" ]; then
++z=./a
++else
++z=./b
++fi
++
++GTK_DEBUG=all ${z}
+--- torra-1.orig/setup.py
++++ torra-1/setup.py
+@@ -1,6 +1,7 @@
+ #setuptools.setup is looking at one argv parameter; to "build" and "install":
+ #python3 setup.py install
+ 
++#python-libtorrent-bin is at extra require now, but, if was at install requires:
+ #ok, package python-libtorrent-bin is old. install with pip install --no-deps but add somehow appdirs
+ #                                          and python-libtorrent on ubuntu
+ #                                          if it's not old python-libtorrent at pip:
+@@ -13,10 +14,11 @@ import pathlib
+ HERE = pathlib.Path(__file__).parent
+ #here README is ok, else will be README.md not found for pypi
+ README = (HERE / "README.md").read_text()
++ver=(HERE / "v2").read_text()
+ 
+ from setuptools import setup
+ setup(name=pkname,
+-	version='1.0.30',
++	version=ver,
+ 	packages=[pkname],
+ 	#opt
+ 	python_requires='>=3',
+--- torra-1.orig/torra/stats.py
++++ torra-1/torra/stats.py
+@@ -12,12 +12,32 @@ class COLUMNS(IntEnum):
+ 	num_peers=3
+ 	state=4
+ 	N=5
++class COLUMNS2(IntEnum):
++	list_peers=0
++	num_complete=1
++	num_incomplete=2
++	next_announce=3
++	last_upload=4
++	N=5
++
++#this is violation
++#arr =  [24,64]
++#arr_c = (gtk.c_int * 2)(*arr)
++#k.gtk_list_store_newv.argtypes = [gtk.c_int, gtk.POINTER(gtk.c_int)]
++#list=k.gtk_list_store_newv(gtk.c_int(2),arr_c)
++
++#k.gtk_list_store_new is limited to 5 (five) entries, at six is violation
+ 
+ list=k.gtk_list_store_new(COLUMNS.N, gtk.G_TYPE_INT, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING)
+ i=gtk.GtkTreeIter()
+ ip=gtk.byref(i)
+ k.gtk_list_store_append(list,ip)
+ 
++list2=k.gtk_list_store_new(COLUMNS2.N, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING, gtk.G_TYPE_STRING)
++i2=gtk.GtkTreeIter()
++ip2=gtk.byref(i2)
++k.gtk_list_store_append(list2,ip2)
++
+ def ini(box):
+ 	tree=k.gtk_tree_view_new_with_model(list)
+ 	k.g_object_unref(list)
+@@ -37,6 +57,25 @@ def ini(box):
+ 	column = k.gtk_tree_view_column_new_with_attributes(b"State", renderer, b"text", COLUMNS.state, None)
+ 	k.gtk_tree_view_append_column(tree, column)
+ 	k.gtk_box_append(box,tree)
++	#
++	tree2=k.gtk_tree_view_new_with_model(list2)
++	k.g_object_unref(list2)
++	renderer = k.gtk_cell_renderer_text_new()
++	column = k.gtk_tree_view_column_new_with_attributes(b"Peers list", renderer, b"text", COLUMNS2.list_peers, None)
++	k.gtk_tree_view_append_column(tree2, column)
++	renderer = k.gtk_cell_renderer_text_new()
++	column = k.gtk_tree_view_column_new_with_attributes(b"Seeds", renderer, b"text", COLUMNS2.num_complete, None)
++	k.gtk_tree_view_append_column(tree2, column)
++	renderer = k.gtk_cell_renderer_text_new()
++	column = k.gtk_tree_view_column_new_with_attributes(b"Leeches", renderer, b"text", COLUMNS2.num_incomplete, None)
++	k.gtk_tree_view_append_column(tree2, column)
++	renderer = k.gtk_cell_renderer_text_new()
++	column = k.gtk_tree_view_column_new_with_attributes(b"Next Announce", renderer, b"text", COLUMNS2.next_announce, None)
++	k.gtk_tree_view_append_column(tree2, column)
++	renderer = k.gtk_cell_renderer_text_new()
++	column = k.gtk_tree_view_column_new_with_attributes(b"Last Upload", renderer, b"text", COLUMNS2.last_upload, None)
++	k.gtk_tree_view_append_column(tree2, column)
++	k.gtk_box_append(box,tree2)
+ 
+ def show(h):
+ 	s = h.status()
+@@ -61,3 +100,9 @@ def show(h):
+ 			COLUMNS.upload_rate, str(s.upload_rate / 1000).encode(),
+ 			COLUMNS.num_peers, str(s.num_peers).encode(),
+ 			COLUMNS.state, torrent.state_str[s.state])
++	gtk.gtk_list_store_set5(list2, ip2,
++		COLUMNS2.list_peers, str(s.list_peers).encode(),
++		COLUMNS2.num_complete, str(s.num_complete).encode(),
++		COLUMNS2.num_incomplete, str(s.num_incomplete).encode(),
++		COLUMNS2.next_announce, str(s.next_announce).encode(),
++		COLUMNS2.last_upload, str(s.last_upload).encode())
+--- /dev/null
++++ torra-1/v2
+@@ -0,0 +1 @@
++1.0.31
+\ No newline at end of file
