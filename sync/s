@@ -26,7 +26,4 @@ cd ${to} && \
 git add .pc && \
 git add ${patches} && \
 cd ${base} && \
-cc a.c -lyuarel && \
-git commit --author="sync <costin.b.84@gmail.com>" -am "sync" && \
-~/test/push $(./a.out $(git config --get remote.origin.url)) 2 && \
-rm a.out
+./commit sync

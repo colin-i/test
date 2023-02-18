@@ -97,15 +97,17 @@ if [ "${more_data}" != "" ]; then
 	else
 		cd ${y}/$((m-1))
 	fi
-	mkdir arh
-	if [ "$?" = "0" ]; then
+	#mkdir arh
+	#if [ "$?" = "0" ]; then
+	if ! [ -f "arh" ]; then
+		touch arh
 		#to allow message modifications without concat
-		cd arh
-		cp ${start}h .
-		cp ${start}h2 .
-		cp ${start}h3 .
-		cp ${start}h4 .
-		cd ..
+		#cd arh
+		#cp ${start}h .
+		#cp ${start}h2 .
+		#cp ${start}h3 .
+		#cp ${start}h4 .
+		#cd ..
 		git add arh
 		cd ${start}
 		./concat ${y}/${m}

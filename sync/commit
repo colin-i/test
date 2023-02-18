@@ -1,0 +1,9 @@
+
+#1 name
+
+n=${1}
+
+cc a.c -lyuarel && \
+git commit --author="${n} <costin.b.84@gmail.com>" -am "${n}" && \
+~/test/push $(./a.out $(git config --get remote.origin.url)) 2 && \
+rm a.out
