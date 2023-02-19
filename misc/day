@@ -1,0 +1,15 @@
+
+to=$(dirname $(pwd))
+
+cd ${to}
+
+nexttime=`php -f ./is_day.php`
+if [ "${nexttime:0:1}" = "-" ]; then
+	if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
+		sudo ydotool key shift+F10; sleep 1; sudo ydotool key r; sleep 1; sudo ydotool key 1
+	fi
+else
+	if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
+		sudo ydotool key shift+F10; sleep 1; sudo ydotool key r; sleep 1; sudo ydotool key 2
+	fi
+fi
