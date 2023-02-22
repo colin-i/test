@@ -56,7 +56,7 @@ if [ "$m" != "$t" ]; then
 fi
 
 if [ "${z}" != "" ]; then
-	echo merge ${z} ? y ?
+	echo merge ${z} \? y \?
 
 	read -n1 -t $((60*60*24)) ans
 
