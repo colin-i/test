@@ -1,5 +1,5 @@
 
-#optional 1,2 year,month
+#in case is month:  1 year  2 month
 
 from=`cat prevdate`
 to=`cat date`
@@ -112,8 +112,10 @@ if [ "${more_data}" != "" ]; then
 		cd ${start}
 		./concat ${y}/${m}
 	else
+		echo no concat
 		cd ${start}
 	fi
+
 	./gh .
 	echo >>${out}
 	echo >>${out}

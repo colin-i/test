@@ -2,7 +2,7 @@
 #1 year  2 month
 
 ./d ${1} ${2} && \
-./gx ${1}/${2} && \
+./gx ${1} ${2} && \
 git commit -a && \
 ~/test/push test && \
 ./commit ${1} ${2}
