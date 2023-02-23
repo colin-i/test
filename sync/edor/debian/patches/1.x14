@@ -1,0 +1,172 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x14) focal; urgency=medium
+ .
+   * insensitive search
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-23
+
+--- edor-1.orig/arh/pub
++++ edor-1/arh/pub
+@@ -1,7 +1,6 @@
+ 
+ last=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | jq .tag_name -r) && \
+ ~/test/debinit "${1}" && \
+-~/test/sync/s && \
+ ~/test/pub deb && \
+ ~/test/keyring2 && \
+ ~/test/deb && \
+--- /dev/null
++++ edor-1/clean
+@@ -0,0 +1,2 @@
++
++git clean -xdf -e .pc/ -e debian/patches/
+--- edor-1.orig/s/bar.c
++++ edor-1/s/bar.c
+@@ -51,6 +51,8 @@
+ 
+ #define err_len_min 2
+ 
++bool insensitive=false;
++
+ static int err_l=0;
+ static char*err_s;
+ #define b_inf_s "F1 for help"
+@@ -255,15 +257,30 @@ static int del(int x,char*input,int curs
+ 	}else if(f==cursor)addch(' ');
+ 	return cursor;
+ }
++
++#define AZ_to_az 'a'-'A'
++static bool charcompare(char a,char b){
++	if(a!=b){
++		if(insensitive==true){
++			if((a<='Z')&&(b>='a')){
++				if((a+AZ_to_az)==b)return true;
++			}else if((b<='Z')&&(a>='a')){
++				if((b+AZ_to_az)==a)return true;
++			}
++		}
++	}else return true;
++	return false;
++}
++
+ static int inputcmp(char*S1,size_t L1,size_t l2){
+ 	if(l2>L1)return -1;
+ 	size_t n=L1-l2;
+ 	size_t i=0;
+ 	while(i<=n){
+-		if(S1[i]==inputf[0]){
++		if(charcompare(S1[i],inputf[0])/*true*/){
+ 			size_t j=1;
+ 			for(;j<l2;j++){
+-				if(S1[i+j]!=inputf[j])break;
++				if(charcompare(S1[i+j],inputf[j])==false)break;
+ 			}
+ 			if(j==l2)return(int)i;
+ 			i+=j;
+@@ -305,12 +322,12 @@ static int inputrcmp(char*S1,size_t L1,s
+ 	size_t i=L1;
+ 	while(l2<=i){
+ 		i--;
+-		if(S1[i]==inputf[m]){
++		if(charcompare(S1[i],inputf[m])/*true*/){
+ 			size_t j=m;
+ 			size_t p=i-j;
+ 			while(j>0){
+ 				j--;
+-				if(S1[p+j]!=inputf[j]){
++				if(charcompare(S1[p+j],inputf[j])==false){
+ 					j++;
+ 					break;
+ 				}
+--- edor-1.orig/s/base.h
++++ edor-1/s/base.h
+@@ -53,5 +53,6 @@ extern size_t rows_tot;
+ extern size_t ytext;
+ extern size_t xtext;
+ extern bool mod_flag;
++extern bool insensitive;
+ 
+ #define centering(w,rw,cl) centering2(w,rw,cl,false)
+--- edor-1.orig/s/main.c
++++ edor-1/s/main.c
+@@ -155,6 +155,7 @@ static bool indent_flag=true;
+ #define mask_size 1
+ #define mask_mouse 1
+ #define mask_indent 2
++#define mask_insensitive 4
+ static char prefs_file[max_path_0]={'\0'};//only the first byte is set
+ 
+ #define hel1 "USAGE\n"
+@@ -187,7 +188,8 @@ static char prefs_file[max_path_0]={'\0'
+ \nCtrl+r = redo\
+ \nCtrl+e = disable/enable internal mouse/touch\
+ \nCtrl+n = disable/enable indentation\
+-\nCtrl+q = quit"//31
++\nCtrl+t = enable/disable insensitive search\
++\nCtrl+q = quit"//32
+ static bool visual_bool=false;
+ static char*cutbuf=nullptr;
+ static size_t cutbuf_sz=0;
+@@ -1788,7 +1790,7 @@ static void setprefs(int flag,bool set){
+ 			char mask;
+ 			if(read(f,&mask,mask_size)==mask_size){
+ 				close(f);
+-				if(set)mask|=flag;
++				if(set/*true*/)mask|=flag;
+ 				else mask&=~flag;
+ 				f=open(prefs_file,O_WRONLY);
+ 				if(f!=-1){
+@@ -1908,6 +1910,18 @@ static bool loopin(WINDOW*w){
+ 				if(indent_flag/*true*/)indent_flag=false;else indent_flag=true;
+ 				setprefs(mask_indent,indent_flag);
+ 			}
++			else if(strcmp(s,"^T")==0){
++				if(insensitive/*true*/){
++					insensitive=false;
++					visual('t');
++				}else{
++					insensitive=true;
++					visual('T');
++				}
++				//doupdate();will change cursor
++				wmove(w,getcury(w),getcurx(w));
++				setprefs(mask_insensitive,insensitive);
++			}
+ 			else type(c,w);
+ 			//continue;
+ 		}
+@@ -2078,13 +2092,14 @@ static void getprefs(){
+ 		if(read(f,&mask,mask_size)==mask_size){
+ 			if((mask&mask_mouse)==0)stored_mouse_mask=mousemask(0,nullptr);
+ 			if((mask&mask_indent)==0)indent_flag=false;
++			if((mask&mask_insensitive)!=0)insensitive=true;
+ 		}
+ 		close(f);
+ 		return;
+ 	}
+ 	f=open_new(prefs_file);
+ 	if(f!=-1){
+-		mask=mask_mouse|mask_indent;
++		mask=mask_mouse|mask_indent/*|mask_insensitive*/;
+ 		#pragma GCC diagnostic push
+ 		#pragma GCC diagnostic ignored "-Wunused-result"
+ 		write(f,&mask,mask_size);
