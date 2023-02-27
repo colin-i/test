@@ -1,0 +1,74 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+73) xenial; urgency=medium
+ .
+   * signed >>
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-27
+
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -307,7 +307,7 @@
+ 	<br>
+ 	<table class="code">
+ 	<tr><td>const a=1</td></tr>
+-	<tr><td>#</td>                <td>add</td> <td>sub</td> <td>mul</td> <td>div</td>   <td>rem</td>   <td>pow</td> <td>and</td> <td>or</td>  <td>xor</td> <td>shl</td> <td>shr</td> <td>less</td><td>greater</td><td>neg</td><td>not</td></tr>
++	<tr><td>#</td>                <td>add</td> <td>sub</td> <td>mul</td> <td>div</td>   <td>rem</td>   <td>pow</td> <td>and</td> <td>or</td>  <td>xor</td> <td>shl</td> <td>sar</td> <td>less</td><td>greater</td><td>neg</td><td>not</td></tr>
+ 	<tr><td>chars *examples={</td><td>3+2,</td><td>6-4.</td><td>5*5,</td><td>32/10,</td><td>32/10,</td><td>3$2,</td><td>7&2,</td><td>5|2,</td><td>7^2,</td><td>2<2,</td><td>8>3,</td><td>2<3,</td><td>2>3,</td>   <td>-a</td> <td>~0}</td></tr>
+ 	<tr><td>#</td>                <td>5</td>   <td>2</td>   <td>25</td>  <td>3</td>     <td>2</td>     <td>9</td>   <td>2</td>   <td>7</td>   <td>5</td>   <td>8</td>   <td>1</td>   <td>1</td>   <td>0</td>      <td>-1</td> <td>0xff</td></tr>
+ 	</table>
+--- ocompiler-1.orig/src/files/functions/values/operations.s
++++ ocompiler-1/src/files/functions/values/operations.s
+@@ -12,7 +12,7 @@ Const remNumber=asciipercent
+ Const lessNumber=asciiless
+ Const greaterNumber=asciigreater
+ Const shlNumber=asciicomma
+-Const shrNumber=asciidot
++Const sarNumber=asciidot
+ #asciiminus and asciinot for one arg
+ 
+ #err
+@@ -43,7 +43,7 @@ function shift_right(sd a,sd n)
+ 	If err!=(noerror);return err;endif
+ 	while n>0
+ 		dec n
+-		shr a#
++		sar a#
+ 	endwhile
+ 	return (noerror)
+ endfunction
+@@ -139,7 +139,7 @@ function operation_core(sd inoutvalue,sd
+ 			SetCall errptr shift_left(#currentitem,newitem)
+ 		endelse
+ 		If errptr!=(noerror);return errptr;endif
+-	ElseIf number==(shrNumber)
++	ElseIf number==(sarNumber)
+ 		if newitem<0
+ 			neg newitem
+ 			SetCall errptr shift_left(#currentitem,newitem)
+@@ -307,7 +307,7 @@ function doubleoperation(ss pnr,sv pcont
+ 	endif
+ 	if content#==(greaterNumber)
+ 		if nr==(greaterNumber)
+-			set pnr# (shrNumber)
++			set pnr# (sarNumber)
+ 			inc pcontent#
+ 		endif
+ 	endif
