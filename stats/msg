@@ -71,7 +71,7 @@ echo "I made $(echo -n ${commits}) commits.">>${out}
 echo -n "The number of rows was">>${out}
 echo -n " increased by">>${out}
 echo " ${total} (${totalplus} added, ${totalminus} removed).">>${out}
-echo "The top 3 projects by the number of rows:">>${out}
+echo "Projects' top 3:">>${out}
 n="${#data[@]}"
 i=1
 for var in "${data[@]}"
@@ -80,10 +80,10 @@ do
 	if [ ${n} != ${i} ]; then
 		#at the moment, tabs are displaying in tweet editor but not on the final tweet, and are counted in tweet editor
 		#echo -e "\t"
-		echo "  ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+		echo " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
 		i=$((i+1))
 	else
-		echo -n "  ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+		echo -n " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
 	fi
 done
 
@@ -108,7 +108,7 @@ if [ "${more_data}" != "" ]; then
 		#cp ${start}h3 .
 		#cp ${start}h4 .
 		#cd ..
-		git add arh
+		#add at commit time git add arh
 		cd ${start}
 		./concat ${y}/${m}
 	else
@@ -119,7 +119,7 @@ if [ "${more_data}" != "" ]; then
 	./gh .
 	echo >>${out}
 	echo >>${out}
-	echo -n "All time: `cat hh2` commits, `cat hh5` rows, `cat hh3` added, `cat hh4` removed.">>${out}
+	echo -n "All time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
 fi
 
 cat ${out}

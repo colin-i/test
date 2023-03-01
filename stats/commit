@@ -1,6 +1,17 @@
 
 #1 year  2 month
 
+y=${1}
+m=${2}
+
+if [ "${m}" = "1" ]; then
+	y=$((y-1))
+	m=12
+else
+	m=$((m-1))
+fi
+
+git add -f ${y}/${m}/arh
 git add -f ${1}/${2} && \
 cd ../sync && \
 ./commit stats

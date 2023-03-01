@@ -1,0 +1,6 @@
+
+#1 year  2 month
+
+git commit -a && \
+~/test/push test && \
+./commit ${1} ${2}
