@@ -11,7 +11,6 @@ else
 	m=$((m-1))
 fi
 
-git add -f ${y}/${m}/arh
+git add -f ${y}/${m}/arh && \
 git add -f ${1}/${2} && \
-cd ../sync && \
-./commit stats
+../sync/commit stats

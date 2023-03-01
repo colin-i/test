@@ -3,7 +3,10 @@
 
 n=${1}
 
-cc a.c -lyuarel && \
+a=`dirname ${0}`/
+f=${a}a.out
+
+cc ${a}a.c -lyuarel -o ${f} && \
 git commit --author="${n} <costin.b.84@gmail.com>" -am "${n}" && \
-~/test/push $(./a.out $(git config --get remote.origin.url)) 2 && \
-rm a.out
+~/test/push $(${f} $(git config --get remote.origin.url)) 2 && \
+rm ${f}
