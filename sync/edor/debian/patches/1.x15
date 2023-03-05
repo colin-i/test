@@ -1,0 +1,47 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x15) focal; urgency=medium
+ .
+   * fix undo replace insensitive
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-05
+
+--- edor-1.orig/arh/pub
++++ edor-1/arh/pub
+@@ -1,5 +1,6 @@
+ 
+-last=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | jq .tag_name -r) && \
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | jq .tag_name -r) \
++&& echo ${last} && \
+ ~/test/debinit "${1}" && \
+ ~/test/pub deb && \
+ ~/test/keyring2 && \
+--- edor-1.orig/s/bar.c
++++ edor-1/s/bar.c
+@@ -607,7 +607,8 @@ static bool undo_add_replace(size_t curs
+ 			un->ye=un->yb;un->xe=cursorr;
+ 			un->data=d;
+ 			d[0]=ln_term[0];((size_t*)((void*)&d[1]))[0]=cursor;
+-			memcpy(&d[1]+sizeof(cursor),inputf,cursor);
++			//memcpy(&d[1]+sizeof(cursor),inputf,cursor);inputf can be insensitive
++			memcpy(&d[1]+sizeof(cursor),&rows[ytext].data[xtext],cursor);
+ 			undo_ok();return false;}}
+ 	return true;
+ }
