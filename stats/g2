@@ -121,7 +121,8 @@ while [ "${nr}" -gt 0 ]; do
 				fi
 			fi
 		fi
-		#there is also 1 in 1 at test from github actions May 19, 2022
+		#there is also 1 from github-actions at test on May 19, 2022
+		#recognized bots: bot, sync, stats, state
 
 		changesets=$((changesets+1))
 		additions=$((additions+adds))
