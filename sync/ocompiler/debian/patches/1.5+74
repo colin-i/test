@@ -1,0 +1,1975 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+74) xenial; urgency=medium
+ .
+   * multiline comment and debug minimum
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-08
+
+--- ocompiler-1.orig/.ocompiler.txt
++++ ocompiler-1/.ocompiler.txt
+@@ -81,4 +81,8 @@ call_align=1
+ 
+ 20. Virtual data to a SHT_NOBITS at object
+ 0 is No; 1 is Yes
+-nobits_virtual=1
+\ No newline at end of file
++nobits_virtual=1
++
++21. Debug section at object.
++0 is No; 1 is Yes
++has_debug=0
+\ No newline at end of file
+--- ocompiler-1.orig/o.html
++++ ocompiler-1/o.html
+@@ -97,7 +97,7 @@
+ 	<a class="code">
+ 	Const TRUE=1<br>
+ 	if 20==(ConstantValue+11)<br>
+-&emsp;		set	x	20<br>
++&emsp;	set	x	20<br>
+ 	endif<br>
+ 	Const x=3$2<br>
+     #is 3 pow 2 = 9</a>
+@@ -892,6 +892,16 @@
+ 	<br>
+ 	To comment the code use the sign <b>#</b> before any text.
+ 	<br>
++	Multiline comments are using <b>#! ... !</b> syntax.
++	<a class="code">
++&emsp;format elf<br>
++&emsp;	sd a=2; #! 1111<br>
++&emsp;	2222<br>
++&emsp;	 3333<br>
++&emsp;	 ! ; inc a<br>
++&emsp;	exit a #will be 3
++	</a>
++	<br>
+ 	2. Interrupts
+ 	<br>
+ 	To place software breakpoints use the <b>I3</b> command.
+--- ocompiler-1.orig/src/files/actions.s
++++ ocompiler-1/src/files/actions.s
+@@ -5,7 +5,7 @@ Include "./inits/alloc.s"
+ Include "./actions/setdefdir.s"
+ 
+ Set includebool zero #include or not include for applying after command parse
+-SetCall errormsg include(safecurrentdirtopath)
++SetCall errormsg include(safecurrentdirtopath,(TRUE))
+ If errormsg!=noerr
+ 	Call msgerrexit(errormsg)
+ EndIf
+--- ocompiler-1.orig/src/files/actions/fileformat/elf_resolve.s
++++ ocompiler-1/src/files/actions/fileformat/elf_resolve.s
+@@ -298,18 +298,19 @@ Else
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
++	Add elf_sec_fileoff datasecReg
+ 
+ 	Data elf_sec_flags_text=SHF_ALLOC|SHF_EXECINSTR
+-	Add elf_sec_fileoff datasecReg
+ 	SetCall errormsg elfaddsec(codestrtab,SHT_PROGBITS,elf_sec_flags_text,elf_sec_fileoff,ptrcodesec,null,null,(elf_sec_obj_align),null)
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
++	Add elf_sec_fileoff codesecReg
+ 
+ 	sd symind=symind
+ 
+ 	if nobits_virtual==(Yes)
+-		SetCall errormsg elfaddsec(dtnbstrtab,(SHT_NOBITS),elf_sec_flags_data,elf_sec_fileoff,#clownEntry,null,null,(elf_sec_obj_align),null)
++		SetCall errormsg elfaddsecs(dtnbstrtab,(SHT_NOBITS),elf_sec_flags_data,elf_sec_fileoff,nobitssecReg,(elf_sec_obj_align))
+ 		If errormsg!=noerr
+ 			Call msgerrexit(errormsg)
+ 		EndIf
+@@ -317,6 +318,17 @@ Else
+ 		inc symind
+ 	endif
+ 
++	if has_debug==(Yes)
++		#SHT_NULL will not reach linker output
++		SetCall errormsg elfaddstrsec(".debug",(SHT_PROGBITS),0,elf_sec_fileoff,ptrdebug,0,0,(bsz),0)
++		If errormsg!=noerr
++			Call msgerrexit(errormsg)
++		EndIf
++		add elf_sec_fileoff debugsecReg
++		inc elf_sec_nr
++		inc symind
++	endif
++
+ 	add elf_sec_strtab_nr elf_sec_nr
+ 	sd syment;sd relent
+ 	if p_is_for_64_value#==(TRUE)
+@@ -338,10 +350,8 @@ Else
+ 	Chars elfsymtab=".symtab"
+ 	Str ptrelfsymtab^elfsymtab
+ 	Data SHT_SYMTAB=2
+-	Add elf_sec_fileoff codesecReg
+ 
+-	#                                                                                                     totallocalsymsaddedatstart
+-	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,symind,dwordsize,syment)
++	SetCall errormsg elfaddstrsec(ptrelfsymtab,SHT_SYMTAB,null,elf_sec_fileoff,ptrtable,elf_sec_strtab_nr,totallocalsymsaddedatstart,dwordsize,syment)
+ 	If errormsg!=noerr
+ 		Call msgerrexit(errormsg)
+ 	EndIf
+--- ocompiler-1.orig/src/files/actions/main.s
++++ ocompiler-1/src/files/actions/main.s
+@@ -7,8 +7,10 @@ data contentlineinclude=lineoffile_offse
+ 
+ data dot_comma_end#1;set dot_comma_end 0
+ 
++#data logbackup#1
++
+ set parses (pass_init)
+-data logbackup#1
++
+ While includesReg!=null
+ 	Data cursorforincludes#1
+ 	Set cursorforincludes includes
+@@ -23,6 +25,7 @@ While includesReg!=null
+ 		Set offsetoffile cursorforincludes#
+ 		Add cursorforincludes dwordsize
+ 		Set lineoffile cursorforincludes#
++		set ptrprevLineD# lineoffile
+ 		Add cursorforincludes dwordsize
+ 		Sub cursorforincludes includes
+ 
+@@ -35,6 +38,13 @@ While includesReg!=null
+ 
+ 		While content!=last
+ 			Include "./main/index.s"
++			If errormsg==noerr
++				if parses==(pass_write)
++					if has_debug==(Yes)
++						setcall errormsg debug_lines(codesecReg,lineoffile,content,last)
++					endif
++				endif
++			EndIf
+ 			If errormsg!=noerr
+ 				Str nameoffilewitherr#1
+ 				Set nameoffilewitherr includes
+@@ -64,7 +74,7 @@ While includesReg!=null
+ 			EndIf
+ 		EndWhile
+ 		If errormsg==noerr
+-			setcall errormsg addtolog_char(fileendchar,logfile) #also ok on win
++			setcall errormsg addtolog_withchar_parses("",fileendchar,(FALSE)) #also ok on win
+ 			if errormsg!=(noerror)
+ 				Call Message(errormsg)
+ 			elseif includedir==true
+@@ -103,8 +113,8 @@ While includesReg!=null
+ 						set datasecReg 0
+ 						set nobitsDataStart datasecSize
+ 
+-						set logbackup logfile
+-						set logfile negative   #will reiterate tree. and will also have reusable,imports and constants
++						#set logbackup logfile
++						#set logfile negative   #will reiterate tree. and will also have reusable,imports and constants
+ 					else
+ 						set parses (pass_write)
+ 						call align_resolve()
+@@ -136,7 +146,7 @@ While includesReg!=null
+ 	endif
+ EndWhile
+ 
+-set logfile logbackup       #set for errexit, func/const at object, virtual, exit
++#set logfile logbackup       #set for errexit, func/const at object, virtual, exit
+ 
+ If errormsg!=noerr
+ 	Call errexit()
+--- ocompiler-1.orig/src/files/actions/main/index.s
++++ ocompiler-1/src/files/actions/main/index.s
+@@ -12,42 +12,54 @@ if dot_comma_end==0
+ 	Set textlinestart content
+ endif
+ 
+-#cursor for hidden whitespaces
+-sd cursor_start;set cursor_start content
+-setcall content mem_spaces(content,last)
+-
+ #test the line size and set the size of line break
+ Chars newline=asciireturn
+ Data linebreaksize#1
+ Set linebreaksize bytesize
+ 
++sd loop=2
+ #set comsize 0
++
++#cursor for hidden whitespaces, this is different than textlinestart
++sd cursor_start
+ ss pointer
+-set pointer content
+-sd loop=2
+-sd is_comment=0
+-if pointer!=last
+-	if pointer#==(commentascii)
+-		set is_comment 1
+-	endif
+-endif
++sd is_comment;sd is_comment_multiline
++
++setcall pointer command_start(#is_comment,#is_comment_multiline,#cursor_start,#content,last)
+ while loop==2
+ 	if pointer==last
+ 		set loop 1
+ 	elseif pointer#==newline
+-		set loop 1
+-		set dot_comma_end 0
+-		if pointer!=content
+-			ss testcarriage
+-			Chars carriage=asciicarriage
+-			set testcarriage pointer
+-			dec testcarriage
+-			If testcarriage#==carriage
+-				#Dec comsize
+-				set pointer testcarriage
+-				Inc linebreaksize
+-			EndIf
+-		endif
++		set dot_comma_end 0   #a multiline comment can also be in a commands line
++		if is_comment_multiline==0
++			set loop 1
++			if pointer!=content
++				Chars carriage=asciicarriage
++				ss testcontent
++				set testcontent pointer
++				dec testcontent
++				If testcontent#==carriage
++					#Dec comsize
++					set pointer testcontent
++					Inc linebreaksize
++				EndIf
++			endif
++		else
++			#like: #!line\nline\nline\n ! command
++			inc lineoffile
++			inc pointer
++			set textlinestart pointer
++			if pointer!=last
++				setcall pointer mem_spaces(pointer,last)
++				if pointer!=last
++					if pointer#==(asciiexclamationmark)
++						inc pointer
++						set content pointer
++						setcall pointer command_start(#is_comment,#is_comment_multiline,#cursor_start,#content,last)
++					endif
++				endif
++			endif
++		endelse
+ 	elseif is_comment==0
+ 		if pointer#==(asciidoublequote)
+ 			setcall errormsg quotes_forward(#pointer,last,#newlines,#textlinestart)
+@@ -119,6 +131,7 @@ if loop==1
+ 				if parses==(pass_write)
+ 					set was_whitespaces content;dec was_whitespaces;setcall was_whitespaces is_whitespace(was_whitespaces#)
+ 					if was_whitespaces==(TRUE)
++					#this is comment ending in whitespace
+ 						setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
+ 					endif
+ 				endif
+@@ -209,18 +222,20 @@ if loop==1
+ 							Call advancecursors(pcontent,pcomsize,comsize)
+ 						endelse
+ 					elseIf was_whitespaces==(TRUE)
+-						if dot_comma_end==0
+-						#parses (pass_write)
+-							setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
+-						endif
++						#mostly parses (pass_write), example: at cCALL is at all parses
++						#this is whitespace after command
++						#if parses==(pass_write) when show once check was not
++						setcall errormsg warn_hidden_whitespaces_after(includes,nameofstoffile,dot_comma_end)
+ 					endelseIf
+ 				endIf
+ 			EndIf
+ 		EndIf
+ 	Elseif cursor_start!=content
+-		if parses==(pass_write)
+-			setcall errormsg warn_hidden_whitespaces(includes,nameofstoffile)
+-		endif
++		#if parses==(pass_write) when show once check was not
++		#this is only whitespace
++		setcall errormsg warn_hidden_whitespaces_after(includes,nameofstoffile,dot_comma_end)
++		#dot_comma_end check: is not like it accepts "    ;" but it accepts "...!    ;"
++		#endif
+ 	Endelseif
+ 
+ 	If errormsg==noerr
+@@ -252,11 +267,12 @@ if loop==1
+ 			Add inccursor dwordsize
+ 
+ 			Set inccursor# lineoffile
+-			SetCall errormsg include(miscbag)
++			SetCall errormsg include(miscbag,(FALSE))
+ 			If errormsg!=noerr
+ 				Set content textlinestart
+ 				Sub lineoffile lineincrease
+ 			Else
++				set ptrprevLineD# 0    #here 0, at main set back
+ 				Set content contentoffile
+ 				Set last content
+ 				Add content offsetoffile
+--- ocompiler-1.orig/src/files/actions/main/index/format.s
++++ ocompiler-1/src/files/actions/main/index/format.s
+@@ -57,12 +57,12 @@ If formatresponse==false
+ 						Data codeind=codeind
+ 						Set codestrtab namesReg
+ 						SetCall errormsg elfaddstrsym(ptrelftext,null,null,STT_SECTION,(STB_LOCAL),codeind,ptrtable)
+-						#sd totallocalsymsaddedatstart=3
++						sd totallocalsymsaddedatstart=3
+ 						If errormsg==noerr
+ 							if nobits_virtual==(Yes)
+ 								Set dtnbstrtab namesReg
+ 								SetCall errormsg elfaddstrsym(".dtnb",null,null,STT_SECTION,(STB_LOCAL),(dtnbind),ptrtable)
+-								#inc totallocalsymsaddedatstart
++								inc totallocalsymsaddedatstart
+ 							endif
+ 						EndIf
+ 					EndIf
+--- ocompiler-1.orig/src/files/actions/main/index/function.s
++++ ocompiler-1/src/files/actions/main/index/function.s
+@@ -7,8 +7,8 @@ ElseIf programentrypoint!=codesecReg
+ 	Chars funcafterentry="Unavailable FUNCTION/ENTRY[...] statement; The start address was at File: %s; Line: %s."
+ 	Str fnafteren^funcafterentry
+ 
+-	call sprintf(uint64s,"%u",entrylinenumber)
+-	SetCall allocerrormsg printbuf(fnafteren,ptrentrystartfile,uint64s,0)
++	call dwtomem(entrylinenumber,uint32s)
++	SetCall allocerrormsg printbuf(fnafteren,ptrentrystartfile,uint32s,0)
+ 	If allocerrormsg==null
+ 		Call errexit()
+ 	EndIf
+--- ocompiler-1.orig/src/files/actions/setdefdir.s
++++ ocompiler-1/src/files/actions/setdefdir.s
+@@ -64,7 +64,7 @@ if logbool==true
+ 				chars getcwd_first="first getcwd error"
+ 				set errormsg #getcwd_first
+ 			else
+-				setcall errormsg addtolog_withchar(log_main_folder,(log_pathfolder))
++				setcall errormsg addtolog_withchar_parses(log_main_folder,(log_pathfolder),(TRUE))
+ 				call free(log_main_folder)
+ 			endelse
+ 		endif
+--- ocompiler-1.orig/src/files/actions/write.s
++++ ocompiler-1/src/files/actions/write.s
+@@ -88,6 +88,15 @@ If writeres==writefalse
+ EndIf
+ 
+ If object==true
++	#debug
++	if debugsecReg!=0
++		#has_debug is Yes
++		SetCall writeres writefile(fileout,debugsec,debugsecReg)
++		If writeres==writefalse
++			Call errexit()
++		EndIf
++	endif
++
+ 	#symtab
+ 	SetCall writeres writefile(fileout,table,tableReg)
+ 	If writeres==writefalse
+--- ocompiler-1.orig/src/files/functions.s
++++ ocompiler-1/src/files/functions.s
+@@ -51,3 +51,7 @@ Include "./functions/enumbags.s"
+ Include "./functions/import.s"
+ Include "./functions/override.s"
+ Include "./functions/scopes.s"
++
++Include "./functions/debug.s"
++
++Include "./functions/index.s"
+--- ocompiler-1.orig/src/files/functions/64/align.s
++++ ocompiler-1/src/files/functions/64/align.s
+@@ -38,7 +38,7 @@ function stack_align(sd nr)
+ 				return (noerror)
+ 		endelseif
+ 		#Stack aligned on 16 bytes. Depending on the number of arguments
+-		vdata code%ptrcodesec
++		vdata code%%ptr_codesec
+ 		chars align={REX_Operand_64,0x83,0xEC,8}
+ 		sd err
+ 		SetCall err addtosec(#align,(4),code)
+@@ -176,7 +176,7 @@ function align_entryscope()
+ 			#Jump short if carry
+ 			set jump (0x72)
+ 		endelse
+-		vdata code%ptrcodesec
++		vdata code%%ptr_codesec
+ 		sd err
+ 		SetCall err addtosec(#bt,(4+6),code)
+ 		return err
+--- ocompiler-1.orig/src/files/functions/64/bit.s
++++ ocompiler-1/src/files/functions/64/bit.s
+@@ -70,7 +70,7 @@ endfunction
+ 
+ ##REX_W
+ function rex_w(sd p_err)
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 	chars r=REX_Operand_64
+ 	SetCall p_err# addtosec(#r,1,code)
+ endfunction
+@@ -315,7 +315,7 @@ endfunction
+ function function_call_64(sd is_callex)
+ 	sd conv;setcall conv convdata((convdata_total))
+ 	sd err
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 	sd hex_1;sd hex_2;sd hex_3;sd hex_4;sd hex_5;sd hex_6
+ 	call convdata((convdata_call),#hex_1)
+ 	#
+@@ -413,7 +413,7 @@ function function_call_64(sd is_callex)
+ endfunction
+ #err
+ function function_start_64(sd nr_of_args)
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 	sd data;sd sz
+ 	setcall data convdata((convdata_fn),#sz,nr_of_args)
+ 	sd err
+@@ -455,7 +455,7 @@ function callex64_call()
+ 	#$
+ 	#mov rdx,rcx
+ 	chars *keep_nr_args={REX_Operand_64,0x8b,edxregnumber*toregopcode|ecxregnumber|regregmod}
+-	sd ptrcodesec%ptrcodesec
++	sd ptrcodesec%%ptr_codesec
+ 	sd err
+ 	SetCall err addtosec(#callex64_code,(!-callex64_start),ptrcodesec)
+ 	return err
+--- ocompiler-1.orig/src/files/functions/64/reloc.s
++++ ocompiler-1/src/files/functions/64/reloc.s
+@@ -53,7 +53,7 @@ function reloc64_post_base(sd struct)
+ endfunction
+ #er
+ function reloc64_post()
+-	sd ptrcodesec%ptrcodesec
++	sd ptrcodesec%%ptr_codesec
+ 	sd err
+ 	setcall err reloc64_post_base(ptrcodesec)
+ 	return err
+--- ocompiler-1.orig/src/files/functions/actions/argstwo.s
++++ ocompiler-1/src/files/functions/actions/argstwo.s
+@@ -238,7 +238,7 @@ Function twoargs_ex(sv ptrcontent,sd ptr
+ 		EndElse
+ 	EndElse
+ 
+-	Data codeptr%ptrcodesec
++	Data codeptr%%ptr_codesec
+ 
+ 	If primcalltype==false
+ 		setcall imm getisimm()
+@@ -531,7 +531,7 @@ endfunction
+ #err
+ function div_prepare(sd low,sd big,ss p_regopcode)
+ 	const bt_atdiv=bt_reg_imm8|eaxregnumber
+-	vData codeptr%ptrcodesec
++	vData codeptr%%ptr_codesec
+ 	Chars regopcodeidiv={7}
+ 	sd errnr
+ 	if big==(TRUE)
+--- ocompiler-1.orig/src/files/functions/actions/dataparse.s
++++ ocompiler-1/src/files/functions/actions/dataparse.s
+@@ -8,7 +8,7 @@ Function entryvarsfns(data content,data
+ 	Data noerr=noerror
+ 	Data zero=0
+ 	If pointer==zero
+-		Data fns%ptrfunctions
++		Data fns%%ptr_functions
+ 		SetCall pointer vars_ignoreref(content,size,fns)
+ 		If pointer==zero
+ 			Return noerr
+@@ -36,7 +36,7 @@ endfunction
+ #same
+ function get_img_vdata_dataReg()
+ 	sd reg;setcall reg get_img_vdata()
+-	vdata ptrdataReg%ptrdataReg
++	vdata ptrdataReg%%ptr_dataReg
+ 	add reg ptrdataReg#
+ 	return reg
+ endfunction
+--- ocompiler-1.orig/src/files/functions/actions/declare.s
++++ ocompiler-1/src/files/functions/actions/declare.s
+@@ -122,7 +122,7 @@ function declare(sv pcontent,sd pcomsize
+ 				setcall err dataassign(pcontent,pcomsize,sign,valsize,typenumber,#unitsize,mask,relocbool,is_stack) #there is 1 more argument but is not used
+ 				#                                                                               since %%|
+ 				if is_expand==(FALSE)
+-					sd pdataReg%ptrdataReg
++					sd pdataReg%%ptr_dataReg
+ 					add pdataReg# unitsize    #this is init by 0
+ 				else
+ 					sd pnobitsReg%ptrnobitsReg
+--- ocompiler-1.orig/src/files/functions/actions/enumcomma.s
++++ ocompiler-1/src/files/functions/actions/enumcomma.s
+@@ -10,11 +10,11 @@ function writevar(sd ptrvalue,sd unitsiz
+ 	sd for_64
+ 
+ 	if stack==false
+-		data ptrdatasec%ptrdatasec
++		data ptrdatasec%%ptr_datasec
+ 		if ptrobject#==1
+ 			If relocbool==true
+ 				#data
+-				Data ptraddresses%ptraddresses
++				Data ptraddresses%%ptr_addresses
+ 				Data relocoff=0
+ 
+ 				SetCall err adddirectrel_base(ptraddresses,relocoff,relindex,ptrvalue#)
+@@ -54,7 +54,7 @@ function writevar(sd ptrvalue,sd unitsiz
+ 			#code
+ 			sd stackoff
+ 			setcall stackoff reloc64_offset((rampadd_value_off))
+-			data ptrextra%ptrextra
++			data ptrextra%%ptr_extra
+ 			setcall err adddirectrel_base(ptrextra,stackoff,relindex,ptrvalue#)
+ 			If err!=noerr;Return err;EndIf
+ 			if relindex==(codeind)
+@@ -171,7 +171,7 @@ Function enumcommas(sv ptrcontent,sd ptr
+ 							Return err
+ 						EndIf
+ 					else
+-						sd ptrcodesec%ptrcodesec
++						sd ptrcodesec%%ptr_codesec
+ 						setcall err addtosec(ptrvalue,unitsize,ptrcodesec)
+ 						If err!=noerr
+ 							Return err
+--- ocompiler-1.orig/src/files/functions/actions/fn.s
++++ ocompiler-1/src/files/functions/actions/fn.s
+@@ -14,12 +14,12 @@ Function unresolvedcallsfn(data struct,d
+ 	Data ptrobject%ptrobject
+ 
+ 	If ptrobject#==true
+-		Data ptrextra%ptrextra
++		Data ptrextra%%ptr_extra
+ 		SetCall err addrel_base(offset,valuedata,atend,ptrextra)
+ 	Else
+ 		#add to resolve at end
+ 		Data unressz=3*dwsz
+-		Data uncall%ptrunresolvedcalls
++		Data uncall%%ptr_unresolvedcalls
+ 		data ptrstruct^structure
+ 
+ 		set structure struct
+@@ -32,7 +32,7 @@ EndFunction
+ 
+ #err
+ function fnimp_exists(sd content,sd size)
+-	sd fns%ptrfunctions
++	sd fns%%ptr_functions
+ 	sd d;setcall d vars_ignoreref(content,size,fns)
+ 	if d==0
+ 		return (noerror)
+@@ -55,8 +55,8 @@ Function parsefunction(data ptrcontent,d
+ 	#Data false=FALSE
+ 
+ 	Data zero=0
+-	Data fns%ptrfunctions
+-	Data code%ptrcodesec
++	Data fns%%ptr_functions
++	Data code%%ptr_codesec
+ 
+ 	Data err#1
+ 	Data noerr=noerror
+@@ -150,7 +150,7 @@ Function parsefunction(data ptrcontent,d
+ 			If ptrobject#==true
+ 				Data STT_FUNC=STT_FUNC
+ 				Data codeind=codeind
+-				Data ptrtable%ptrtable
++				Data ptrtable%%ptr_table
+ 				if subtype!=(cFUNCTION)
+ 				#entries are also not local
+ 					SetCall err elfaddstrszsym(content,sz,value,zero,STT_FUNC,(STB_GLOBAL),codeind,ptrtable)
+@@ -317,7 +317,7 @@ endfunction
+ 
+ #err
+ function prepare_function_call(sd pcontent,sd psize,sd sz,sd p_data,sd p_bool_indirect,sd subtype)
+-	Data fns%ptrfunctions
++	Data fns%%ptr_functions
+ 
+ 	SetCall p_data# vars(pcontent#,sz,fns)
+ 	If p_data#==0
+@@ -344,7 +344,7 @@ function prepare_function_call(sd pconte
+ 
+ 	#move over the stack arguments, ebx is also shorting the first stack variable (mov rbx,rdx)
+ 	#mov esp,ebx
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 	sd err
+ 	#
+ 	setcall err rex_w_if64();if err!=(noerror);return err;endif
+@@ -359,7 +359,7 @@ endfunction
+ #err
+ function write_function_call(sd ptrdata,sd boolindirect,sd is_callex)
+ 	sd err
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 
+ 	sd pb;setcall pb is_for_64_is_impX_or_fnX_p_get()
+ 	if pb#==(TRUE)
+@@ -444,7 +444,7 @@ function write_function_call(sd ptrdata,
+ 	endif
+ 	if tless==0
+ 		sd global_err_ptr;setcall global_err_ptr global_err_p()
+-		Data ptrextra%ptrextra
++		Data ptrextra%%ptr_extra
+ 		If ptrobject#==(FALSE)
+ 		#absolute
+ 			const global_err_ex_start=!
+@@ -516,7 +516,7 @@ endfunction
+ #er
+ function entryraw_top()
+ 	chars s={0x6a,0}
+-	data code%ptrcodesec
++	data code%%ptr_codesec
+ 	sd err
+ 	setcall err addtosec(#s,2,code)
+ 	return err
+--- ocompiler-1.orig/src/files/functions/actions/fndecargs.s
++++ ocompiler-1/src/files/functions/actions/fndecargs.s
+@@ -60,7 +60,7 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 	if parses==(pass_init)
+ 		if is_stack==(FALSE)
+ 			if is_expand==(FALSE)
+-				vdata ptrdataReg%ptrdataReg
++				vdata ptrdataReg%%ptr_dataReg
+ 				add ptrdataReg# datasize
+ 			endif
+ 		endif
+@@ -109,7 +109,7 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 		setcall memoff get_img_vdata_dataReg()
+ 		Data null={NULL,NULL}
+ 		Data ptrnull^null
+-		Data _datasec%ptrdatasec
++		Data _datasec%%ptr_datasec
+ 		SetCall err addtosec(ptrnull,datasize,_datasec)
+ 		If err!=noerr
+ 			Return err
+@@ -136,7 +136,7 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 	if p_is_object#==(TRUE)
+ 		Const fndecargs_offend^memoff
+ 		Const fndecargs_offstart^stacktransfer1
+-		Data ptrextra%ptrextra
++		Data ptrextra%%ptr_extra
+ 		sd reloff=fndecargs_offend-fndecargs_offstart
+ 		if long_mask!=0
+ 			inc reloff
+@@ -148,7 +148,7 @@ Function fndecargs(sv ptrcontent,sd ptrs
+ 		call inplace_reloc(#memoff)
+ 	endif
+ 
+-	Data _codesec%ptrcodesec
++	Data _codesec%%ptr_codesec
+ 
+ 	SetCall err addtosec(#stacktransfer1,(3*bsz+dwsz),_codesec);If err!=noerr;Return err;EndIf
+ 	if long_mask!=0
+--- ocompiler-1.orig/src/files/functions/add/addtomem.s
++++ ocompiler-1/src/files/functions/add/addtomem.s
+@@ -36,8 +36,9 @@ Function addtosec(str content,data size,
+ 	Set avail destMax
+ 	Sub avail destData
+ 	If avail<size
+-		Data datasec%ptrdatasec
+-		Data codesec%ptrcodesec
++		Data datasec%%ptr_datasec
++		Data codesec%%ptr_codesec
++		Data debugsec%%ptr_debug
+ 		Data ptrfileformat%ptrfileformat
+ 		Data elf_unix=elf_unix
+ 		Data false=FALSE
+@@ -51,6 +52,10 @@ Function addtosec(str content,data size,
+ 				Set sectionexpand true
+ 			ElseIf dst==codesec
+ 				Set sectionexpand true
++			ElseIf dst==debugsec
++			#this is only because there is no blocking at writefile_errversion_debug for speed reasons
++			#this is also called before format is defined
++				Set sectionexpand true
+ 			EndElseIf
+ 		EndElse
+ 		If sectionexpand==false
+@@ -101,7 +106,7 @@ Function addtosec(str content,data size,
+ EndFunction
+ #errnr
+ function addtoCode_set_programentrypoint(ss content,sd size)
+-	sd err;data code%ptrcodesec
++	sd err;data code%%ptr_codesec
+ 	setcall err addtosec(content,size,code)
+ 	if err!=(noerror);return err;endif
+ 	data c#1
+--- ocompiler-1.orig/src/files/functions/argument/arg.s
++++ ocompiler-1/src/files/functions/argument/arg.s
+@@ -60,7 +60,7 @@ Function getarg(sv ptrcontent,sd ptrsize
+ 		endif
+ 		if allowdata!=(allow_yes)
+ 			if allowdata==(allow_later)
+-				vdata ptrdataReg%ptrdataReg
++				vdata ptrdataReg%%ptr_dataReg
+ 				sub q_size escapes
+ 				add ptrdataReg# q_size
+ 				inc ptrdataReg#   #null end
+@@ -76,7 +76,7 @@ Function getarg(sv ptrcontent,sd ptrsize
+ 			set location ptrdata#
+ 			setcall location# get_img_vdata_dataReg()
+ 			#set string to data
+-			data ptrdatasec%ptrdatasec
++			data ptrdatasec%%ptr_datasec
+ 			SetCall errnr addtosecstresc(#content,#size,q_size,escapes,ptrdatasec,(FALSE))
+ 			If errnr!=(noerror)
+ 				return errnr
+@@ -143,7 +143,7 @@ Function getarg(sv ptrcontent,sd ptrsize
+ 					endif
+ 				else
+ 					data ptrobject%ptrobject
+-					data ptrfunctions%ptrfunctions
++					data ptrfunctions%%ptr_functions
+ 					setcall container_sz valinmem(content,argsize,(asciidot))
+ 					if container_sz!=argsize
+ 						setcall errnr getarg_dot(content,argsize,container_sz,ptrdata,ptrlow,ptrsufix)
+@@ -193,7 +193,7 @@ Function getarg(sv ptrcontent,sd ptrsize
+ EndFunction
+ #err
+ function getarg_dot(sd content,sd argsize,sd container_sz,sd ptrdata,sd ptrlow,sd ptrsufix)
+-	data ptrfunctions%ptrfunctions
++	data ptrfunctions%%ptr_functions
+ 	#if is a dot
+ 	sd inter
+ 	#setcall inter vars(content,container_sz,ptrfunctions)
+--- ocompiler-1.orig/src/files/functions/argument/argument.s
++++ ocompiler-1/src/files/functions/argument/argument.s
+@@ -27,7 +27,7 @@ function getexit(sv ptrptrcontinuation,s
+ 	chars sys_exit={0xb8,1,0,0,0}
+ 	data exinit^sys_exit
+ 	data exitsize=5
+-	Data codeptr%ptrcodesec
++	Data codeptr%%ptr_codesec
+ 	sd err
+ 	SetCall err addtosec(exinit,exitsize,codeptr)
+ 	If err!=(noerror)
+@@ -71,7 +71,7 @@ Function argument(data ptrcontent,data p
+ 	Str ptrcontinuation#1
+ 	Data sizeofcontinuation#1
+ 
+-	vData codeptr%ptrcodesec
++	vData codeptr%%ptr_codesec
+ 	Data regopcode#1
+ 
+ 	Data err#1
+--- ocompiler-1.orig/src/files/functions/argument/comwrite.s
++++ ocompiler-1/src/files/functions/argument/comwrite.s
+@@ -48,7 +48,7 @@ function takewithimm(sd ind,sd addr)
+ 	Add takeop ind
+ 	set takeloc addr
+ 
+-	Data ptrcodesec%ptrcodesec
++	Data ptrcodesec%%ptr_codesec
+ 	Data sz1=bsz+dwsz
+ 
+ 	sd err
+@@ -80,7 +80,7 @@ function datatake(sd takeindex,sd take_l
+ endfunction
+ #err
+ function adddirectrel_base_inplace(sd relocoff,sd p_take_loc,sd sectionind)
+-	Data ptrextra%ptrextra
++	Data ptrextra%%ptr_extra
+ 	sd errnr
+ 	SetCall errnr adddirectrel_base(ptrextra,relocoff,sectionind,p_take_loc#)
+ 	If errnr==(noerror)
+@@ -97,7 +97,7 @@ function writetake(sd takeindex,sd entry
+ 	if stack==0
+ 		data p_is_object%ptrobject
+ 		if p_is_object#==(TRUE)
+-			Data ptrextra%ptrextra
++			Data ptrextra%%ptr_extra
+ 			data relocoff#1
+ 			setcall relocoff reloc64_offset(1)
+ 			sd var
+@@ -155,7 +155,7 @@ function writetake(sd takeindex,sd entry
+ 			set getfromstack 0x03
+ 		else;set getfromstack (moveatprocthemem);endelse
+ 		setcall errnr rex_w_if64();if errnr!=(noerror);return errnr;endif
+-		Data ptrcodesec%ptrcodesec
++		Data ptrcodesec%%ptr_codesec
+ 		SetCall errnr addtosec(ptrgetfromstack,sizegetfromstack,ptrcodesec)
+ 	endelse
+ 	Return errnr
+@@ -215,7 +215,7 @@ function sufix_take(sd takeindex,sd take
+ 		if err!=(noerror)
+ 			return err;endif
+ 	endif
+-	Data ptrcodesec%ptrcodesec
++	Data ptrcodesec%%ptr_codesec
+ 	Chars newtake=moveatprocthemem
+ 	Chars newtakemodrm#1
+ 	Str ptrnewtake^newtake
+@@ -242,7 +242,7 @@ endfunction
+ 
+ #er
+ Function writeoperation_op(sd operationopcode,sd is_prepare,sd regopcode,sd takeindex)
+-	Data ptrcodesec%ptrcodesec
++	Data ptrcodesec%%ptr_codesec
+ 	Data errnr#1
+ 	Data noerr=noerror
+ 	Data sz2=bsz+bsz
+--- ocompiler-1.orig/src/files/functions/argument/imm.s
++++ ocompiler-1/src/files/functions/argument/imm.s
+@@ -111,7 +111,7 @@ function write_imm(sd dataarg,sd op)
+ 	set immop op
+ 	set value dataarg
+ 	data sz=5
+-	data code%ptrcodesec
++	data code%%ptr_codesec
+ 	sd err
+ 	setcall err addtosec(immadd,sz,code)
+ 	call resetisimm()
+@@ -119,7 +119,7 @@ function write_imm(sd dataarg,sd op)
+ endfunction
+ #er
+ function write_imm_sign(sd dataarg,sd regopcode)
+-	vData codeptr%ptrcodesec
++	vData codeptr%%ptr_codesec
+ 	sd err
+ 	setcall err rex_w_if64()
+ 	if err==(noerror)
+@@ -155,7 +155,7 @@ function write_imm_trunc(sd value,sd reg
+ 	inc b
+ 	set b# value
+ 	dec b
+-	vData codeptr%ptrcodesec
++	vData codeptr%%ptr_codesec
+ 	setcall err addtosec(b,2,codeptr)
+ 	return err
+ endfunction
+--- ocompiler-1.orig/src/files/functions/commands/cond.s
++++ ocompiler-1/src/files/functions/commands/cond.s
+@@ -1,14 +1,14 @@
+ 
+ #err
+ Function coderegtocondloop()
+-	Data codesec%ptrcodesec
++	Data codesec%%ptr_codesec
+ 	Data codeReg#1
+ 	Data ptrcodeReg^codeReg
+ 
+ 	Call getcontReg(codesec,ptrcodeReg)
+ 
+ 	Data err#1
+-	Data condloopsec%ptrconditionsloops
++	Data condloopsec%%ptr_conditionsloops
+ 	Data dsz=dwsz
+ 
+ 	SetCall err addtosec(ptrcodeReg,dsz,condloopsec)
+@@ -25,7 +25,7 @@ Function condbeginwrite(data condnumber)
+ 		Return err
+ 	EndIf
+ 
+-	Data condloopsec%ptrconditionsloops
++	Data condloopsec%%ptr_conditionsloops
+ 	Data dsz=dwsz
+ 
+ 	Data ptrcondnumber^condnumber
+@@ -53,7 +53,7 @@ EndFunction
+ Function checkcondloopclose()
+ 	Data regnr#1
+ 	Data ptrregnr^regnr
+-	Data condloop%ptrconditionsloops
++	Data condloop%%ptr_conditionsloops
+ 	Call getcontReg(condloop,ptrregnr)
+ 	Data zero=0
+ 	If regnr!=zero
+@@ -79,14 +79,14 @@ Function condjump(data size)
+ 	Data pjump^jump
+ 
+ 	Data err#1
+-	Data code%ptrcodesec
++	Data code%%ptr_codesec
+ 	SetCall err addtosec(pjump,bjsz,code)
+ 	Return err
+ EndFunction
+ 
+ #err
+ Function condend(data number)
+-	Data condloop%ptrconditionsloops
++	Data condloop%%ptr_conditionsloops
+ 	Data ptrcReg#1
+ 	Data ptrptrcReg^ptrcReg
+ 
+@@ -99,7 +99,7 @@ Function condend(data number)
+ 
+ 	Data codeoffset#1
+ 	Data ptrcodeoff^codeoffset
+-	Data codesec%ptrcodesec
++	Data codesec%%ptr_codesec
+ 	Data whilenr=whilenumber
+ 	Data structure#1
+ 	Data ptrstructure^structure
+@@ -188,7 +188,7 @@ endfunction
+ 
+ function condendwrite(sd structure,sd codeoffset)
+ 	Data jumploc#1
+-	Data codesec%ptrcodesec
++	Data codesec%%ptr_codesec
+ 	vData writeloc#1
+ 	Data ptrwriteloc^writeloc
+ 
+@@ -227,7 +227,7 @@ Function conditionscondend(data close1,d
+ 
+ 	Data ifnr=ifnumber
+ 	Data elsenr=elsenumber
+-	Data structure%ptrconditionsloops
++	Data structure%%ptr_conditionsloops
+ 	Data dsz=dwsz
+ 
+ 	While loop==loopini
+@@ -266,7 +266,7 @@ Function conditionscondend(data close1,d
+ EndFunction
+ function prevcond()
+ 	vData cl#1
+-	vData structure%ptrconditionsloops
++	vData structure%%ptr_conditionsloops
+ 	Call getcontplusReg(structure,#cl)
+ 	Sub cl (dwsz)
+ 	return cl#
+@@ -295,7 +295,7 @@ EndFunction
+ function continue()
+ 	sd regnr
+ 	sd structure
+-	vData condloop%ptrconditionsloops
++	vData condloop%%ptr_conditionsloops
+ 	call getcontandcontReg(condloop,#structure,#regnr)
+ 	if regnr!=0
+ 		sd start;set start structure
+@@ -307,7 +307,7 @@ function continue()
+ 			if type!=(ifinscribe)
+ 				sub structure (dwsz)
+ 				if type==(whilenumber)
+-					vdata ptrcodesec%ptrcodesec
++					vdata ptrcodesec%%ptr_codesec
+ 					sd codeoffset
+ 					call getcontReg(ptrcodesec,#codeoffset)
+ 					Add codeoffset (backjumpsize)
+@@ -324,7 +324,7 @@ endfunction
+ function break()
+ 	sd regnr
+ 	sd structure
+-	vData condloop%ptrconditionsloops
++	vData condloop%%ptr_conditionsloops
+ 	call getcontandcontReg(condloop,#structure,#regnr)
+ 	if regnr!=0
+ 		sd start;set start structure
+--- ocompiler-1.orig/src/files/functions/commands/lib.s
++++ ocompiler-1/src/files/functions/commands/lib.s
+@@ -8,8 +8,8 @@ Function openlib()
+ 	Data namesReg#1
+ 	Data ptraddressesReg^addressesReg
+ 	Data ptrnamesReg^namesReg
+-	Data iaddresses%ptraddresses
+-	Data inames%ptrnames
++	Data iaddresses%%ptr_addresses
++	Data inames%%ptr_names
+ 	Call getcontReg(iaddresses,ptraddressesReg)
+ 	Call getcontReg(inames,ptrnamesReg)
+ 
+@@ -24,7 +24,7 @@ Function openlib()
+ 
+ 	Data iid^OriginalFirstThunk
+ 	Data iid_size=IMAGE_IMPORT_DESCRIPTORsize
+-	Data itable%ptrtable
++	Data itable%%ptr_table
+ 	Data err#1
+ 	SetCall err addtosec(iid,iid_size,itable)
+ 	Return err
+@@ -32,14 +32,14 @@ EndFunction
+ 
+ #er
+ Function closelib()
+-	Data itable%ptrtable
++	Data itable%%ptr_table
+ 	Data itab#1
+ 	Data tabsize#1
+ 	Data ptritab^itab
+ 	Data ptrtabsize^tabsize
+ 	Call getcontandcontReg(itable,ptritab,ptrtabsize)
+ 
+-	Data iaddresses%ptraddresses
++	Data iaddresses%%ptr_addresses
+ 
+ 	Data null=NULL
+ 	Data ptrnull^null
+--- ocompiler-1.orig/src/files/functions/commons/base.s
++++ ocompiler-1/src/files/functions/commons/base.s
+@@ -53,7 +53,7 @@ Const globalinnerfunction^innerfunction
+ #pdata
+ Function getstructcont(data typenumber)
+ 	Data dest#1
+-	Data scopes%ptrscopes
++	Data scopes%%ptr_scopes
+ 	Data sizeofdataset=sizeofcontainer
+ 
+ 	Data fnboolptr%globalinnerfunction
+@@ -124,15 +124,20 @@ Function congruentmoduloatsegments(data
+ 	return virtual
+ EndFunction
+ 
++#str
++function log_term(sd psz)
++	chars textterm={asciicarriage,asciireturn,0}
++	set psz# 2
++	return #textterm
++endfunction
+ #err
+ function addtolog_handle(ss content,sd sizetowrite,sd filehandle)
+ 	sd err
+ 	setcall err writefile_errversion(filehandle,content,sizetowrite)
+ 	if err!=(noerror);return err;endif
+ 
+-	chars textterm={asciicarriage,asciireturn,0}
+-	str text^textterm
+-	data sz=2
++	sd sz
++	ss text;setcall text log_term(#sz)
+ 	setcall err writefile_errversion(filehandle,text,sz)
+ 	return err
+ endfunction
+@@ -171,6 +176,27 @@ function addtolog_withchar(ss content,sd
+ 	return err
+ endfunction
+ #err
++function addtolog_withchar_parses(ss content,sd type,sd both)
++	sd err
++	if both==(FALSE)
++		sd ptrparses%ptr_parses
++		if ptrparses#==(pass_init)
++			setcall err addtolog_withchar(content,type)
++		elseif ptrparses#==(pass_write)
++			setcall err addtodebug_withchar(content,type)
++		else
++		#skip pass_calls
++			return (noerror)
++		endelse
++		return err
++	endif
++	setcall err addtolog_withchar(content,type)
++	if err==(noerror)
++		setcall err addtodebug_withchar(content,type)
++	endif
++	return err
++endfunction
++#err
+ function addtolog_withchar_ex_atunused(ss content,sd size,sd type)
+ 	data ptrobject%ptrobject
+ 	if ptrobject#==(TRUE)
+--- ocompiler-1.orig/src/files/functions/commons/comfn.s
++++ ocompiler-1/src/files/functions/commons/comfn.s
+@@ -110,9 +110,9 @@ Function printbuf(sd format,sd message,s
+ 	addCall bufsize strlen(message)
+ 	addCall bufsize strlen(s1)
+ 	if nr>0
+-		add bufsize (max_uint64)
++		add bufsize (dw_chars)
+ 		if nr>1
+-			add bufsize (max_uint64)
++			add bufsize (dw_chars)
+ 		endif
+ 	endif
+ 
+--- ocompiler-1.orig/src/files/functions/commons/strcommons.s
++++ ocompiler-1/src/files/functions/commons/strcommons.s
+@@ -150,23 +150,32 @@ data warn_hidden_whitespaces_times#1
+ const warn_hidden_whitespaces_times_p^warn_hidden_whitespaces_times
+ #err
+ function warn_hidden_whitespaces(sd inc,sd add)
+-	data warn_hidden_whitespaces_times_p%warn_hidden_whitespaces_times_p
+-	if warn_hidden_whitespaces_times_p#==0
+-		add inc add
+-		sd goodwrongstring
+-		setcall goodwrongstring errorDefOut("Hidden whitespaces at :",inc)
+-		call safeMessage(goodwrongstring)
+-		inc warn_hidden_whitespaces_times_p#
++	sd p%p_hidden_pref
++	if p#==(TRUE)
++		data warn_hidden_whitespaces_times_p%warn_hidden_whitespaces_times_p
++		if warn_hidden_whitespaces_times_p#==0
++		#show once
++			add inc add
++			sd goodwrongstring
++			setcall goodwrongstring errorDefOut("Hidden whitespaces at :",inc)
++			call safeMessage(goodwrongstring)
++			inc warn_hidden_whitespaces_times_p#
++		endif
+ 		sd w%p_w_as_e
+ 		if w#==(TRUE)
+-			sd p%p_hidden_pref
+-			if p#==(TRUE)
+-				return ""
+-			endif
++			return ""
+ 		endif
+ 	endif
+ 	return (noerror)
+ endfunction
++#err
++function warn_hidden_whitespaces_after(sd inc,sd add,sd dot_comma_end)
++	if dot_comma_end==0
++		sd er;setcall er warn_hidden_whitespaces(inc,add)
++		return er
++	endif
++	return (noerror)
++endfunction
+ 
+ Function spaces_helper(ss cursor,sd size)
+ 	sd end;set end cursor;add end size
+--- ocompiler-1.orig/src/files/functions/commons/vars.s
++++ ocompiler-1/src/files/functions/commons/vars.s
+@@ -45,12 +45,12 @@ function vars_core_ref_scope(ss content,
+ 			Data checkvalue#1
+ 			Set checkvalue container#
+ 			And checkvalue ReferenceBit
+-			data ptrconstants%ptrconstants;sd cb
++			data ptrconstants%%ptr_constants;sd cb
+ 			If checkvalue==zero
+ 				data returnvalue#1
+ 				set returnvalue entrypoint
+ 				#
+-				data ptrfunctions%ptrfunctions
++				data ptrfunctions%%ptr_functions
+ 				if ptrfunctions==ptrstructure
+ 					Set checkvalue container#
+ 					sd against_idata=idatabitfunction
+--- ocompiler-1.orig/src/files/functions/dataassign.s
++++ ocompiler-1/src/files/functions/dataassign.s
+@@ -14,7 +14,7 @@ Function dataassign(sd ptrcontent,sd ptr
+ 
+ 	data offset_const#1
+ 	Data ptroffset_const^offset_const
+-	Data constantsstruct%ptrconstants
++	Data constantsstruct%%ptr_constants
+ 	#Data pointer_structure#1
+ 	#at constants and at data^sd,str^ss
+ 
+@@ -64,9 +64,9 @@ Function dataassign(sd ptrcontent,sd ptr
+ 	Data ptrvalue^value
+ 
+ 	Str content#1
+-	Data ptrdatasec%ptrdatasec
+-	Data ptrcodesec%ptrcodesec
+-	Data ptrfunctions%ptrfunctions
++	Data ptrdatasec%%ptr_datasec
++	Data ptrcodesec%%ptr_codesec
++	Data ptrfunctions%%ptr_functions
+ 
+ 	Data zero=0
+ 
+@@ -464,7 +464,7 @@ endfunction
+ 
+ #err
+ function set_reserve(sd value)
+-	vData ptrdatasec%ptrdatasec
++	vData ptrdatasec%%ptr_datasec
+ 	sd p_nul_res_pref%p_nul_res_pref
+ 	if p_nul_res_pref#==(TRUE)
+ 		sd reg;call getcontReg(ptrdatasec,#reg)
+--- /dev/null
++++ ocompiler-1/src/files/functions/debug.s
+@@ -0,0 +1,74 @@
++
++#er
++function debug_lines(sd reg,sd line,sd content,sd last)
++	datax prevLine#1
++	const ptrprevLineD^prevLine
++	datax codeRegD#1
++	const ptrcodeRegD^codeRegD
++	#initialized values
++
++	sd aux;sd test
++	if line!=prevLine   #no a[semicolon]b column atm
++		#set line
++		set aux prevLine;set prevLine line
++		set test (TRUE)
++	elseif content==last  #but last line with no new line must be verified
++		set aux prevLine;set prevLine line
++		set test (TRUE)
++	else
++		set test (FALSE)
++	endelse
++	if test==(TRUE)
++		if reg!=codeRegD
++			sv ptrdebug%%ptr_debug
++			chars a=log_line
++			sd err
++			setcall err addtosec(#a,(bsz),ptrdebug)
++			if err==(noerror)
++				charsx buf#dw_chars_0
++				sd len
++				inc aux
++				setcall len dwtomem(aux,#buf)
++				setcall err addtosec(#buf,len,ptrdebug)
++				if err==(noerror)
++					chars b=asciispace
++					setcall err addtosec(#b,(bsz),ptrdebug)
++					if err==(noerror)
++						setcall len dwtomem(codeRegD,#buf)
++						setcall err addtosec(#buf,len,ptrdebug)
++						if err==(noerror)
++							sd t;sd sz;setcall t log_term(#sz)
++							setcall err addtosec(t,sz,ptrdebug)
++							#set codeReg
++							set codeRegD reg
++						endif
++					endif
++				endif
++			endif
++			return err
++		endif
++	endif
++	return (noerror)
++endfunction
++
++#err
++function addtodebug_withchar(ss content,sd char)
++	sd ptr_has_debug%ptr_has_debug
++	if ptr_has_debug#==(Yes)
++	#at exec formats will add for no one
++	#if blocking at exe , care to remove if dst==debugsec from addtosec
++		sv ptrdebug%%ptr_debug
++		sd err
++		setcall err addtosec(#char,(bsz),ptrdebug)
++		if err==(noerror)
++			sd ln;setcall ln strlen(content)
++			setcall err addtosec(content,ln,ptrdebug)
++			if err==(noerror)
++				sd t;sd sz;setcall t log_term(#sz)
++				setcall err addtosec(t,sz,ptrdebug)
++			endif
++		endif
++		return err
++	endif
++	return (noerror)
++endfunction
+--- ocompiler-1.orig/src/files/functions/elf/elf.s
++++ ocompiler-1/src/files/functions/elf/elf.s
+@@ -1,7 +1,7 @@
+ 
+ #err
+ Function addtonamessized(data str,data sz,data regoff)
+-	Data ptrnames%ptrnames
++	Data ptrnames%%ptr_names
+ 	Call getcontReg(ptrnames,regoff)
+ 	Data err#1
+ 	SetCall err addtosecstr(str,sz,ptrnames)
+@@ -95,16 +95,23 @@ function elfaddsec_base(sd stringname,sd
+ endfunction
+ #err
+ function elfaddsecn()
+-	Data ptrmiscbag%ptrmiscbag
++	Data ptrmiscbag%%ptr_miscbag
+ 	sd err
+ 	SetCall err elfaddsec_base((NULL),(SHT_NULL),0,(NULL),(NULL),0,0,0,0,(NULL),ptrmiscbag)
+ 	Return err
+ endfunction
+ #err
++Function elfaddsecs(sd stringoff,sd type,sd flags,sd fileoffset,sd bsize,sd align)
++	Data ptrmiscbag%%ptr_miscbag
++	sd err
++	SetCall err elfaddsec_base(stringoff,type,flags,fileoffset,bsize,0,0,align,0,(NULL),ptrmiscbag)
++	Return err
++EndFunction
++#err
+ Function elfaddsec(data stringoff,data type,data flags,data fileoffset,data seccont,data link,data info,data align,data entsize)
+ 	sd bsize
+ 	Call getcontReg(seccont,#bsize)
+-	Data ptrmiscbag%ptrmiscbag
++	Data ptrmiscbag%%ptr_miscbag
+ 	sd err
+ 	SetCall err elfaddsec_base(stringoff,type,flags,fileoffset,bsize,link,info,align,entsize,(NULL),ptrmiscbag)
+ 	Return err
+@@ -286,9 +293,9 @@ Function adddirectrel_base(sd relsec,sd
+ 	Data err#1
+ 	Data off#1
+ 	Data ptroff^off
+-	Data ptrdatasec%ptrdatasec
+-	Data ptrcodesec%ptrcodesec
+-	Data ptraddresses%ptraddresses
++	Data ptrdatasec%%ptr_datasec
++	Data ptrcodesec%%ptr_codesec
++	Data ptraddresses%%ptr_addresses
+ 	Data struct#1
+ 	If relsec==ptraddresses
+ 		Set struct ptrdatasec
+--- ocompiler-1.orig/src/files/functions/enumbags.s
++++ ocompiler-1/src/files/functions/enumbags.s
+@@ -2,8 +2,9 @@
+ 
+ #err
+ Function enumbags(data is_declare)
+-	sd pointer%containersbegin
+-	sd cursor=containerssize
++	sd pointer%%containersbegin
++	sd cursor%containerssize
++	set cursor cursor#
+ 	add cursor pointer
+ 	While pointer!=cursor
+ 		If is_declare==(TRUE)
+--- ocompiler-1.orig/src/files/functions/global/funcs.s
++++ ocompiler-1/src/files/functions/global/funcs.s
+@@ -4,7 +4,7 @@
+ function localResolve(sd unrLc,sd unrLcReg)
+ 	data funcs#1
+ 	data ptr_funcs^funcs
+-	data fns%ptrfunctions
++	data fns%%ptr_functions
+ 
+ 	sd struct
+ 	sd offset
+@@ -45,7 +45,7 @@ function localResolve(sd unrLc,sd unrLcR
+ endfunction
+ 
+ function get_fn_pos(sd varfnpointer,sd ptr_out)
+-	Data ptrfunctions%ptrfunctions
++	Data ptrfunctions%%ptr_functions
+ 	#store the functions reg
+ 	sd fns_cont
+ 	sd ptr_fns_cont^fns_cont
+@@ -70,7 +70,7 @@ function unresLc(sd addition,sd structur
+ 	set struct structure
+ 	set isdirect direct
+ 
+-	data unresLocal%ptrunresLocal
++	data unresLocal%%ptr_unresLocal
+ 	sd err
+ 	SetCall err addtosec(ptradd,12,unresLocal)
+ 	return err
+--- ocompiler-1.orig/src/files/functions/include.s
++++ ocompiler-1/src/files/functions/include.s
+@@ -26,7 +26,7 @@ function offsetoffile_value()
+ endfunction
+ 
+ #err
+-Function include(Str path)
++Function include(ss path,sd both)
+ 	Data zero=0
+ 	Data one=1
+ 
+@@ -64,7 +64,7 @@ Function include(Str path)
+ 			return getcwderr
+ 		endif
+ 
+-		setcall err addtolog_withchar(pcontentoffl#,(log_pathfolder))
++		setcall err addtolog_withchar_parses(pcontentoffl#,(log_pathfolder),both)
+ 		If err!=noerr;Return err;EndIf
+ 
+ 		chars storechar#1
+@@ -83,7 +83,7 @@ Function include(Str path)
+ 		set folders# storechar
+ 	endif
+ 
+-	setcall err addtolog_withchar(path,(log_pathname))
++	setcall err addtolog_withchar_parses(path,(log_pathname),both)
+ 	If err!=noerr;Return err;EndIf
+ 
+ 	Data strsz#1
+@@ -123,7 +123,7 @@ Function include(Str path)
+ 	Set dest# 0
+ 
+ 
+-	Data pincludes%ptrincludes
++	Data pincludes%%ptr_includes
+ 	Data isetsize=includesetSz
+ 
+ 	SetCall err addtosec(includeset,isetsize,pincludes)
+--- /dev/null
++++ ocompiler-1/src/files/functions/index.s
+@@ -0,0 +1,22 @@
++
++#pointer
++function command_start(sv p_is_comment,sv p_is_comment_multiline,sv p_cursor_start,sv p_content,sd last)
++	set p_cursor_start# p_content#
++	setcall p_content# mem_spaces(p_content#,last)
++	set p_is_comment# 0
++	set p_is_comment_multiline# 0
++	ss pointer;set pointer p_content#
++	if pointer!=last
++		if pointer#==(commentascii)
++			set p_is_comment# 1
++			inc pointer
++			if pointer!=last
++				if pointer#==(asciiexclamationmark)
++					set p_is_comment_multiline# 1
++					inc pointer
++				endif
++			endif
++		endif
++	endif
++	return pointer
++endfunction
+--- ocompiler-1.orig/src/files/functions/pref/preffuncs.s
++++ ocompiler-1/src/files/functions/pref/preffuncs.s
+@@ -24,7 +24,7 @@ Function warnings(sd p_err,sd has_named_
+ 			if var==(NULL)
+ 				data ptrcodeFnObj%ptrcodeFnObj
+ 				if ptrcodeFnObj#!=(ignore_warn)
+-					Data functionsptr%ptrfunctions
++					Data functionsptr%%ptr_functions
+ 					SetCall var varscore((NULL),0,functionsptr,p_err)
+ 					if var!=(NULL)
+ 						set fn_name "(function)"
+@@ -33,7 +33,7 @@ Function warnings(sd p_err,sd has_named_
+ 				if var==(NULL)
+ 					sd cb;setcall cb constants_bool((const_warn_get))
+ 					if cb!=(ignore_warn)
+-						data constantsptr%ptrconstants
++						data constantsptr%%ptr_constants
+ 						SetCall var varscore((NULL),0,constantsptr,p_err)
+ 						if var!=(NULL)
+ 							set fn_name "(constant)"
+@@ -167,6 +167,7 @@ function initpreferences()
+ 	sd p_ignore_format_so%p_ignore_format_so
+ 	sd ptr_call_align%ptr_call_align
+ 	sd ptr_nobits_virtual%ptr_nobits_virtual
++	sd ptr_has_debug%ptr_has_debug
+ 
+ 	data true=TRUE
+ 	data false=FALSE
+@@ -191,13 +192,14 @@ function initpreferences()
+ 	set p_ignore_format_so# (No)
+ 	set ptr_call_align# (call_align_yes_all)
+ 	set ptr_call_align# (Yes)
++	set ptr_has_debug# (No)
+ 
+ 	#this is used also at arguments
+ 
+ 	sv q%nr_of_prefs_pointers_p
+-	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so; incst q;set q# ptr_call_align; incst q;set q# ptr_nobits_virtual
++	set q# ptrwarningsbool;    incst q;set q# p_over_pref; incst q;set q# p_hidden_pref; incst q;set q# p_w_as_e; incst q;set q# ptrlogbool; incst q;set q# ptrcodeFnObj; incst q;set q# cb;           incst q;set q# ptrincludedir; incst q;set q# text_fn_info;    incst q;set q# conv_64;   incst q;set q# p_nul_res_pref; incst q;set q# sdsv_p;     incst q;set q# p_inplace_reloc_pref; incst q;set q# p_pref_reloc_64; incst q;set q# p_underscore_pref; incst q;set q# p_exit_end; incst q;set q# p_include_sec; incst q;set q# p_ignore_format_so; incst q;set q# ptr_call_align; incst q;set q# ptr_nobits_virtual; incst q;set q# ptr_has_debug
+ 	sv t%nr_of_prefs_strings_p
+-	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"; incst t;set t# "call_align"; incst t;set t# "nobits_virtual"
++	set t# "warnings";         incst t;set t# "over_pref"; incst t;set t# "hidden_pref"; incst t;set t# "w_as_e"; incst t;set t# "logfile";  incst t;set t# "codeFnObj";  incst t;set t# "const_warn"; incst t;set t# "includedir";  incst t;set t# "function_name"; incst t;set t# "conv_64"; incst t;set t# "nul_res_pref"; incst t;set t# "sd_as_sv"; incst t;set t# "inplace_reloc";      incst t;set t# "reloc_64";      incst t;set t# "underscore_pref"; incst t;set t# "exit_end"; incst t;set t# "include_sec"; incst t;set t# "ignore_format_so"; incst t;set t# "call_align";   incst t;set t# "nobits_virtual";   incst t;set t# "has_debug"
+ endfunction
+ 
+ #void
+@@ -284,7 +286,7 @@ function inplace_reloc_unres(sd p,sd add
+ 	sd p_inplace_reloc_pref%p_inplace_reloc_pref
+ 	if p_inplace_reloc_pref#!=(zero_reloc)
+ 		sd err
+-		sd ptrcodesec%ptrcodesec
++		sd ptrcodesec%%ptr_codesec
+ 		setcall err unresLc(add,ptrcodesec,0)
+ 		return err
+ 	endif
+--- ocompiler-1.orig/src/files/functions/scopes.s
++++ ocompiler-1/src/files/functions/scopes.s
+@@ -12,7 +12,7 @@ function scopes_free()
+ 		add pointer start
+ 		if start!=pointer
+ 			sub pointer :
+-			sd scps%ptrscopes
++			sd scps%%ptr_scopes
+ 			if pointer#!=scps
+ 				add pointer :
+ 			endif
+@@ -72,7 +72,7 @@ function scopes_alloc(sd has_named_entry
+ 		if has_named_entry==(TRUE)
+ 			#entry tag is, and is last, entry. can be used in functions
+ 			sub pointer :
+-			sd scps%ptrscopes
++			sd scps%%ptr_scopes
+ 			set pointer# scps
+ 		endif
+ 		#alloc some dummy values
+@@ -99,7 +99,7 @@ function scopes_store(sv scope)
+ 	add scope s#
+ 	set scope scope#
+ 	sd last=sizeofscope
+-	sv pointer%ptrfnscopes
++	sv pointer%%ptr_fnscopes
+ 	add last pointer
+ 	while pointer!=last
+ 		sd cont;sd contReg;call getcontandcontReg(pointer,#cont,#contReg)
+@@ -128,7 +128,7 @@ function scopes_searchinvars(sd p_err,sv
+ 	div sz :
+ 	sd i=0
+ 
+-	sv ptrfunctions%ptrfunctions
++	sv ptrfunctions%%ptr_functions
+ 	sd fns
+ 	call getcont(ptrfunctions,#fns)
+ 	while i!=sz
+--- ocompiler-1.orig/src/files/functions/stack/stack.s
++++ ocompiler-1/src/files/functions/stack/stack.s
+@@ -37,7 +37,7 @@ endfunction
+ function getptrramp()
+ 	data code#1
+ 	data ptrcode^code
+-	data ptrcodesec%ptrcodesec
++	data ptrcodesec%%ptr_codesec
+ 	call getcont(ptrcodesec,ptrcode)
+ 	data get=1
+ 	addcall code ramp_index(get)
+@@ -68,7 +68,7 @@ endfunction
+ 
+ #er
+ function entryscope()
+-	data container%ptrcodesec
++	data container%%ptr_codesec
+ 	sd err
+ 	#push ebx,push ebp
+ 	const scope1_start=!;chars scope1={0x53,0x55};const scope1_sz=!-scope1_start
+@@ -118,7 +118,7 @@ function addtocode_decstack(sd for_64)
+ 
+ 	data stack^movtostack
+ 	data size=2+4
+-	data ptrcodesec%ptrcodesec
++	data ptrcodesec%%ptr_codesec
+ 
+ 	sd err
+ 	if for_64==(TRUE)
+@@ -152,7 +152,7 @@ function addtocodefordata(sd value,sd fo
+ 
+ 	sd err
+ 	setcall err reloc64_ante();If err!=(noerror);Return err;EndIf
+-	data ptrcodesec%ptrcodesec
++	data ptrcodesec%%ptr_codesec
+ 	set val value
+ 	setcall err addtosec(#code,5,ptrcodesec);If err!=(noerror);Return err;EndIf
+ 	setcall err reloc64_post_base_extension(ptrcodesec,ext);If err!=(noerror);Return err;EndIf
+--- ocompiler-1.orig/src/files/functions/values/numbersandconstants.s
++++ ocompiler-1/src/files/functions/values/numbersandconstants.s
+@@ -246,7 +246,7 @@ Function numbersconstants(str content,da
+ 	If bool==(FALSE)
+ 		setcall err numbertoint(content,size,outval,minusbool)
+ 	Else
+-		Data constr%ptrconstants
++		Data constr%%ptr_constants
+ 		Data pointer#1
+ 		SetCall pointer vars(content,size,constr)
+ 		If pointer==0
+@@ -326,3 +326,10 @@ function parenthesis_all_size(ss content
+ 	add ptr_sz# two
+ 	return err
+ endfunction
++
++#len
++function dwtomem(sd dw,ss mem)
++	sd len
++	setcall len sprintf(mem,"%u",dw)
++	return len
++endfunction
+--- ocompiler-1.orig/src/files/headers.h
++++ ocompiler-1/src/files/headers.h
+@@ -5,7 +5,7 @@
+ Include "./headers/ascii.h"
+ Include "./headers/commons.h"
+ 
+-Include "./headers/log.h"
++Include "./headers/logs.h"
+ Include "./headers/strip.h"
+ 
+ Include "./headers/header.h"
+--- ocompiler-1.orig/src/files/headers/commons.h
++++ ocompiler-1/src/files/headers/commons.h
+@@ -61,4 +61,7 @@ Data negative=-1
+ Data i#1
+ Chars dot="."
+ 
++const dw_chars=10
++const dw_chars_0=dw_chars+1
++
+ const sym_with_size=dwsz
+--- ocompiler-1.orig/src/files/headers/header.h
++++ ocompiler-1/src/files/headers/header.h
+@@ -56,68 +56,70 @@ Const sizeofcontainer=3*dwsz
+ #base containers
+ Const includesSize=50*includesetSz
+ #includesSize
+-Const containersbegin=!
+-Data includesMax#1
+-Data includes#1
+-Data includesReg#1
+-Const ptrincludes^includesMax
++
++#this, not yet at simple exec Const containersbegin=!x
++
++Datax includesMax#1
++Datax includes#1
++Datax includesReg#1
++Const ptr_includes^includesMax
+ 
+ #subscope
+-Data miscbagMax#1
+-Data miscbag#1
+-Data miscbagReg#1
+-Const ptrmiscbag^miscbagMax
++Datax miscbagMax#1
++Datax miscbag#1
++Datax miscbagReg#1
++Const ptr_miscbag^miscbagMax
+ 
+ Const conditionssize=200*dwsz
+ #conditionssize
+-Data conditionsloopsMax#1
+-Data *conditionsloops#1
+-Data *conditionsloopsReg#1
+-Const ptrconditionsloops^conditionsloopsMax
+-
+-Data unresolvedcallsMax=mainscope
+-Data unresolvedcalls#1
+-Data unresolvedcallsReg#1
+-Const ptrunresolvedcalls^unresolvedcallsMax
++Datax conditionsloopsMax#1
++Datax *conditionsloops#1
++Datax *conditionsloopsReg#1
++Const ptr_conditionsloops^conditionsloopsMax
++
++Datax unresolvedcallsMax#1
++Datax unresolvedcalls#1
++Datax unresolvedcallsReg#1
++Const ptr_unresolvedcalls^unresolvedcallsMax
+ 
+ #variables, constants and functions containers
+-Data integerMax#1
+-Data *#1
+-Data *#1
+-Data stringMax#1
+-Data *#1
+-Data *#1
+-Data charsMax#1
+-Data *#1
+-Data *#1
+-Data sdMax#1
+-Data *#1
+-Data *#1
+-Data ssMax#1
+-Data *#1
+-Data *#1
+-Data svMax#1
+-Data *#1
+-Data *#1
+-
+-Data integerfnscopeMax#1
+-Data *#1
+-Data *#1
+-Data stringfnscopeMax#1
+-Data *#1
+-Data *#1
+-Data charsfnscopeMax#1
+-Data *#1
+-Data *#1
+-Data sdfnMax#1
+-Data *#1
+-Data *#1
+-Data ssfnMax#1
+-Data *#1
+-Data *#1
+-Data svfnMax#1
+-Data *#1
+-Data *#1
++Datax integerMax#1
++Datax *#1
++Datax *#1
++Datax stringMax#1
++Datax *#1
++Datax *#1
++Datax charsMax#1
++Datax *#1
++Datax *#1
++Datax sdMax#1
++Datax *#1
++Datax *#1
++Datax ssMax#1
++Datax *#1
++Datax *#1
++Datax svMax#1
++Datax *#1
++Datax *#1
++
++Datax integerfnscopeMax#1
++Datax *#1
++Datax *#1
++Datax stringfnscopeMax#1
++Datax *#1
++Datax *#1
++Datax charsfnscopeMax#1
++Datax *#1
++Datax *#1
++Datax sdfnMax#1
++Datax *#1
++Datax *#1
++Datax ssfnMax#1
++Datax *#1
++Datax *#1
++Datax svfnMax#1
++Datax *#1
++Datax *#1
+ 
+ Const memvariablesnumber=0
+ 	Const integersnumber=memvariablesnumber+0
+@@ -146,67 +148,76 @@ const sizeofscope=sizeofcontainer*number
+ 
+ Const constantssize=10*mainscope
+ #constantssize
+-Data constantsMax#1
+-Data *constants#1
+-Data *constantsReg#1
+-Const ptrconstants^constantsMax
+-
+-Data functionsMax#1
+-Data *functions#1
+-Data *functionsReg#1
+-Const ptrfunctions^functionsMax
++Datax constantsMax#1
++Datax *constants#1
++Datax *constantsReg#1
++Const ptr_constants^constantsMax
++
++Datax functionsMax#1
++Datax *functions#1
++Datax *functionsReg#1
++Const ptr_functions^functionsMax
+ 
+-Const ptrscopes^integerMax
+-Const ptrfnscopes^integerfnscopeMax
++Const ptr_scopes^integerMax
++Const ptr_fnscopes^integerfnscopeMax
+ 
+ #file containers
+ Const sizeofsecdata=0x1000
+-Data datasecMax#1
+-Data datasec#1
+-Data datasecReg#1
+-Const ptrdatasec^datasecMax
+-Const ptrdataReg^datasecReg
+-
+-Data codesecMax=sizeofsecdata
+-Data codesec#1
+-Data codesecReg#1
+-Const ptrcodesec^codesecMax
++Datax datasecMax#1
++Datax datasec#1
++Datax datasecReg#1
++Const ptr_datasec^datasecMax
++Const ptr_dataReg^datasecReg
++
++Datax codesecMax#1
++Datax codesec#1
++Datax codesecReg#1
++Const ptr_codesec^codesecMax
+ 
+ #table
+ Const sizeofiedataparts=sizeofsecdata/0x10
+ Const itablesize=sizeofiedataparts
+-Data tableMax#1
+-Data table#1
+-Data tableReg#1
++Datax tableMax#1
++Datax table#1
++Datax tableReg#1
+ Const IMAGE_IMPORT_DESCRIPTORsize=dwsz*5
+-Const ptrtable^tableMax
++Const ptr_table^tableMax
+ 
+ Const iaddressessize=3*sizeofiedataparts
+ #addressessize
+-Data addressesMax#1
+-Data addresses#1
+-Data addressesReg#1
+-Const ptraddresses^addressesMax
++Datax addressesMax#1
++Datax addresses#1
++Datax addressesReg#1
++Const ptr_addresses^addressesMax
+ 
+ Const sizeofienames=sizeofsecdata-iaddressessize-itablesize
+ #Const inamessize=sizeofienames
+ #namessize
+-Data namesMax#1
+-Data names#1
+-Data namesReg#1
+-Const ptrnames^namesMax
+-
+-Data extraMax#1
+-Data extra#1
+-Data extraReg#1
+-Const ptrextra^extraMax
+-
+-Data unresLocalMax#1
+-Data unresLocal#1
+-Data unresLocalReg#1
+-Const ptrunresLocal^unresLocalMax
+-
+-Const containerssize=!-containersbegin
++Datax namesMax#1
++Datax names#1
++Datax namesReg#1
++Const ptr_names^namesMax
++
++Datax extraMax#1
++Datax extra#1
++Datax extraReg#1
++Const ptr_extra^extraMax
++
++Datax unresLocalMax#1
++Datax unresLocal#1
++Datax unresLocalReg#1
++Const ptr_unresLocal^unresLocalMax
++
++Datax debugsecMax#1
++Datax debugsec#1
++Datax debugsecReg#1
++Const ptr_debug^debugsecMax
++
++#not yet at simple exec Const containerssize=!x-containersbegin
++const containersbegin^includesMax
++const containersalmostend^debugsecReg
++data containerssize=containersalmostend+dwsz-containersbegin
++const containerssize^containerssize
+ 
+ chars dummyEntry_data#sizeof_minimumentry
+ 
+@@ -216,8 +227,8 @@ Data dummyEntryReg#1
+ data ptrdummyEntry^dummyEntryMax
+ Const ptrdummyEntry^dummyEntryMax
+ 
+-data clownEntry#1
+-data *#1
++#data clownEntry#1
++#data *#1
+ data nobitssecReg#1
+ const ptrnobitsReg^nobitssecReg
+ #used at !x offset
+@@ -273,15 +284,16 @@ Const declarefunction=1
+ 
+ 
+ #more values
+-Data ptrdatasec%ptrdatasec
+-Data ptrcodesec%ptrcodesec
+-Data ptrmiscbag%ptrmiscbag
+-Data ptrtable%ptrtable
+-Data ptrnames%ptrnames
+-Data ptraddresses%ptraddresses
+-Data ptrextra%ptrextra
+-Data ptrconditionsloops%ptrconditionsloops
+-Data ptrnull^null
++Value ptrdatasec%%ptr_datasec
++Value ptrcodesec%%ptr_codesec
++Value ptrmiscbag%%ptr_miscbag
++Value ptrtable%%ptr_table
++Value ptrnames%%ptr_names
++Value ptraddresses%%ptr_addresses
++Value ptrextra%%ptr_extra
++Value ptrconditionsloops%%ptr_conditionsloops
++Value ptrdebug%%ptr_debug
++Value ptrnull^null
+ 
+ Data allocerrormsg#1
+ const ptrallocerrormsg^allocerrormsg
+@@ -380,9 +392,9 @@ const commentascii=asciinumber
+ const reserveascii=asciinumber
+ const pointerascii=asciinumber
+ 
+-const max_uint64=20
+-chars uint64c#max_uint64+1
+-str uint64s^uint64c
++#const max_uint64=20
++chars uint32c#dw_chars_0
++vstr uint32s^uint32c
+ 
+ data w_as_e#1
+ const p_w_as_e^w_as_e
+@@ -396,7 +408,7 @@ const p_hidden_pref^hidden_pref
+ Data safecurrentdirtopath#1
+ const p_safecurrentdirtopath^safecurrentdirtopath
+ 
+-const nr_of_prefs=20
++const nr_of_prefs=21
+ const nr_of_prefs_jumper=nr_of_prefs*:
+ 
+ vdata nr_of_prefs_pointers#nr_of_prefs;vdata nr_of_prefs_strings#nr_of_prefs
+@@ -455,8 +467,8 @@ const allow_yes=1
+ 
+ const getarg_str=asciidoublequote
+ 
+-#x
+-const log_expand=0x78
+-
+ data nobits_virtual#1
+ const ptr_nobits_virtual^nobits_virtual
++
++data has_debug#1
++const ptr_has_debug^has_debug
+--- ocompiler-1.orig/src/files/headers/log.h
++++ ocompiler-1/src/files/headers/log.h
+@@ -20,6 +20,3 @@ const log_declare=0x64
+ 
+ #r
+ const log_reusable=0x72
+-
+-#x
+-#ostrip is reading only with fseek, ounused can skip 0-9 instead of x, but in code is log with a char
+--- /dev/null
++++ ocompiler-1/src/files/headers/logs.h
+@@ -0,0 +1,15 @@
++
++#shared with ounused
++include "log.h"
++
++#can be shared with ostrip
++#x
++const log_expand=0x78
++#ostrip is reading only with fseek, ounused can skip 0-9 instead of x, but in code is log with a char
++
++#extern shared with odbg
++const log_line=0x6C
++
++#QwERtyuIoP 5 5
++#asDFghjkL  3 6
++#zXCvbNm    3 4
+--- ocompiler-1.orig/src/files/inits/alloc.s
++++ ocompiler-1/src/files/inits/alloc.s
+@@ -48,6 +48,7 @@ Set extraMax subscope
+ 
+ Set unresLocalMax mainscope
+ 
++set debugsecMax 0    #(subscope)
+ 
+ 
+ SetCall errormsg enumbags(true)
+--- ocompiler-1.orig/src/files/inits/inits.s
++++ ocompiler-1/src/files/inits/inits.s
+@@ -99,3 +99,8 @@ set p_b# (FALSE)
+ 
+ #this is declared here for no entry/fn tags
+ call scope64_set((FALSE))
++
++vdata ptrprevLineD%%ptrprevLineD
++#set ptrprevLineD# 0    #set acording to includes
++vdata ptrcodeRegD%%ptrcodeRegD
++set ptrcodeRegD# 0
+--- ocompiler-1.orig/src/files/inits_top.s
++++ ocompiler-1/src/files/inits_top.s
+@@ -5,8 +5,8 @@ Set fileout negative
+ set logfile negative
+ 
+ #containers initialisations
+-Data containersptr%containersbegin
+-Data containerssize=containerssize
++Data containersptr%%containersbegin
++#Data containerssize=containerssize
+ 
+ #for reg and for freeings
+ Call memset(containersptr,null,containerssize)
