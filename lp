@@ -28,24 +28,25 @@ fi
 echo $tars
 
 if [ -z "${1}" ] || [ "${1}" = "0" ]; then
-	#prog=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
-	prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
+	p=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
+	#source name is enough
+	#prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
 
 	i=1
-	for p in "${prog[@]}"; do
-		raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
-		arhs=
-		for var in "${raw[@]}"
-		do
-			if [ "${var}" = "all" ]; then
-				var=amd64
-			fi
-			arhs+=" ${var}"
-		done
-		echo $p $dist $arhs
-		ppa-copy-packages -O colin-i -p ${p} -s ${dist} -t ${tars} --architectures ${arhs}
-		i=$((i+1))
+	#for p in "${prog[@]}"; do
+	raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
+	arhs=
+	for var in "${raw[@]}"
+	do
+		if [ "${var}" = "all" ]; then
+			var=amd64
+		fi
+		arhs+=" ${var}"
 	done
+	echo $p $dist $arhs
+	ppa-copy-packages -O colin-i -p ${p} -s ${dist} -t ${tars} --architectures ${arhs}
+	#	i=$((i+1))
+	#done
 else
 	#if [ "${1}" = "x" ]; then
 	t=`echo -n ${tars} | grep -o '[^ ]*$'`
