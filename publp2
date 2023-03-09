@@ -22,9 +22,10 @@ if [ -z "${4}" ]; then
 else
 	ppa=${4}
 fi
-echo ${name} ${dist} ${version} ${ppa}
+echo ${dist} ${version} ${ppa}
 
 for n in "${name[@]}"; do
+	echo ${n}
 	if [ -z "${2}" ]; then
 		raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
 		arh=
@@ -35,6 +36,7 @@ for n in "${name[@]}"; do
 			fi
 			arh+=" ${var}"
 		done
+		arh=( ${arh} )
 		i=$((i+1))
 	else
 		arh=( ${2} )
