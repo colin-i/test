@@ -1,4 +1,6 @@
 
+#this is not used, was tested in case launchpad fails with debs
+
 # 1 from launchpad
 
 if [ -n "${1}" ]; then

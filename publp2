@@ -1,21 +1,16 @@
 
 #optional    1 dist   2 arh   3 version   4 ppa
 
-name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+#name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+name=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
+
 if [ -z "${1}" ]; then
 	dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
 else
 	dist=${1}
 fi
 if [ -z "${2}" ]; then
-	arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
-	if [ "${arh}" = "all" ]; then
-		arh=( amd64 )
-	else
-		arh=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*"` )
-	fi
-else
-	arh=( ${2} )
+	i=1
 fi
 if [ -z "${3}" ]; then
 	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
@@ -29,16 +24,32 @@ else
 fi
 echo ${name} ${dist} ${version} ${ppa}
 
-for var in "${arh[@]}"
-do
-	echo ${var}
-	while true
+for n in "${name[@]}"; do
+	if [ -z "${2}" ]; then
+		raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
+		arh=
+		for var in "${raw[@]}"
+		do
+			if [ "${var}" = "all" ]; then
+				var=amd64
+			fi
+			arh+=" ${var}"
+		done
+		i=$((i+1))
+	else
+		arh=( ${2} )
+	fi
+	for var in "${arh[@]}"
 	do
-		OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${var} ${name} ${version} x | head -1`
-		echo =${OUTPUT}
-		if [ "${OUTPUT}" = 'Published' ]; then
-			break
-		fi
-		sleep 200
+		echo ${var}
+		while true
+		do
+			OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${var} ${name} ${version} x | head -1`
+			echo =${OUTPUT}
+			if [ "${OUTPUT}" = 'Published' ]; then
+				break
+			fi
+			sleep 200
+		done
 	done
 done

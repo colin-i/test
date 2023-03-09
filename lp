@@ -28,7 +28,8 @@ fi
 echo $tars
 
 if [ -z "${1}" ] || [ "${1}" = "0" ]; then
-	prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs`)
+	#prog=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
+	prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
 
 	i=1
 	for p in "${prog[@]}"; do
