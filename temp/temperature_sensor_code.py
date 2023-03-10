@@ -1,5 +1,6 @@
 
 #git clone https://github.com/pimylifeup/temperature_sensor
+#git clone --depth 1
 #https://github.com/tomikaa87/gree-remote
 
 import time
