@@ -1,10 +1,17 @@
 #!/bin/bash
 
-if [ -n "$1" ]; then
-sudo mmcli -s $1 --send
-else
-sudo mmcli -m 0 --messaging-create-sms="text='',number='+407'"
-#Successfully created new SMS:
-#    /org/freedesktop/ModemManager1/SMS/12 (unknown)
-#retrieve sms id from output (here: 12)
-fi
+#1 text 2 nr
+
+a=`sudo mmcli -m 0 --messaging-create-sms="text='${1}',number='+40${2}'"`
+echo ${a}
+#Successfully created new SMS: /org/freedesktop/ModemManager1/SMS/0
+b=`echo ${a} | cut -d' ' -f5 | cut -d'/' -f6`
+
+a=`date '+%s'`
+f=/home/bc/Desktop/sms/$a.txt
+mmcli -m 0 -s ${b} > ${f}
+cat ${f}
+read -n1 kbd
+
+sudo mmcli -s ${b} --send
+sudo mmcli -m 0 --messaging-delete-sms=${b}
