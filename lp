@@ -75,3 +75,5 @@ fi
 #cannot login to staging and almost a year has gone
 
 # --architectures   default is        ['i386', 'amd64']     i386 amd64
+
+#find -name "*o" -exec echo {} \;

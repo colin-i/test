@@ -1,0 +1,3 @@
+
+#sudo apt-get markauto $1
+sudo apt-mark auto $1
