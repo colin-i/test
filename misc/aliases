@@ -1,0 +1,2 @@
+
+alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches}'

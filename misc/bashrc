@@ -29,7 +29,7 @@ export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PKG_CONFIG_PATH=${PKG_CONFIG_PATH} PATH=${PATH}
 
-alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches}'
+source ~/test/misc/aliases
 
 
 #if set grep will stop working for example: echo a | grep a, is with -r will not search at stdin
