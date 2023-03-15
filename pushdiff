@@ -5,12 +5,21 @@ if [ -n "$1" ]; then
 nr=$1
 fi
 
+a=
+b=
+
 while [ $nr -gt 0 ]
 do
-a=$((nr-1))
-git diff HEAD@{$nr} HEAD@{$a} --unified=0
-nr=$a
-if [ $a -ne 0 ]; then
+
+a+=^
+git diff HEAD${a} HEAD${b} --unified=0
+b=${a}
+
+#this will mix branches
+#git diff HEAD@{$nr} HEAD@{$((nr-1))} --unified=0
+
+nr=$((nr-1))
+if [ ${nr} -ne 0 ]; then
 $(dd bs=1 count=1 2>/dev/null)
 fi
 done
