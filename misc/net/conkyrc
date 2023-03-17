@@ -38,9 +38,11 @@ conky.config = {
 --    use_spacer = 'none',
     own_window = true,
 --    own_window_class = 'Conky',
--- normal, desktop, dock, panel or override   desktop is below
+-- normal, desktop, dock, panel or override
+-- normal is a window
 -- desktop is below even with  own_window_hints = 'undecorated,above,sticky,skip_taskbar,skip_pager'
 -- panel is an alternative
+-- override error
     own_window_type = 'dock',
 --    use_xft = true,
 --    font = 'DejaVu Sans Mono:size=20',
@@ -56,3 +58,8 @@ conky.config = {
 conky.text = [[${color grey}${uptime} $color${eval $${exec python b.py ${lua conky_updtint}}}]]
 --b.py
 --Up: ${upspeed} ${color grey} - Down:$color ${downspeed}
+
+--assure
+--gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'FIXED'
+--gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0
+--gsettings reset org.gnome.shell.extensions.dash-to-dock background-opacity
