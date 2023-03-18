@@ -7,11 +7,11 @@ nexttime=`php -f /home/bc/test/misc/is_day.php`
 if [ "${nexttime:0:1}" = "-" ]; then
 	if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
 		~/test/keyring
-		sudo ydotool key shift+F10; sleep 1; sudo ydotool key r; sleep 1; sudo ydotool key 1
+		sudo ~/test/dotool key shift+F10; sleep 1; sudo ~/test/dotool key r; sleep 1; sudo ~/test/dotool key 1
 	fi
 else
 	if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
 		~/test/keyring
-		sudo ydotool key shift+F10; sleep 1; sudo ydotool key r; sleep 1; sudo ydotool key 2
+		sudo ~/test/dotool key shift+F10; sleep 1; sudo ~/test/dotool key r; sleep 1; sudo ~/test/dotool key 2
 	fi
 fi
