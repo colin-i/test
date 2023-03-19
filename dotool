@@ -4,7 +4,7 @@ t=$(loginctl show-session $(loginctl | awk '/tty/ {print $1}') -p Type | awk -F=
 echo =${t}
 a=${1}
 shift
-b=${2}
+b=${1}
 shift
 if [ "${t}" = "x11" ]; then
 	if [ "${b}" = "enter" ]; then b="Return"; fi
