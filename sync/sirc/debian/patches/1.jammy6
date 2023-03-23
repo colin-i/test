@@ -1,0 +1,544 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ sirc (1-jammy6) jammy; urgency=medium
+ .
+   * help misleads corrected
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-23
+
+--- /dev/null
++++ sirc-1/.github/FUNDING.yml
+@@ -0,0 +1,13 @@
++# These are supported funding model platforms
++
++github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
++patreon: # Replace with a single Patreon username
++open_collective: # Replace with a single Open Collective username
++ko_fi: # Replace with a single Ko-fi username
++tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
++community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
++liberapay: costin
++issuehunt: # Replace with a single IssueHunt username
++otechie: # Replace with a single Otechie username
++lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
++custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+--- /dev/null
++++ sirc-1/.github/workflows/appimage.yml
+@@ -0,0 +1,121 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   ppa:
++    description: "ppa sufix"
++
++jobs:
++ build:
++  runs-on: ubuntu-22.04
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      name2=Sirc
++      #
++      mkdir -p AppDir
++      file=runtime
++      arch_ai=-x86_64
++      archfile=${file}${arch_ai}
++      kitpart () {
++       #https://github.com/AppImage/pkg2appimage
++       #urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       urlpart=AppImage/AppImageKit/releases/latest/download/${archfile}
++      }
++      if [ ! -e "${file}" ]; then
++       kitpart
++       #"pkg2appimage-.*-x86_64.AppImage"
++       wget -c https://github.com/${urlpart}
++       mv ${archfile} ${file}
++       chmod a+x ${file}
++      fi
++      if [ ! -e "${name}.deb" ]; then
++       arh=amd64
++       version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++       if [ ! -e "lp2.py" ]; then
++        wget -q https://raw.githubusercontent.com/colin-i/test/master/lp2.py
++        #is already at 22.04 sudo apt install python3-launchpadlib
++       fi
++       OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version} ${arh})
++       wget ${OUTPUT}/+files/${name}_${version}_${arh}.deb -O ${name}.deb
++       dpkg -x ${name}.deb AppDir
++      fi
++      apd=AppDir
++      cd ${apd}
++      file2=AppRun
++      if [ ! -e "${file2}" ]; then
++       if [ -z "${urlpart}" ]; then
++        kitpart
++       fi
++       archfile2=${file2}${arch_ai}
++       urlpart=${urlpart:0:`echo ${urlpart} | grep -ob '[^/]*$' | cut -d ':' -f 1`}${archfile2}
++       wget -c https://github.com/${urlpart}
++       chmod a+x ${archfile2}
++       mv ${archfile2} ${file2}
++      fi
++      pngfile=${name}.png
++      if [ ! -e "${pngfile}" ]; then
++       wget https://github.com/colin-i/test/releases/download/1.5/${name}.png -O ${pngfile}
++       cat > ${name}.desktop <<EOF
++      [Desktop Entry]
++      Type=Application
++      Name=${name2}
++      Exec=${name}
++      Icon=${name}
++      Categories=Utility
++      EOF
++       ln -s ${pngfile} .DirIcon
++      fi
++      #metadata file
++      mi=usr/share/metainfo
++      mif=${mi}/com.colin.${name}.appdata.xml
++      if [ ! -e "${mif}" ]; then
++       page=`cat ../debian/control | grep "^Homepage" | cut -d ' ' -f2`
++       srcname=`echo ${page} | grep -o "[^/]*$"`
++       mkdir -p ${mi}
++       cat > ${mif} <<EOF
++      <?xml version="1.0" encoding="UTF-8"?>
++      <!-- Copyright 2022 -->
++      <component type="desktop-application">
++       <id>com.colin.${name}</id>
++       <metadata_license>FSFAP</metadata_license>
++       <name>${name2}</name>
++       <summary>IRC with SSL</summary>
++       <description>
++        <ul>
++         <li>Chat with users and at channels</li>
++         <li>Be notified of missed messages</li>
++         <li>Set automatic replaies</li>
++        </ul>
++       </description>
++       <url type="homepage">${page}</url>
++       <screenshots>
++        <screenshot type="default">
++         <caption>${name2} image</caption>
++         <image>https://raw.github.com/colin-i/${srcname}/master/arh/${name}.png</image>
++        </screenshot>
++       </screenshots>
++       <content_rating/>
++      </component>
++      EOF
++      fi
++      #
++      cd ..
++      #
++      if [ ! -e "${name}.AppImage" ]; then
++       mksquashfs AppDir ${name}.squashfs -root-owned -noappend
++       cat runtime >> ${name}.AppImage
++       cat ${name}.squashfs >> ${name}.AppImage
++       chmod a+x ${name}.AppImage
++      fi
++      glibc=`readelf -V ${apd}/usr/bin/${name} | grep -Po "(?<= GLIBC_)[^ ]*" | sort -Vr | head -1 | sed "s/\./-/g"`
++      echo -n ${glibc} > version #"glibc" will not be ok for upload-artifact
++   - name: artifact
++     uses: actions/upload-artifact@v3
++     with:
++      name: appimage
++      path: |
++       ./*.AppImage
++       ./version
+--- sirc-1.orig/.github/workflows/deb.yml
++++ sirc-1/.github/workflows/deb.yml
+@@ -4,18 +4,24 @@ on:
+ 
+ jobs:
+  dbuild:
+-  runs-on: ubuntu-22.04 #libssl3 is not at impish
++  runs-on: ubuntu-latest #must be greater than 22.04, libssl3 is not at impish
+   steps:
+    - uses: actions/checkout@v3
+      with:
+       path: in
++   - uses: actions/checkout@master
++     with:
++      repository: colin-i/test
++      path: in2
+    - name: Run a multi-line script
+      run: |
++      name=`cat in/debian/changelog | head -1 | grep -o ^[^\ ]*`
++      cp -r in2/sync/${name}/debian/patches in/debian
++      cp -r in2/sync/${name}/.pc in
+       if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
+        sudo apt install -y devscripts debhelper \
+                            libgtk-3-dev
+       fi
+-      name=`cat in/debian/changelog | head -1 | grep -o ^[^\ ]*`
+       origf=${name}-1.tar.gz
+       if [ ! -e "${origf}" ]; then
+        origln=${name}_1.orig.tar.gz
+--- /dev/null
++++ sirc-1/.github/workflows/del.yml
+@@ -0,0 +1,20 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ del:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Remove asset
++     uses: mknejp/delete-release-assets@v1
++     env:
++     with:
++      token: ${{ secrets.PAT }}
++      tag: refs/tags/${{ env.tag }}
++      assets: ${{ env.file }}
+--- /dev/null
++++ sirc-1/.github/workflows/delrel.yml
+@@ -0,0 +1,15 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   tag:
++    description: "project version"
++
++jobs:
++ delrel:
++   runs-on: ubuntu-latest
++   steps:
++    - uses: cb80/delrel@latest
++      with:
++       tag: ${{ github.event.inputs.tag }}
++       token: ${{ secrets.PAT }}
+--- /dev/null
++++ sirc-1/.github/workflows/rel.yml
+@@ -0,0 +1,41 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ rbuild:
++  runs-on: ubuntu-latest
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #get the version from changelog/launchpad/input
++      tag=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++      echo "tag=${tag}" >> $GITHUB_ENV
++   - name: Create Release
++     id: create_release
++     uses: actions/create-release@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      tag_name: ${{ env.tag }}
++      release_name: Release ${{ env.tag }}
++      draft: false
++      prerelease: false
++      #this can be undone. example: git push origin :refs/tags/1.6
++   - name: Store upload url for assets
++     run: |
++      #echo straight will not escape {}
++      a=${{ steps.create_release.outputs.upload_url }}
++      echo -n ${a} > 1.txt
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      echo "proj=${name}" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: https://uploads.github.com/repos/colin-i/test/releases/67484178/assets{?name,label}
++      asset_path: ./1.txt
++      asset_name: ${{ env.proj }}
++      asset_content_type: text/plain
+--- sirc-1.orig/.github/workflows/rpm.yml
++++ sirc-1/.github/workflows/rpm.yml
+@@ -28,9 +28,9 @@ jobs:
+       sudo apt install alien
+       sudo alien -rk ../${name}.deb
+       fname=`ls`
++      mv ${fname} ../${fname}
+       #no, BuildArch is x86_64, don't change to amd64
+-      #fname2=${name}-${version}.${arh}.rpm
+-      mv ${fname} ../
++      #fname2=${name}.${version}.${arh}.rpm
+       #${fname2} #alien says x86_64 but we coded elsewhere with amd64
+       echo "file=${fname}" >> $GITHUB_ENV
+    - name: artifact
+--- /dev/null
++++ sirc-1/.github/workflows/upapp.yml
+@@ -0,0 +1,41 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ uabuild:
++  runs-on: ubuntu-latest
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++      #get appimage artifact
++      id=$(gh run list --workflow=appimage.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
++      repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
++      #
++      url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
++      url=${url:1:-1}
++      echo ${url}
++      curl -L -H "Authorization: token ${{ secrets.PAT }}" ${url} --output a.zip
++      #to env
++      unzip ./a.zip
++      glibc=`cat version`
++      echo "file=${name}.AppImage" >> $GITHUB_ENV
++      echo "fullfile=${name}.glibc${glibc}.amd64.AppImage" >> $GITHUB_ENV
++     env:
++      #for gh
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.fullfile }}
++      asset_content_type: application/x-executable
+--- /dev/null
++++ sirc-1/.github/workflows/uponrpm.yml
+@@ -0,0 +1,40 @@
++
++on:
++ workflow_dispatch:
++
++jobs:
++ uorbuild:
++  runs-on: ubuntu-latest
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++      #get artifact
++      id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
++      repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
++      #
++      url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
++      url=${url:1:-1}
++      echo ${url}
++      curl -L -H "Authorization: token ${{ secrets.PAT }}" ${url} --output a.zip
++      #to env
++      file=`unzip -l a.zip | sed -n 4p | tr -s ' ' | cut -d ' ' -f5`
++      unzip ./a.zip
++      echo "file=${file}" >> $GITHUB_ENV
++     env:
++      #for gh
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.file }}
++      asset_content_type: application/x-executable
+--- sirc-1.orig/README.md
++++ /dev/null
+@@ -1,27 +0,0 @@
+-# IRC with SSL
+-
+-## Install
+-On Ubuntu from PPA.\
+-Architecture: amd64 arm64
+-```sh
+-sudo add-apt-repository ppa:colin-i/ppa
+-```
+-Or the *manual installation step* from this link *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6* \
+-Install:
+-```sh
+-sudo apt-get install sirc
+-```
+-
+-## From source
+-```sh
+-autoreconf -i
+-./configure
+-make install
+-```
+-For *install*, *sudo make install* if it is the user.\
+-*\-\-disable\-cpp* at *./configure* to set c rules.\
+-GTK3 required.
+-
+-## Donations
+-The *donations* section is here
+-*https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6*
+--- /dev/null
++++ sirc-1/arh/pub
+@@ -0,0 +1,22 @@
++
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | jq .tag_name -r) && echo ${last} && \
++~/test/debinit "${1}" && \
++~/test/pub deb && \
++~/test/keyring2 && \
++~/test/deb && \
++~/test/publp && \
++~/test/ai && \
++~/test/rpm && \
++~/test/del && \
++~/test/rel && \
++~/test/pub appimage rpm rel && \
++~/test/upapp && \
++~/test/uponrpm && \
++~/test/pub upapp uponrpm && \
++~/test/pub2 && \
++~/test/publp2 && \
++~/test/lp && \
++~/test/lp x && \
++~/test/keyring && \
++~/test/del x ${last} x && \
++~/test/arh2 ${last}
+--- /dev/null
++++ sirc-1/clean
+@@ -0,0 +1,2 @@
++
++git clean -xdf -e .pc/ -e debian/patches/
+--- sirc-1.orig/main.c
++++ sirc-1/main.c
+@@ -1968,13 +1968,19 @@ static void help_popup(struct stk_s*ps){
+ 		gtk_text_buffer_insert(text_buffer,&it,",",1);
+ 		gtk_text_buffer_insert(text_buffer,&it,&ps->args_short[i],1);
+ 	}
+-	gtk_text_buffer_insert(text_buffer,&it,"\n\nReceived arguments:\n",-1);
+-	for(int i=1;i<ps->argc;i++){
+-		if(i>1)gtk_text_buffer_insert(text_buffer,&it," ",1);
+-		BOOL a=strchr(ps->argv[i],' ')!=nullptr;
+-		if(a)gtk_text_buffer_insert(text_buffer,&it,"\"",1);
+-		gtk_text_buffer_insert(text_buffer,&it,ps->argv[i],-1);
+-		if(a)gtk_text_buffer_insert(text_buffer,&it,"\"",1);
++	//
++	if(ps->argc==1)gtk_text_buffer_insert(text_buffer,&it,"\n\nNo argument was provided.\n",-1);
++	else{
++		gtk_text_buffer_insert(text_buffer,&it,"\n\nReceived argument",-1);
++		if(ps->argc>2)gtk_text_buffer_insert(text_buffer,&it,"s",-1);
++		gtk_text_buffer_insert(text_buffer,&it,":\n",-1);
++		for(int i=1;i<ps->argc;i++){
++			if(i>1)gtk_text_buffer_insert(text_buffer,&it," ",1);
++			BOOL a=strchr(ps->argv[i],' ')!=nullptr;
++			if(a)gtk_text_buffer_insert(text_buffer,&it,"\"",1);
++			gtk_text_buffer_insert(text_buffer,&it,ps->argv[i],-1);
++			if(a)gtk_text_buffer_insert(text_buffer,&it,"\"",1);
++		}
+ 	}
+ 	//
+ 	GtkWidget*box=gtk_dialog_get_content_area((GtkDialog*)dialog);
+@@ -2232,9 +2238,6 @@ activate (GtkApplication* app,
+ 	GtkWidget *menu_item = gtk_menu_item_new_with_label ("Organize Connections");
+ 	g_signal_connect_data (menu_item, "activate",G_CALLBACK (organize_connections),ps,nullptr,G_CONNECT_SWAPPED);
+ 	gtk_menu_shell_append ((GtkMenuShell*)menu, menu_item);gtk_widget_show(menu_item);
+-	menu_item = gtk_menu_item_new_with_label ("Help");
+-	g_signal_connect_data (menu_item, "activate",G_CALLBACK (help_popup),ps,nullptr,G_CONNECT_SWAPPED);
+-	gtk_menu_shell_append ((GtkMenuShell*)menu, menu_item);gtk_widget_show(menu_item);
+ 	//
+ 	menu_item = gtk_menu_item_new_with_label ("Channels");
+ 	chan_menu = gtk_menu_new ();
+@@ -2283,6 +2286,10 @@ activate (GtkApplication* app,
+ 	g_signal_connect_data (menu_item, "activate",G_CALLBACK (action_to_close),nullptr,nullptr,(GConnectFlags)0);
+ 	gtk_menu_shell_append ((GtkMenuShell*)menu, menu_item);gtk_widget_show(menu_item);
+ 	//
++	menu_item = gtk_menu_item_new_with_label ("Help");
++	g_signal_connect_data (menu_item, "activate",G_CALLBACK (help_popup),ps,nullptr,G_CONNECT_SWAPPED);
++	gtk_menu_shell_append ((GtkMenuShell*)menu, menu_item);gtk_widget_show(menu_item);
++	//
+ 	menu_item = gtk_menu_item_new_with_label ("Exit Program");
+ 	g_signal_connect_data (menu_item, "activate",G_CALLBACK (g_application_quit),app,nullptr,G_CONNECT_SWAPPED);
+ 	gtk_menu_shell_append ((GtkMenuShell*)menu, menu_item);gtk_widget_show(menu_item);
+@@ -2492,3 +2499,16 @@ int main (int    argc,
+ 	}else puts("openssl error");
+ 	return EXIT_SUCCESS;
+ }
++
++/* example entries for .sircinfo
++irc.libera.chat:6697
++chat.freenode.net:6697,7000,7070
++@192.168.4.3     
++@bucharest.ro.eu.undernet.org:6660-6669
++chat.freenode.net:6697,7000,7070;6665-6667,8000-8002
++@192.168.4.1
++zonder:@irc.us.ircnet.net
++@0.0.0.0
++@192.168.4.3:6666-6667
++@192.168.4.3:6667;6666,6667-6667
++*/
+--- /dev/null
++++ sirc-1/readme.md
+@@ -0,0 +1,34 @@
++# IRC with SSL
++
++## Install
++On Ubuntu from PPA.\
++Architecture: amd64 arm64
++```sh
++sudo add-apt-repository ppa:colin-i/ppa
++```
++Or the *manual installation step* from this link *https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6* \
++Install:
++```sh
++sudo apt-get install sirc
++```
++\
++On Fedora, <i>.rpm</i> file from [releases](https://github.com/colin-i/irc-ssl/releases).
++```sh
++yum install sirc-*.*.rpm
++```
++\
++On linux distributions, <i>.AppImage</i> file from [releases](https://github.com/colin-i/irc-ssl/releases).
++
++## From source
++```sh
++autoreconf -i
++./configure
++make install
++```
++For *install*, *sudo make install* if it is the user.\
++*\-\-disable\-cpp* at *./configure* to set c rules.\
++GTK3 required.
++
++## Donations
++The *donations* section is here
++*https://gist.github.com/colin-i/e324e85e0438ed71219673fbcc661da6*
