@@ -3,7 +3,7 @@ echo pypi.org \? y \? && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
 \
-#version at v2
+#version at v2 is incremented at ./pyver (then pushed)
 \
 ~/test/pyin && \
 ~/test/pyout && \
