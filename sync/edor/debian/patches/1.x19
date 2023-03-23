@@ -1,0 +1,222 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x19) focal; urgency=medium
+ .
+   * fix r normalization, add line termination argument, Saved to inform in some cases that are not having mod_flag
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-23
+
+--- edor-1.orig/s/bar.c
++++ edor-1/s/bar.c
+@@ -231,6 +231,15 @@ static void clear_com(int y,int sz,int p
+ 		//memset(mapsel,' ',(size_t)len);mapsel[len]='\0';addstr(mapsel);
+ 	}
+ }
++
++static void texter(const char*t){
++	mvaddstr(getmaxy(stdscr)-1,com_left,t);
++}
++void texter_macro(const char*t){
++	new_v=strlen(t);
++	texter(t);
++}
++
+ //1/0/-1 -2
+ int question(const char*q){
+ 	//if(com_left+sz>getmaxx(stdscr))return 1;
+@@ -716,7 +725,7 @@ static bool dos(WINDOW*w,eundo*un,size_t
+ static void undo_show(size_t n){
+ 	char nr[11];
+ 	int a=sprintf(nr,protocol,n);
+-	mvaddstr(getmaxy(stdscr)-1,com_left,nr);
++	texter(nr);
+ 	undo_erase(a);
+ 	wnoutrefresh(stdscr);
+ }
+@@ -1128,12 +1137,10 @@ int command(char*comnrp){
+ }
+ bool new_visual(char*f){
+ 	if(access(f,F_OK)==-1){
+-		new_v=sizeof(new_s);
+-		//new_f=true;
+-
+ 		textfile=f;
+ 
+-		mvaddstr(getmaxy(stdscr)-1,com_left,new_s);
++		//new_f=true;
++		texter_macro(new_s);
+ 		return true;
+ 	}
+ 	return false;
+--- edor-1.orig/s/base.h
++++ edor-1/s/base.h
+@@ -46,6 +46,7 @@ bool bar_clear(void);
+ bool is_dir(int);
+ void err_set(WINDOW*);
+ int open_new(char*);
++void texter_macro(const char*);
+ 
+ extern char ln_term[3];
+ extern size_t ln_term_sz;
+--- edor-1.orig/s/main.c
++++ edor-1/s/main.c
+@@ -165,7 +165,7 @@ static char prefs_file[max_path_0]={'\0'
+ 
+ #define hel1 "USAGE\n"
+ // skip_unrestoredfilecheck_flag
+-#define hel2 " [filepath]\
++#define hel2 " [filepath [line_termination: rn/r/n]]\
+ \nINPUT\
+ \nhelp: q(uit),up/down,mouse/touch v.scroll\
+ \n[Ctrl/Alt/Shift +]arrows/home/end/del,page up,page down,backspace,enter\
+@@ -1842,6 +1842,14 @@ static bool savetofile(WINDOW*w,bool has
+ 				topspace_clear();
+ 				write_title();
+ 			}
++
++			if(mod_flag/*true*/){bar_clear();texter_macro("Saved");}
++			//there are some cases here:
++			//	open with forced new line and save
++			//	open with std input and save
++			//	save a blank New Path
++			//	just save in case the file was erased
++
+ 			mod_set_on();
+ 			undo_save();
+ 		}
+@@ -1995,6 +2003,7 @@ static bool loopin(WINDOW*w){
+ 		}
+ 	}
+ }
++//-1 to normalize, 0 errors, 1 ok
+ static int normalize(char**c,size_t*size,size_t*r){
+ 	int ok=0;
+ 	char*text_w=c[0];
+@@ -2018,9 +2027,14 @@ static int normalize(char**c,size_t*size
+ 						a='\n';}
+ 					else{norm[j]=a;j++;a='\n';ok=-1;}
+ 				}
+-				else if(ln_term[0]=='\n'){
+-					if(((i+1)<sz)&&text_w[i+1]=='\n')i++;
+-					a='\n';ok=-1;
++				else{
++					if(((i+1)<sz)&&text_w[i+1]=='\n'){
++						i++;
++						if(ln_term[0]=='\n')a='\n';
++						ok=-1;
++					}else if(ln_term[0]=='\n'){
++						a='\n';ok=-1;
++					}
+ 				}
+ 			}
+ 			norm[j]=a;j++;
+@@ -2088,33 +2102,58 @@ static bool grab_input(size_t*text_sz){
+ 	freopen("/dev/tty","r",stdin);
+ 	return false;
+ }
+-static int startfile(char*f,size_t*text_sz,bool no_file,bool no_input){
+-	if(no_file==false){if(grab_file(f,text_sz)/*true*/)return 0;}
++
++static bool valid_ln_term(char*input_term,bool*not_forced){
++	if(strcmp(input_term,"rn")==0){ln_term[0]='\r';ln_term[1]='\n';ln_term[2]='\0';ln_term_sz=2;}
++	else if(strcmp(input_term,"r")==0)ln_term[0]='\r';
++	else if(strcmp(input_term,"n")==0){}
++	else{
++		puts("Line termination argument must be: \"rn\", \"r\" or \"n\".");
++		return true;
++	}
++	*not_forced=false;
++	return false;
++}
++//same as normalize
++static int startfile(int argc,char**argv,size_t*text_sz,bool no_file,bool no_input){
++	bool not_forced=true;
++	if(no_file==false){
++		char*f=argv[1];
++		if(grab_file(f,text_sz)/*true*/)return 0;
++		if(argc==3){
++			if(valid_ln_term(argv[2],&not_forced)/*true*/)return 0;
++		}
++	}
+ 	if(no_input==false){
+-		if(no_file){
++		if(no_file/*true*/){
+ 			text_init_b=(char*)malloc(0);
+ 			if(text_init_b==nullptr)return 0;
+ 			*text_sz=0;
+ 		}
++		//else will be appended to existing file
+ 		if(grab_input(text_sz)/*true*/)return 0;
+ 	}
+-	size_t i=*text_sz;
+-	while(i>0){
+-		i--;
+-		if(text_init_b[i]=='\n'){
+-			if(i!=0&&text_init_b[i-1]=='\r'){
++	if(not_forced/*true*/){
++		size_t i=*text_sz;
++		while(i>0){
++			i--;
++			if(text_init_b[i]=='\n'){
++				if(i!=0&&text_init_b[i-1]=='\r'){
++					ln_term[0]='\r';
++					ln_term[1]='\n';
++					ln_term[2]='\0';
++					ln_term_sz=2;
++				}
++				break;
++			}else if(text_init_b[i]=='\r'){
+ 				ln_term[0]='\r';
+-				ln_term[1]='\n';
+-				ln_term[2]='\0';
+-				ln_term_sz=2;
++				break;
+ 			}
+-			break;
+-		}else if(text_init_b[i]=='\r'){
+-			ln_term[0]='\r';
+-			break;
+ 		}
++		return normalize(&text_init_b,text_sz,&rows_tot);
+ 	}
+-	return normalize(&text_init_b,text_sz,&rows_tot);
++	if(normalize(&text_init_b,text_sz,&rows_tot)==0)return 0;
++	return 1;
+ }
+ static bool help_init(char*f,size_t szf){
+ 	size_t sz1=sizeof(hel1)-1;
+@@ -2342,7 +2381,7 @@ static void action(int argc,char**argv,W
+ 			}
+ 		}
+ 	}else{
+-		ok=startfile(argv[1],&text_sz,no_file,no_input);
++		ok=startfile(argc,argv,&text_sz,no_file,no_input);
+ 		if(ok!=0){
+ 			if(ok<1){
+ 				char txt[]={'N','o','r','m','a','l','i','z','e',' ','l','i','n','e',' ','e','n','d','i','n','g','s',' ','t','o',' ','\\','r',' ',' ','?',' ','n','=','n','o',',',' ','d','e','f','a','u','l','t','=','y','e','s','\r','\0'};
+@@ -2402,7 +2441,7 @@ int main(int argc,char**argv){
+ 	sigaction(SIGSEGV, &signalhandlerDescriptor, nullptr);
+ 	//baz(argc);
+ 	#endif
+-	if(argc>2){puts("Too many arguments.");return EXIT_FAILURE;}
++	if(argc>3){puts("Too many arguments.");return EXIT_FAILURE;}
+ 	WINDOW*w1=initscr();
+ 	use_default_colors();//assume_default_colors(-1,-1);//it's ok without this for color pair 0 (when attrset(0))
+ 	if(w1!=nullptr){
