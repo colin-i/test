@@ -16,7 +16,7 @@ else
 		else
 			prev=${2}
 			if [ -n "${3}" ]; then
-				glb=$(curl https://api.github.com/repos/colin-i/$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)/releases/latest -s | grep -Poe "(?<=$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)\.)[^.]*" | head -1)
+				glb=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | grep -Poe "(?<=$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)\.)[^.]*" | head -1)
 				#.assets[1].name can be random
 				name=${name}.${glb}
 			fi
