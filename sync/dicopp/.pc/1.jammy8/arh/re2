@@ -1,0 +1,11 @@
+
+ver=`cat ${1}/v2`
+name=dicopp
+
+mkdir -p ./usr/lib64/python3.10/site-packages && \
+sed '/^Requires.*\/python3.*$/a Requires:      eiskaltdcpp\nRequires:      libgtk-4.so.1\nRequires:      python3-psutil\nRequires:      python3-requests\nRequires:      python3-appdirs\n' text > text2 && \
+#Requires:      gir1.2-gtk-4.0\nRequires:      gir1.2-glib-2.0\nRequires:      python3-gi\n
+sed "/^%doc.*copyright.*$/a %ghost \"/usr/lib64/python3.10/site-packages/${name}-${ver}.egg-info\"\n%ghost \"/usr/lib64/python3.10/site-packages/${name}\"\n" text2 > text3 && \
+printf "\n%%post\nln -s /usr/lib/python3/dist-packages/${name}-${ver}.egg-info /usr/lib64/python3.10/site-packages/${name}-${ver}.egg-info\nln -s /usr/lib/python3/dist-packages/${name} /usr/lib64/python3.10/site-packages/${name}\n" >> text3 && \
+rm text2 && \
+sudo mv text3 text
