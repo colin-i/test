@@ -1,0 +1,43 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ dicopp (1-jammy9) jammy; urgency=medium
+ .
+   * mistakes
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-23
+
+--- dicopp-1.orig/dicopp/hubs.py
++++ dicopp-1/dicopp/hubs.py
+@@ -13,7 +13,7 @@ from . import hubscon
+ from . import sets
+ from . import overrides
+ 
+-addr=Gtk.EntryBuffer(text='qweqweqweqweqwe') #https://www.te-home.net/?do=hublist&get=hublist.xml')
++addr=Gtk.EntryBuffer(text='https://www.te-home.net/?do=hublist&get=hublist.xml')
+ file=Gtk.EntryBuffer()
+ lim=Gtk.EntryBuffer(text='200')
+ labelA="Searching..."
+--- dicopp-1.orig/v2
++++ dicopp-1/v2
+@@ -1 +1 @@
+-1.0.33
+\ No newline at end of file
++1.0.34
+\ No newline at end of file
