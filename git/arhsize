@@ -1,0 +1,70 @@
+
+# optional 1 limit
+
+#for tests main reason
+if [ -z "${1}" ]; then
+	maximumlimit=100
+else
+	maximumlimit=${1}
+fi
+
+s=0
+
+while :
+do
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"arh\") {
+        releases (first:  '"${maximumlimit}"''"${cursor}"') {
+          edges {
+            node {
+              releaseAssets (first:100){
+                edges {
+                  node {
+                    size
+                  }
+                }
+              }
+            }
+            cursor
+          }
+        }
+      }
+    }
+  }"
+}'
+	sleep 1
+	raw=$(curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)")
+
+	raw1=`echo ${raw} | jq -r ".data.viewer.repository.releases.edges[] | .cursor"`
+	readarray -t data <<<"$raw1"
+	n=${#data[@]}
+	if [ "${data[0]}" = "" ]; then break;fi
+
+	raw2=`echo ${raw} | jq -r ".data.viewer.repository.releases.edges[] | .node.releaseAssets.edges[] | .node.size"`
+	readarray -t data2 <<<"$raw2"
+	n2=${#data2[@]}
+
+	echo ${n} ${n2}
+
+	for ((i = 0; i < ${n2}; ))
+	do
+		a=${data2[${i}]}
+		i=$((i+1))
+
+		s=$((s+a))
+	done
+
+	if [ ${n} -lt ${maximumlimit} ]; then break; fi
+
+	crs=${data[n-1]}
+
+	cursor=",after:\\\"${crs}\\\""
+done
+
+printf "%'d\n" ${s}
+
+if [ ${s} -gt $((1000*1000*1000)) ]; then echo more than one billion
+else echo small; fi
