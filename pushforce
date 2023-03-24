@@ -1,0 +1,28 @@
+
+#same as push
+
+if [ -z "${2}" ]; then
+a=0
+else
+a=${2}
+fi
+
+if [ -z "${3}" ]; then
+b=1
+else
+b=${3}
+fi
+
+if [ -z "${4}" ]; then
+c=
+else
+c=${4}
+fi
+
+if [ -z "${5}" ]; then
+d=--force
+else
+d="${5} --force"
+fi
+
+~/test/push ${1} ${a} ${b} "${c}" "${d}"
