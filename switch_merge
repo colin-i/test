@@ -16,21 +16,15 @@ if [ "${t}" = "" ]; then
 	exit 1
 fi
 
-current=`git rev-parse HEAD`
+#current=`git rev-parse HEAD`
+current=`git branch --show-current`
 
-if [ "$1" = "test" ]; then
-	if [ "${current}" = "${t}" ]; then
-		echo same branch, no switch
-		exit 1
-	fi
-else
-	if [ "${current}" = "${m}" ]; then
-		echo same branch, no switch
-		exit 1
-	fi
+if [ "${1}" = "${current}" ]; then
+	echo same branch, no switch
+	exit 1
 fi
 
-git switch $1
+git switch ${1}
 
 z=
 
@@ -44,15 +38,17 @@ if [ "$m" != "$t" ]; then
 		if [ ${mt} -lt ${tt} ]; then
 			z=test
 		else
-			echo is recent, no merge
+			echo is recent
 		fi
 	else
 		if [ ${tt} -lt ${mt} ]; then
 			z=master
 		else
-			echo is recent, no merge
+			echo is recent
 		fi
 	fi
+else
+	echo equal
 fi
 
 if [ "${z}" != "" ]; then
@@ -66,4 +62,6 @@ if [ "${z}" != "" ]; then
 	else
 		echo no
 	fi
+else
+echo no merge
 fi

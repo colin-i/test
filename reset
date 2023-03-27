@@ -1,11 +1,12 @@
 
-#1 hash  2 proj
+#1 hash
+
+name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 
 git reset ${1} && \
 git reflog --relative-date && \
-~/test/pushforce ${2} && \
+~/test/pushforce ${name} && \
 git stash && \
 ~/test/switch_merge master && \
 git stash pop && \
-git commit -a && \
-git reflog --relative-date
+git commit -a
