@@ -1,0 +1,11 @@
+
+#1 hash  2 proj
+
+git reset ${1} && \
+git reflog --relative-date && \
+~/test/pushforce ${2} && \
+git stash && \
+~/test/switch_merge master && \
+git stash pop && \
+git commit -a && \
+git reflog --relative-date
