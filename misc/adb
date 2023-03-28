@@ -1,0 +1,2 @@
+
+adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
