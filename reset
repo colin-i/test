@@ -1,12 +1,14 @@
 
-#1 hash
+#1 hash  optional 2 not switch
 
 name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 
 git reset ${1} && \
 git reflog --relative-date && \
 ~/test/pushforce ${name} && \
-git stash && \
-~/test/switch_merge master && \
-git stash pop && \
+if [ -z "${2}" ]; then
+	git stash && \
+	~/test/switch_merge master && \
+	git stash pop
+fi && \
 git commit -a
