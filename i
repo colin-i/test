@@ -1,2 +1,2 @@
 
-sudo rsync -av index.html /var/www/html/index.html
+sudo rsync -av index.php /var/www/html/index.php

@@ -4,6 +4,15 @@
 
 <embed id='a'></embed>
 
+<?php
+if(array_key_exists('hosted',$_GET)){
+?>
+<script src="/dist/ruffle.js">
+</script>
+<?php
+}
+?>
+
 <script>
 const queryString = self.location.search;
 const urlParams = new URLSearchParams(queryString);
