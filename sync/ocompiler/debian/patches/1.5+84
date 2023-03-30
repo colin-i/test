@@ -1,0 +1,44 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ocompiler (1-5+84) xenial; urgency=medium
+ .
+   * minor optimization
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-03-30
+
+--- ocompiler-1.orig/src/files/functions/argument/arg.s
++++ ocompiler-1/src/files/functions/argument/arg.s
+@@ -36,11 +36,11 @@ function extend_arg_size(ss content,sd s
+ 	sub sizetoverify p_argsize#
+ 	if sizetoverify!=0
+ 		add content p_argsize#
+-		sd marker;set marker content
+-		ss test;set test content
+-		dec test	##argsize is not 0
+-		if test#!=(pointerascii)
+-			if test#!=(castascii)
++		ss marker;set marker content
++		dec marker	##argsize is not 0
++		if marker#!=(pointerascii)
++			if marker#!=(castascii)
++				set marker content
+ 				call spaces(#content,#sizetoverify)
+ 				if sizetoverify!=0
+ 					if content#==(pointerascii)
