@@ -21,8 +21,10 @@ conky.config = {
 --    default_color = 'white',
 --    default_outline_color = 'white',
 --    default_shade_color = 'white',
+
 -- will clip without this
     double_buffer = true,
+
 --    draw_borders = false,
 --    draw_outline = false,
     draw_shades = false,
@@ -36,7 +38,10 @@ conky.config = {
 --    stippled_borders = 0,
 --    uppercase = false,
 --    use_spacer = 'none',
+
     own_window = true,
+-- error without
+
 --    own_window_class = 'Conky',
 -- normal, desktop, dock, panel or override
 -- normal is a window
@@ -44,10 +49,16 @@ conky.config = {
 -- panel is an alternative
 -- override error
     own_window_type = 'dock',
+
 --    use_xft = true,
 --    font = 'DejaVu Sans Mono:size=20',
-    gap_x = 100,
-    lua_load = 'lua',
+
+    gap_x = 0,
+    gap_y = 750,
+
+--    lua_load = 'lua',
+-- load 'lua' file, this was for passing '5' to py
+
     update_interval = 5
 }
 
@@ -55,7 +66,9 @@ conky.config = {
 
 --upseconds=5 ]] .. upseconds.. [[
 
-conky.text = [[${color grey}${uptime} $color${eval $${exec python b.py ${lua conky_updtint}}}]]
+--conky.text = [[${color grey}${uptime} $color${eval $${exec python b.py ${lua conky_updtint}}}]]
+conky.text = [[${color grey}${eval $${exec bash -c 'uptime | cut -d':' -f 3 | cut -d" " -f 1'}} ${color #00FFFF}${eval $${exec python b.py}}]]
+
 --b.py
 --Up: ${upspeed} ${color grey} - Down:$color ${downspeed}
 
