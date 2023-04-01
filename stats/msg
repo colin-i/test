@@ -55,7 +55,8 @@ datecalc () {
 	time=$(date -u -d @${time} '+%Y')
 }
 
-echo "https://github.com/colin-i">${out}
+echo -e "https://github.com/colin-i\n">${out}
+
 if [ $((to-from)) -gt 31622400 ]; then  #greater than 366 days, this is all time
 	echo -n "From ">>${out}
 	datecalc ${from}
@@ -117,11 +118,10 @@ if [ "${more_data}" != "" ]; then
 	fi
 
 	./gh .
-	echo >>${out}
-	echo >>${out}
-	echo -n "All time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
+	echo -ne "\n\nAll time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
 fi
 
 cat ${out}
 cat ${out} | xclip -selection clipboard
+#twitter will see \n (maybe \r too) like one or two rows in a strange algorithm, must edit there
 rm ${out}

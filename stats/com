@@ -1,6 +1,7 @@
 
 #1 year  2 month
 
+echo -n "${1}-${2}" | xclip -selection clipboard && \
 git commit -a && \
 ~/test/push test && \
 ./commit ${1} ${2}
