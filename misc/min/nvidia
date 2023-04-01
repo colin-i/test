@@ -1,0 +1,40 @@
+
+
+#for P106
+#5.. will not work
+sudo apt install nvidia-384 will work but old ethminer from source is needing CUDA_BIN_PATH
+#!sudo apt install nvidia-cuda-toolkit will break driver/nvidia-smi
+wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
+sudo sh cuda_12.1.0_530.30.02_linux.run
+
+nvidia-smi
+
+#etc rank 24
+#ethw #103
+#egem #2285
+
+#4gb 19 Sep 2025 15:39
+
+./geth --classic --syncmode light
+
+./geth attach ~/.ethereum/classic/geth.ipc
+
+personal.newAccount("**password**")
+INFO [04-01|09:35:04.289] Your new key was generated   ...........
+WARN [04-01|09:35:04.289] Please backup your key file! ...........
+
+npm install keythereum
+node
+> var keyobj=keyth.importFromFile('0x5f1455F6a293832c32021B06fE30EEe6298616C2','/home/bc/.ethereum/classic')
+var privateKey=keyth.recover('**password**',keyobj)
+
+rm .node_repl_history
+
+
+https://miningpoolstats.stream/ethereumclassic
+
+https://github.com/ethereum-mining/ethminer
+!https://github.com/etclabscore/ethminer
+
+https://github.com/trexminer/T-Rex
+https://github.com/develsoftware/GMinerRelease
