@@ -1,11 +1,12 @@
 
 
 #for P106
-#5.. will not work
-sudo apt install nvidia-384 will work but old ethminer from source is needing CUDA_BIN_PATH
+#nvidia-driver-525/nvidia-driver-418-server/530fromNvidia will not work
+sudo apt install nvidia-driver-390 will work but ethminer is needing the toolkit
 #!sudo apt install nvidia-cuda-toolkit will break driver/nvidia-smi
-wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda_12.1.0_530.30.02_linux.run
-sudo sh cuda_12.1.0_530.30.02_linux.run
+#sudo sh cuda_12.1.0_530.30.02_linux.run this nvcc is needing more from cuda driver
+get cuda 8 toolkit, InstallUtils.pm is in the archive
+get 9.1
 
 nvidia-smi
 
@@ -35,6 +36,9 @@ https://miningpoolstats.stream/ethereumclassic
 
 https://github.com/ethereum-mining/ethminer
 !https://github.com/etclabscore/ethminer
++	if (CUDA_VERSION VERSION_LESS 12.0)
+		list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_35,code=sm_35")
++	endif()
 
 https://github.com/trexminer/T-Rex
 https://github.com/develsoftware/GMinerRelease

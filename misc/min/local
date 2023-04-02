@@ -1,0 +1,20 @@
+
+screen -list
+if [ "$?" = "1" ]; then
+screen -dmS 1
+sleep 10
+screen -x 1 -X stuff $'./min\n'
+fi
+
+#sudo systemctl edit getty@tty1.service
+##This will the create a drop-in file (if neccessary) and open it an editor.
+
+##Add the following, replacing myusername with your user name:
+#[Service]
+#ExecStart=
+#ExecStart=-/sbin/agetty --noissue --autologin myusername %I $TERM
+#Type=idle
+
+##This will:
+##   Create the folder /etc/systemd/system/getty@tty1.service.d if necessary
+##   Create the file /etc/systemd/system/getty@tty1.service.d/override.conf if necessary
