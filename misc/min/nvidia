@@ -2,11 +2,19 @@
 
 #for P106
 #nvidia-driver-525/nvidia-driver-418-server/530fromNvidia will not work
-sudo apt install nvidia-driver-390 will work but ethminer is needing the toolkit
+#sudo apt install nvidia-driver-390 will work
+#but ethminer is needing the toolkit
 #!sudo apt install nvidia-cuda-toolkit will break driver/nvidia-smi
-#sudo sh cuda_12.1.0_530.30.02_linux.run this nvcc is needing more from cuda driver
-get cuda 8 toolkit, InstallUtils.pm is in the archive
-get 9.1
+#sudo sh cuda_12.1.0_530.30.02_linux.run
+#get cuda 8 toolkit, InstallUtils.pm is in the archive
+#get 9.1
+#nvcc is needing more from cuda driver, need nvidia-396, not easy to make to work from nvidia
+
+#at bionic
+#there is 396 not in nvidia "dev" ppa (not in "ppa")
+#nvidia-cuda-toolkit will not break here
+#ethminer build will work but at cmake .. add -DCMAKE_C_COMPILER=/usr/bin/gcc-6, and can set OpenCL and AMD OFF in CMakeLists.text
+#ethminer prebuilt 9 will work
 
 nvidia-smi
 
