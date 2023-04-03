@@ -1,6 +1,4 @@
 
-while :
-do
-sleep 10
-echo a
-done
+#~/ethminer/build/ethminer/ethminer --list-devices
+
+#~/ethminer/build/ethminer/ethminer --cu-devices 1

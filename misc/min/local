@@ -6,6 +6,9 @@ sleep 10
 screen -x 1 -X stuff $'./min\n'
 fi
 
+#screen -r to attach
+#ctrl+a+d to detach
+
 #sudo systemctl edit getty@tty1.service
 ##This will the create a drop-in file (if neccessary) and open it an editor.
 

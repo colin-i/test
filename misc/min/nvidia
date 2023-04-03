@@ -12,7 +12,7 @@
 
 #at bionic
 #there is 396 not in nvidia "dev" ppa (not in "ppa")
-#nvidia-cuda-toolkit will not break here
+#nvidia-cuda-toolkit will be ok here
 #ethminer build will work but at cmake .. add -DCMAKE_C_COMPILER=/usr/bin/gcc-6, and can set OpenCL and AMD OFF in CMakeLists.text
 #ethminer prebuilt 9 will work
 
