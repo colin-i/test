@@ -1,0 +1,36 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x22) bionic; urgency=medium
+ .
+   * bionic
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-04-03
+
+--- edor-1.orig/s/main.c
++++ edor-1/s/main.c
+@@ -1925,7 +1925,7 @@ static bool loopin(WINDOW*w){
+ 				wmove(w,y,0);past(w);
+ 			}
+ 			else if(z=='g'){
+-				quick_pack(com_nr_goto_alt,w)			
++				quick_pack(com_nr_goto_alt,w)
+ 				if(goto_mode((char*)args,w)/*true*/)return true;
+ 			}
+ 			else if(z=='f'){if(find_mode(com_nr_findagain,w)/*true*/)return true;}
