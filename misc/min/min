@@ -2,3 +2,8 @@
 #~/ethminer/build/ethminer/ethminer --list-devices
 
 #~/ethminer/build/ethminer/ethminer --cu-devices 1
+
+#sudo nvidia-smi -q -d POWER
+#60-120
+
+#sudo nvidia-smi -i 1 -pl (Power Limit)
