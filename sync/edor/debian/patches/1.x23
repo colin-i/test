@@ -1,0 +1,137 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ edor (1-x23) focal; urgency=medium
+ .
+   * mouse fixes
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-04-05
+
+--- edor-1.orig/s/inc/main/curses.h
++++ edor-1/s/inc/main/curses.h
+@@ -15,9 +15,32 @@ typedef struct
+ }
+ MEVENT;
+ //#define OK 0
+-#define BUTTON1_CLICKED 0x4
+-#define BUTTON4_PRESSED 0x10000
+-#define BUTTON5_PRESSED 0x200000
++
++#define NCURSES_MOUSE_MASK(b,m) ((m) << (((b) - 1) * 5))
++#define NCURSES_BUTTON_PRESSED 002L
++#define NCURSES_BUTTON_CLICKED 004L
++#define NCURSES_DOUBLE_CLICKED 010L
++#define NCURSES_TRIPLE_CLICKED 020L
++
++#define BUTTON1_PRESSED NCURSES_MOUSE_MASK(1, NCURSES_BUTTON_PRESSED)
++#define BUTTON1_CLICKED NCURSES_MOUSE_MASK(1, NCURSES_BUTTON_CLICKED)
++#define BUTTON1_DOUBLE_CLICKED NCURSES_MOUSE_MASK(1, NCURSES_DOUBLE_CLICKED)
++#define BUTTON1_TRIPLE_CLICKED NCURSES_MOUSE_MASK(1, NCURSES_TRIPLE_CLICKED)
++
++#define BUTTON2_PRESSED NCURSES_MOUSE_MASK(2, NCURSES_BUTTON_PRESSED)
++#define BUTTON2_CLICKED NCURSES_MOUSE_MASK(2, NCURSES_BUTTON_CLICKED)
++#define BUTTON2_DOUBLE_CLICKED NCURSES_MOUSE_MASK(2, NCURSES_DOUBLE_CLICKED)
++#define BUTTON2_TRIPLE_CLICKED NCURSES_MOUSE_MASK(2, NCURSES_TRIPLE_CLICKED)
++
++#define BUTTON3_PRESSED NCURSES_MOUSE_MASK(3, NCURSES_BUTTON_PRESSED)
++#define BUTTON3_CLICKED NCURSES_MOUSE_MASK(3, NCURSES_BUTTON_CLICKED)
++#define BUTTON3_DOUBLE_CLICKED NCURSES_MOUSE_MASK(3, NCURSES_DOUBLE_CLICKED)
++#define BUTTON3_TRIPLE_CLICKED NCURSES_MOUSE_MASK(3, NCURSES_TRIPLE_CLICKED)
++
++#define BUTTON4_PRESSED NCURSES_MOUSE_MASK(4, NCURSES_BUTTON_PRESSED)
++
++#define BUTTON5_PRESSED NCURSES_MOUSE_MASK(5, NCURSES_BUTTON_PRESSED)
++
+ #define KEY_UP 0403
+ #define KEY_DOWN 0402
+ #define KEY_SF 0520
+--- edor-1.orig/s/main.c
++++ edor-1/s/main.c
+@@ -205,6 +205,7 @@ static char*text_init_b=nullptr;
+ static char*text_init_e;
+ static int _rb;static int _cb;
+ static int _re;static int _ce;
++static int topspace=1;
+ #define view_margin 8
+ #define known_stdin 0
+ 
+@@ -428,6 +429,7 @@ static void topspace_clear(){
+ static void write_title(){
+ 	write_the_title(textfile);
+ }
++//Button 2 is the middle one
+ static bool helpin(WINDOW*w){
+ 	int c;
+ 	do{
+@@ -436,7 +438,13 @@ static bool helpin(WINDOW*w){
+ 			MEVENT e;
+ 			getmouse(&e);
+ 			if((e.bstate&BUTTON4_PRESSED)!=0)hmove(-1);
+-			else if((e.bstate&BUTTON5_PRESSED)!=0)hmove(1);
++			else
++		#ifdef BUTTON5_PRESSED
++			if((e.bstate&BUTTON5_PRESSED)!=0)
++		#else
++			if(e.bstate==0)     // at wheel down (ncurses 6.1 at bionic)
++		#endif
++			hmove(1);
+ 		}else if(c==KEY_DOWN)hmove(1);
+ 		else if(c==KEY_UP)hmove(-1);
+ 		else if(c==KEY_RESIZE)return true;
+@@ -628,18 +636,30 @@ static void right_move(WINDOW*w,bool(*f)
+ 	}
+ 	wmove(w,r,c);
+ }
++
+ #define right_wordmove(w) right_move(w,is_wordchar)
+ #define right_textmove(w) right_move(w,is_textchar)
+ #define alt_jump 2
+ #define ctrl_jump 3
++
++#define click (BUTTON1_CLICKED|BUTTON1_PRESSED|BUTTON1_DOUBLE_CLICKED|BUTTON1_TRIPLE_CLICKED \
++|BUTTON2_CLICKED|BUTTON2_PRESSED|BUTTON2_DOUBLE_CLICKED|BUTTON2_TRIPLE_CLICKED \
++|BUTTON3_CLICKED|BUTTON3_PRESSED|BUTTON3_DOUBLE_CLICKED|BUTTON3_TRIPLE_CLICKED)
++
+ //1resize,0diff key,-1processed
+ static int movment(int c,WINDOW*w){
+ 	if(c==KEY_MOUSE){
+ 		MEVENT e;
+ 		getmouse(&e);//==OK is when mousemask is 0, but then nothing at getch
+ 		if((e.bstate&BUTTON4_PRESSED)!=0)vu1move(w,getcury(w));
+-		else if((e.bstate&BUTTON5_PRESSED)!=0)vd1move(w,getcury(w));
+-		else if((e.bstate&BUTTON1_CLICKED)!=0)amove(w,e.y,e.x);//return -2;}
++		else
++	#ifdef BUTTON5_PRESSED
++		if((e.bstate&BUTTON5_PRESSED)!=0)
++	#else
++		if(e.bstate==0)     // at wheel down (ncurses 6.1 at bionic)
++	#endif
++		vd1move(w,getcury(w));
++		else if((e.bstate&click)!=0)amove(w,e.y-topspace,e.x);//return -2;}
+ 	}else if(c==KEY_LEFT)left(w,getcurx(w));
+ 	else if(c==KEY_RIGHT)right(w,getcurx(w));
+ 	else if(c==KEY_UP){
+@@ -2277,7 +2297,6 @@ static void proced(char*comline){
+ 	if(setfilebuf(comline,cutbuf_file)/*true*/){
+ 		bool loops=false;
+ 		int cy=0;int cx=0;
+-		int topspace=1;
+ 		int r=getmaxy(stdscr)-1;
+ 		int old_r=r-1;//set -1 because at first compare is erasing new_visual
+ 		do{
