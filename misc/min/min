@@ -16,7 +16,5 @@ sudo nvidia-smi -i 1 -pl 60
 #./ethdcrminer64 -epool eu1-etc.ethermine.org:4444 -coin etc -ewal 0x5f1455F6a293832c32021B06fE30EEe6298616C2 -gpus 2 -lidag 3 -gser 3 -gpow 5
 # -mi 0 -li 9999
 # -eworker wker
-#"-allcoins 1" or "-allpools 1" option
-# -gser 1
 # -gt 1
 # -powlim -75
