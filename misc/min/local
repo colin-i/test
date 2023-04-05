@@ -1,9 +1,20 @@
 
 screen -list
 if [ "$?" = "1" ]; then
+
 screen -dmS 1
-sleep 10
+
+i=10
+while [ ${i} -gt 1 ]; do
+echo ${i}
+sleep 1
+i=$((i-1))
+done
+#press Ctrl-C while sleep is running, because sleep has no special handler on SIGINT, it will die and report to bash that it died of a SIGINT
+#and bash will exit
+
 screen -x 1 -X stuff $'./min\n'
+
 fi
 
 #screen -r to attach

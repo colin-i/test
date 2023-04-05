@@ -43,10 +43,10 @@ rm .node_repl_history
 https://miningpoolstats.stream/ethereumclassic
 
 https://github.com/ethereum-mining/ethminer
-!https://github.com/etclabscore/ethminer
 +	if (CUDA_VERSION VERSION_LESS 12.0)
 		list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_35,code=sm_35")
 +	endif()
+!https://github.com/etclabscore/ethminer
 
 https://github.com/trexminer/T-Rex
 https://github.com/develsoftware/GMinerRelease
