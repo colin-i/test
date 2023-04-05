@@ -4,6 +4,7 @@
 #nvidia-smi -q -d power
 #60-140
 
+~/keyring
 sudo nvidia-smi -i 1 --persistence-mode=1
 sudo nvidia-smi -i 1 -pl 60
 

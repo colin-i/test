@@ -5,4 +5,5 @@ echo | sudo -S -i
 
 if [ "$?" = "1" ]; then
 	cat ~/n/pat3 | sudo -S -i
+	#at bionic the password must be with new line, after that without new line
 fi
