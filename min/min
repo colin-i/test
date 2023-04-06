@@ -10,7 +10,7 @@ sudo nvidia-smi -pl 60               # -i 1
 
 if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
 
-~/clay/ethdcrminer64 -epool eu1-etc.ethermine.org:4444 -eworker worker1 -coin etc -ewal 0x5f1455F6a293832c32021B06fE30EEe6298616C2 | tee ${to}
+~/clay/ethdcrminer64 -epool ssl://eu1-etc.ethermine.org:5555 -coin etc -ewal 0x5f1455F6a293832c32021B06fE30EEe6298616C2 | tee ${to}
 #debug ~/ethminer/build/ethminer/ethminer
 #https://support.bitfly.at/support/solutions/articles/8000093295-etc-ethermine-org-payout-policy
 #Payouts take place immediately after the configured threshold (Min 0.1 ETC Max 10 ETC) is reached. The default configured threshold is 1 ETC, and can be changed by providing the IP address of the highest performing mining rig.
@@ -20,6 +20,7 @@ if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
 # --cu-streams 1 --dag-load-mode 1
 # --cu-devices 1
 #
+# -eworker worker1
 # -gpus 2 -lidag 3 -gser 3 -gpow 5
 # -mi 0 -li 9999
 # -gt 1
