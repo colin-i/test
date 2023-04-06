@@ -5,7 +5,7 @@ if [ "$?" = "1" ]; then
 screen -dmS 1
 
 i=10
-while [ ${i} -gt 1 ]; do
+while [ ${i} -ge 1 ]; do
 echo ${i}
 sleep 1
 i=$((i-1))
@@ -14,6 +14,22 @@ done
 #and bash will exit
 
 screen -x 1 -X stuff $'./min\n'
+
+id=`ps aux|grep ethminer|grep -v grep|tr -s ' '|cut -f2 -d' '`
+echo ${id}
+i=10000
+j=60
+while [ ${i} -ge 1 ]; do
+echo ${i}
+sleep ${j}
+i=$((i-j))
+done
+kill -2 ${id}
+
+#https://manpages.ubuntu.com/manpages/bionic/en/man5/sudoers_timestamp.5.html
+#15 minutes
+~/keyring
+sudo init 0
 
 fi
 

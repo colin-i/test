@@ -5,17 +5,20 @@
 #60-140
 
 ~/keyring
-sudo nvidia-smi -i 1 --persistence-mode=1
-sudo nvidia-smi -i 1 -pl 60
+sudo nvidia-smi --persistence-mode=1 # -i 1
+sudo nvidia-smi -pl 60               # -i 1
 
-#~/ethminer/build/ethminer/ethminer --cu-devices 1 -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555
+~/clay/ethdcrminer64 -epool eu1-etc.ethermine.org:4444 -eworker worker1 -coin etc -ewal 0x5f1455F6a293832c32021B06fE30EEe6298616C2
+#debug ~/ethminer/build/ethminer/ethminer
 #https://support.bitfly.at/support/solutions/articles/8000093295-etc-ethermine-org-payout-policy
 #Payouts take place immediately after the configured threshold (Min 0.1 ETC Max 10 ETC) is reached. The default configured threshold is 1 ETC, and can be changed by providing the IP address of the highest performing mining rig.
 #Balances above 0.01 ETC will be paid out after 7 days independent of ones threshold.
 
+#~/et/ethminer/build/ethminer/ethminer -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555
 # --cu-streams 1 --dag-load-mode 1
-#./ethdcrminer64 -epool eu1-etc.ethermine.org:4444 -coin etc -ewal 0x5f1455F6a293832c32021B06fE30EEe6298616C2 -gpus 2 -lidag 3 -gser 3 -gpow 5
+# --cu-devices 1
+#
+# -gpus 2 -lidag 3 -gser 3 -gpow 5
 # -mi 0 -li 9999
-# -eworker wker
 # -gt 1
 # -powlim -75
