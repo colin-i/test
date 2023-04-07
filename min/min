@@ -11,7 +11,10 @@ sudo nvidia-smi -pl 60               # -i 1
 #if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
 # | tee ${to}
 
-~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555
+~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555 \
+ 2>&1 | ./a.out
+#lines are visible on 2
+#-DCMAKE_BUILD_TYPE=Debug
 #debug ~/ethminer/build/ethminer/ethminer
 #https://support.bitfly.at/support/solutions/articles/8000093295-etc-ethermine-org-payout-policy
 #Payouts take place immediately after the configured threshold (Min 0.1 ETC Max 10 ETC) is reached. The default configured threshold is 1 ETC, and can be changed by providing the IP address of the highest performing mining rig.
@@ -27,3 +30,8 @@ sudo nvidia-smi -pl 60               # -i 1
 # -mi 0 -li 9999
 # -gt 1
 # -powlim -75
+
+#https://manpages.ubuntu.com/manpages/bionic/en/man5/sudoers_timestamp.5.html
+#15 minutes
+~/keyring
+sudo init 0
