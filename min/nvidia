@@ -42,10 +42,10 @@ rm .node_repl_history
 
 https://miningpoolstats.stream/ethereumclassic
 
-claymore,https://github.com/trexminer/T-Rex,https://github.com/develsoftware/GMinerRelease;dev fee
-
-#https://github.com/etclabscore/ethminer from Nov 28, 2020; is sending invalid shares
+https://github.com/colin-i/etcminer forked from etcminer1/etcminer
+#https://github.com/etclabscore/ethminer from Nov 28, 2020; Reject reason : Provided PoW solution is invalid!
 +	if (CUDA_VERSION VERSION_LESS 12.0)
 		list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_35,code=sm_35")
 +	endif()
 #https://github.com/ethereum-mining/ethminer will mine eth dag
+#claymore,https://github.com/trexminer/T-Rex,https://github.com/develsoftware/GMinerRelease;dev fee
