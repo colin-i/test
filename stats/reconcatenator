@@ -18,7 +18,7 @@ start=`pwd`/
 
 cd ${out}
 ${start}concat ${start}2022
-cd ${start}
+#cd ${start}
 
 if [ ${year} = 2022 ]; then exit 0; fi
 
@@ -30,12 +30,12 @@ month=${2}
 #cd ..
 
 yearconcat () {
-	cd ${out}
+	#cd ${out}
 	y=${1}
 	for ((i=1;i<=${2};i++)) do
 		${start}concat ${start}${y}/${i}
 	done
-	cd ${start}
+	#cd ${start}
 }
 
 for ((j=2023;j<=${year};j++)) do
