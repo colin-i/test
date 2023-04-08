@@ -13,5 +13,5 @@ fi
 #when adding new project:
 #	add at h: proj=X/0
 #	prepare
-#	if X, add it at y/m/h (for reconcatenator)
+#	if X, add it at y/m/h (can wrong at reconcatenator (combine counted/uncounted))
 #	push
