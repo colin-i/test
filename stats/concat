@@ -14,7 +14,7 @@ c2=( `cat ${f}h3` )
 d2=( `cat ${f}h4` )
 
 n=${#b[@]}
-#is b, to only modify "h" for g0, more below at delta
+#is b, to only modify "h" for g0, more below at add iteration
 
 for (( i=0; i < ${n}; i++))
 do
@@ -45,16 +45,13 @@ done
 
 #this is the case when adding new project, or the case when reconcatenating
 m=${#b2[@]}
-delta=$((m-n))
-if [ ${delta} != 0 ];then
-	for (( i=${n}; i < ${m}; i++))
-	do
-		out="${out} ${a2[${i}]}"
-		out2="${out2} ${b2[${i}]}"
-		out3="${out3} ${c2[${i}]}"
-		out4="${out4} ${d2[${i}]}"
-	done
-fi
+for (( i=${n}; i < ${m}; i++))
+do
+	out="${out} ${a2[${i}]}"
+	out2="${out2} ${b2[${i}]}"
+	out3="${out3} ${c2[${i}]}"
+	out4="${out4} ${d2[${i}]}"
+done
 
 out=${out:1}
 echo ${out}
