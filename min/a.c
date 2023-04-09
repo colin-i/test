@@ -3,7 +3,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-void main(){//int argc,char**argv){
+void main(int argc,char**argv){
+	FILE*logfile=NULL;
+	if(argv[1][0]=='1'){
+		logfile=fopen("logfile","wb");
+	}
+
 	FILE *fp;
 	char path[10];
 
@@ -30,6 +35,7 @@ void main(){//int argc,char**argv){
 	char*b=malloc(n);
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
 		puts(b);//fflush(stdout);
+		if(logfile!=NULL){fwrite(b,strlen(b),1,logfile);fflush(logfile);}
 		//puts("\ntest\n");
 		char*p=strstr(b,"**Accepted");
 		if(p!=NULL){
@@ -41,4 +47,6 @@ void main(){//int argc,char**argv){
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 		}
 	}
+	free(b);
+	if(logfile!=NULL)fclose(logfile);
 }
