@@ -7,7 +7,7 @@ import string
 letters = string.ascii_letters
 digits = string.digits
 #special_chars = string.punctuation
-special_chars = "+="
+special_chars = "+=.,:;"
 
 alphabet = letters + digits + special_chars
 
@@ -27,7 +27,7 @@ while True:
   for i in range(pwd_length):
     pwd += ''.join(secrets.choice(alphabet))
 
-  if (any(char in special_chars for char in pwd) and
+  if ((sum(char in special_chars for char in pwd)>=2) and
       sum(char in digits for char in pwd)>=2):
           break
 print(pwd)

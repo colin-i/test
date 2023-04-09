@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 void main(int argc,char**argv){
 	FILE*logfile=NULL;
@@ -25,11 +26,10 @@ void main(int argc,char**argv){
 	}
 	fgets(path, sizeof(path), fp);
 	pclose(fp);
-
 	puts(path);
-	char msg[100];
-	sprintf(msg,"sudo kill -2 %s",path);
-	puts(msg);
+
+	pid_t id=atoi(path);
+	//sprintf(msg,"sudo kill -2 %s",path);
 
 	size_t n=1000;
 	char*b=malloc(n);
@@ -41,8 +41,9 @@ void main(int argc,char**argv){
 		if(p!=NULL){
 			shares--;
 			if(shares==0){
-				system("./keyring");//"Operation not permitted" without sudo , only at "screen"
-				system(msg);
+				kill(id,2);
+				//system("./keyring");//"Operation not permitted" without sudo , only at "screen"
+				//system(msg);
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 		}
