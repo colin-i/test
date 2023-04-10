@@ -100,8 +100,8 @@ void main(int argc,char**argv){
 		if(p!=NULL){
 			shares--;
 			if(shares==0){
-				kill(id,2);
 				send_time(start);
+				kill(id,2);
 				//system("./keyring");//"Operation not permitted" without sudo , only at "screen"
 				//system(msg);
 			}
