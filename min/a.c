@@ -48,7 +48,7 @@ void send_time(time_t start){
 	time_t dif=now-start;
 	time_t minutes=dif/60;
 	if(minutes>65535){printf("No\n");close(client_sock);return;}//16777215
-	
+
 	rc = send(client_sock, &minutes, 2, 0);
 	if (rc == -1)
 	{
