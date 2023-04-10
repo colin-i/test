@@ -12,7 +12,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include <stdbool.h>
+#include <stdbool.h> //true
 
 #include <libgen.h> //basename
 
