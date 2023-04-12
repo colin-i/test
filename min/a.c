@@ -96,7 +96,6 @@ void main(int argc,char**argv){
 	fgets(path, sizeof(path), fp);
 	pclose(fp);
 	putlog(path);
-	
 
 	pid_t id=atoi(path);
 	//sprintf(msg,"sudo kill -2 %s",path);
