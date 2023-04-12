@@ -11,7 +11,6 @@
 #include "a.h"
 
 void send_time(time_t start){
-	//sleep(2);//test
 	int client_sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (client_sock == -1)
 	{
@@ -59,22 +58,33 @@ void send_time(time_t start){
 
 	close(client_sock);
 }
-
+static FILE*logfile=NULL;
+void putlog(char*b){
+	if(logfile!=NULL){
+		fwrite(b,strlen(b),1,logfile);
+		fflush(logfile);
+	}
+	puts(b);
+}
 void main(int argc,char**argv){
+	sleep(1);//kill not working?from ps is the id and for permission a keyring?
+
 	time_t start=time(NULL);
 	//send_time(start);return;
 
-	FILE*logfile=NULL;
 	if(argv[1][0]=='1'){
 		logfile=fopen("logfile","wb");
 	}
 
 	FILE *fp;
-	char path[10];
+	char path[11];
 
 	fp=fopen("shares","rb");
-	fread(path,10,1,fp);
+	size_t shlen=fread(path,10,1,fp);
 	fclose(fp);
+	path[shlen]='\0';
+	putlog(path);
+	putlog("\n");
 	int shares=atoi(path);
 	printf("\nShares needed: %d\n",shares);
 
@@ -85,7 +95,8 @@ void main(int argc,char**argv){
 	}
 	fgets(path, sizeof(path), fp);
 	pclose(fp);
-	puts(path);
+	putlog(path);
+	
 
 	pid_t id=atoi(path);
 	//sprintf(msg,"sudo kill -2 %s",path);
@@ -93,9 +104,7 @@ void main(int argc,char**argv){
 	size_t n=1000;
 	char*b=malloc(n);
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
-		puts(b);//fflush(stdout);
-		if(logfile!=NULL){fwrite(b,strlen(b),1,logfile);fflush(logfile);}
-		//puts("\ntest\n");
+		putlog(b);
 		char*p=strstr(b,"**Accepted");
 		if(p!=NULL){
 			shares--;
