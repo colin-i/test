@@ -9,7 +9,7 @@ i=10;while [ ${i} -ge 1 ]; do echo ${i};sleep 1;i=$((i-1));done
 #and bash will exit
 
 #only if a flag is set on main comp, used when having multiple monitorless machines
-echo > /dev/tcp/192.168.1.11/22 && {
+echo -n a > /dev/tcp/192.168.1.11/8000 && {
 	screen -dmS 1
 	screen -x 1 -X stuff $'./min\n'
 }

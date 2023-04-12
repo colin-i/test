@@ -67,8 +67,6 @@ void putlog(char*b){
 	puts(b);
 }
 void main(int argc,char**argv){
-	sleep(1);//kill not working?from ps is the id and for permission a keyring?
-
 	time_t start=time(NULL);
 	//send_time(start);return;
 
@@ -84,21 +82,8 @@ void main(int argc,char**argv){
 	fclose(fp);
 	path[shlen]='\0';
 	putlog(path);
-	putlog("\n");
 	int shares=atoi(path);
 	printf("\nShares needed: %d\n",shares);
-
-	fp = popen("ps aux|grep etcminer|grep -v grep|tr -s ' '|cut -f2 -d' '", "r");
-	if (fp == NULL) {
-		printf("Failed to run command\n" );
-		exit(1);
-	}
-	fgets(path, sizeof(path), fp);
-	pclose(fp);
-	putlog(path);
-
-	pid_t id=atoi(path);
-	//sprintf(msg,"sudo kill -2 %s",path);
 
 	size_t n=1000;
 	char*b=malloc(n);
@@ -109,9 +94,17 @@ void main(int argc,char**argv){
 			shares--;
 			if(shares==0){
 				send_time(start);
-				kill(id,2);
-				//system("./keyring");//"Operation not permitted" without sudo , only at "screen"
-				//system(msg);
+				fp = popen("ps aux|grep etcminer|grep -v grep|tr -s ' '|cut -f2 -d' '", "r");
+				if (fp != NULL) {
+					fgets(path, sizeof(path), fp);
+					pclose(fp);
+					putlog(path);
+					pid_t id=atoi(path);
+					//sprintf(msg,"sudo kill -2 %s",path);
+					kill(id,2);
+					//system("./keyring");//"Operation not permitted" without sudo , only at "screen"
+					//system(msg);
+				}
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 		}
