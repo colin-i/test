@@ -78,7 +78,7 @@ void main(int argc,char**argv){
 	char path[11];
 
 	fp=fopen("shares","rb");
-	size_t shlen=fread(path,10,1,fp);
+	size_t shlen=fread(path,1,10,fp);//10,1? will return 0
 	fclose(fp);
 	path[shlen]='\0';
 	putlog(path);
