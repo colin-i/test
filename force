@@ -1,0 +1,30 @@
+
+#1 commit  2 folder
+
+a=( `git diff --name-only ${1} | xargs` )
+i=1
+for var in "${a[@]}"
+do
+	echo ${i} ${var}
+
+	#first git rm --cached submodules
+
+	rsync -a --mkpath ${2}/${var} ./${var} #n for dry-run
+	#if [ $? != 0 ]; then #need to delete only
+	#fi
+	git add ./${var}
+
+	i=$((i+1))
+done
+#commit with author
+
+#git cherry-pick A~1..B   #from A(including) to B
+#1. at conflict can copy and cherry-pick continue
+#2. if commit "is a merge" and diff is nothing, skip that
+#3. else git log -1 A
+#	will see 2 parrents, first parrent will have hash same as previous
+#	cherry-pick -m 1 A
+#4. a rare case when cherry-pick but is ignoring a file with an ending new line, git merge A --allow-unrelated-histories, copy if conflicts, commit with author
+
+#to conclude
+#diff -r A B -x ".git"
