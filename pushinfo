@@ -34,3 +34,5 @@ git rev-list --all --count
 
 #git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/o.git --delete no_build
 #git branch --delete no_build
+
+#git merge --squash A
