@@ -29,3 +29,4 @@ done
 #to conclude
 #diff -r A B -x ".git"
 #and diff --name-only C0 CN to not have ".git" (e.g. ".gitignore" is ok)
+#git --shortstat is for fileschanged,additions,deletions
