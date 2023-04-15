@@ -1,2 +1,2 @@
 
-alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches}'
+alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf'
