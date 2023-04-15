@@ -10,19 +10,6 @@ knowngames=( "Ball Hit" Roulette "Naval War" "Card Flip" "Fruit Cocktail" Raceco
 Universe Digger Driver Lander Expeditioner Balls Asteroids Watersport Jump Train Voyage "Space Adventure" Rooms Road Mahjong )
 #for var in "${knowngames[@]}";do echo ${var};done;echo
 
-for var in "${remotegames[@]}";do
-	a=1
-	for v in "${knowngames[@]}";do
-		if [ "${var}" = "${v}" ]; then
-			a=0
-			break
-		fi
-	done
-	if [ ${a} = 1 ]; then
-		echo ${var} is unknown
-		exit 1
-	fi
-done
 for var in "${knowngames[@]}";do
 	a=1
 	for v in "${remotegames[@]}";do
@@ -33,6 +20,19 @@ for var in "${knowngames[@]}";do
 	done
 	if [ ${a} = 1 ]; then
 		echo ${var} was not found
+		exit 1
+	fi
+done
+for var in "${remotegames[@]}";do
+	a=1
+	for v in "${knowngames[@]}";do
+		if [ "${var}" = "${v}" ]; then
+			a=0
+			break
+		fi
+	done
+	if [ ${a} = 1 ]; then
+		echo ${var} is unknown
 		exit 1
 	fi
 done
