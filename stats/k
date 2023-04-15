@@ -1,7 +1,7 @@
 
 #this is not right but is the only way to show gameplays
 wget https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays -O 1
-wget "https://www.kongregate.com/accounts/bitplayer/favorites?pdis=q7-b&sort=gameplays&srid=17" -O 2
+wget "https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays&srid=17" -O 2
 
 ./k2
 if [ $? = 0 ]; then

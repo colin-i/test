@@ -10,6 +10,7 @@ knowngames=( "Ball Hit" Roulette "Naval War" "Card Flip" "Fruit Cocktail" Raceco
 Universe Digger Driver Lander Expeditioner Balls Asteroids Watersport Jump Train Voyage "Space Adventure" Rooms Road Mahjong )
 #for var in "${knowngames[@]}";do echo ${var};done;echo
 
+#case when A from 1 goes to 2, or 1<17g
 for var in "${knowngames[@]}";do
 	a=1
 	for v in "${remotegames[@]}";do
@@ -23,6 +24,27 @@ for var in "${knowngames[@]}";do
 		exit 1
 	fi
 done
+
+#case when 1>17g
+for var in "${remotegames[@]}";do
+	a=0
+	for v in "${remotegames[@]}";do
+		if [ "${var}" = "${v}" ]; then
+			if [ ${a} = 0 ]; then
+				a=1
+			else
+				a=2
+				break
+			fi
+		fi
+	done
+	if [ ${a} = 2 ]; then
+		echo ${var} is twice
+		exit 1
+	fi
+done
+
+#what is this game?
 for var in "${remotegames[@]}";do
 	a=1
 	for v in "${knowngames[@]}";do
