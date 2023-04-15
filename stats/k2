@@ -1,4 +1,8 @@
 
+knowngames=( "Ball Hit" Roulette "Naval War" "Card Flip" "Fruit Cocktail" Racecourse Lotto "Turret Defence" "Treasure Finder" Cubes \
+Universe Digger Driver Lander Expeditioner Balls Asteroids Watersport Jump Train Voyage "Space Adventure" Rooms Road Mahjong )
+#for var in "${knowngames[@]}";do echo ${var};done;echo
+
 xmllint --html --xpath '/html/body/div[@id="primarywrap"]/table/tr/td[@class="maincontent"]/div[@id="feature"]/div[@class="browser_outer"]/div[@class="category_listing"]/div[@class="category_games_listing hasLayout"]/div/div/div/a/img/@title' 1 2>/dev/null | cut -d'=' -f2 | cut -d"\"" -f2 > 3
 readarray -t a < 3
 xmllint --html --xpath '/html/body/div[@id="primarywrap"]/table/tr/td[@class="maincontent"]/div[@id="feature"]/div[@class="browser_outer"]/div[@class="category_listing"]/div[@class="category_games_listing hasLayout"]/div/div/div/a/img/@title' 2 2>/dev/null | cut -d'=' -f2 | cut -d"\"" -f2 > 4
@@ -6,59 +10,20 @@ readarray -t b < 4
 remotegames=( "${a[@]}" "${b[@]}" )
 #for var in "${remotegames[@]}";do echo ${var};done;echo
 
-knowngames=( "Ball Hit" Roulette "Naval War" "Card Flip" "Fruit Cocktail" Racecourse Lotto "Turret Defence" "Treasure Finder" Cubes \
-Universe Digger Driver Lander Expeditioner Balls Asteroids Watersport Jump Train Voyage "Space Adventure" Rooms Road Mahjong )
-#for var in "${knowngames[@]}";do echo ${var};done;echo
+a=${#knowngames[@]}
+b=${#remotegames[@]}
+if [ ${a} != ${b} ]; then
+	echo dif size; exit 1
+fi
 
-#case when A from 1 goes to 2, or 1<17g
-for var in "${knowngames[@]}";do
-	a=1
-	for v in "${remotegames[@]}";do
-		if [ "${var}" = "${v}" ]; then
-			a=0
-			break
-		fi
-	done
-	if [ ${a} = 1 ]; then
-		echo ${var} was not found
-		exit 1
-	fi
-done
-
-#case when 1>17g
-for var in "${remotegames[@]}";do
-	a=0
-	for v in "${remotegames[@]}";do
-		if [ "${var}" = "${v}" ]; then
-			if [ ${a} = 0 ]; then
-				a=1
-			else
-				a=2
-				break
-			fi
-		fi
-	done
-	if [ ${a} = 2 ]; then
-		echo ${var} is twice
-		exit 1
-	fi
-done
-
-#what is this game?
-for var in "${remotegames[@]}";do
-	a=1
-	for v in "${knowngames[@]}";do
-		if [ "${var}" = "${v}" ]; then
-			a=0
-			break
-		fi
-	done
-	if [ ${a} = 1 ]; then
-		echo ${var} is unknown
-		exit 1
-	fi
-done
-
-#IFS=$'\n' sorted=($(sort <<<"${remotegames[*]}")); unset IFS
+IFS=$'\n' c=($(sort <<<"${knowngames[*]}")); unset IFS
+IFS=$'\n' d=($(sort <<<"${remotegames[*]}")); unset IFS
 #printf "%s\n" "${sorted[@]}"
 #echo ${remotegames[@]} ${knowngames[@]} | tr ' ' '\n' | sort | uniq -u
+
+for (( i=0; i < ${a}; i++))
+do
+	if [ "${c[${i}]}" != "${d[${i}]}" ]; then
+		echo dif names; exit 1
+	fi
+done
