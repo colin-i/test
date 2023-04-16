@@ -1,0 +1,53 @@
+#in folderul mbim
+#sudo apt install libmbim-utils
+#sudo apt install libgudev-1.0-dev
+#https://www.freedesktop.org/wiki/Software/libmbim/
+#./configure make -j4 sudo make install
+
+#https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md
+
+1
+
+sudo apt install dnsmasq
+#sudo apt install hostapd
+
+#mai bine pe la autostart
+#sudo nano /etc/dhcpcd.conf
+#interface wlan0
+#    static ip_address=192.168.4.1/24
+#    nohook wpa_supplicant
+
+#sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+#asta nu ca doar doua randuri jos de tot in plus
+
+2
+
+sudo edor /etc/dnsmasq.conf
+#interface=wlan0      # Use the require wireless interface - usually wlan0
+#dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+interface=eth0
+dhcp-range=192.168.2.2,192.168.2.20,255.255.255.0,24h
+
+3, ultima
+
+sudo edor /etc/sysctl.conf
+#uncomment
+net.ipv4.ip_forward=1
+
+#asta: dnsmasq high cpu usage
+#/etc/default/dnsmasq
+#DNSMASQ_EXCEPT=lo
+
+#astea nu mai merg in raspberry os,le-am pus in d.sh
+#sudo iptables -t nat -A POSTROUTING -o wwan0 -j MASQUERADE
+
+#sudo sh -c "iptables-save > /etc/iptables.ipv4.nat"
+#sudo nano /etc/rc.local
+#at exit
+#iptables-restore < /etc/iptables.ipv4.nat
+
+#see clients ip with arp -a
+#cups
+#sudo usermod -a -G lpadmin pi
+#driverless
+#ipp everywhere(prima)

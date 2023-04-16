@@ -1,0 +1,65 @@
+
+##ca la net.txt
+
+1
+
+sudo apt install hostapd
+
+#ca la net.txt
+
+#aicea trebuie astea stop si restart la urma, data viitoare
+
+2
+
+sudo edor /etc/dnsmasq.conf
+interface=wlan0      # Use the require wireless interface - usually wlan0
+#fara ceva din astea 3 noi cand dau start dnsmasq nu mai e ok netul
+bind-dynamic 
+domain-needed
+bogus-priv
+#
+dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
+
+3
+
+sudo nano /etc/hostapd/hostapd.conf
+interface=wlan0
+driver=nl80211
+ssid=NameOfNetwork
+hw_mode=g
+channel=1-11
+wmm_enabled=0
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+wpa_passphrase=secret
+#ieee80211n=1# la 2.4 e deja folosit ca b 11, g 54, n 72Mbps; la 5 tot nu detecteaza b/g/n telefonul
+#ht_capab=[HT40+][HT40-][DSSS_CCK-40]# mie imi pare in functie de timp 20mhz,2.4ghz si 40,5ghz
+#hw_mode=a si channel=36(scrie-165) pentru 5ghz dar usb wifi e 2.4 si tableta
+
+as incerca fara astea dar dupa reboot
+sudo nano /etc/default/hostapd
+#DAEMON_CONF
+DAEMON_CONF="/etc/hostapd/hostapd.conf"
+
+sudo systemctl unmask hostapd
+sudo systemctl enable hostapd
+
+
+4, ultima
+
+#ca la net.txt
+
+sudo ifconfig wlan0 192.168.4.1 netmask 255.255.255.0 && \
+sudo ip route add 192.168.4.0/24 dev wlan0 proto dhcp scope link src 192.168.4.1 metric 303 && \
+sudo iptables -t nat -A POSTROUTING -o wwan0 -j MASQUERADE && \
+sudo iptables -t nat -L
+
+#ifconfig
+#route -n
+#sudo iptables -t nat -L
+
