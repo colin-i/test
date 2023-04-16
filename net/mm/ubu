@@ -31,6 +31,7 @@ ip route add default via 10.229.143.161 dev wwan0 proto static metric 1050
 echo "nameserver 193.231.252.1" > /etc/resolv.conf
 echo "nameserver 213.154.124.1" >> /etc/resolv.conf
 #dig    #;; SERVER: 193.231.252.1#53(193.231.252.1) (UDP)
+#https://linuxhint.com/update-resolv-conf-on-ubuntu/
 
 
 cat /proc/sys/net/ipv4/ip_forward
