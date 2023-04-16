@@ -20,15 +20,12 @@ mmcli -m 0 --simple-connect='apn=internet,ip-type=ipv4v6'
 #wwan0: flags=4291<UP,BROADCAST,RUNNING,NOARP,MULTICAST>  mtu 1500
 #        inet 10.229.143.163  netmask 255.255.255.248  broadcast 10.229.143.167
 #        ether 8a:06:87:81:26:6e  txqueuelen 1000  (Ethernet)
-ip link set wwan0 up
 ifconfig wwan0 10.229.143.163 netmask 255.255.255.248 broadcast 10.229.143.167
 
 
 #ip route list
-ip route add default via 10.229.143.161 dev wwan0 proto static metric 1050
 ip route add 10.229.143.160/29 dev wwan0 proto kernel scope link src 10.229.143.163 metric 1050
-# del the_one_that_was_not_when_working
-sudo ip route del 10.229.143.160/29 dev wwan0 proto kernel scope link src 10.229.143.163
+ip route add default via 10.229.143.161 dev wwan0 proto static metric 1050
 
 
 #sudo iptables -t nat -L
@@ -41,7 +38,7 @@ sudo ip route del 10.229.143.160/29 dev wwan0 proto kernel scope link src 10.229
 #target     prot opt source               destination
 #MASQUERADE  all  --  172.17.0.0/16        anywhere
 #sudo iptables -t nat -R POSTROUTING 1 -o wwan0 --source static-172-17-0-0.rdsnet.ro/16 -j MASQUERADE
-#will not work, then, to have with anywhere:
+#will not work, to test with anywhere, and is the same, with anywhere is also working on gui connect:
 #sudo iptables -t nat -D POSTROUTING 1
 #sudo iptables -t nat -A POSTROUTING -o wwan0 -j MASQUERADE
 
