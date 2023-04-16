@@ -34,11 +34,11 @@ sudo ip route del 10.229.143.160/29 dev wwan0 proto kernel scope link src 10.229
 #sudo iptables -t nat -L
 #>
 #Chain POSTROUTING (policy ACCEPT)
-#target     prot opt source               destination         
+#target     prot opt source               destination
 #MASQUERADE  all  --  static-172-17-0-0.rdsnet.ro/16  anywhere
 #<
 #Chain POSTROUTING (policy ACCEPT)
-#target     prot opt source               destination         
+#target     prot opt source               destination
 #MASQUERADE  all  --  172.17.0.0/16        anywhere
 #sudo iptables -t nat -R POSTROUTING 1 -o wwan0 --source static-172-17-0-0.rdsnet.ro/16 -j MASQUERADE
 #will not work, then, to have with anywhere:

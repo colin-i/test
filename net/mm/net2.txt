@@ -14,7 +14,7 @@ sudo apt install hostapd
 sudo edor /etc/dnsmasq.conf
 interface=wlan0      # Use the require wireless interface - usually wlan0
 #fara ceva din astea 3 noi cand dau start dnsmasq nu mai e ok netul
-bind-dynamic 
+bind-dynamic
 domain-needed
 bogus-priv
 #
