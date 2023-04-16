@@ -28,22 +28,10 @@ ip route add 10.229.143.160/29 dev wwan0 proto kernel scope link src 10.229.143.
 ip route add default via 10.229.143.161 dev wwan0 proto static metric 1050
 
 
-#sudo iptables -t nat -L
-#>
-#Chain POSTROUTING (policy ACCEPT)
-#target     prot opt source               destination
-#MASQUERADE  all  --  static-172-17-0-0.rdsnet.ro/16  anywhere
-#<
-#Chain POSTROUTING (policy ACCEPT)
-#target     prot opt source               destination
-#MASQUERADE  all  --  172.17.0.0/16        anywhere
-#sudo iptables -t nat -R POSTROUTING 1 -o wwan0 --source static-172-17-0-0.rdsnet.ro/16 -j MASQUERADE
-#will not work, to test with anywhere, and is the same, with anywhere is also working on gui connect:
-#sudo iptables -t nat -D POSTROUTING 1
-#sudo iptables -t nat -A POSTROUTING -o wwan0 -j MASQUERADE
+echo "nameserver 193.231.252.1" > /etc/resolv.conf
+echo "nameserver 213.154.124.1" >> /etc/resolv.conf
+#dig    #;; SERVER: 193.231.252.1#53(193.231.252.1) (UDP)
+
 
 cat /proc/sys/net/ipv4/ip_forward
 #must be 1
-
-#still "Temporary failure in name resolution" on local
-#on pi: ping zpool.ca "3 packets transmitted, 3 received, 0% packet loss, time 10304ms"
