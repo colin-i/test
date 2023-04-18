@@ -1,0 +1,15 @@
+
+#shopt -s expand_aliases
+#source ~/test/misc/aliases
+#files=( `gre ${1} -l | xargs` )
+
+grep -r --color ${1}
+echo -e "\n\nok? y ?" && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ]; then
+	find ./ -type f -exec sed -i "s/${1}/${2}/g" {} \;
+	# --debug
+	grep -r --color ${2}
+else
+	echo no
+fi
