@@ -122,7 +122,7 @@ while [ "${nr}" -gt 0 ]; do
 			fi
 		fi
 		#there is also 1 from github-actions at test on May 19, 2022
-		#recognized bots: bot, sync, stats, state
+		#recognized bots: bot, sync, stats, state, tests
 
 		changesets=$((changesets+1))
 		additions=$((additions+adds))
