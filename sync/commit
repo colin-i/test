@@ -1,12 +1,16 @@
 
-#1 name
+#1 name  optional 2 no am
 
 n=${1}
 
 a=`dirname ${0}`/
 f=${a}a.out
 
+em=costin.b.84@gmail.com
+
 cc ${a}a.c -lyuarel -o ${f} && \
-git commit --author="${n} <costin.b.84@gmail.com>" -am "${n}" && \
+if [ -z "${2}" ]; then git commit --author="${n} <${em}>" -am "${n}";
+else git commit --author="${n} <${em}>";
+fi && \
 ~/test/push $(${f} $(git config --get remote.origin.url)) 2 && \
 rm ${f}
