@@ -1,0 +1,23 @@
+
+#1 to
+
+if [ "${1}" = "" ]; then
+      echo arg 1 required
+      exit 1
+fi
+
+backup=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+to=${1}
+
+if [ "${to}" != "master" ] && [ "${to}" != "main" ]; then
+	backup=${backup}-${to}
+fi
+
+dest=`pwd`
+
+git switch ${to} && \
+echo ${backup} && \
+read -n1 -t $((60*60*24)) && \
+cd ~/test/sync/${backup} && \
+rsync -av --delete .pc/ ${dest}/.pc && \
+rsync -av --delete debian/patches/ ${dest}/debian/patches
