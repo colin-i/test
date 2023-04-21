@@ -1,7 +1,0 @@
-
-ar=( `find -name "*deb" | xargs echo` )
-for var in "${ar[@]}"
-do
- dpkg -f ${var} | grep libstdc -B 10 -A 10
- #dpkg -f ${var} | grep -e q -e w
-done
