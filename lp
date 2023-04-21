@@ -14,7 +14,7 @@ if [ -z "${2}" ]; then
 	#2023-05-31 Must run on the oldest still-supported Ubuntu LTS release
 		tars="focal jammy kinetic lunar"
 	elif [ "${dist}" = "focal" ]; then
-	#impish
+	#"impish is obsolete and will not accept new uploads."
 		tars="jammy kinetic lunar"
 	elif [ "${dist}" = "jammy" ]; then
 		tars="kinetic lunar"

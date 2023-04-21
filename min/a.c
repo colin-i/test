@@ -85,6 +85,7 @@ void main(int argc,char**argv){
 	int shares=atoi(path);
 	printf("\nShares needed: %d\n",shares);
 
+	int startshares=shares;
 	size_t n=1000;
 	char*b=malloc(n);
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
@@ -107,6 +108,11 @@ void main(int argc,char**argv){
 				}
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
+			//in case of problems
+			fp=fopen("sharesdone","wb");
+			sprintf(path,"%u",startshares-shares);
+			fwrite(path,strlen(path),1,fp);
+			fclose(fp);
 		}
 	}
 	free(b);

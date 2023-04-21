@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 		}
 		char a;
 		char re = recv(client_fd, &a, 1, 0);
-		if (re != 1){//-1 error
-			printf("Error when receiving message: %s\n", strerror(errno));
+		if (re != 1){
+			if (re == -1)printf("Error when receiving message: %s\n", strerror(errno));
 			close(client_fd);
 			close(server_sock);
 			exit(1);
