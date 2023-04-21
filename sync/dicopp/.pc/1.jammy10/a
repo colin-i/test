@@ -1,0 +1,9 @@
+
+if [ -z "$1" ]; then
+z="python"
+else
+z=${1}
+shift
+fi
+
+${z} -m dicopp.main $@
