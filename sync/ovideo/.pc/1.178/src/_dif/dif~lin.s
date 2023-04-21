@@ -39,6 +39,13 @@ endfunction
 
 
 
+importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
+function gdkGetdrawable(data window)
+    data windraw#1
+    setcall windraw gdk_x11_drawable_get_xid(window)
+    return windraw
+endfunction
+
 function system_variables_alignment_pad(data *value,data *greatest)
     data noalignment=0
     return noalignment
@@ -916,148 +923,3 @@ function ulltoa(sd low,sd high,sd str)
 	call sprintf(str,"%llu",low,high)
 endfunction
 
-
-importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
-importx "gst_video_overlay_get_type" gst_video_overlay_get_type
-importx "g_type_check_instance_cast" g_type_check_instance_cast
-importx "gst_video_overlay_set_window_handle" gst_video_overlay_set_window_handle
-
-import "getplaybin2ptr" getplaybin2ptr
-import "widget_gdk_window_native_get" widget_gdk_window_native_get
-
-function video_realize(sd widget)
-	sd window
-	setcall window widget_gdk_window_native_get(widget)
-	if window!=(NULL)
-		sd windraw
-		setcall windraw gdk_x11_drawable_get_xid(window)
-
-		sd g_type
-		setcall g_type gst_video_overlay_get_type()
-
-		sv playbin2
-		setcall playbin2 getplaybin2ptr()
-		set playbin2 playbin2#
-
-		sd c_type
-		setcall c_type g_type_check_instance_cast(playbin2,g_type)
-
-		call gst_video_overlay_set_window_handle(c_type,windraw)
-	endif
-endfunction
-
-
-#1.0 function
-function get_new_buffer(sd mem,sd framesize)
-	importx "gst_buffer_new_wrapped" gst_buffer_new_wrapped
-	#const GST_MEMORY_FLAG_READONLY=2
-	sd buffer
-	#setcall buffer gst_buffer_new_wrapped_full(0,mem,framesize,0,framesize,(NULL),(NULL)) #The memory will be freed with g_free and will be marked writable.
-	setcall buffer gst_buffer_new_wrapped(mem,framesize)
-	sd timestamp;set timestamp buffer
-	#go to pts member from GstBuffer
-	#cannot be GST_CLOCK_TIME_NONE_lowhigh
-	add timestamp 40;set timestamp# 0;add timestamp (DWORD);set timestamp# 0
-	return buffer
-endfunction
-
-function get_playbin_str()
-	return "playbin"
-endfunction
-
-function get_mxf_caps()
-	import "stage_nthwidgetFromcontainer" stage_nthwidgetFromcontainer
-	import "stage_file_frame_main_set" stage_file_frame_main_set
-    sd firstframe
-    setcall firstframe stage_nthwidgetFromcontainer(0)
-    sd pixbuf
-    sd w
-    sd h
-    sd ptr_pack^pixbuf
-    call stage_file_frame_main_set(ptr_pack,firstframe)
-	ss capsformat="caps=video/x-raw,format=(string)RGBA,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
-	chars capsdata#4*10+150+1-4-4
-	str gstcaps^capsdata
-	sd bpp=stage_bpp
-	sd fps
-	import "stage_file_options_fps" stage_file_options_fps
-	setcall fps stage_file_options_fps()
-	call sprintf(gstcaps,capsformat,w,h,bpp,fps)
-	return gstcaps
-endfunction
-
-function get_mxf_inputformat()
-	return "videoconvert"
-endfunction
-
-function get_decodebin_str()
-	return "decodebin"
-endfunction
-
-importx "gst_iterator_next" gst_iterator_next
-importx "g_value_get_object" g_value_get_object
-importx "g_value_unset" g_value_unset
-function iterate_next_forward_free(sd iter,sd forward)
-	#gvalue = one GType ul(QWORD) and two pointers
-	const gvalue_stacks=:&DWORD/DWORD*3+3
-	sd elem#gvalue_stacks
-	sd ptr_elem^elem
-	const gvalue_sz=gvalue_stacks*:
-	call setmemzero(ptr_elem,(gvalue_sz)) #this is G_VALUE_INIT,elem must have been initialized to the type of the iterator or initialized to zeroes
-	sd ret
-	setcall ret gst_iterator_next(iter,ptr_elem)
-	if ret==(GST_ITERATOR_OK)
-		sd obj
-		setcall obj g_value_get_object(ptr_elem)
-		call forward(obj)
-		call g_value_unset(ptr_elem)
-		return (void)
-	endif
-	call texter("Iterator error")
-endfunction
-
-function stage_sound_caps()
-	chars out#65-2-2+(dword_max*2)+1
-	vstr format="audio/x-raw,format=S16LE,channels=%u,rate=%u,signed=(boolean)true"
-	sd channels
-	setcall channels stage_sound_channels((value_get))
-	sd rate
-	setcall rate stage_sound_rate((value_get))
-	call sprintf(#out,format,channels,rate)
-	return #out
-endfunction
-
-function stage_sound_sample(sd appsink)
-	#new buffer signal
-	import "connect_signal" connect_signal
-	call connect_signal(appsink,"new-sample",stage_sound_buffer)
-endfunction
-#flow
-function stage_sound_buffer(sd gstappsink,sd *user_data)
-	sd ret
-	importx "gst_app_sink_pull_sample" gst_app_sink_pull_sample
-	sd s
-	setcall s gst_app_sink_pull_sample(gstappsink)
-	importx "gst_sample_get_buffer" gst_sample_get_buffer
-	sd b
-	setcall b gst_sample_get_buffer(s)
-	importx "gst_buffer_map" gst_buffer_map
-	sd map#13 #with sizeof
-	const GST_MAP_READ=1
-	sd bool
-	setcall bool gst_buffer_map(b,#map,(GST_MAP_READ)) #this is bool, but
-	if bool==(TRUE)
-		import "stage_sound_expand" stage_sound_expand
-		call stage_sound_expand(#map,(2*:),(3*:))
-		importx "gst_buffer_unmap" gst_buffer_unmap
-		call gst_buffer_unmap(b,#map)
-		set ret (GST_FLOW_OK)
-	else
-		const GST_FLOW_ERROR=-5
-		set ret (GST_FLOW_ERROR)
-		call texter("Failed to map buffer")
-	endelse
-	importx "gst_mini_object_unref" gst_mini_object_unref
-	call gst_mini_object_unref(s)
-	return ret
-endfunction

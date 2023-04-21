@@ -5,10 +5,10 @@ Description: <short summary of the patch>
  information below has been extracted from the changelog. Adjust it or drop
  it.
  .
- ovideo (1-174) bionic; urgency=medium
+ ovideo (1-174) xenial; urgency=medium
  .
-   * color wide
-Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+   * color independent
+Author: bc <bc@ubuntu>
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -21,11 +21,11 @@ Bug-Debian: https://bugs.debian.org/<bugnumber>
 Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
 Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
-Last-Update: 2022-05-08
+Last-Update: <YYYY-MM-DD>
 
 --- ovideo-1.orig/src/Makefile
 +++ ovideo-1/src/Makefile
-@@ -137,4 +137,4 @@ uninstall:
+@@ -142,4 +142,4 @@ uninstall:
  
  .NOTPARALLEL:
  

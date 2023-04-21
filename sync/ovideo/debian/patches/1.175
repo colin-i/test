@@ -5,10 +5,10 @@ Description: <short summary of the patch>
  information below has been extracted from the changelog. Adjust it or drop
  it.
  .
- ovideo (1-175b) bionic; urgency=medium
+ ovideo (1-175) xenial; urgency=medium
  .
-   * alpha fix
-Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+   * fix alpha inputs
+Author: bc <bc@ubuntu>
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -21,7 +21,7 @@ Bug-Debian: https://bugs.debian.org/<bugnumber>
 Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
 Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
-Last-Update: 2022-05-09
+Last-Update: <YYYY-MM-DD>
 
 --- ovideo-1.orig/src/_exec/start.s
 +++ ovideo-1/src/_exec/start.s
@@ -271,32 +271,14 @@ Last-Update: 2022-05-09
  endfunction
  
  
-@@ -306,12 +313,15 @@ endfunction
+@@ -305,6 +312,7 @@ function stage_connect_signals(sd bus,sd
+ endfunction
  
  function stage_start_pipe(ss uri)
- #gdkpixbufsink plugins-good
--    ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
-+    ss launcher="uridecodebin uri=\"%s\" ! %s ! gdkpixbufsink"
++#gdkpixbufsink plugins-good
+     ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
      ss str
-+	ss medium
      sd *=0
-     sd strs^launcher
- 
-     set str uri
-+	import "get_mxf_inputformat" get_inputformat
-+	setcall medium get_inputformat()
- 
-     sd err
- 
-@@ -324,7 +334,7 @@ function stage_start_pipe(ss uri)
-         return err
-     endif
- 
--    call sprintf(mem,launcher,uri)
-+    call sprintf(mem,launcher,uri,medium)
- 
-     import "launch_pipe_start" launch_pipe_start
-     data pipe#1
 --- ovideo-1.orig/src/obj/images.s
 +++ ovideo-1/src/obj/images.s
 @@ -276,6 +276,8 @@ function rgb_to_yuvi420(ss bitmap_rgb,ss

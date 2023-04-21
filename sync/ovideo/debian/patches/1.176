@@ -5,10 +5,10 @@ Description: <short summary of the patch>
  information below has been extracted from the changelog. Adjust it or drop
  it.
  .
- ovideo (1-176b) bionic; urgency=medium
+ ovideo (1-176) xenial; urgency=medium
  .
-   * stride fix
-Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+   * fix
+Author: bc <bc@ubuntu>
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -21,7 +21,7 @@ Bug-Debian: https://bugs.debian.org/<bugnumber>
 Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
 Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
-Last-Update: 2022-05-09
+Last-Update: <YYYY-MM-DD>
 
 --- ovideo-1.orig/src/obj/images.s
 +++ ovideo-1/src/obj/images.s

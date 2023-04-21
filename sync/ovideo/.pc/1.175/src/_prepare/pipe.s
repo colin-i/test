@@ -305,7 +305,6 @@ function stage_connect_signals(sd bus,sd ptrpipe)
 endfunction
 
 function stage_start_pipe(ss uri)
-#gdkpixbufsink plugins-good
     ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
     ss str
     sd *=0

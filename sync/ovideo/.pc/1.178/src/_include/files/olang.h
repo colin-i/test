@@ -112,6 +112,7 @@ const format_mkv=format_mxf+1
         const format_mkv_last=format_mkv+format_mkv_rgb24
 #const format_mp4=format_mkv_last+1
 
+const sound_endian_def=1234
 
 const jpeg_min_quality=1
 const jpeg_max_quality=900

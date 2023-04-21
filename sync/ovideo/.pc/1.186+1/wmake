@@ -1,0 +1,80 @@
+
+if [ -z "$1" ] || [ -n "$2" ]
+then
+cd src
+./wmake $2
+if [ "$?" != 0 ]; then
+exit
+fi
+cd ..
+fi
+
+
+
+if [ "$2" != "clean" ]; then
+
+if [ -z "$1" ]; then
+f=ovideo
+else
+f=$1
+fi
+
+mkdir $f
+cp src/ovideo.exe $f
+
+cp -r build/img $f
+
+mkdir $f/html
+cp html/html/use.html $f/html
+
+cp version.txt $f
+
+mkdir $f/sys
+cp build/sys/* $f/sys
+
+mkdir $f/captures
+
+fi
+
+
+
+if [ -z "$1" ] || [ -n "$2" ]
+then
+cd soundrecorder
+make $2
+if [ "$?" != 0 ]; then
+exit
+fi
+cd ..
+fi
+
+
+
+if [ "$2" != "clean" ]; then
+
+cp soundrecorder/src/soundrecorder.exe $f
+cp soundrecorder/options.txt $f
+
+if [ -z "$1" ]
+then
+cd src
+./wmake clean
+cd ../soundrecorder
+make clean
+cd ..
+zip -r ovideo.zip ovideo && \
+rm -r ./ovideo && \
+unzip -l ovideo.zip
+fi
+
+fi
+
+
+
+#wine regedit
+#HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+#PATH
+#+=
+#;C:\gstreamer-sdk\0.10\x86\bin
+#file:///d:/some/path/to/repos/on/d/drive
+#file:///var/www/html/s.webm

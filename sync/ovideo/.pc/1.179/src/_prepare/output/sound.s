@@ -131,48 +131,55 @@ function stage_sound()
     call sound_pixbuf_redraw()
 endfunction
 
-importx "_free" free
 
 ##the pipe mechanism
 
 function stage_sound_init_appsink(sd filepath)
-	#the command for gst-launch
-	ss launchformat="filesrc location=\"%s\" ! %s ! audioconvert ! audioresample ! %s ! appsink emit-signals=true sync=false" #it's playing normal clock with sync
-	sd flocation
-	sd bin
-	sd caps
-	sd *=0
-	vstr sound_format^launchformat
+    #the command for gst-launch
+    ss launchformat="filesrc location=\"%s\" ! decodebin2 ! audioconvert ! audioresample ! audio/x-raw-int,channels=%u,rate=%u,signed=(boolean)true,width=%u,depth=%u,endianness=%u ! appsink emit-signals=TRUE sync=false"
+    sd flocation
+    sd *=0
+    str sound_format^launchformat
 
-	#location
-	#escape path
-	import "string_alloc_escaped" string_alloc_escaped
-	setcall flocation string_alloc_escaped(filepath)
-	if flocation!=(NULL)
-		import "get_decodebin_str" get_decodebin_str
-		setcall bin get_decodebin_str()
+    #location
+    #escape path
+    import "string_alloc_escaped" string_alloc_escaped
+    ss escapedpath
+    setcall escapedpath string_alloc_escaped(filepath)
+    if escapedpath==0
+        return 0
+    endif
+    #set
+    set flocation escapedpath
 
-		import "stage_sound_caps" stage_sound_caps
-		setcall caps stage_sound_caps()
+    import "allocsum_numbers_null" allocsum_numbers_null
+    sd command
+    sd p_command^command
 
-		import "allocsum_null" allocsum_null
-		sd command
-		sd p_command^command
+    sd err
+    setcall err allocsum_numbers_null(sound_format,5,p_command)
+    if err!=(noerror)
+        return err
+    endif
 
-		sd err
-		setcall err allocsum_null(sound_format,p_command)
-		if err==(noerror)
-			#concatenate the command
-			importx "_sprintf" sprintf
-			call sprintf(command,launchformat,flocation,bin,caps)
-			sd com
-			setcall com stage_sound_comm()
-			set com# command
-			call stage_sound_command()
-			call free(command)
-		endif
-		call free(flocation)
-	endif
+    #concatenate the command
+    importx "_sprintf" sprintf
+    sd channels
+    setcall channels stage_sound_channels((value_get))
+    sd rate
+    setcall rate stage_sound_rate((value_get))
+    sd bps
+    setcall bps stage_sound_bps((value_get))
+    call sprintf(command,launchformat,flocation,channels,rate,bps,bps,(sound_endian_def))
+    sd com
+    setcall com stage_sound_comm()
+    set com# command
+    call stage_sound_command()
+
+    #clean
+    importx "_free" free
+    call free(escapedpath)
+    call free(command)
 endfunction
 function stage_sound_command()
     #sync mem
@@ -197,40 +204,42 @@ function stage_sound_command()
 endfunction
 
 function stage_sound_command_init(sd *vbox,sd dialog)
-	#keep the dialog for eos at appsink or error at pipe
-	call stage_sound_dialog((value_set),dialog)
+    #keep the dialog for eos at appsink or error at pipe
+    call stage_sound_dialog((value_set),dialog)
 
-	#make the pipe
-	sd com
-	setcall com stage_sound_comm()
-	import "launch_pipe_start" launch_pipe_start
-	sd pipeline
-	setcall pipeline launch_pipe_start(com#)
-	if pipeline!=(NULL)
-		#put the pipeline to a static place
-		call stage_sound_pipe((value_set),pipeline)
+    #make the pipe
+    sd com
+    setcall com stage_sound_comm()
+    import "launch_pipe_start" launch_pipe_start
+    sd pipeline
+    setcall pipeline launch_pipe_start(com#)
+    if pipeline==0
+        return 0
+    endif
 
-		#add error signal to pipe
-		#sd pipe
-		#setcall pipe stage_sound_pipe((value_get))
-		import "err_signal_modal" err_signal_modal
-		data f^stage_sound_closedialog
-		call err_signal_modal(pipeline,f)
+    #put the pipeline to a static place
+    call stage_sound_pipe((value_set),pipeline)
 
-		#get appskink and add signals
-		import "iterate_firstsink" iterate_firstsink
-		call iterate_firstsink(pipeline,stage_sound_connect_appsink)
-	endif
+    #add error signal to pipe
+    #sd pipe
+    #setcall pipe stage_sound_pipe((value_get))
+    import "err_signal_modal" err_signal_modal
+    data f^stage_sound_closedialog
+    call err_signal_modal(pipeline,f)
+
+    import "iterate_firstsink" iterate_firstsink
+    #new-buffer signal to appsink, and eos
+    data f_newbuffer^stage_sound_connect_appsink
+    call iterate_firstsink(pipeline,f_newbuffer)
 endfunction
 
 function stage_sound_connect_appsink(sd appsink)
-	#importx "_gst_app_sink_set_emit_signals" gst_app_sink_set_emit_signals
-	#call gst_app_sink_set_emit_signals(appsink,(TRUE))
+    #new buffer signal
+    import "connect_signal" connect_signal
+    ss buffer="new-buffer"
+    data f_nb^stage_sound_expand
+    call connect_signal(appsink,buffer,f_nb)
 
-	import "stage_sound_sample" stage_sound_sample
-	call stage_sound_sample(appsink)
-
-	import "connect_signal" connect_signal
     #add eos at appsink(sometimes eos comes only here)
     ss eos="eos"
     data f_eos^stage_sound_closedialog
@@ -715,17 +724,37 @@ function stage_sound_alloc(sd action,sd newblock,sd newblock_size)
     endelse
 endfunction
 
-function stage_sound_expand(sd struct,sd a,sd b)
-	import "structure_get_int" structure_get_int
-	sd data
-	sd size
-	setcall data structure_get_int(struct,a)
-	setcall size structure_get_int(struct,b)
-	#append the new buffer at the sound memory
-	call stage_sound_alloc((stage_sound_alloc_expand),data,size)
-	#print time
-	call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+function stage_sound_expand(sd gstappsink,sd *user_data)
+    importx "_g_signal_emit_by_name" g_signal_emit_by_name
+    ss method="pull-buffer"
+    sd buffer
+    sd p_buffer^buffer
+    call g_signal_emit_by_name(gstappsink,method,p_buffer)
+
+    import "structure_get_int" structure_get_int
+    sd data
+    sd size
+
+    #GstBuffer
+        #GstMiniObject
+            #GTypeInstance instance
+            #gint refcount
+            #guint flags
+        #guint8              *data
+        #guint               size
+
+    setcall data structure_get_int(buffer,0x10)
+    setcall size structure_get_int(buffer,0x14)
+
+    #append the new buffer at the sound memory
+    call stage_sound_alloc((stage_sound_alloc_expand),data,size)
+    #print time
+    call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+
+    importx "_gst_mini_object_unref" gst_mini_object_unref
+    call gst_mini_object_unref(buffer)
 endfunction
+
 
 function stage_sound_sizedone(sd action,sd value)
     data done#1

@@ -1,0 +1,223 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-172) xenial; urgency=medium
+ .
+   * fixes
+Author: bc <bc@ubuntu>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -41,6 +41,7 @@ str = str/str
+ u=util/
+ uti = ${u}asm ${u}floating ${u}lists ${u}numbers ${u}update ${u}util
+ items = _dif/dif~${platform} ${cap} ${err} ${eve} ${exe} ${ffl} ${gnu} ${int} ${med} ${mem} ${net} ${obj} ${pre} ${sea} ${str} ${uti}
++items_prefix=
+ 
+ projname=ovideo
+ wprojname=ovideo.exe
+@@ -87,7 +88,7 @@ share:
+ #nostdlib because is complaining about main
+ lnk:
+ 	if [ "${platform}" = "lin" ]; then \
+-		$(CC) -nostdlib ${syms} ${obs} -o ${projname} `pkg-config --libs gtk+-2.0 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10 gstreamer-app-0.10` -lsoup-2.4 -ljpeg -lasound -lm -lpthread -lc; \
++		$(CC) -nostdlib ${syms} ${obs} -o ${items_prefix}${projname} `pkg-config --libs gtk+-2.0 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10 gstreamer-app-0.10` -lsoup-2.4 -ljpeg -lasound -lm -lpthread -lc; \
+ 	else \
+ 		i686-w64-mingw32-ld --large-address-aware ${syms} ${obs} -o ${wprojname} -entry _start --start-group \
+ 		`dpkg -L mingw-w64-i686-dev | grep '\.a' | sed 's/..$$//' | grep -o '[^\/]*$$' | sed 's/^lib/-l/' | xargs echo` \
+@@ -97,7 +98,7 @@ lnk:
+ 		-lcairo -lpango-1.0 -lsoup-2.4 -ljpeg; \
+ 	fi
+ fast:
+-	$(eval obs = `printf ' %s.o' ${items}`)
++	$(eval obs = `printf ' ${items_prefix}%s.o' ${items}`)
+ link: fast lnk
+ #snprintf with circular unresolved requirements
+ #cos is in -lmingwex that will work with -lmingw32 -lmsvcrt
+@@ -140,3 +141,5 @@ uninstall:
+ .PHONY: all install clean distclean uninstall test
+ 
+ .NOTPARALLEL:
++
++#make compile && make link syms= LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage items_prefix=/home/bc/v/ovideo-1/src/
+--- ovideo-1.orig/src/_exec/init.s
++++ ovideo-1/src/_exec/init.s
+@@ -2,7 +2,6 @@
+ format elfobj
+ 
+ include "../_include/include.h" #files/olang.h
+-include "../_include/lin.h" "../_include/win.h"
+ 
+ const F_OK=0
+ 
+--- ovideo-1.orig/src/_exec/ostream.s
++++ ovideo-1/src/_exec/ostream.s
+@@ -15,9 +15,9 @@ entry _start()
+ call gtk_init(0,0)
+ call gst_init(0,0)
+ 
+-const LC_NUMERIC=4
+ importx "_setlocale" setlocale
+-call setlocale((LC_NUMERIC),"English")
++call setlocale((LC_NUMERIC),"C") #"English" was ok
++#there are 3 sscanf getting the '.'
+ 
+ importx "_g_thread_init" g_thread_init
+ call g_thread_init(0)
+--- ovideo-1.orig/src/_include/files/ascii.h
++++ ovideo-1/src/_include/files/ascii.h
+@@ -45,7 +45,7 @@ Const LineFeed=0x0A
+ #Const Plus=0x2B
+ #Const Comma=0x2C
+ #Const Hyphen=0x2D
+-#Const Period=0x2E
++Const Period=0x2E
+ Const Slash=0x2F
+ Const _0=0x30
+ Const _1=0x31
+--- ovideo-1.orig/src/_include/include.h
++++ ovideo-1/src/_include/include.h
+@@ -16,3 +16,5 @@ include "./files/ascii.h"
+ include "./files/jpeg.h"
+ 
+ include "./files/mpeg.h"
++
++include "./lin.h" "./win.h"
+--- ovideo-1.orig/src/_include/lin.h
++++ ovideo-1/src/_include/lin.h
+@@ -13,3 +13,5 @@ const S_IRUSR=0x100;const S_IWUSR=0x80
+ const S_IRGRP=0x20;const S_IWGRP=0x10
+ const S_IWOTH=0x2
+ const flag_fmode=S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH
++
++const LC_NUMERIC=1
+--- ovideo-1.orig/src/_include/win.h
++++ ovideo-1/src/_include/win.h
+@@ -7,3 +7,5 @@ const flag_dmode=_S_IREAD|_S_IWRITE
+ const flag_O_CREAT=0x0100;const flag_O_BINARY=0x8000
+ 
+ const flag_fmode=flag_dmode
++
++const LC_NUMERIC=4
+--- ovideo-1.orig/src/_prepare/output/all.s
++++ ovideo-1/src/_prepare/output/all.s
+@@ -23,20 +23,27 @@ function stage_progress_dialog(sd inits)
+     set ptr_dialog# 0
+ endfunction
+ function stage_progress_dialog_inc(sd frame)
+-    sd value=100
++    ss value=100
+     mult value frame
+     import "stage_get_frames" stage_get_frames
+     divcall value stage_get_frames()
+-    str formconv="0.%02u"
+-    chars doubledata#10
+-    str doublestring^doubledata
+-    call sprintf(doublestring,formconv,value)
++	chars s={_0,Period}
++	chars a#1
++	chars b#1
++	chars *=0
++	set b value
++	rem b 10
++	add b (_0)
++	set a value
++	div a 10
++	rem a 10
++	add a (_0)
+     sd doublelow
+     sd doublehigh
+     sd double^doublelow
+     str doubleformat="%lf"
+     importx "_sscanf" sscanf
+-    call sscanf(doublestring,doubleformat,double)
++    call sscanf(#s,doubleformat,double)
+     importx "_gtk_progress_bar_set_fraction" gtk_progress_bar_set_fraction
+     data pbar#1
+     const progressbar^pbar
+--- ovideo-1.orig/src/media/jpeg_enc.s
++++ ovideo-1/src/media/jpeg_enc.s
+@@ -831,7 +831,7 @@ function jpeg_YCbCr_256color(sd action,s
+ 
+             inc color
+         endwhile
+-        return (value_set)
++        return (void)
+     endif
+ 
+     import "array_byte_setAtXY" array_byte_setAtXY
+@@ -1052,7 +1052,7 @@ function jpeg_FDCT_Quantization_Tables(s
+             endwhile
+             inc tabs
+         endwhile
+-        return (value_set)
++        return (void)
+     endif
+     #get
+     set p_CbCr# FDCT_CbCr
+@@ -1530,7 +1530,7 @@ function jpeg_encode_Huffman(sd action,s
+         call jpeg_bytenew((value_set),(bytenew_start))
+         call jpeg_bytepos((value_set),(bytepos_start))
+ 
+-        return (value_set)
++        return (void)
+     endif
+     #bool
+     import "array_get_word" array_get_word
+@@ -1711,7 +1711,7 @@ function jpeg_bytepos(sd action,sd value
+     endelse
+ endfunction
+ 
+-function jpeg_write_data(sd len,sd value)
++function jpeg_write_data(sd pos,sd data)
+     #words style from chars
+     chars m_data={1,   0,         2,   0,         4,    0,          8,    0}
+     chars      *={16,  0,         32,  0,         64,   0,          128,  0}
+@@ -1719,12 +1719,7 @@ function jpeg_write_data(sd len,sd value
+     chars      *={4096,4096/0x100,8192,8192/0x100,16384,16384/0x100,32768,32768/0x100}
+     str mask^m_data
+ 
+-    sd pos
+-    sd data
+-
+-    set pos len
+     dec pos
+-    set data value
+ 
+     sd bytenew
+     sd bytepos
+--- ovideo-1.orig/src/util/update.s
++++ ovideo-1/src/util/update.s
+@@ -76,7 +76,7 @@ function update()
+ 	endif
+ 
+ 	import "uri_queue_content" uri_queue_content
+-	ss s="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/2e9c9720669d415bb649a0ba8ecaf26e446fc140/gistfile1.txt"
++	ss s="https://gist.githubusercontent.com/colin-i/1c06e597689e204793a7e89fbcf2a481/raw/d01af2cae343893d08f25fe2690dd35af941b292/gistfile1.txt"
+ 	#ss s="http://localhost/b.php"
+ 	call uri_queue_content(s,update_async_callback)
+ endfunction
+--- ovideo-1.orig/version.txt
++++ ovideo-1/version.txt
+@@ -1 +1 @@
+-1.171
+\ No newline at end of file
++1.172
+\ No newline at end of file

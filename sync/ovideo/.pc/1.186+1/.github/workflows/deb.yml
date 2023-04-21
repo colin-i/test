@@ -1,0 +1,86 @@
+
+#name: deb
+
+on:
+ workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+ # This workflow contains a single job called "build"
+ dbuild:
+  # The type of runner that the job will run on
+  runs-on: ubuntu-18.04
+  # Steps represent a sequence of tasks that will be executed as part of the job
+  steps:
+   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+   - uses: actions/checkout@v3
+     with:
+      path: in
+   #Runs a set of commands using the runners shell
+   - name: Run a multi-line script
+     run: |
+      if [ -n "${{ env.init }}" ]; then
+       exit
+      fi
+      if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
+       sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential
+       sudo apt install -y liborc-0.4-0
+       #dch:    devscripts libfile-homedir-perl libfile-which-perl
+       #         debuild: fakeroot libfakeroot
+      fi
+      downdeb () {
+       maindeb=${4}.deb
+       if [ ! -e "${maindeb}" ]; then
+        inter=Packages${2}${3}
+        if [ ! -e "${inter}" ]; then
+         wget http://${1}/ubuntu/dists/${5}/${6}/binary-${2}/Packages.xz -O ${inter}.xz
+         xz -d ${inter}.xz #f for multiple times
+        fi
+        debfilename=`grep "^Filename.*/${4}_" ${inter} | tail -1 | cut -d ' ' -f 2`
+        wget_url=http://${1}/ubuntu/${debfilename}
+        #echo ${wget_url}
+        wget ${wget_url} -O ${maindeb}
+        dpkgs+=" ${maindeb}"
+       fi
+      }
+      sudo dpkg --add-architecture i386
+      dpkgs=
+      array=( gcc-8-base libgcc1 libc6 )
+      for var in "${array[@]}"
+      do
+       downdeb "ro.archive.ubuntu.com" i386 1 ${var} bionic-updates main
+      done
+      downdeb "ppa.launchpadcontent.net/colin-i/ppa" i386 2 ocompiler bionic main
+      array=( libgstreamer-plugins-base0.10-dev \
+               libgstreamer-plugins-base0.10-0 \
+               libgstreamer0.10-dev \
+                libgstreamer0.10-0 \
+                gir1.2-gstreamer-0.10 \
+               gir1.2-gst-plugins-base-0.10
+            )
+      for var in "${array[@]}"
+      do
+       downdeb "ro.archive.ubuntu.com" amd64 1 ${var} xenial universe
+      done
+      if [ -n "${dpkgs}" ]; then
+        sudo dpkg -i ${dpkgs}
+      fi
+      origf=ovideo-1.tar.gz
+      if [ ! -e "${origf}" ]; then
+       origln=ovideo_1.orig.tar.gz
+       wget https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu/pool/main/o/ovideo/${origln} -O ${origf}
+       ln -s ${origf} ${origln}
+      fi
+      cd in
+      debuild -S -us -uc
+      #cd ..
+      #ls -l
+   - name: unsigned debs
+     uses: actions/upload-artifact@v3
+     with:
+      name: sdebs
+      path: |
+       ./*.dsc
+       ./*.changes
+       ./*.buildinfo
+       ./*.debian.tar.xz

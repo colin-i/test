@@ -5,10 +5,10 @@ Description: <short summary of the patch>
  information below has been extracted from the changelog. Adjust it or drop
  it.
  .
- ovideo (1-178b) bionic; urgency=medium
+ ovideo (1-178) xenial; urgency=medium
  .
-   * colors & fix
-Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+   * lots of fixes
+Author: bc <bc@ubuntu>
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -21,7 +21,7 @@ Bug-Debian: https://bugs.debian.org/<bugnumber>
 Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
 Forwarded: <no|not-needed|url proving that it has been forwarded>
 Reviewed-By: <name and email of someone who approved the patch>
-Last-Update: 2022-05-10
+Last-Update: <YYYY-MM-DD>
 
 --- ovideo-1.orig/src/_capture/capture.s
 +++ ovideo-1/src/_capture/capture.s
@@ -37,17 +37,14 @@ Last-Update: 2022-05-10
          #take screenshot
 --- ovideo-1.orig/src/_dif/dif~lin.s
 +++ ovideo-1/src/_dif/dif~lin.s
-@@ -1034,6 +1034,7 @@ function stage_sound_sample(sd appsink)
+@@ -922,4 +922,3 @@ endfunction
+ function ulltoa(sd low,sd high,sd str)
+ 	call sprintf(str,"%llu",low,high)
  endfunction
- #flow
- function stage_sound_buffer(sd gstappsink,sd *user_data)
-+	#call sleepMs(5000)
- 	sd ret
- 	importx "gst_app_sink_pull_sample" gst_app_sink_pull_sample
- 	sd s
+-
 --- ovideo-1.orig/src/_include/files/olang.h
 +++ ovideo-1/src/_include/files/olang.h
-@@ -147,3 +147,5 @@ const avi_expand=1
+@@ -148,3 +148,5 @@ const avi_expand=1
  #
  
  #const sound_preview_buffers=32
@@ -70,7 +67,7 @@ Last-Update: 2022-05-10
      endwhile
 --- ovideo-1.orig/src/_prepare/output/sound.s
 +++ ovideo-1/src/_prepare/output/sound.s
-@@ -238,6 +238,11 @@ function stage_sound_connect_appsink(sd
+@@ -247,6 +247,11 @@ function stage_sound_connect_appsink(sd
  endfunction
  #close the dialog when it is called
  function stage_sound_closedialog()
@@ -82,7 +79,7 @@ Last-Update: 2022-05-10
      sd dialog
      setcall dialog stage_sound_dialog((value_get))
      importx "_gtk_dialog_response" gtk_dialog_response
-@@ -695,10 +700,11 @@ function stage_sound_alloc(sd action,sd
+@@ -704,10 +709,11 @@ function stage_sound_alloc(sd action,sd
          setcall sec_rest rule3(bytesrest,bytespersec,(10$numbers-1))
  
          #print

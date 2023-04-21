@@ -1,0 +1,2757 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ovideo (1-186+1) bionic; urgency=medium
+ .
+   * Optimization
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout https://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: (upstream|backport|vendor|other), (<patch-url>|commit:<commit-id>)
+Bug: <upstream-bugtracker-url>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: (no|not-needed|<patch-forwarded-url>)
+Applied-Upstream: <version>, (<commit-url>|commit:<commid-id>)
+Reviewed-By: <name and email of someone who approved/reviewed the patch>
+Last-Update: 2023-04-21
+
+--- /dev/null
++++ ovideo-1/.github/FUNDING.yml
+@@ -0,0 +1,13 @@
++# These are supported funding model platforms
++
++github: # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
++patreon: # Replace with a single Patreon username
++open_collective: # Replace with a single Open Collective username
++ko_fi: # Replace with a single Ko-fi username
++tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
++community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
++liberapay: costin
++issuehunt: # Replace with a single IssueHunt username
++otechie: # Replace with a single Otechie username
++lfx_crowdfunding: # Replace with a single LFX Crowdfunding project-name e.g., cloud-foundry
++custom: # Replace with up to 4 custom sponsorship URLs e.g., ['link1', 'link2']
+--- /dev/null
++++ ovideo-1/.github/workflows/appimage.yml
+@@ -0,0 +1,349 @@
++
++#name: appimage
++
++on:
++ # Triggers the workflow on push or pull request events but only for the main branch
++ #push:
++ # branches: [ main ]
++ #pull_request:
++ # branches: [ main ]
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++  inputs:
++   ppa:
++    description: "ppa sufix"
++   artifact:
++    description: "result is artifact"
++   unpublished:
++    description: "don't wait to publish, take from build page"
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ build:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
++   - uses: actions/checkout@v3
++   #this is also required at unpublished from now, not only at tests
++   #  if: ${{ env.init != '' }}
++   #
++   #with:
++   # repository: colin-i/irc
++   # path: my-tools
++   #- uses: dsaltares/fetch-gh-release-asset@master
++   #this is locally: throw new Error("Parameter token or opts.auth is required");
++   #  with:
++   #   repo: 'colin-i/test'
++   #   file: 'ovideo.png'
++   #   target: 'in/' #plague-linux.zip'
++   # #version: 'tags/1.5'
++   # #token: ${{ secrets.PAT }}
++   #Runs a set of commands using the runners shell
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit
++      fi
++      mkdir -p AppDir
++      file=runtime
++      arch_ai=-x86_64
++      archfile=${file}${arch_ai}
++      kitpart () {
++       #this is not working anymore urlpart=`wget -q https://github.com/AppImage/AppImageKit/releases/latest -O - | grep "${archfile}" | head -n 1 | cut -d '"' -f 2`
++       urlpart=AppImage/AppImageKit/releases/latest/download/${archfile}
++      }
++      if [ ! -e "${file}" ]; then
++       kitpart
++       #"pkg2appimage-.*-x86_64.AppImage"
++       wget -c https://github.com/${urlpart}
++       mv ${archfile} ${file}
++       chmod a+x ${file}
++      fi
++      downdebok () {
++       src=${1}
++       arch=${2}
++       nr=${3}
++       pkg=${4}
++       inter=Packages${arch}${nr}
++       if [ ! -e "${inter}" ]; then
++        rep=${5}
++        wget http://${src}/ubuntu/dists/bionic/${rep}/binary-${arch}/Packages.xz -O ${inter}.xz
++        xz -d ${inter}.xz #f for multiple times
++       fi
++       #pipe to true to not stop the workflow if grep exits!=0
++       debfilename=`grep "^Filename.*/${pkg}_" ${inter}` # || true   is ok now but if package is not, without this, will be workflow fail
++       #if [ -z "${debfilename}" ]; then
++       # next time with if arch = i386 :i386 and reform array and try on
++       # not_are+=" ${pkg}"
++       # return
++       #fi
++       debfilename=`echo ${debfilename} | tail -1 | cut -d ' ' -f 2`
++       wget_url=http://${src}/ubuntu/${debfilename}
++       #https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/${debfilename}	| grep -o '[^/]*$'
++       maindeb=${pkg}.deb
++       wget ${wget_url} -O ${maindeb}
++       dpkg -x ${maindeb} AppDir
++       #ar x ${maindeb} data.tar.xz
++       #xz -fd data.tar.xz
++       #tar -xf data.tar -C AppDir
++      }
++      downdeb () {
++       if [ ! -e "${4}.deb" ]; then
++        downdebok ${1} ${2} ${3} ${4} ${5}
++       fi
++      }
++      if [ ! -e "ovideo.deb" ]; then
++       if [ "${{ github.event.inputs.unpublished }}" = "" ]; then
++        echo published
++        downdebok "ppa.launchpadcontent.net/colin-i/ppa${{ github.event.inputs.ppa }}" i386 1 ovideo main
++       else
++        echo unpublished
++        #
++        if [ ! -e "lp2.py" ]; then
++         wget -q https://raw.githubusercontent.com/colin-i/test/master/lp2.py
++         #
++         #is already at focal
++         sudo apt install python3-launchpadlib
++        fi
++        name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++        version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++        arh=i386
++        OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version} ${arh})
++        wget ${OUTPUT}/+files/${name}_${version}_${arh}.deb -O ${name}.deb
++        #
++        #f=`wget -q https://launchpad.net/~colin-i/+archive/ubuntu/ppa${{ github.event.inputs.ppa }}/+build/${{ github.event.inputs.unpublished }} -O - | grep -o -e "[^\"]*\.deb\""`
++        #wget ${f:0:-1} -O ovideo.deb
++        dpkg -x ${name}.deb AppDir
++       fi
++      fi
++      array=( \
++       gcc-8-base:i386 glib-networking:i386 gstreamer1.0-gl:i386 \
++       gstreamer1.0-plugins-base:i386 \
++       gstreamer1.0-plugins-good:i386 gstreamer1.0-x:i386 \
++       libaa1:i386 libasn1-8-heimdal:i386 libasound2:i386 \
++       libasyncns0:i386 libatk1.0-0:i386 libavahi-client3:i386 \
++       libavahi-common-data:i386 libavahi-common3:i386 libavc1394-0:i386 \
++       libblkid1:i386 libbsd0:i386 \
++       libbz2-1.0:i386 libc6:i386 libc6-i386 libcaca0:i386 libcairo-gobject2:i386 \
++       libcairo2:i386 libcap2:i386 libcdparanoia0:i386 \
++       libcom-err2:i386 libcroco3:i386 libcups2:i386 \
++       libcurl3-gnutls:i386 libdatrie1:i386 libdb5.3:i386 libdbus-1-3:i386 \
++       libdrm-amdgpu1:i386 \
++       libdrm-intel1:i386 libdrm-nouveau2:i386 libdrm-radeon1:i386 libdrm2:i386 \
++       libdv4:i386 libedit2:i386 libegl-mesa0:i386 \
++       libegl1:i386 libelf1:i386 libexpat1:i386 libffi6:i386 \
++       libfftw3-double3:i386 libflac8:i386 \
++       libfontconfig1:i386 libfreetype6:i386 libfribidi0:i386 libgail-common:i386 \
++       libgail18:i386 libgbm1:i386 libgcc1:i386 libgcrypt20:i386 \
++       libgdk-pixbuf2.0-0:i386 libgl1:i386 libgl1-mesa-dri:i386 libglapi-mesa:i386 \
++       libglib2.0-0:i386 libglvnd0:i386 libglx-mesa0:i386 libglx0:i386 \
++       libgmp10:i386 libgnutls30:i386 libgomp1:i386 libgpg-error0:i386 libgpm2:i386 \
++       libgraphene-1.0-0:i386 libgraphite2-3:i386 \
++       libgssapi-krb5-2:i386 libgssapi3-heimdal:i386 \
++       libgstreamer-gl1.0-0:i386 \
++       libgstreamer-plugins-base1.0-0:i386 libgstreamer-plugins-good1.0-0:i386 \
++       libgstreamer1.0-0:i386 libgtk2.0-0:i386 libgudev-1.0-0:i386 \
++       libharfbuzz0b:i386 \
++       libhcrypto4-heimdal:i386 libheimbase1-heimdal:i386 libheimntlm0-heimdal:i386 \
++       libhogweed4:i386 libhx509-5-heimdal:i386 libicu60:i386 libidn2-0:i386 \
++       libiec61883-0:i386 libilmbase12:i386 libjack-jackd2-0:i386 libjbig0:i386 \
++       libjpeg-turbo8:i386 libjpeg8:i386 libk5crypto3:i386 \
++       libkeyutils1:i386 libkrb5-26-heimdal:i386 libkrb5-3:i386 \
++       libkrb5support0:i386 liblcms2-2:i386 libldap-2.4-2:i386 \
++       libllvm6.0:i386 liblz4-1:i386 liblzma5:i386 \
++       libmount1:i386 libmp3lame0:i386 \
++       libmpg123-0:i386 \
++       libncurses5:i386 libncursesw5:i386 libnettle6:i386 \
++       libnghttp2-14:i386 libnuma1:i386 libogg0:i386 \
++       libopenexr22:i386 \
++       libopus0:i386 liborc-0.4-0:i386 libp11-kit0:i386 \
++       libpango-1.0-0:i386 libpangocairo-1.0-0:i386 libpangoft2-1.0-0:i386 \
++       libpciaccess0:i386 libpcre3:i386 libpixman-1-0:i386 libpng16-16:i386 \
++       libproxy1v5:i386 libpsl5:i386 libpulse0:i386 libraw1394-11:i386 \
++       libreadline7:i386 libroken18-heimdal:i386 librsvg2-2:i386 \
++       librsvg2-common:i386 librtmp1:i386 libsamplerate0:i386 libsasl2-2:i386 \
++       libsasl2-modules:i386 libsasl2-modules-db:i386 libsbc1:i386 libselinux1:i386 \
++       libsensors4:i386 libshout3:i386 \
++       libslang2:i386 libsnappy1v5:i386 libsndfile1:i386 \
++       libsoup2.4-1:i386 \
++       libspeex1:i386 libsqlite3-0:i386 \
++       libssl1.1:i386 libstdc++6:i386 \
++       libsystemd0:i386 libtag1v5:i386 libtag1v5-vanilla:i386 libtasn1-6:i386 \
++       libthai0:i386 libtheora0:i386 libtiff5:i386 libtinfo5:i386 libtwolame0:i386 \
++       libudev1:i386 libunistring2:i386 libusb-1.0-0:i386 libuuid1:i386 \
++       libv4l-0:i386 libv4lconvert0:i386 \
++       libvdpau1:i386 libvisual-0.4-0:i386 \
++       libvorbis0a:i386 libvorbisenc2:i386 libvorbisfile3:i386 \
++       libvpx5:i386 libwavpack1:i386 libwayland-client0:i386 \
++       libwayland-egl1-mesa:i386 libwayland-server0:i386 libwebp6:i386 \
++       libwebpmux3:i386 libwebrtc-audio-processing1:i386 \
++       libwind0-heimdal:i386 libwrap0:i386 libx11-6:i386 \
++       libx11-xcb1:i386 libxau6:i386 \
++       libxcb-dri2-0:i386 libxcb-dri3-0:i386 libxcb-glx0:i386 libxcb-present0:i386 \
++       libxcb-render0:i386 libxcb-shm0:i386 libxcb-sync1:i386 libxcb-xfixes0:i386 \
++       libxcb1:i386 libxcomposite1:i386 libxcursor1:i386 libxdamage1:i386 \
++       libxdmcp6:i386 libxext6:i386 libxfixes3:i386 libxi6:i386 libxinerama1:i386 \
++       libxml2:i386 libxrandr2:i386 libxrender1:i386 libxshmfence1:i386 libxv1:i386 \
++       libxxf86vm1:i386 \
++       mesa-vdpau-drivers:i386 \
++       vdpau-driver-all:i386 zlib1g:i386 \
++      )
++      for var in "${array[@]}"
++      do
++       #base for playback, good for pixbuf - these , at runtime, warns many main/universe missings
++       if [ -n "$(echo -n ${var} | grep -o : )" ]; then
++        #var=`echo $var | tr 'Q' '\n' | xargs echo `
++        var=`echo -n ${var} | grep -o -e "^[^:]*"`
++        downdeb "ro.archive.ubuntu.com" i386 2 ${var} main
++       else
++        downdeb "ro.archive.ubuntu.com" amd64 1 ${var} main
++       fi
++      done
++      array=( \
++       freepats gstreamer1.0-plugins-bad:i386 i965-va-driver:i386 libass9:i386 libavcodec57:i386 libavutil55:i386 libbs2b0:i386 \
++       libchromaprint1:i386 libcrystalhd3:i386 libdc1394-22:i386 libdca0:i386 libde265-0:i386 libdvdnav4:i386 libdvdread4:i386 \
++       libfaad2:i386 libflite1:i386 libfluidsynth1:i386 libgme0:i386 libgsm1:i386 libgssdp-1.0-3:i386 libgstreamer-plugins-bad1.0-0:i386 \
++       libgupnp-1.0-4:i386 libgupnp-igd-1.0-4:i386 libkate1:i386 liblilv-0-0:i386 libmjpegutils-2.1-0:i386 libmms0:i386 libmodplug1:i386 \
++       libmpcdec6:i386 libmpeg2encpp-2.1-0:i386 libmplex2-2.1-0:i386 libnice10:i386 libofa0:i386 libopenal-data libopenal1:i386 \
++       libopenjp2-7:i386 libopenmpt0:i386 libserd-0-0:i386 libshine3:i386 libsndio6.1:i386 libsord-0-0:i386 libsoundtouch1:i386 \
++       libsoxr0:i386 libspandsp2:i386 libsratom-0-0:i386 libsrtp2-1:i386 libswresample2:i386 libva-drm2:i386 libva-x11-2:i386 \
++       libva2:i386 libvo-aacenc0:i386 libvo-amrwbenc0:i386 libvulkan1:i386 libwildmidi-config libwildmidi2:i386 libx264-152:i386 \
++       libx265-146:i386 libxvidcore4:i386 libzbar0:i386 libzvbi-common libzvbi0:i386 mesa-va-drivers:i386 va-driver-all:i386 \
++      )
++      for var in "${array[@]}"
++      do
++        #bad for mxf
++        if [ -n "$(echo -n ${var} | grep -o : )" ]; then
++         var=`echo -n ${var} | grep -o -e "^[^:]*"`
++         downdeb "ro.archive.ubuntu.com" i386 3 ${var} universe
++        else
++         downdeb "ro.archive.ubuntu.com" amd64 2 ${var} universe
++        fi
++      done
++      #echo ${not_are}
++      #exit
++      cd AppDir
++      file2=AppRun
++      if [ ! -e "${file2}" ]; then
++       if [ -z "${urlpart}" ]; then
++        kitpart
++       fi
++       archfile2=${file2}${arch_ai}
++       urlpart=${urlpart:0:`echo ${urlpart} | grep -ob '[^/]*$' | cut -d ':' -f 1`}${archfile2}
++       wget -c https://github.com/${urlpart}
++       chmod a+x ${archfile2}
++       mv ${archfile2} ${file2}
++      fi
++      pngfile=ovideo.png
++      if [ ! -e "${pngfile}" ]; then
++       wget https://github.com/colin-i/test/releases/download/1.5/ovideo.png -O ${pngfile} #O for multiple times
++       cat > ovideo.desktop <<EOF
++      [Desktop Entry]
++      Type=Application
++      Name=OVideo
++      Exec=ovideo
++      Icon=ovideo
++      Categories=AudioVideo
++      EOF
++       ln -s ${pngfile} .DirIcon #f for multiple times
++      fi
++      #
++      cd usr/lib
++      if [ ! -e "gstreamer-1.0" ]; then
++       echo ln
++       #this is not ok: only when running the appimage file: when testing with GST_DEBUG=5: GST_PLUGIN_SYSTEM_PATH will miss /i386-linux-gnu
++       ln -s i386-linux-gnu/gstreamer-1.0 gstreamer-1.0
++       #this also at runtime, missing
++       ln -s i386-linux-gnu/pulseaudio/libpulsecommon-11.1.so libpulsecommon-11.1.so
++      fi
++      cd ../../
++      #
++      if [ ! -e "usr/bin/ostream" ]; then
++       echo launcher
++       gpixd=/usr/lib/i386-linux-gnu/gdk-pixbuf-2.0/
++       gpixf=${gpixd}`ls -1 .${gpixd} | head -1`/loaders
++       cd usr/bin
++       mv ovideo ostream
++       #live64 is not having /lib/ld-linux.so.2. without librarypath will wrong libc bionic to jammy
++       #./lib since zlib1g. ./usr/lib for liblilv-0.so.0
++       #this is in tmp folder, don't check inside if loaders.cache exists
++       # --library-path \"${rootbase}...   will be with problems
++       #if there are problems, try this: GTK_MODULE_DIR
++       #GST_PLUGIN_SCANNER weird: launch after appimage-extract twice, the second time will be ok
++       cat > ovideo <<EOF
++      #!/bin/bash
++      cd "\$(dirname "\$0")"
++      cd ../../
++      loader="./lib32/ld-linux.so.2"
++      hom=\${HOME}/ovideo
++      mkdir -p "\${hom}"
++      gpmf=\${hom}/loaders.cache
++      rootbase=\$(pwd)
++      LD_LIBRARY_PATH="\${rootbase}/lib32:\${rootbase}/usr/lib:\${rootbase}/usr/lib/i386-linux-gnu:\${rootbase}/lib/i386-linux-gnu" \
++       GDK_PIXBUF_MODULEDIR="\${rootbase}${gpixf}" \
++       \${loader} .${gpixd}gdk-pixbuf-query-loaders > "\${gpmf}"
++      LD_LIBRARY_PATH="\${rootbase}/lib32:\${rootbase}/usr/lib:\${rootbase}/usr/lib/i386-linux-gnu:\${rootbase}/lib/i386-linux-gnu" \
++       GDK_PIXBUF_MODULE_FILE="\${gpmf}" \
++       GIO_EXTRA_MODULES="\${rootbase}/usr/lib/i386-linux-gnu/gio/modules" \
++       GST_PLUGIN_SCANNER="\${rootbase}/usr/lib/i386-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner" \
++       GST_PLUGIN_SYSTEM_PATH="\${rootbase}/usr/lib/gstreamer-1.0" \
++       \${loader} ./usr/bin/ostream "\${rootbase}"
++      EOF
++       chmod 755 ovideo
++       cd ../../
++      fi
++      #metadata file
++      mi=usr/share/metainfo
++      mif=${mi}/com.colin.ovideo.appdata.xml
++      if [ ! -e "${mif}" ]; then
++       mkdir -p ${mi}
++       cat > ${mif} <<EOF
++      <?xml version="1.0" encoding="UTF-8"?>
++      <!-- Copyright 2022 -->
++      <component type="desktop-application">
++       <id>com.colin.ovideo</id>
++       <metadata_license>FSFAP</metadata_license>
++       <name>O Video</name>
++       <summary>Video Editor</summary>
++       <description>
++        <ul>
++         <li>Create videos</li>
++         <li>Add animations</li>
++         <li>Edit frames</li>
++        </ul>
++       </description>
++       <screenshots>
++        <screenshot type="default">
++         <caption>OVideo image</caption>
++         <image>https://raw.github.com/colin-i/ostream/master/arh/ovideo.png</image>
++        </screenshot>
++       </screenshots>
++       <url type="homepage">https://www.github.com/colin-i/ostream</url>
++       <content_rating/>
++      </component>
++      EOF
++      fi
++      #
++      cd ..
++      #
++      if [ ! -e "ovideo.AppImage" ]; then
++       mksquashfs AppDir ovideo.squashfs -root-owned -noappend
++       cat runtime >> ovideo.AppImage
++       cat ovideo.squashfs >> ovideo.AppImage
++       chmod a+x ovideo.AppImage
++      fi
++      #http://ro.archive.ubuntu.com/ubuntu/dists/bionic/main/binary-i386/Packages.xz
++      #https://stackoverflow.com/questions/9981099/are-exported-private-keys-in-gpg-still-encrypted
++      #echo -n ${{ secrets.PASS }} > pas.txt
++      #echo "tag=refs/tags/1.5" >> $GITHUB_ENV
++      #echo $tag ${{ env.tag }}
++      #ARCH=i686 ${file} ./ovideo.yml
++   - name: test artifact
++     if: ${{ github.event.inputs.artifact != '' }}
++     uses: actions/upload-artifact@v3
++     with:
++      name: appimage
++      path: ./*.AppImage
+--- ovideo-1.orig/.github/workflows/deb.yml
++++ ovideo-1/.github/workflows/deb.yml
+@@ -22,46 +22,44 @@ jobs:
+       if [ -n "${{ env.init }}" ]; then
+        exit
+       fi
++      sudo dpkg --add-architecture i386
+       if [ -z "`dpkg -s devscripts>/dev/null 2>&1 && echo x`" ]; then
+-       sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential
+-       sudo apt install -y liborc-0.4-0
+-       #dch:    devscripts libfile-homedir-perl libfile-which-perl
+-       #         debuild: fakeroot libfakeroot
++       sudo apt update #Err:1 http://ppa.launchpad.net ... libxml2-utils amd64 2.9.13 ... Not Found
++       sudo apt install -y devscripts debhelper libgtk2.0-dev libsoup2.4-dev libasound2-dev build-essential libgstreamer-plugins-base1.0-dev \
++                           libc6:i386 libc6
++       #libc6:i386 must be the same version with libc6:amd64
+       fi
+       downdeb () {
+-       maindeb=${4}.deb
++       #pkg=${2}
++       pkg=ocompiler
++       maindeb=${pkg}.deb
+        if [ ! -e "${maindeb}" ]; then
+-        inter=Packages${2}${3}
++        arch=i386
++        #nr=${3}
++        inter=Packages${arch}
++        #                    ${nr}
++        #src=${1}
++        src="ppa.launchpadcontent.net/colin-i/ppa"
+         if [ ! -e "${inter}" ]; then
+-         wget http://${1}/ubuntu/dists/${5}/${6}/binary-${2}/Packages.xz -O ${inter}.xz
++         #sfx=${4}
++         wget http://${src}/ubuntu/dists/bionic/main/binary-${arch}/Packages.xz -O ${inter}.xz
++         #                                     ${sfx}
+          xz -d ${inter}.xz #f for multiple times
+         fi
+-        debfilename=`grep "^Filename.*/${4}_" ${inter} | tail -1 | cut -d ' ' -f 2`
+-        wget_url=http://${1}/ubuntu/${debfilename}
++        debfilename=`grep "^Filename.*/${pkg}_" ${inter} | tail -1 | cut -d ' ' -f 2`
++        wget_url=http://${src}/ubuntu/${debfilename}
+         #echo ${wget_url}
+         wget ${wget_url} -O ${maindeb}
+         dpkgs+=" ${maindeb}"
+        fi
+       }
+-      sudo dpkg --add-architecture i386
+-      dpkgs=
+-      array=( gcc-8-base libgcc1 libc6 )
+-      for var in "${array[@]}"
+-      do
+-       downdeb "ro.archive.ubuntu.com" i386 1 ${var} bionic-updates main
+-      done
+-      downdeb "ppa.launchpadcontent.net/colin-i/ppa" i386 2 ocompiler bionic main
+-      array=( libgstreamer-plugins-base0.10-dev \
+-               libgstreamer-plugins-base0.10-0 \
+-               libgstreamer0.10-dev \
+-                libgstreamer0.10-0 \
+-                gir1.2-gstreamer-0.10 \
+-               gir1.2-gst-plugins-base-0.10
+-            )
+-      for var in "${array[@]}"
+-      do
+-       downdeb "ro.archive.ubuntu.com" amd64 1 ${var} xenial universe
+-      done
++      #array=( gcc-8-base libgcc1 libc6 )
++      #for var in "${array[@]}"
++      #do
++      # downdeb "ro.archive.ubuntu.com" ${var} 1 -updates
++      #done
++      #downdeb "ppa.launchpadcontent.net/colin-i/ppa" ocompiler 2
++      downdeb
+       if [ -n "${dpkgs}" ]; then
+         sudo dpkg -i ${dpkgs}
+       fi
+--- /dev/null
++++ ovideo-1/.github/workflows/del.yml
+@@ -0,0 +1,20 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ del:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Remove asset
++     uses: mknejp/delete-release-assets@v1
++     env:
++     with:
++      token: ${{ secrets.PAT }}
++      tag: refs/tags/${{ env.tag }}
++      assets: ${{ env.file }}
+--- /dev/null
++++ ovideo-1/.github/workflows/delrel.yml
+@@ -0,0 +1,15 @@
++
++on:
++ workflow_dispatch:
++  inputs:
++   tag:
++    description: "project version"
++
++jobs:
++ delrel:
++   runs-on: ubuntu-latest
++   steps:
++    - uses: cb80/delrel@latest
++      with:
++       tag: ${{ github.event.inputs.tag }}
++       token: ${{ secrets.PAT }}
+--- /dev/null
++++ ovideo-1/.github/workflows/rel.yml
+@@ -0,0 +1,47 @@
++
++on:
++ # Allows you to run this workflow manually from the Actions tab
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ rbuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #get the version from changelog/launchpad/input
++      tag=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++      echo "tag=${tag}" >> $GITHUB_ENV
++   - name: Create Release
++     id: create_release
++     uses: actions/create-release@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      tag_name: ${{ env.tag }}
++      release_name: Release ${{ env.tag }}
++      draft: false
++      prerelease: false
++      #this can be undone. example: git push origin :refs/tags/1.6
++   - name: Store upload url for assets
++     run: |
++      #echo straight will not escape {}
++      a=${{ steps.create_release.outputs.upload_url }}
++      echo -n ${a} > 1.txt
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      echo "proj=${name}" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: https://uploads.github.com/repos/colin-i/test/releases/67484178/assets{?name,label}
++      #See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
++      asset_path: ./1.txt
++      asset_name: ${{ env.proj }}
++      asset_content_type: text/plain
+--- /dev/null
++++ ovideo-1/.github/workflows/rpm.yml
+@@ -0,0 +1,59 @@
++on:
++ workflow_dispatch:
++  inputs:
++   ppa:
++    description: "ppa sufix"
++   unpublished:
++    description: "don't wait to publish, take from build page"
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ rpbuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-22.04 #focal alien is not testing ok on docker fedora
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - uses: actions/checkout@v3
++   #Runs a set of commands using the runners shell
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get deb
++      if [ "${{ github.event.inputs.unpublished }}" = "" ]; then
++       echo published
++       dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
++       src=ppa.launchpadcontent.net/colin-i/ppa${{ github.event.inputs.ppa }}
++       wget http://${src}/ubuntu/dists/${dist}/main/binary-i386/Packages.xz
++       xz -d Packages.xz
++       debfilename=`grep "^Filename.*/${name}_" Packages | tail -1 | cut -d ' ' -f 2`
++       wget http://${src}/ubuntu/${debfilename} -O ${name}.deb
++      else
++       echo unpublished
++       version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
++       arh=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
++       if [ ! -e "lp2.py" ]; then
++        wget -q https://raw.githubusercontent.com/colin-i/test/master/lp2.py
++        #on focal is already
++        sudo apt install python3-launchpadlib
++       fi
++       OUTPUT=$(python3 lp2.py ppa${{ github.event.inputs.ppa }} ${name} ${version} ${arh})
++       wget ${OUTPUT}/+files/${name}_${version}_${arh}.deb -O ${name}.deb
++       #f=`wget -q https://launchpad.net/~colin-i/+archive/ubuntu/ppa${{ github.event.inputs.ppa }}/+build/${{ github.event.inputs.unpublished }} -O - | grep -Poe "[^\"]*(?=\.deb\")"`
++       #wget ${f}.deb -O ${name}.deb
++      fi
++      #make rpm
++      mkdir out
++      cd out
++      sudo apt update
++      sudo apt install alien
++      sudo alien -rk ../${name}.deb
++      fname=`ls`
++      mv ${fname} ../${fname}
++      echo "file=${fname}" >> $GITHUB_ENV
++   - name: artifact
++     uses: actions/upload-artifact@v3
++     with:
++      name: rpm
++      path: ./${{ env.file }}
+--- /dev/null
++++ ovideo-1/.github/workflows/up.yml
+@@ -0,0 +1,36 @@
++
++on:
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ ubuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   #token or opts.auth is required (maybe at remote)
++   #- uses: Bhacaz/checkout-files@master
++   #  with:
++   #   files: ${{ env.proj }}.zip
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit 1
++      fi
++      #name with act --env proj=
++      #name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #echo "proj=${name}" >> $GITHUB_ENV
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${{ env.proj }} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.proj }}.zip
++      asset_name: ${{ env.proj }}.windows.zip
++      asset_content_type: application/zip
+--- /dev/null
++++ ovideo-1/.github/workflows/upapp.yml
+@@ -0,0 +1,47 @@
++
++on:
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ uabuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   #- uses: Bhacaz/checkout-files@master
++   #  with:
++   #   files: debian/changelog debian/control #is git rev-parse ...
++   - uses: actions/checkout@v3
++   - name: Run a multi-line script
++     run: |
++      #proj
++      name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
++      #get up_url
++      wget https://github.com/colin-i/test/releases/download/1.5/${name} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++      #get appimage artifact
++      id=$(gh run list --workflow=appimage.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
++      repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
++      #
++      url=`gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts | jq ".artifacts[0].archive_download_url"`
++      url=${url:1:-1}
++      echo ${url}
++      curl -L -H "Authorization: token ${{ secrets.PAT }}" ${url} --output a.zip
++      #to env
++      unzip ./a.zip
++      echo "file=${name}.AppImage" >> $GITHUB_ENV
++      echo "fullfile=${name}.amd64.AppImage" >> $GITHUB_ENV
++     env:
++      #for gh
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.fullfile }}
++      asset_content_type: application/x-executable
+--- /dev/null
++++ ovideo-1/.github/workflows/uprpm.yml
+@@ -0,0 +1,28 @@
++
++on:
++ workflow_dispatch:
++
++# A workflow run is made up of one or more jobs that can run sequentially or in parallel
++jobs:
++ # This workflow contains a single job called "build"
++ urbuild:
++  # The type of runner that the job will run on
++  runs-on: ubuntu-18.04
++  # Steps represent a sequence of tasks that will be executed as part of the job
++  steps:
++   - name: Run a multi-line script
++     run: |
++      if [ -n "${{ env.init }}" ]; then
++       exit 1
++      fi
++      wget https://github.com/colin-i/test/releases/download/1.5/${{ env.proj }} -O 1.txt
++      echo "up_url=`cat 1.txt`" >> $GITHUB_ENV
++   - name: Upload Release Asset
++     uses: actions/upload-release-asset@v1
++     env:
++      GITHUB_TOKEN: ${{ secrets.PAT }}
++     with:
++      upload_url: ${{ env.up_url }}
++      asset_path: ./${{ env.file }}
++      asset_name: ${{ env.file }}
++      asset_content_type: application/x-rpm
+--- /dev/null
++++ ovideo-1/arh/a
+@@ -0,0 +1,29 @@
++
++#first release, not a point release
++#add universe,multiverse and remove -updates,-security
++
++#as root. sudo echo permission denied
++#at live unset updates,security and add universe,multiverse; cdrom if stays there will be error at update
++#echo deb http://archive.ubuntu.com/ubuntu/ bionic main restricted universe multiverse > /etc/apt/sources.list
++##cd /etc/apt
++##sed '/updates/s/./#&/' sources.list >s
++##sed '/security/s/./#&/' s >s2
++##mv sources.list sources.list.old
++##mv s2 sources.list
++##rm s
++
++sudo dpkg --add-architecture i386
++sudo apt update
++
++p="libc6-i386 libgtk2.0-0:i386 gstreamer1.0-plugins-good:i386 gstreamer1.0-plugins-bad:i386 libsoup2.4-1:i386 libjpeg8:i386 libasound2:i386"
++#apt depends ${p} --recurse  --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances --no-pre-depends  | grep "^\w" > 1
++#dpkg -s libgtk2.0-0:i386
++sudo apt install --dry-run ${p}
++
++#there are more ideas here: https://github.com/aferrero2707/appimage-helper-scripts/blob/master/bundle-gtk2.sh
++
++#convert rgba to rgb24
++#ffmpeg -i a.png -pix_fmt rgb24 b.png
++#at 128 , text 85 max
++
++#rpmrebuild -enp ./*.rpm
+--- ovideo-1.orig/arh/pub
++++ ovideo-1/arh/pub
+@@ -1,6 +1,27 @@
+ 
++#version.txt is still manual
++#xenial has own arh/pub
++
++last=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | jq .tag_name -r) && \
+ ~/test/debinit2 "${1}" && \
+-~/test/keyring && \
++~/test/keyring2 && \
+ ~/test/deb && \
+ ~/test/publp && \
+-~/test/publp2
++~/test/ai && \
++~/test/rpm && \
++~/test/del && \
++~/test/rel && \
++./wmake && \
++~/test/pub appimage rpm rel && \
++~/test/rerpm && \
++~/test/upapp && \
++~/test/uprpm && \
++~/test/up && \
++~/test/pub upapp && \
++~/test/pub2 && \
++~/test/publp2 && \
++~/test/lp && \
++~/test/lp x && \
++~/test/keyring && \
++~/test/del x ${last} x && \
++~/test/arh2 ${last}
+--- /dev/null
++++ ovideo-1/arh/re
+@@ -0,0 +1,20 @@
++
++touch ./usr/share/ovideo/regforkoff
++
++#sudo sed is still permission
++
++#this is a blocker
++#BuildArch:     i386
++sed '/^BuildArch:.*i386$/d' text > text2
++
++#Requires:      libgstgdkpixbuf.so
++#Requires:      libgstmxf.so
++sed '/^#Requires.*CompressedFileNames.*$/i Requires:      libgstgdkpixbuf.so\nRequires:      libgstmxf.so\n' text2 > text3
++rm text2
++
++#%attr(0644, root, root) "/usr/share/ovideo/regforkoff"
++sed -e "$(grep -n '^%attr.*\"$' text3 | tail -1 | cut -f1 -d ':')a %attr(0644, root, root) \"/usr/share/ovideo/regforkoff\"" text3 > text2
++cat text2
++rm text3
++
++sudo mv text2 text
+--- ovideo-1.orig/html/html/use.html
++++ ovideo-1/html/html/use.html
+@@ -67,7 +67,7 @@ The <b>Stage mini-bar</b> window:
+ 	<br>
+ 	&nbsp;&nbsp;- Split the selection into two parts. <img src="../img/edit/split.bmp"></img>
+ 	<br>
+-	&nbsp;&nbsp;- Set the frame length to a number until they are equal; last can be truncated. Example: 8,1,1,1,1 and the number is 4 set on 8; becomes 4,4,2,1,1. <img src="../img/edit/equalize.bmp"></img>
++	&nbsp;&nbsp;- Equalize frames length; last has the remainder. Example: 1,8,1,1 set on 8 becomes 1,3,3,4. <img src="../img/edit/equalize.bmp"></img>
+ 
+ 	<br>
+ 	&nbsp;&nbsp;- Frame panel for image tools. <img src="../img/edit/framepanel.bmp"></img>
+--- ovideo-1.orig/readme.md
++++ ovideo-1/readme.md
+@@ -11,8 +11,17 @@ Install:
+ sudo apt-get install ovideo
+ ```
+ \
+-On Windows the program is at this [link](https://github.com/colin-i/ostream/releases).
+-The requirement is the program <i>gstreamer sdk x86 (0.10)</i>.
++On linux distributions, <i>.AppImage</i> file from [releases](https://github.com/colin-i/ostream/releases).\
++\
++On Fedora, <i>.rpm</i> file from [releases](https://github.com/colin-i/ostream/releases).\
++Missing libjpeg.so.8? https://download.copr.fedorainfracloud.org/results/aflyhorse/libjpeg/fedora-36-i386/ \
++Unacceptable TLS certificate? Put [glib-networking:i386 bionic release libgiognutls.so](https://github.com/colin-i/test/releases/download/1.1/libgiognutls.so) in a folder and point to that folder with GIO_EXTRA_MODULES variable.
++```sh
++yum install ovideo-*.*.rpm
++```
++\
++On Windows, <i>.windows.zip</i> file from [releases](https://github.com/colin-i/ostream/releases).\
++<i>Gstreamer sdk</i> is [here](https://www.freedesktop.org/software/gstreamer-sdk/data/packages/windows/x86/).
+ 
+ ## From source
+ Compile with [O Compiler](https://github.com/colin-i/o) and link with
+--- ovideo-1.orig/soundrecorder/src/Makefile
++++ ovideo-1/soundrecorder/src/Makefile
+@@ -15,20 +15,17 @@ srcname=${projname}.s
+ logname=${srcname}.log
+ wprojname=${projname}.exe
+ 
+-all: compile link
++all: ${wprojname}
+ 
+-compile: ${projname} ounused
++%.o: %.s
++	${OCOMP} $< ${OFLAGS}
+ 
+-ounused:
++${wprojname}: ${objname}
+ 	ounused ${logname}
+-
+-link:
++	@echo
+ 	i686-w64-mingw32-ld ${linkerflags} ${objname} -o ${wprojname} -entry record \
+ 		 -lmsvcrt -lkernel32 -lwinmm -luser32
+ 
+-%: %.s
+-	${OCOMP} $< ${OFLAGS}
+-
+ clean:
+ 	-rm -f ${logname}
+ 	-rm -f ${objname}
+--- ovideo-1.orig/src/Makefile
++++ ovideo-1/src/Makefile
+@@ -3,18 +3,15 @@ ifndef OCOMP
+ OCOMP=o
+ endif
+ 
+-ifndef linkerflags
+-linkerflags=-O1 -s
++ifndef platform
++platform=lin
+ endif
+ 
+-platform = lin
+-
+-ifeq (${platform},win)
+-	OFLAGS = inplace_reloc 0 include_sec 1 ${OFLAGSEXTRA}
+-else
+-	OFLAGS = underscore_pref 1 ${OFLAGSEXTRA}
++ifndef linkerflags
++linkerflags=-O1 -s
+ endif
+ 
++projname=ovideo
+ cap = _capture/capture
+ err = err/err
+ eve = event/event
+@@ -49,73 +46,80 @@ uti = ${u}asm ${u}floating ${u}lists ${u
+ items = _dif/dif~${platform} ${cap} ${err} ${eve} ${exe} ${ffl} ${gnu} ${int} ${med} ${mem} ${net} ${obj} ${pre} ${sea} ${str} ${uti}
+ items_prefix=
+ 
+-projname=ovideo
+-wprojname=ovideo.exe
++$(eval obs = )
++$(foreach var,$(items),$(eval obs += ${items_prefix}${var}.o))
++$(eval logs = )
++$(foreach var,$(items),$(eval logs += ${items_prefix}${var}.s.log))
++
++ifeq (${platform},lin)
++
++OFLAGS = underscore_pref 1 ${OFLAGSEXTRA}
++lprojname=${items_prefix}${projname}
+ lshare=_dif/share.txt
+-logs :=
+-obs :=
+ sharefolderpackage=$(prefix)/share/ovideo
+ sharefolder=$(DESTDIR)${sharefolderpackage}
++dynlink=/lib/ld-linux.so.2
++all: ${lprojname}
++${lprojname}: ${lshare} ${obs}
++	ounused ${logs}
++	@echo
++	export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/:${PKG_CONFIG_PATH}; \
++	$(LD) ${linkerflags} -melf_i386 --dynamic-linker=${dynlink} ${obs} -o ${lprojname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lgthread-2.0 -lpthread;
++${lshare}:
++	echo char prestart=0x2e\;char simplestart=\"${sharefolderpackage}\"\;return \#simplestart > ${lshare}; \
+ 
+-all: compile lnk
+-
+-compile: share ${items} ounused
++else
+ 
+-ounused:
++OFLAGS = inplace_reloc 0 include_sec 1 ${OFLAGSEXTRA}
++wprojname=${projname}.exe
++all: ${wprojname}
++${wprojname}: ${obs}
+ 	ounused ${logs}
++	@echo
++	i686-w64-mingw32-ld --large-address-aware ${linkerflags} ${obs} -o ${wprojname} -entry _start --start-group \
++	`dpkg -L mingw-w64-i686-dev | grep '\.a' | sed 's/..$$//' | grep -o '[^\/]*$$' | sed 's/^lib/-l/' | xargs echo` \
++	--end-group -L`echo ~`/.wine/drive_c/gstreamer-sdk/0.10/x86/lib/ \
++	-lgtk-win32-2.0 -lgdk-win32-2.0 -lgdk_pixbuf-2.0 -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgthread-2.0 \
++	-lgstreamer-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgstpbutils-0.10 \
++	-lcairo -lpango-1.0 -lsoup-2.4 -ljpeg;
++
++endif
+ 
+-share:
+-	if [ "${platform}" = "lin" ]; then \
+-		echo return \"${sharefolderpackage}\" > ${lshare}; \
+-	fi
+ 
+ #at jammy libgtk2.0-dev:i386,libgstreamer-plugins-base1.0-dev:i386,libsoup2.4-dev:i386,libasound2-dev:i386
+ 
+ #at bionic
+ #libgtk2.0-dev:i386	libgtk2.0-0:i386 is already
+ #libgstreamer-plugins-base1.0-dev:i386	libgstreamer-plugins-base1.0-0:i386 is already
+-#	gst_app_buffer_new	stage_file_need_fn
+ #no apt-file search libgstinterfaces 0.10 in xenial
+-#	gst_x_overlay_get_type	video_realize
+-#	gst_x_overlay_set_window_handle	video_realize
+-#libsoup2.4-1:i386 is already
++#libsoup2.4-dev:i386      libsoup2.4-1:i386 is already
+ #libasound2-dev:i386	libasound2:i386 is already
++#libjpeg8-dev:i386	libjpeg8:i386 is already
++#libgstreamer1.0-dev:i386 is already	libgstreamer1.0-0:i386 is already
++
++#without -pthread, at launchpad runner: _dif/dif~lin.o: undefined reference to symbol 'sem_init@@GLIBC_2.1'
+ 
+-#at xenial
+-#dev gtk libgstreamer-plugins-base0.10-dev  soup jpeg asound
+-#gtk gstreamer0.10-plugins-good
+-#for mxf, gstreamer0.10-plugins-bad was deleted at ubuntu
+-
+-#		export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/:${PKG_CONFIG_PATH}; \
+-#		$(LD) ${linkerflags} -melf_i386 --dynamic-linker=/lib/ld-linux.so.2 ${obs} -o ${projname} -lc -lm `pkg-config --libs gtk+-2.0 gstreamer-pbutils-1.0 gstreamer-app-1.0` -ljpeg -lsoup-2.4 -lasound -lgthread-2.0; \
+-#cc because -pthread not for ld
+-#nostdlib because is complaining about main
+-lnk:
+-	if [ "${platform}" = "lin" ]; then \
+-		$(CC) -nostdlib ${linkerflags} ${obs} -o ${items_prefix}${projname} `pkg-config --libs gtk+-2.0 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10 gstreamer-app-0.10` -lsoup-2.4 -ljpeg -lasound -lm -lpthread -lc; \
+-	else \
+-		i686-w64-mingw32-ld --large-address-aware ${linkerflags} ${obs} -o ${wprojname} -entry _start --start-group \
+-		`dpkg -L mingw-w64-i686-dev | grep '\.a' | sed 's/..$$//' | grep -o '[^\/]*$$' | sed 's/^lib/-l/' | xargs echo` \
+-		--end-group -L`echo ~`/.wine/drive_c/gstreamer-sdk/0.10/x86/lib/ \
+-		-lgtk-win32-2.0 -lgdk-win32-2.0 -lgdk_pixbuf-2.0 -lglib-2.0 -lgobject-2.0 -lgio-2.0 -lgthread-2.0 \
+-		-lgstreamer-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgstpbutils-0.10 \
+-		-lcairo -lpango-1.0 -lsoup-2.4 -ljpeg; \
+-	fi
+-fast:
+-	$(eval obs = `printf ' ${items_prefix}%s.o' ${items}`)
+-link: fast lnk
++#fast:
++#	$(eval obs = `printf ' ${items_prefix}%s.o' ${items}`)
++#linkapp: fast lnkapp
++#link: fast lnk
+ #snprintf with circular unresolved requirements
+ #cos is in -lmingwex that will work with -lmingw32 -lmsvcrt
+ #on win msvcr100 is old and at here is from old java-i586
++linkapp:
++	LD_LIBRARY_PATH=/home/bc/v/ovideo-1/AppDir/usr/lib/i386-linux-gnu:/home/bc/v/ovideo-1/AppDir/lib/i386-linux-gnu \
++		$(LD) ${linkerflags} -melf_i386 --dynamic-linker=${dynlink} ${obs} -o ${lprojname} \
++			-L/home/bc/v/ovideo-1/AppDir/usr/lib/i386-linux-gnu \
++			-l:libc.so.6 -l:libm.so.6 -l:libgtk-x11-2.0.so.0 -l:libgdk-x11-2.0.so.0 -l:libpangocairo-1.0.so.0 -l:libatk-1.0.so.0 -l:libcairo.so.2 -l:libgdk_pixbuf-2.0.so.0 -l:libgio-2.0.so.0 -l:libpangoft2-1.0.so.0 -l:libpango-1.0.so.0 -l:libfontconfig.so.1 -l:libfreetype.so.6 -l:libgstpbutils-1.0.so.0 -l:libgstaudio-1.0.so.0 -l:libgstvideo-1.0.so.0 -l:libgstapp-1.0.so.0 -l:libgstbase-1.0.so.0 -l:libgstreamer-1.0.so.0 -l:libgobject-2.0.so.0 -l:libglib-2.0.so.0 -l:libjpeg.so.8 -l:libsoup-2.4.so.1 -l:libasound.so.2 -l:libpthread.so.0 -l:libgthread-2.0.so.0
+ 
+-%: %.s
++%.o: %.s
+ 	${OCOMP} $< ${OFLAGS}
+-	$(eval logs += $@.s.log)
+-	$(eval obs += $@.o)
++#	$(eval logs += $@.s.log)
++#	$(eval obs += $@.o)
+ 
+ clean:
+-	-printf ' %s.s.log' ${items} | xargs rm -f
+-	-printf ' %s.o' ${items} | xargs rm -f
++	-rm -f ${obs}
++	-rm -f ${logs}
+ 	-rm -f ${projname}
+ 	-rm -f ${lshare}
+ 	-rm -f ${wprojname}
+@@ -126,8 +130,6 @@ test:
+ 	echo "Nothing"
+ 
+ install-proc:
+-	install -D ${projname} \
+-		$(DESTDIR)$(prefix)/bin/${projname}
+ 	cd ../build; \
+ 	find ./img -type f -exec install -Dm 664 {} ${sharefolder}/{} \;
+ 	install -d ${sharefolder}/html
+@@ -135,6 +137,8 @@ install-proc:
+ 	install -Dm 664 html/use.html ${sharefolder}/html/
+ 	cd ..; \
+ 	install -m 664 ./version.txt ${sharefolder}/
++	install -D ${projname} \
++		$(DESTDIR)$(prefix)/bin/${projname}
+ 
+ install: all install-proc
+ 
+@@ -145,5 +149,3 @@ uninstall:
+ .PHONY: all install clean distclean uninstall test
+ 
+ .NOTPARALLEL:
+-
+-#make compile prefix=/usr && make link linkerflags= LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage items_prefix=/home/bc/v/ovideo-1/src/
+--- /dev/null
++++ ovideo-1/src/_dif/difl.s
+@@ -0,0 +1,24 @@
++
++entryraw _start(sd argc,sv argv)
++
++
++import "init_args" init_args
++call init_args(argc,#argv)
++
++importx "_access" access
++import "move_to_share_core" move_to_share_core
++ss testfile="regforkoff"
++call move_to_share_core(#testfile)
++sd is
++setcall is access(testfile,(F_OK))
++if is==-1
++	call gst_init(0,(NULL))
++else
++	#this is because fedora will wrong all plugin cache on 64 for 32
++	sd argv0
++	ss *argv1="--gst-disable-registry-fork"
++	set argv0 argv
++	set argc 2
++	set argv #argv0
++	call gst_init(#argc,#argv)
++endelse
+--- /dev/null
++++ ovideo-1/src/_dif/difw.s
+@@ -0,0 +1,4 @@
++
++entry _start()
++
++call gst_init(0,0)
+--- ovideo-1.orig/src/_dif/dif~lin.s
++++ ovideo-1/src/_dif/dif~lin.s
+@@ -18,12 +18,14 @@ function movetoScriptfolder(data forward
+ #at this first call img/version and then sys
+ 	call prog_init()
+ 	sd f
+-	setcall f share_folder()
+ 	sd err
+-	setcall err move_to_folder(f)
++	setcall f share_folder(#err,(NULL))
+ 	if err==(noerror)
+-		call forward()
+-		return (void)
++		setcall err move_to_folder(f)
++		if err==(noerror)
++			call forward()
++			return (void)
++		endif
+ 	endif
+ 	call texter(err)
+ endfunction
+@@ -39,13 +41,6 @@ endfunction
+ 
+ 
+ 
+-importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
+-function gdkGetdrawable(data window)
+-    data windraw#1
+-    setcall windraw gdk_x11_drawable_get_xid(window)
+-    return windraw
+-endfunction
+-
+ function system_variables_alignment_pad(data *value,data *greatest)
+     data noalignment=0
+     return noalignment
+@@ -795,8 +790,11 @@ function move_to_home_core(sv p)
+ endfunction
+ function move_to_share_v()
+ 	sd f
+-	setcall f share_folder()
+-	call dirch(f)
++	sd err
++	setcall f share_folder(#err,(NULL))
++	if err==(noerror)
++		call dirch(f)
++	endif
+ endfunction
+ function move_to_share_core(sv p)
+ 	sv mem
+@@ -804,11 +802,15 @@ function move_to_share_core(sv p)
+ 	set mem mem#
+ 	if mem!=(NULL)
+ 		sd f
+-		setcall f share_folder()
+-		sd b
+-		setcall b cat_absolute_verif(mem,f,p#,(NULL))
+-		if b==(TRUE)
+-			set p# mem
++		sd err
++		ss prefix=""
++		setcall f share_folder(#err,#prefix)
++		if err==(noerror)
++			sd b
++			setcall b cat_absolute_verif(mem,prefix,f,p#)
++			if b==(TRUE)
++				set p# mem
++			endif
+ 		endif
+ 	endif
+ endfunction
+@@ -845,9 +847,29 @@ function home_folder_r(sd p)
+ 	call texter(er)
+ 	return (NULL)
+ endfunction
++function init_args(sd argc,sv argv)
++	value shareprefix#1
++	const shareprefix_p^shareprefix
++	if argc<2
++		set shareprefix (NULL)
++		return (void)
++	endif
++	add argv :
++	set shareprefix argv#
++endfunction
+ #string
+-function share_folder()
+-	include "share.txt"
++function share_folder(sv p_err,sv prefix)
++	value a%shareprefix_p
++	if a#==(NULL)
++		set p_err# (noerror)
++		include "share.txt"
++	endif
++	if prefix==(NULL)
++		setcall p_err# move_to_folder(a#)
++	else
++		set prefix# a#
++	endelse
++	return #prestart
+ endfunction
+ 
+ const PATH_MAX=4096
+@@ -902,23 +924,167 @@ function cat_absolute_verif(sd mem,sd v,
+ 	setcall s strlen(v)
+ 	inc s
+ 	addcall s strlen(v2)
+-	if v3!=(NULL)
+-		inc s
+-		addcall s strlen(v3)
+-	endif
++	inc s
++	addcall s strlen(v3)
+ 	if s<(PATH_MAX)
+ 		sd n
+ 		setcall n sprintf(mem,"%s/%s",v,v2)
+-		if v3!=(NULL)
+-			add mem n
+-			call sprintf(mem,"/%s",v3)
+-		endif
++		add mem n
++		call sprintf(mem,"/%s",v3)
+ 		return (TRUE)
+ 	endif
+ 	call texter("path max error.")
+ 	return (FALSE)
+ endfunction
+ 
++
+ function ulltoa(sd low,sd high,sd str)
+ 	call sprintf(str,"%llu",low,high)
+ endfunction
++
++
++importx "gdk_x11_drawable_get_xid" gdk_x11_drawable_get_xid
++importx "gst_video_overlay_get_type" gst_video_overlay_get_type
++importx "g_type_check_instance_cast" g_type_check_instance_cast
++importx "gst_video_overlay_set_window_handle" gst_video_overlay_set_window_handle
++
++import "getplaybin2ptr" getplaybin2ptr
++import "widget_gdk_window_native_get" widget_gdk_window_native_get
++
++function video_realize(sd widget)
++	sd window
++	setcall window widget_gdk_window_native_get(widget)
++	if window!=(NULL)
++		sd windraw
++		setcall windraw gdk_x11_drawable_get_xid(window)
++
++		sd g_type
++		setcall g_type gst_video_overlay_get_type()
++
++		sv playbin2
++		setcall playbin2 getplaybin2ptr()
++		set playbin2 playbin2#
++
++		sd c_type
++		setcall c_type g_type_check_instance_cast(playbin2,g_type)
++
++		call gst_video_overlay_set_window_handle(c_type,windraw)
++	endif
++endfunction
++
++
++#1.0 function
++function get_new_buffer(sd mem,sd framesize)
++	importx "gst_buffer_new_wrapped" gst_buffer_new_wrapped
++	#const GST_MEMORY_FLAG_READONLY=2
++	sd buffer
++	#setcall buffer gst_buffer_new_wrapped_full(0,mem,framesize,0,framesize,(NULL),(NULL)) #The memory will be freed with g_free and will be marked writable.
++	setcall buffer gst_buffer_new_wrapped(mem,framesize)
++	sd timestamp;set timestamp buffer
++	#go to pts member from GstBuffer
++	#cannot be GST_CLOCK_TIME_NONE_lowhigh
++	add timestamp 40;set timestamp# 0;add timestamp (DWORD);set timestamp# 0
++	return buffer
++endfunction
++
++function get_playbin_str()
++	return "playbin"
++endfunction
++
++function get_mxf_caps()
++	import "stage_nthwidgetFromcontainer" stage_nthwidgetFromcontainer
++	import "stage_file_frame_main_set" stage_file_frame_main_set
++    sd firstframe
++    setcall firstframe stage_nthwidgetFromcontainer(0)
++    sd pixbuf
++    sd w
++    sd h
++    sd ptr_pack^pixbuf
++    call stage_file_frame_main_set(ptr_pack,firstframe)
++	ss capsformat="caps=video/x-raw,format=(string)RGBA,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
++	char capsdata#4*10+150+1-4-4
++	str gstcaps^capsdata
++	sd bpp=stage_bpp
++	sd fps
++	import "stage_file_options_fps" stage_file_options_fps
++	setcall fps stage_file_options_fps()
++	call sprintf(gstcaps,capsformat,w,h,bpp,fps)
++	return gstcaps
++endfunction
++
++function get_mxf_inputformat()
++	return "videoconvert"
++endfunction
++
++function get_decodebin_str()
++	return "decodebin"
++endfunction
++
++importx "gst_iterator_next" gst_iterator_next
++importx "g_value_get_object" g_value_get_object
++importx "g_value_unset" g_value_unset
++function iterate_next_forward_free(sd iter,sd forward)
++	#gvalue = one GType ul(QWORD) and two pointers
++	const gvalue_stacks=:&DWORD/DWORD*3+3
++	sd elem#gvalue_stacks
++	sd ptr_elem^elem
++	const gvalue_sz=gvalue_stacks*:
++	call setmemzero(ptr_elem,(gvalue_sz)) #this is G_VALUE_INIT,elem must have been initialized to the type of the iterator or initialized to zeroes
++	sd ret
++	setcall ret gst_iterator_next(iter,ptr_elem)
++	if ret==(GST_ITERATOR_OK)
++		sd obj
++		setcall obj g_value_get_object(ptr_elem)
++		call forward(obj)
++		call g_value_unset(ptr_elem)
++		return (void)
++	endif
++	call texter("Iterator error")
++endfunction
++
++function stage_sound_caps()
++	char out#65-2-2+(dword_max*2)+1
++	vstr format="audio/x-raw,format=S16LE,channels=%u,rate=%u,signed=(boolean)true"
++	sd channels
++	setcall channels stage_sound_channels((value_get))
++	sd rate
++	setcall rate stage_sound_rate((value_get))
++	call sprintf(#out,format,channels,rate)
++	return #out
++endfunction
++
++function stage_sound_sample(sd appsink)
++	#new buffer signal
++	import "connect_signal" connect_signal
++	call connect_signal(appsink,"new-sample",stage_sound_buffer)
++endfunction
++#flow
++function stage_sound_buffer(sd gstappsink,sd *user_data)
++	#call sleepMs(5000)
++	sd ret
++	importx "gst_app_sink_pull_sample" gst_app_sink_pull_sample
++	sd s
++	setcall s gst_app_sink_pull_sample(gstappsink)
++	importx "gst_sample_get_buffer" gst_sample_get_buffer
++	sd b
++	setcall b gst_sample_get_buffer(s)
++	importx "gst_buffer_map" gst_buffer_map
++	sd map#13 #with sizeof
++	const GST_MAP_READ=1
++	sd bool
++	setcall bool gst_buffer_map(b,#map,(GST_MAP_READ)) #this is bool, but
++	if bool==(TRUE)
++		import "stage_sound_expand" stage_sound_expand
++		call stage_sound_expand(#map,(2*:),(3*:))
++		importx "gst_buffer_unmap" gst_buffer_unmap
++		call gst_buffer_unmap(b,#map)
++		set ret (GST_FLOW_OK)
++	else
++		const GST_FLOW_ERROR=-5
++		set ret (GST_FLOW_ERROR)
++		call texter("Failed to map buffer")
++	endelse
++	importx "gst_mini_object_unref" gst_mini_object_unref
++	call gst_mini_object_unref(s)
++	return ret
++endfunction
+--- ovideo-1.orig/src/_dif/dif~win.s
++++ ovideo-1/src/_dif/dif~win.s
+@@ -101,13 +101,6 @@ function geterrno()
+ endfunction
+ 
+ 
+-importx "_gdk_win32_drawable_get_handle" gdk_win32_drawable_get_handle
+-function gdkGetdrawable(data window)
+-    data windraw#1
+-    setcall windraw gdk_win32_drawable_get_handle(window)
+-    return windraw
+-endfunction
+-
+ function system_variables_alignment_pad(data value,data greatest)
+     sub greatest value
+     return greatest
+@@ -938,3 +931,140 @@ function ulltoa(sd low,sd high,sd instr)
+ 	call ulltoa_extern(low,high,instr,10)
+ endfunction
+ 
++
++#void gtkwidget::realize
++importx "_gst_x_overlay_set_window_handle" gst_x_overlay_set_window_handle
++importx "_gst_x_overlay_get_type" gst_x_overlay_get_type
++importx "_gst_implements_interface_cast" gst_implements_interface_cast
++importx "_gst_element_implements_interface" gst_element_implements_interface
++importx "_gdk_win32_drawable_get_handle" gdk_win32_drawable_get_handle
++
++import "getplaybin2ptr" getplaybin2ptr
++import "widget_gdk_window_native_get" widget_gdk_window_native_get
++
++function video_realize(data widget)
++	sd window
++	setcall window widget_gdk_window_native_get(widget)
++	if window!=(NULL)
++		#Pass it to playbin2, which implements XOverlay and will forward it to the video sink
++		#on >= ubuntu 12 with debs from 2012.11(almost same place with 2012.11 msi file) this is a not
++		sv playbin2
++		setcall playbin2 getplaybin2ptr()
++		set playbin2 playbin2#
++		sd overlaytype
++		setcall overlaytype gst_x_overlay_get_type()
++		sd bool
++		setcall bool gst_element_implements_interface(playbin2,overlaytype)
++		if bool==(TRUE)
++			sd interfacecast
++			setcall interfacecast gst_implements_interface_cast(playbin2,overlaytype)
++			sd drawablehandle
++			setcall drawablehandle gdk_win32_drawable_get_handle(window)
++			call gst_x_overlay_set_window_handle(interfacecast,drawablehandle)
++			return (void)
++		endif
++		import "printer" printer
++		call printer("gst_element_implements_interface false.")
++	endif
++endfunction
++
++#0.10 function
++function get_new_buffer(sd mem,sd framesize,sd w,sd h)
++	importx "_gst_app_buffer_new" gst_app_buffer_new
++	vdata free_fn^free
++	sd buffer
++	setcall buffer gst_app_buffer_new(mem,framesize,free_fn,mem)
++	#
++	ss capsformat="video/x-raw-rgb,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
++	char capsdata#4*10+130+1-4-4
++	str gstcaps^capsdata
++	sd bpp=stage_bpp
++	sd fps
++	import "stage_file_options_fps" stage_file_options_fps
++	setcall fps stage_file_options_fps()
++	importx "_sprintf" sprintf
++	call sprintf(gstcaps,capsformat,w,h,bpp,fps)
++	importx "_gst_caps_from_string" gst_caps_from_string
++	sd caps
++	setcall caps gst_caps_from_string(gstcaps)
++	importx "_gst_buffer_set_caps" gst_buffer_set_caps
++	call gst_buffer_set_caps(buffer,caps)
++	importx "_gst_caps_unref" gst_caps_unref
++	call gst_caps_unref(caps)
++	#
++	return buffer
++endfunction
++
++function get_playbin_str()
++	return "playbin2"
++endfunction
++
++function get_mxf_caps()
++	return ""
++endfunction
++
++function get_mxf_inputformat()
++	return "ffmpegcolorspace"
++endfunction
++
++function get_decodebin_str()
++	return "decodebin2"
++endfunction
++
++importx "_gst_iterator_next" gst_iterator_next
++importx "_gst_object_unref" gst_object_unref
++function iterate_next_forward_free(sd iter,sd forward)
++	sd elem
++	sd ptr_elem^elem
++	sd ret
++	setcall ret gst_iterator_next(iter,ptr_elem)
++	if ret==(GST_ITERATOR_OK)
++		call forward(elem)
++		call gst_object_unref(elem)
++		return (void)
++	endif
++	call texter("Iterator error")
++endfunction
++
++#SDL_LIL_ENDIAN means byte order is 1234
++const sound_endian_def=1234
++
++function stage_sound_caps()
++	char out#88-5-5+(dword_max*5)+1
++	vstr format="audio/x-raw-int,channels=%u,rate=%u,signed=(boolean)true,width=%u,depth=%u,endianness=%u"
++	sd channels
++	setcall channels stage_sound_channels((value_get))
++	sd rate
++	setcall rate stage_sound_rate((value_get))
++	sd bps
++	setcall bps stage_sound_bps((value_get))
++	call sprintf(#out,format,channels,rate,bps,bps,(sound_endian_def))
++	return #out
++endfunction
++
++function stage_sound_sample(sd appsink)
++	#new buffer signal
++	import "connect_signal" connect_signal
++	call connect_signal(appsink,"new-buffer",stage_sound_buffer)
++endfunction
++function stage_sound_buffer(sd gstappsink,sd *user_data)
++    importx "_g_signal_emit_by_name" g_signal_emit_by_name
++    ss method="pull-buffer"
++    sd buffer
++    sd p_buffer^buffer
++    call g_signal_emit_by_name(gstappsink,method,p_buffer)
++
++    #GstBuffer
++        #GstMiniObject
++            #GTypeInstance instance
++            #gint refcount
++            #guint flags
++        #guint8              *data
++        #guint               size
++
++	import "stage_sound_expand" stage_sound_expand
++	call stage_sound_expand(buffer,0x10,0x14)
++
++    importx "_gst_mini_object_unref" gst_mini_object_unref
++    call gst_mini_object_unref(buffer)
++endfunction
+--- ovideo-1.orig/src/_exec/capture/save.s
++++ ovideo-1/src/_exec/capture/save.s
+@@ -119,20 +119,27 @@ const ptr_chain_uri^chain_uri
+ const ptr_chain_streams^chain_streams
+ 
+ function save_get_main_format()
++#plugins base
+     str mediaform="uridecodebin uri=\"%s\" %s ! queue ! %s ! oggmux name=mux ! filesink location=\"%s\"%s"
+     return mediaform
+ endfunction
+ function save_get_sec_format()
+-    str mediasecform=" %s ! queue ! %s ! mux."
+-    return mediasecform
++const save_get_sec_format_a=!
++    char mediasecform=" %s ! queue ! %s ! mux."
++const save_get_sec_format_sz=!-save_get_sec_format_a-2-2-1
++    return #mediasecform
+ endfunction
+ function save_get_video_format()
+-    str video="theoraenc"
++#plugins base
++    vstr video="theoraenc"
+     return video
+ endfunction
+ function save_get_audio_format()
+-    str audio="vorbisenc"
+-    return audio
++const save_get_audio_format_a=!
++#plugins base
++    char audio="vorbisenc"
++const save_get_audio_format_sz=!-save_get_audio_format_a-1
++    return #audio
+ endfunction
+ function save_get_ogg_dest()
+ #these formats are related to format_max
+@@ -157,13 +164,14 @@ function save_stream_dest_ready(str dest
+     setcall audio save_get_audio_format()
+ 
+     str srcname="src"
++const srcname_sz=3
+ 
+     str nullstr=""
+ 
+     data flagA=audio
+     data flagVA=audiovideo
+ 
+-    char src_prop_data#20
++    char src_prop_data#5+srcname_sz+1
+ 
+     str format#1
+     str sr#1
+@@ -183,10 +191,11 @@ function save_stream_dest_ready(str dest
+     set m1 video
+     if streams==flagVA
+         str makename="%s."
+-        char save_secname_data#15
++const makename_sz=srcname_sz+1
++        char save_secname_data#makename_sz+1
+         str save_src_name^save_secname_data
+         call sprintf(save_src_name,makename,srcname)
+-        char save_va_data#40
++        char save_va_data#save_get_sec_format_sz+makename_sz+save_get_audio_format_sz+1
+         str save_va^save_va_data
+         ss secformat
+         setcall secformat save_get_sec_format()
+--- ovideo-1.orig/src/_exec/init.s
++++ ovideo-1/src/_exec/init.s
+@@ -3,8 +3,6 @@ format elfobj
+ 
+ include "../_include/include.h" #files/olang.h
+ 
+-const F_OK=0
+-
+ importx "_strlen" strlen
+ importx "_access" access
+ importx "_mkdir" mkdir
+--- ovideo-1.orig/src/_exec/ostream.s
++++ ovideo-1/src/_exec/ostream.s
+@@ -10,10 +10,9 @@ importx "_gtk_main" gtk_main
+ 
+ import "initfn" initfn
+ 
+-entry _start()
++include "../_dif/difl.s" "../_dif/difw.s"
+ 
+ call gtk_init(0,0)
+-call gst_init(0,0)
+ 
+ importx "_setlocale" setlocale
+ call setlocale((LC_NUMERIC),"C") #"English" was ok
+--- ovideo-1.orig/src/_exec/uri.s
++++ ovideo-1/src/_exec/uri.s
+@@ -17,48 +17,6 @@ function getplaybin2ptr()
+     return propagateplaybin2
+ endfunction
+ 
+-#void gtkwidget::realize
+-importx "_gtk_widget_get_window" gtk_widget_get_window
+-importx "_gdk_window_ensure_native" gdk_window_ensure_native
+-importx "_gst_x_overlay_set_window_handle" gst_x_overlay_set_window_handle
+-importx "_gst_x_overlay_get_type" gst_x_overlay_get_type
+-importx "_gst_implements_interface_cast" gst_implements_interface_cast
+-importx "_gst_element_implements_interface" gst_element_implements_interface
+-
+-import "gdkGetdrawable" gdkGetdrawable
+-
+-function video_realize(data widget)
+-	data window#1
+-	setcall window gtk_widget_get_window(widget)
+-
+-	data false=0
+-	sd bool
+-	setcall bool gdk_window_ensure_native(window)
+-	if bool==false
+-		str noNative="Couldn't create native window needed for GstXOverlay!"
+-		call texter(noNative)
+-	endif
+-
+-	#Pass it to playbin2, which implements XOverlay and will forward it to the video sink
+-	#on >= ubuntu 12 with debs from 2012.11(almost same place with 2012.11 msi file) this is a not
+-	sv playbin2
+-	setcall playbin2 getplaybin2ptr()
+-	set playbin2 playbin2#
+-	sd overlaytype
+-	setcall overlaytype gst_x_overlay_get_type()
+-	setcall bool gst_element_implements_interface(playbin2,overlaytype)
+-	if bool==(TRUE)
+-		sd interfacecast
+-		setcall interfacecast gst_implements_interface_cast(playbin2,overlaytype)
+-		sd drawablehandle
+-		setcall drawablehandle gdkGetdrawable(window)
+-		call gst_x_overlay_set_window_handle(interfacecast,drawablehandle)
+-		return (void)
+-	endif
+-	import "printer" printer
+-	call printer("gst_element_implements_interface false.")
+-endfunction
+-
+ import "unset_playbool" unset_playbool
+ 
+ function gstset()
+@@ -119,6 +77,9 @@ function addSignals(data bus,sd *callbac
+ endfunction
+ 
+ importx "_gst_element_factory_make" gst_element_factory_make
++
++import "video_realize" video_realize
++
+ #void/err
+ function gstplayinit(data videowidget)
+     data null=0
+@@ -127,11 +88,13 @@ function gstplayinit(data videowidget)
+     call rec_set(null)
+ 
+     data playbin2ptr#1
+-    str playbin2str="playbin2"
+     setcall playbin2ptr getplaybin2ptr()
++	import "get_playbin_str" get_playbin_str
++	ss playbin2str
++	setcall playbin2str get_playbin_str()
+ 
+     setcall playbin2ptr# gst_element_factory_make(playbin2str,playbin2str)
+-    #needing gstreamer0.10-plugins-good
++    #playback at plugins base
+ 
+     data playbin2#1
+     set playbin2 playbin2ptr#
+@@ -155,3 +118,19 @@ function gstplayinit(data videowidget)
+     call bus_signals(playbin2,add_signals)
+ endfunction
+ 
++importx "_gtk_widget_get_window" gtk_widget_get_window
++importx "_gdk_window_ensure_native" gdk_window_ensure_native
++
++#wind
++function widget_gdk_window_native_get(sd widget)
++	sd window
++	setcall window gtk_widget_get_window(widget)
++	sd bool
++	setcall bool gdk_window_ensure_native(window)
++	if bool==(TRUE)
++		return window
++	endif
++	str noNative="Couldn't create native window needed for GstXOverlay!"
++	call texter(noNative)
++	return (NULL)
++endfunction
+--- ovideo-1.orig/src/_include/files/commons.h
++++ ovideo-1/src/_include/files/commons.h
+@@ -15,6 +15,7 @@ Const SEEK_SET=0
+ Const SEEK_CUR=1
+ Const SEEK_END=2
+ 
++const F_OK=0
+ 
+ const bitsperbyte=8
+ 
+--- ovideo-1.orig/src/_include/files/gst.h
++++ ovideo-1/src/_include/files/gst.h
+@@ -23,4 +23,4 @@ const GST_DISCOVERER_TIMEOUT=3
+ const GST_DISCOVERER_BUSY=4
+ const GST_DISCOVERER_MISSING_PLUGINS=5
+ 
+-const GST_ITERATOR_ERROR=3
++const GST_ITERATOR_OK=1
+--- ovideo-1.orig/src/_include/files/olang.h
++++ ovideo-1/src/_include/files/olang.h
+@@ -112,7 +112,6 @@ const format_mkv=format_mxf+1
+         const format_mkv_last=format_mkv+format_mkv_rgb24
+ #const format_mp4=format_mkv_last+1
+ 
+-const sound_endian_def=1234
+ 
+ const jpeg_min_quality=1
+ const jpeg_max_quality=900
+--- ovideo-1.orig/src/_prepare/frame/frametime.s
++++ ovideo-1/src/_prepare/frame/frametime.s
+@@ -82,9 +82,7 @@ endfunction
+ 
+ #method is defined at olang.h
+ 
+-function stage_frame_time_numbers(sd method,sd arg1,sd newvalue,sd numberoftimes)
+-    sd index
+-    set index arg1
++function stage_frame_time_numbers(sd method,sd index,sd newvalue,sd numberoftimes)
+     if method==(stage_frame_time_init)
+         #const stage_frame_time_init=0
+         data frames#1
+@@ -104,7 +102,7 @@ function stage_frame_time_numbers(sd met
+             set pointer frames
+             add pointer size
+             sub pointer 4
+-            set pointer# arg1
++            set pointer# index
+         endif
+         return 1
+     elseif method==(stage_frame_time_free)
+@@ -419,96 +417,31 @@ endfunction
+ #equalize
+ 
+ function stage_frame_equalize()
+-    import "stage_frame_dialog" stage_frame_dialog
+-    data init^stage_frame_equalize_init
+-    data on_ok^stage_frame_equalize_set
+-    ss title="Equalize"
+-    call stage_frame_dialog(init,on_ok,title)
+-endfunction
+-
+-function stage_frame_equalize_edit(sd action,sd value)
+-    data equalize_edit#1
+-    if action==(value_set)
+-        set equalize_edit value
+-    else
+-        return equalize_edit
+-    endelse
+-endfunction
+-
+-function stage_frame_equalize_init(sd vbox)
+-    import "label_and_edit" label_and_edit
+-    ss txt="Frame length "
+-    sd edit
+-    setcall edit label_and_edit(vbox,txt)
+-    call stage_frame_equalize_edit((value_set),edit)
+-endfunction
+-
+-function stage_frame_equalize_set()
+-    #get the number
+-    import "entry_to_int_min_N" entry_to_int_min_N
+-    sd entry
+-    setcall entry stage_frame_equalize_edit((value_get))
+-    sd nr
+-    sd p_nr^nr
+-    sd bool
+-    setcall bool entry_to_int_min_N(entry,p_nr,1)
+-    if bool!=1
+-        return 0
+-    endif
+-
+-    #get sel pos
+-    sd selpos
+-    setcall selpos stage_get_sel_pos()
+-
+-    #calculate if equalization is possible
+-    import "stage_get_frames" stage_get_frames
+-    sd totalframes
+-    setcall totalframes stage_get_frames()
+-    sd equalization_end_frame
+-    set equalization_end_frame selpos
+-    sd dif=0
+-    sd prev
+-    sd can_be_truncation
+-    sd loop=1
+-    while loop==1
+-        sd framelength
+-        setcall framelength stage_frame_time_numbers((stage_frame_time_get_at_index),equalization_end_frame)
+-        sub framelength nr
+-        add dif framelength
+-        set can_be_truncation nr
+-        if dif==0
+-            set loop 0
+-        else
+-            #test to truncate last equalization frame
+-            sd sign_dif
+-            set sign_dif dif
+-            and sign_dif 0x80000000
+-            if selpos!=equalization_end_frame
+-                if sign_dif!=prev
+-                    if dif<0
+-                        mult dif -1
+-                    endif
+-                    sub can_be_truncation dif
+-                    set loop 0
+-                endif
+-            endif
+-            if loop!=0
+-                set prev sign_dif
+-
+-                inc equalization_end_frame
+-                if equalization_end_frame==totalframes
+-                    str not_possible="Equalization not possible with the specified number"
+-                    call texter(not_possible)
+-                    return 0
+-                endif
+-            endif
+-        endelse
+-    endwhile
+-    while selpos!=equalization_end_frame
+-        call set_frame_length_and_redraw(selpos,nr)
+-        inc selpos
+-    endwhile
+-    call set_frame_length_and_redraw(selpos,can_be_truncation)
++	#get sel pos
++	sd selpos
++	setcall selpos stage_get_sel_pos()
++	#
++	sd total
++	setcall total stage_frame_time_numbers((stage_frame_time_total_sum))
++	subcall total stage_frame_time_numbers((stage_frame_time_sum_at_index),selpos)
++	sd rem;set rem total
++	#
++	import "stage_get_frames" stage_get_frames
++	sd totalframes
++	setcall totalframes stage_get_frames()
++	sd max;set max totalframes
++	#
++	sub totalframes selpos
++	div total totalframes
++	dec max ##maybe last is with rem
++	while selpos!=max
++		call set_frame_length_and_redraw(selpos,total)
++		inc selpos
++	endwhile
++	#
++	rem rem totalframes
++	add rem total
++	call set_frame_length_and_redraw(selpos,rem)
+ endfunction
+ 
+ function set_frame_length_and_redraw(sd pos,sd nr)
+@@ -529,3 +462,40 @@ function set_frame_length_and_redraw(sd
+     importx "_gtk_widget_show_all" gtk_widget_show_all
+     call gtk_widget_show_all(ebox)
+ endfunction
++
++#    import "stage_frame_dialog" stage_frame_dialog
++#    data init^stage_frame_equalize_init
++#    data on_ok^stage_frame_equalize_set
++#    ss title="Equalize"
++#    call stage_frame_dialog(init,on_ok,title)
++#endfunction
++#function stage_frame_equalize_edit(sd action,sd value)
++#    data equalize_edit#1
++#    if action==(value_set)
++#        set equalize_edit value
++#    else
++#        return equalize_edit
++#    endelse
++#endfunction
++#function stage_frame_equalize_init(sd vbox)
++#    import "label_and_edit" label_and_edit
++#    ss txt="Frame length "
++#    sd edit
++#    setcall edit label_and_edit(vbox,txt)
++#    call stage_frame_equalize_edit((value_set),edit)
++#endfunction
++#function stage_frame_equalize_set()
++#    #get the number
++#    import "entry_to_int_min_N" entry_to_int_min_N
++#    sd entry
++#    setcall entry stage_frame_equalize_edit((value_get))
++#    sd nr
++#    sd p_nr^nr
++#    sd bool
++#    setcall bool entry_to_int_min_N(entry,p_nr,1)
++#    if bool!=1
++#        return
++#    ...
++#                    str not_possible="Equalization not possible with the specified number"
++#    ...
++#endfunction
+--- ovideo-1.orig/src/_prepare/frame/imagetools.s
++++ ovideo-1/src/_prepare/frame/imagetools.s
+@@ -208,7 +208,7 @@ function headline_dlg(sd action,sd vbox)
+         str format="%u"
+         sd nr=10
+         importx "_sprintf" sprintf
+-        while nr!=51
++        while nr!=101
+             call sprintf(nr_ascii,format,nr)
+             importx "_gtk_combo_box_text_append_text" gtk_combo_box_text_append_text
+             call gtk_combo_box_text_append_text(size_entry,nr_ascii)
+--- ovideo-1.orig/src/_prepare/frame/screenshot.s
++++ ovideo-1/src/_prepare/frame/screenshot.s
+@@ -6,6 +6,8 @@ format elfobj
+ 
+ include "../../_include/include.h"
+ 
++#29 june 2022: this is ok on windows but on ubuntu... there are 4 gdk functions
++
+ function stage_screenshot()
+     importx "_gdk_get_default_root_window" gdk_get_default_root_window
+     importx "_gdk_drawable_get_size" gdk_drawable_get_size
+--- ovideo-1.orig/src/_prepare/output/all.s
++++ ovideo-1/src/_prepare/output/all.s
+@@ -125,7 +125,7 @@ endfunction
+ 
+ import "texter" texter
+ 
+-function stage_prepare_pixbuf(sd pixbuf,sd mem,sd w,sd h)
++function stage_prepare_pixbuf(sd pixbuf,ss mem,sd w,sd h)
+     sd px_pixels
+     importx "_gdk_pixbuf_get_pixels" gdk_pixbuf_get_pixels
+     setcall px_pixels gdk_pixbuf_get_pixels(pixbuf)
+@@ -164,8 +164,7 @@ function stage_prepare_pixbuf(sd pixbuf,
+         set x rowstart
+         while x!=w
+             call rgb_get_set(mem,px_pixels,x,y,px_bps,px_nchan,px_rowstride,(get_rgb))
+-            data a=4
+-            add mem a
++            add mem 4 #there is already alpha set inside
+             inc x
+         endwhile
+         inc y
+@@ -251,29 +250,10 @@ function stage_file_need_fn(sd appsrc)
+ 
+         call stage_prepare_pixbuf(pixbuf,mem,w,h)
+ 
+-        importx "_gst_app_buffer_new" gst_app_buffer_new
+-        data free_fn^free
+         sd buffer
+-        setcall buffer gst_app_buffer_new(mem,framesize,free_fn,mem)
+ 
+-        ss capsformat="video/x-raw-rgb,width=%u,height=%u,bpp=%u,endianness=4321,red_mask=0xFF000000,green_mask=0xFF0000,blue_mask=0xFF00,framerate=%u/1"
+-        char capsdata#200
+-        str gstcaps^capsdata
+-        sd bpp=stage_bpp
+-        sd fps
+-        import "stage_file_options_fps" stage_file_options_fps
+-        setcall fps stage_file_options_fps()
+-        call sprintf(gstcaps,capsformat,w,h,bpp,fps)
+-
+-        importx "_gst_caps_from_string" gst_caps_from_string
+-        sd caps
+-        setcall caps gst_caps_from_string(gstcaps)
+-
+-        importx "_gst_buffer_set_caps" gst_buffer_set_caps
+-        call gst_buffer_set_caps(buffer,caps)
+-
+-        importx "_gst_caps_unref" gst_caps_unref
+-        call gst_caps_unref(caps)
++	import "get_new_buffer" get_new_buffer
++	setcall buffer get_new_buffer(mem,framesize,w,h)
+ 
+         sd flow
+         sd ptr_flow^flow
+@@ -421,14 +401,21 @@ function stage_save_all()
+     data file_frames_portions%stage_file_frames_portions
+     set file_frames_portions 0
+ 
+-    ss pipeformat="appsrc is-live=true name=%s ! ffmpegcolorspace ! %s ! filesink location=\"%s\""
++	#mxf wants plugins-bad
++    ss pipeformat="appsrc is-live=true name=%s %s ! %s ! %s ! filesink location=\"%s\""
+     ss srcname
++	ss extra
++	ss informat
+     ss outformat
+     ss location
+     sd *=0
+     sd strings^pipeformat
+ 
+     setcall srcname stage_get_src_name()
++	import "get_mxf_caps" get_mxf_caps
++	setcall extra get_mxf_caps()
++	import "get_mxf_inputformat" get_mxf_inputformat
++	setcall informat get_mxf_inputformat()
+     import "stage_file_get_format_name" stage_file_get_format_name
+     setcall outformat stage_file_get_format_name()
+ 
+@@ -447,7 +434,7 @@ function stage_save_all()
+         return err
+     endif
+ 
+-    call sprintf(mem,pipeformat,srcname,outformat,location)
++    call sprintf(mem,pipeformat,srcname,extra,informat,outformat,location)
+ 
+     call stage_file_command(mem)
+ 
+@@ -635,6 +622,3 @@ function stage_files_read()
+ 
+     call free(filename)
+ endfunction
+-
+-
+-
+--- ovideo-1.orig/src/_prepare/output/sound.s
++++ ovideo-1/src/_prepare/output/sound.s
+@@ -131,55 +131,48 @@ function stage_sound()
+     call sound_pixbuf_redraw()
+ endfunction
+ 
++importx "_free" free
+ 
+ ##the pipe mechanism
+ 
+ function stage_sound_init_appsink(sd filepath)
+-    #the command for gst-launch
+-    ss launchformat="filesrc location=\"%s\" ! decodebin2 ! audioconvert ! audioresample ! audio/x-raw-int,channels=%u,rate=%u,signed=(boolean)true,width=%u,depth=%u,endianness=%u ! appsink emit-signals=TRUE sync=false"
+-    sd flocation
+-    sd *=0
+-    str sound_format^launchformat
+-
+-    #location
+-    #escape path
+-    import "string_alloc_escaped" string_alloc_escaped
+-    ss escapedpath
+-    setcall escapedpath string_alloc_escaped(filepath)
+-    if escapedpath==0
+-        return 0
+-    endif
+-    #set
+-    set flocation escapedpath
+-
+-    import "allocsum_numbers_null" allocsum_numbers_null
+-    sd command
+-    sd p_command^command
+-
+-    sd err
+-    setcall err allocsum_numbers_null(sound_format,5,p_command)
+-    if err!=(noerror)
+-        return err
+-    endif
+-
+-    #concatenate the command
+-    importx "_sprintf" sprintf
+-    sd channels
+-    setcall channels stage_sound_channels((value_get))
+-    sd rate
+-    setcall rate stage_sound_rate((value_get))
+-    sd bps
+-    setcall bps stage_sound_bps((value_get))
+-    call sprintf(command,launchformat,flocation,channels,rate,bps,bps,(sound_endian_def))
+-    sd com
+-    setcall com stage_sound_comm()
+-    set com# command
+-    call stage_sound_command()
+-
+-    #clean
+-    importx "_free" free
+-    call free(escapedpath)
+-    call free(command)
++	#the command for gst-launch
++	ss launchformat="filesrc location=\"%s\" ! %s ! audioconvert ! audioresample ! %s ! appsink emit-signals=true sync=false" #it's playing normal clock with sync
++	sd flocation
++	sd bin
++	sd caps
++	sd *=0
++	vstr sound_format^launchformat
++
++	#location
++	#escape path
++	import "string_alloc_escaped" string_alloc_escaped
++	setcall flocation string_alloc_escaped(filepath)
++	if flocation!=(NULL)
++		import "get_decodebin_str" get_decodebin_str
++		setcall bin get_decodebin_str()
++
++		import "stage_sound_caps" stage_sound_caps
++		setcall caps stage_sound_caps()
++
++		import "allocsum_null" allocsum_null
++		sd command
++		sd p_command^command
++
++		sd err
++		setcall err allocsum_null(sound_format,p_command)
++		if err==(noerror)
++			#concatenate the command
++			importx "_sprintf" sprintf
++			call sprintf(command,launchformat,flocation,bin,caps)
++			sd com
++			setcall com stage_sound_comm()
++			set com# command
++			call stage_sound_command()
++			call free(command)
++		endif
++		call free(flocation)
++	endif
+ endfunction
+ function stage_sound_command()
+     #sync mem
+@@ -204,42 +197,40 @@ function stage_sound_command()
+ endfunction
+ 
+ function stage_sound_command_init(sd *vbox,sd dialog)
+-    #keep the dialog for eos at appsink or error at pipe
+-    call stage_sound_dialog((value_set),dialog)
++	#keep the dialog for eos at appsink or error at pipe
++	call stage_sound_dialog((value_set),dialog)
+ 
+-    #make the pipe
+-    sd com
+-    setcall com stage_sound_comm()
+-    import "launch_pipe_start" launch_pipe_start
+-    sd pipeline
+-    setcall pipeline launch_pipe_start(com#)
+-    if pipeline==0
+-        return 0
+-    endif
+-
+-    #put the pipeline to a static place
+-    call stage_sound_pipe((value_set),pipeline)
+-
+-    #add error signal to pipe
+-    #sd pipe
+-    #setcall pipe stage_sound_pipe((value_get))
+-    import "err_signal_modal" err_signal_modal
+-    data f^stage_sound_closedialog
+-    call err_signal_modal(pipeline,f)
+-
+-    import "iterate_firstsink" iterate_firstsink
+-    #new-buffer signal to appsink, and eos
+-    data f_newbuffer^stage_sound_connect_appsink
+-    call iterate_firstsink(pipeline,f_newbuffer)
++	#make the pipe
++	sd com
++	setcall com stage_sound_comm()
++	import "launch_pipe_start" launch_pipe_start
++	sd pipeline
++	setcall pipeline launch_pipe_start(com#)
++	if pipeline!=(NULL)
++		#put the pipeline to a static place
++		call stage_sound_pipe((value_set),pipeline)
++
++		#add error signal to pipe
++		#sd pipe
++		#setcall pipe stage_sound_pipe((value_get))
++		import "err_signal_modal" err_signal_modal
++		data f^stage_sound_closedialog
++		call err_signal_modal(pipeline,f)
++
++		#get appskink and add signals
++		import "iterate_firstsink" iterate_firstsink
++		call iterate_firstsink(pipeline,stage_sound_connect_appsink)
++	endif
+ endfunction
+ 
+ function stage_sound_connect_appsink(sd appsink)
+-    #new buffer signal
+-    import "connect_signal" connect_signal
+-    ss buffer="new-buffer"
+-    data f_nb^stage_sound_expand
+-    call connect_signal(appsink,buffer,f_nb)
++	#importx "_gst_app_sink_set_emit_signals" gst_app_sink_set_emit_signals
++	#call gst_app_sink_set_emit_signals(appsink,(TRUE))
+ 
++	import "stage_sound_sample" stage_sound_sample
++	call stage_sound_sample(appsink)
++
++	import "connect_signal" connect_signal
+     #add eos at appsink(sometimes eos comes only here)
+     ss eos="eos"
+     data f_eos^stage_sound_closedialog
+@@ -726,38 +717,18 @@ function stage_sound_alloc(sd action,sd
+     endelse
+ endfunction
+ 
+-function stage_sound_expand(sd gstappsink,sd *user_data)
+-    importx "_g_signal_emit_by_name" g_signal_emit_by_name
+-    ss method="pull-buffer"
+-    sd buffer
+-    sd p_buffer^buffer
+-    call g_signal_emit_by_name(gstappsink,method,p_buffer)
+-
+-    import "structure_get_int" structure_get_int
+-    sd data
+-    sd size
+-
+-    #GstBuffer
+-        #GstMiniObject
+-            #GTypeInstance instance
+-            #gint refcount
+-            #guint flags
+-        #guint8              *data
+-        #guint               size
+-
+-    setcall data structure_get_int(buffer,0x10)
+-    setcall size structure_get_int(buffer,0x14)
+-
+-    #append the new buffer at the sound memory
+-    call stage_sound_alloc((stage_sound_alloc_expand),data,size)
+-    #print time
+-    call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+-
+-    importx "_gst_mini_object_unref" gst_mini_object_unref
+-    call gst_mini_object_unref(buffer)
++function stage_sound_expand(sd struct,sd a,sd b)
++	import "structure_get_int" structure_get_int
++	sd data
++	sd size
++	setcall data structure_get_int(struct,a)
++	setcall size structure_get_int(struct,b)
++	#append the new buffer at the sound memory
++	call stage_sound_alloc((stage_sound_alloc_expand),data,size)
++	#print time
++	call stage_sound_alloc((stage_sound_alloc_printtexter_time))
+ endfunction
+ 
+-
+ function stage_sound_sizedone(sd action,sd value)
+     data done#1
+     if action==(value_set)
+--- ovideo-1.orig/src/_prepare/pipe.s
++++ ovideo-1/src/_prepare/pipe.s
+@@ -313,12 +313,15 @@ endfunction
+ 
+ function stage_start_pipe(ss uri)
+ #gdkpixbufsink plugins-good
+-    ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink"
++    ss launcher="uridecodebin uri=\"%s\" ! %s ! gdkpixbufsink"
+     ss str
++	ss medium
+     sd *=0
+     sd strs^launcher
+ 
+     set str uri
++	import "get_mxf_inputformat" get_inputformat
++	setcall medium get_inputformat()
+ 
+     sd err
+ 
+@@ -331,7 +334,7 @@ function stage_start_pipe(ss uri)
+         return err
+     endif
+ 
+-    call sprintf(mem,launcher,uri)
++    call sprintf(mem,launcher,uri,medium)
+ 
+     import "launch_pipe_start" launch_pipe_start
+     data pipe#1
+--- ovideo-1.orig/src/_prepare/view.s
++++ ovideo-1/src/_prepare/view.s
+@@ -101,7 +101,7 @@ function stage_buttons_enter(sd containe
+         #
+     import "stage_frame_equalize" stage_frame_equalize
+     char *="equalize.bmp"
+-    char *="Equalize the frames lengths starting with selection; last interval frame can be truncated"
++    char *="Equalize the frames lengths starting with selection"
+     data *^stage_frame_equalize
+         #
+     data *=0
+--- ovideo-1.orig/src/_search/previews.s
++++ ovideo-1/src/_search/previews.s
+@@ -40,72 +40,57 @@ function search_photo_set(sd pixbuf,sd i
+     call pixbuf_scale_forward_data(pixbuf,scale_w,scale_h,fn,img)
+ endfunction
+ 
+-function search_photo_prepare(sd elem,sd msg)
+-    import "object_get_dword_name" object_get_dword_name
+-    sd img
+-    setcall img object_get_dword_name(elem)
+-
+-    data fn^search_photo_set
+-    import "msgelement_pixbuf_forward_data" msgelement_pixbuf_forward_data
+-    call msgelement_pixbuf_forward_data(msg,fn,img)
+-endfunction
+-
+-
+-function search_photo_get(sd iter,sd msg)
+-    import "iterate_next_forward_data_free" iterate_next_forward_data_free
+-    data f^search_photo_prepare
+-    call iterate_next_forward_data_free(iter,f,msg)
+-endfunction
+-
+ 
+-function search_photo_received(sd *bus,sd msg,sd pipe)
+-    import "set_pipe_null" set_pipe_null
+-    call set_pipe_null(pipe)
++function search_photo_received(sd *bus,sd msg,sv combo)
++	sd pipe
++	set pipe combo#
++
++	import "set_pipe_null" set_pipe_null
++	call set_pipe_null(pipe)
++
++	add combo :
++	import "msgelement_pixbuf_forward_data" msgelement_pixbuf_forward_data
++	call msgelement_pixbuf_forward_data(msg,search_photo_set,combo#)
+ 
+-    import "iterate_sinks_data" iterate_sinks_data
+-    data f^search_photo_get
+-
+-    call iterate_sinks_data(pipe,f,msg)
+-
+-    import "unset_pipe_and_watch" unset_pipe_and_watch
+-    call unset_pipe_and_watch(pipe)
++	import "unset_pipe_and_watch" unset_pipe_and_watch
++	call unset_pipe_and_watch(pipe)
+ endfunction
+ 
+ 
++importx "_sprintf" sprintf
++importx "_free" free
+ 
+-function search_connect_pixbuf(sd bus,sd pipe)
+-    str px="message::element"
+-    import "connect_signal_data" connect_signal_data
+-    data fn^search_photo_received
+-    call connect_signal_data(bus,px,fn,pipe)
++function search_connect_pixbuf(sd bus,sd combo)
++	#add_watch(and maybe not here, it is not spec a subelement) is not posting, maybe gtk_main isn't GMainLoop
++	importx "_g_signal_connect_data" g_signal_connect_data
++	call g_signal_connect_data(bus,"message::element",search_photo_received,combo,free,0)
+ endfunction
+ 
+-importx "_sprintf" sprintf
+-
++#void
+ function search_get_image(ss uri,sd handle)
+-    ss launcher="uridecodebin uri=\"%s\" ! ffmpegcolorspace ! gdkpixbufsink %s=%u"
++    ss launcher="uridecodebin uri=\"%s\" ! %s ! gdkpixbufsink"
+     ss src
+-    ss nm
++	ss inter
+     sd *term=0
+ 
++	import "get_mxf_inputformat" get_inputformat
+     set src uri
+-    setcall nm getsubject()
++	setcall inter get_inputformat()
+ 
+     sd strs^launcher
+-    sd nrs=1
+ 
+     sd mem
+     sd ptrmem^mem
+ 
+-    import "allocsum_numbers_null" allocsum_numbers_null
++    import "allocsum_null" allocsum_null
+     sd err
+     data noerr=noerror
+ 
+-    setcall err allocsum_numbers_null(strs,nrs,ptrmem)
++    setcall err allocsum_null(strs,ptrmem)
+     if err!=noerr
+         return err
+     endif
+-    call sprintf(mem,launcher,uri,nm,handle)
++    call sprintf(mem,launcher,uri,inter)
+ 
+     import "launch_pipe" launch_pipe
+     sd pipeline
+@@ -113,7 +98,6 @@ function search_get_image(ss uri,sd hand
+ 
+     setcall pipeline launch_pipe(mem)
+ 
+-    importx "_free" free
+     call free(mem)
+     if pipeline==n
+         return n
+@@ -128,7 +112,16 @@ function search_get_image(ss uri,sd hand
+     import "bus_default_signals" bus_default_signals
+     call bus_default_signals(pipeline)
+ 
+-    import "bus_signals_bin" bus_signals_bin
+-    data fn^search_connect_pixbuf
+-    call bus_signals_bin(pipeline,fn)
++	import "memalloc" memalloc
++	sv data
++	setcall data memalloc((2*:))
++	if data!=(NULL)
++		set data# pipeline
++		sv img=:
++		add img data
++		set img# handle
++		import "bus_signals_data" bus_signals_data
++		data fn^search_connect_pixbuf
++		call bus_signals_data(pipeline,fn,data)
++	endif
+ endfunction
+--- ovideo-1.orig/src/gnu/gst.s
++++ ovideo-1/src/gnu/gst.s
+@@ -217,36 +217,22 @@ function err_signal_modal(sd pipe,sd clo
+     call bus_signals_data(pipe,f,closemodalForward)
+ endfunction
+ 
++#function iterate_sinks_data(sd pipe,sd forward,sd data)
++#    sd iter
++#    setcall iter gst_bin_iterate_sinks(pipe)
++#    call forward(iter,data)
++#    call gst_iterator_free(iter)
++#endfunction
++
+ importx "_gst_bin_iterate_sinks" gst_bin_iterate_sinks
+ importx "_gst_iterator_free" gst_iterator_free
+-function iterate_sinks_data(sd pipe,sd forward,sd data)
+-    sd iter
+-    setcall iter gst_bin_iterate_sinks(pipe)
+-    call forward(iter,data)
+-    call gst_iterator_free(iter)
+-endfunction
+ 
+ function iterate_firstsink(sd pipe,sd forward)
+     sd iter
+     setcall iter gst_bin_iterate_sinks(pipe)
+ 
+-    call iterate_next_forward_data_free(iter,forward,0)
++	import "iterate_next_forward_free" iterate_next_forward_free
++    call iterate_next_forward_free(iter,forward)
+ 
+     call gst_iterator_free(iter)
+ endfunction
+-
+-importx "_gst_iterator_next" gst_iterator_next
+-function iterate_next_forward_data_free(sd iter,sd forward,sd data)
+-    sd elem
+-    sd ptr_elem^elem
+-    sd ret
+-    setcall ret gst_iterator_next(iter,ptr_elem)
+-    data er=GST_ITERATOR_ERROR
+-    if ret==er
+-        str e="Iterator error"
+-        call texter(e)
+-        return e
+-    endif
+-    call forward(elem,data)
+-    call gst_object_unref(elem)
+-endfunction
+--- /dev/null
++++ ovideo-1/src/md
+@@ -0,0 +1,19 @@
++
++#./md
++
++#sudo ./md install
++#don't run with o from root
++
++#sudo ./md uninstall
++
++#./md clean
++
++if [ -z "${1}" ]; then
++a=all
++else
++a=${1}
++fi
++
++#make compile prefix=/usr && make linkapp linkerflags=
++
++make ${a} prefix=/usr OFLAGSEXTRA="function_name 1" linkerflags= LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage items_prefix=`pwd`/
+--- ovideo-1.orig/src/media/mp4.s
++++ ovideo-1/src/media/mp4.s
+@@ -58,7 +58,9 @@ import "av_dialog_stop" av_dialog_stop
+ #	sd file
+ #	call openfile(#file,location,"rb")
+ #	sd mp3_file
+-#	call openfile(#mp3_file,"captures/file.mp3","wb")
++#	char out#256
++#	call sprintf(#out,"%s.mp3",location)
++#	call openfile(#mp3_file,#out,"wb")
+ #	sd mp3_sz;set mp3_sz extragere_off2;sub mp3_sz extragere_off1
+ #	call file_seek_set(file,extragere_off1)
+ #	sd mp3Mem;setcall mp3Mem memalloc(mp3_sz)
+--- ovideo-1.orig/src/mem/alloc.s
++++ ovideo-1/src/mem/alloc.s
+@@ -56,7 +56,8 @@ endfunction
+ import "slen" slen
+ #e
+ #s1+s1+\+...sn+1
+-function allocsum_numbers_null(sd strings,sd numbers_total,sd ptrmem)
++function allocsum_null(sd strings,sd ptrmem)
++#function allocsum_numbers_null(sd strings,sd numbers_total,sd ptrmem)
+     data sizetoalloc#1
+     data z=0
+     data dword=4
+@@ -67,13 +68,13 @@ function allocsum_numbers_null(sd string
+         add strings dword
+     endwhile
+ 
+-    if numbers_total!=z
+-        data nr=sign_int_null
+-        while numbers_total!=z
+-            add sizetoalloc nr
+-            dec numbers_total
+-        endwhile
+-    endif
++#    if numbers_total!=z
++#        data nr=sign_int_null
++#        while numbers_total!=z
++#            add sizetoalloc nr
++#            dec numbers_total
++#        endwhile
++#    endif
+ 
+     inc sizetoalloc
+ 
+@@ -83,12 +84,12 @@ function allocsum_numbers_null(sd string
+ endfunction
+ 
+ #e
+-function allocsum_null(sd strings,sd ptrmem)
+-    data null=0
+-    sd err
+-    setcall err allocsum_numbers_null(strings,null,ptrmem)
+-    return err
+-endfunction
++#function allocsum_null(sd strings,sd ptrmem)
++#    data null=0
++#    sd err
++#    setcall err allocsum_numbers_null(strings,null,ptrmem)
++#    return err
++#endfunction
+ 
+ #################################################################
+ 
+--- ovideo-1.orig/src/net/net-base.s
++++ ovideo-1/src/net/net-base.s
+@@ -31,11 +31,12 @@ function getSessionMessageBody(sv sessio
+ 	add sessionMsg (:+DWORD+:+          :)
+ 	sd status
+ 	set status sessionMsg#d^
++	add sessionMsg (DWORD)
+ 	if status!=(HTTP_STATUS_OK)
+-		call uri_err(status)
++		call uri_err(status,sessionMsg#)
+ 		return (FALSE)
+ 	endif
+-	add sessionMsg (DWORD+:+:+:)
++	add sessionMsg (:+:+:)
+ 
+ 	sd response_body#1
+ 	set response_body sessionMsg#
+@@ -65,11 +66,14 @@ function uri_queue_content(ss uri,sd cal
+ 	#assertion `queue->head == NULL' failed
+ endfunction
+ 
+-function uri_err(sd status)
+-	vstr urierr="Error status code: "
+-	import "strvaluedisp" strvaluedisp
+-	data su=stringUinteger
+-	call strvaluedisp(urierr,status,su)
++function uri_err(sd status,sd msg)
++	importx "_sprintf" sprintf
++	import "printer" printer
++	import "texter" texter
++	char n#dword_null
++	call sprintf(#n,"%u",status)
++	call printer(#n)
++	call texter(msg)
+ endfunction
+ 
+ importx "_g_object_unref" g_object_unref
+--- ovideo-1.orig/src/obj/images.s
++++ ovideo-1/src/obj/images.s
+@@ -758,15 +758,15 @@ function pixbuf_draw_text(sd pixbuf,ss t
+         sd p_text_height^text_height
+         call pango_layout_get_pixel_size(pangolayout,p_text_width,p_text_height)
+ 
+-        sd available_w
+-        set available_w width
+-        sub available_w text_width
+-        setcall available_w get_higher(available_w,0)
+-
+-        sd available_h
+-        set available_h height
+-        sub available_h text_height
+-        setcall available_h get_higher(available_h,0)
++		import "get_higher_warn" get_higher_warn
++		sd available_w
++		set available_w width
++		sub available_w text_width
++		setcall available_w get_higher_warn(available_w,0,"big text width")
++		sd available_h
++		set available_h height
++		sub available_h text_height
++		setcall available_h get_higher_warn(available_h,0,"big text height")
+ 
+         inc x
+         inc y
+--- ovideo-1.orig/src/util/numbers.s
++++ ovideo-1/src/util/numbers.s
+@@ -370,18 +370,24 @@ endfunction
+ 
+ 
+ function get_lower(sd A,sd B)
+-    if A<B
+-        return A
+-    else
+-        return B
+-    endelse
++	if A<B
++		return A
++	endif
++	return B
+ endfunction
+ function get_higher(sd A,sd B)
+-    if A>B
+-        return A
+-    else
+-        return B
+-    endelse
++	if A>B
++		return A
++	endif
++	return B
++endfunction
++function get_higher_warn(sd A,sd B,sd warn)
++	if A>=B
++		return A
++	endif
++	import "printer" printer
++	call printer(warn)
++	return B
+ endfunction
+ 
+ ##char,short,int
+@@ -572,7 +578,3 @@ function numbers_proportion(sd unknown_n
+     div known_denom known_nom
+     return known_denom
+ endfunction
+-
+-
+-
+-
+--- ovideo-1.orig/src/util/util.s
++++ ovideo-1/src/util/util.s
+@@ -77,7 +77,3 @@ function content_size(sd ptrdata1,sd ptr
+     add ptrdata2 dw
+     set ptrdata2# ptrdata1#
+ endfunction
+-
+-
+-
+-
+--- ovideo-1.orig/src/wmake
++++ ovideo-1/src/wmake
+@@ -1,2 +1,8 @@
+ 
+-make platform=win $@
++#optional 1 debug/clean
++
++if [ -z "${1}" ] || [ "$1" = "clean" ]; then
++	make platform=win $@
++else
++	make platform=win linkerflags= OFLAGSEXTRA="function_name 1" $@
++fi
+--- ovideo-1.orig/wmake
++++ ovideo-1/wmake
+@@ -1,4 +1,13 @@
+ 
++#./wmake
++
++#./wmake ../b
++
++#./wmake 1 clean
++
++#./wmake ../b all
++#this is debug but tricking soundrecorder
++
+ if [ -z "$1" ] || [ -n "$2" ]
+ then
+ cd src
+@@ -20,17 +29,17 @@ f=$1
+ fi
+ 
+ mkdir $f
+-cp src/ovideo.exe $f
++rsync -a src/ovideo.exe $f
+ 
+-cp -r build/img $f
++rsync -a -r build/img $f
+ 
+ mkdir $f/html
+-cp html/html/use.html $f/html
++rsync -a html/html/use.html $f/html
+ 
+-cp version.txt $f
++rsync -a version.txt $f
+ 
+ mkdir $f/sys
+-cp build/sys/* $f/sys
++rsync -a build/sys/* $f/sys
+ 
+ mkdir $f/captures
+ 
+@@ -52,8 +61,8 @@ fi
+ 
+ if [ "$2" != "clean" ]; then
+ 
+-cp soundrecorder/src/soundrecorder.exe $f
+-cp soundrecorder/options.txt $f
++rsync -a soundrecorder/src/soundrecorder.exe $f
++rsync -a soundrecorder/options.txt $f
+ 
+ if [ -z "$1" ]
+ then
+@@ -78,3 +87,7 @@ fi
+ #;C:\gstreamer-sdk\0.10\x86\bin
+ #file:///d:/some/path/to/repos/on/d/drive
+ #file:///var/www/html/s.webm
++
++#gstreamer1.0-plugins-bad
++#gst-launch-1.0 -v playbin uri=file:///home/bc/v/b/captures/1650430132.mxf
++#./e && GST_DEBUG=2 ./a.out #7 is max
