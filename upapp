@@ -1,2 +1,7 @@
 
-gh workflow run upapp.yml
+proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+if [ "${proj}" = "ovideo" ]; then
+	gh workflow run upapp.yml -f flow=
+else
+	gh workflow run upapp.yml
+fi
