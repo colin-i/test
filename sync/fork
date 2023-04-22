@@ -1,0 +1,22 @@
+
+#1 src  2 dest
+
+src=( `ls ${1} | xargs` )
+
+cd ${1}
+
+srcs=( )
+i=0
+p=`pwd`
+for var in "${src[@]}"; do
+	if [ -d "${var}" ]; then
+		srcs[${i}]=${p}/${var}
+		i=$((i+1))
+	fi
+done
+
+cd ${2}
+
+for var in "${srcs[@]}"; do
+	ln -sv ${var} `basename ${var}`
+done
