@@ -1,0 +1,80 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ audapa (1-7) jammy; urgency=medium
+ .
+   * limits
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2022-04-16
+
+--- audapa-1.orig/audapa/forms.py
++++ audapa-1/audapa/forms.py
+@@ -75,7 +75,7 @@ def drawpoints(w,h):
+ 			p=points.points[j]
+ 			if draw.offset+(w if drawscroll.landscape
+ 				 else h)<p._offset_:
+-				if i>0:
++				if j>0:
+ 					graph.put(j,p,w,h)
+ 				return
+ 			p._put_(w,h,j)
+--- audapa-1.orig/audapa/level.py
++++ audapa-1/audapa/level.py
+@@ -214,6 +214,8 @@ def calculate():
+ 		n=0
+ 		start=points.points[0]._offset_
+ 		stop=points.points[s-1]._offset_
++		if stop>draw.length: #here and 2 more places (about samples length vs points length)
++			stop=draw.length
+ 		for i in range(start,stop):
+ 			n+=abs(draw.samples[i])
+ 		med=n/(stop-start)
+--- audapa-1.orig/audapa/r_offset.py
++++ audapa-1/audapa/r_offset.py
+@@ -40,6 +40,8 @@ def cgd(a,d):
+ def calculate(pos):
+ 	#pos is is relative to draw
+ 	pos+=draw.offset
++	if pos>draw.length: #here and 2 more places (about samples length vs points length)
++		pos=draw.length
+ 	st=seloff.start._get_()
+ 	en=seloff.end._get_()
+ 	if st==0 and en==0:
+--- audapa-1.orig/audapa/save.py
++++ audapa-1/audapa/save.py
+@@ -21,7 +21,7 @@ def redraw():
+ 	draw.area.queue_draw()
+ 
+ def set(i,v):
+-	try:
++	try: #here and 2 more places (about samples length vs points length)
+ 		draw.samples[i]=int(v) #there are troubles at write file without int
+ 	except:
+ 		pass #this can be ignored
+--- audapa-1.orig/setup.py
++++ audapa-1/setup.py
+@@ -13,7 +13,7 @@ README = (HERE / "info.md").read_text()
+ 
+ from setuptools import setup
+ setup(name=pkname,
+-	version='1.0.6',
++	version='1.0.7',
+ 	packages=[pkname],
+ 	#optionals
+ 	python_requires='>=3.8',

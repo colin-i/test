@@ -1,0 +1,38 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ audapa (1-15) jammy; urgency=medium
+ .
+   * extra dependency/import
+Author: bc <bc@bc-HP-Pavilion-x360-Convertible>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2023-02-12
+
+--- audapa-1.orig/.github/workflows/deb.yml
++++ audapa-1/.github/workflows/deb.yml
+@@ -9,6 +9,10 @@ jobs:
+    - uses: actions/checkout@v3
+      with:
+       path: in
++   - uses: actions/checkout@master
++     with:
++      repository: colin-i/test
++      path: in2
+    - name: Run a multi-line script
+      run: |
+       name=`cat in/debian/changelog | head -1 | grep -o ^[^\ ]*`
