@@ -14,7 +14,7 @@ srcs=( )
 i=0
 for var in "${src[@]}"; do
 	if [ -d "${var}" ]; then
-		srcs[${i}]=../../${one}/${var}
+		srcs[${i}]=../../${first}/${var}
 		#`pwd/` is not ok at workflow
 		i=$((i+1))
 	fi
@@ -34,7 +34,7 @@ srcs=( )
 i=0
 for var in "${src[@]}"; do
 	if [ "${var}" != "series" ]; then
-		srcs[${i}]=../../../${one}/${var}
+		srcs[${i}]=../../../${second}/${var}
 		i=$((i+1))
 	fi
 done
