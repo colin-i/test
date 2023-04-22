@@ -1,8 +1,9 @@
 
 #1 src  2 dest
 
-src=( `ls ${1} | xargs` )
+start=`pwd`
 
+src=( `ls ${1} | xargs` )
 cd ${1}
 
 srcs=( )
@@ -15,6 +16,7 @@ for var in "${src[@]}"; do
 	fi
 done
 
+cd ${start}
 cd ${2}
 
 for var in "${srcs[@]}"; do
