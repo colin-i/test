@@ -36,7 +36,6 @@ echo ${name} ${prevCount} ${count} ${difCount}
 
 
 
-
 #total count last year
 
 #the behaviour for contributionsCollection is as follow, tested on 2023-01-28/29/30 at test, 1 on 28, 3 on 29:
@@ -44,20 +43,9 @@ echo ${name} ${prevCount} ${count} ${difCount}
 #	amend message on 30 for last one of 29 it will be authored 29, commit 30, but contributionsCollection will see 4 on 29
 #	it is counting deleted contributions
 
-#query {
-#  viewer {
-#    contributionsCollection(from:"2015-12-07T00:00:00Z",to:"2016-01-01T00:00:00Z") {
-#      commitContributionsByRepository{
-#       repository{
-#        name
-#       }
-#        contributions(first:1){
-#         totalCount
-#        }
-#      }
-#    }
-#  }
-#}
+#"authoredDate":  "2015-03-10T17:53:15Z"
+#"committedDate": "2015-03-10T19:26:14Z"
+#"pushedDate":    "2015-03-10T19:28:11Z"
 
 #{
 #  repository(owner: "google", name: "gson") {
@@ -68,7 +56,3 @@ echo ${name} ${prevCount} ${count} ${difCount}
 #query {
 #  viewer {
 # repositories(first:1){
-
-#query {
-#  viewer {
-#    contributionsCollection(from:"2015-12-07T00:00:00Z",to:"2016-01-01T00:00:00Z") {
