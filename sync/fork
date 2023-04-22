@@ -1,8 +1,9 @@
 
 #1 src  2 dest
 
-first=${1}/.pc
-second=${1}/debian/patches
+one=${1}
+first=${one}/.pc
+second=${one}/debian/patches
 dest=${2}
 
 start=`pwd`
@@ -11,10 +12,10 @@ src=( `ls ${first} | xargs` )
 cd ${first}
 srcs=( )
 i=0
-p=`pwd`
 for var in "${src[@]}"; do
 	if [ -d "${var}" ]; then
-		srcs[${i}]=${p}/${var}
+		srcs[${i}]=../../${one}/${var}
+		#`pwd/` is not ok at workflow
 		i=$((i+1))
 	fi
 done
@@ -31,10 +32,9 @@ src=( `ls ${second} | xargs` )
 cd ${second}
 srcs=( )
 i=0
-p=`pwd`
 for var in "${src[@]}"; do
 	if [ "${var}" != "series" ]; then
-		srcs[${i}]=${p}/${var}
+		srcs[${i}]=../../../${one}/${var}
 		i=$((i+1))
 	fi
 done
