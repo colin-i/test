@@ -25,6 +25,7 @@ mkdir .pc
 cd .pc
 for var in "${srcs[@]}"; do
 	ln -sv ${var} `basename ${var}`
+	#ln -svnf ${var} `basename ${var}`
 done
 
 cd ${start}
@@ -44,4 +45,5 @@ mkdir -p debian/patches
 cd debian/patches
 for var in "${srcs[@]}"; do
 	ln -sv ${var} `basename ${var}`
+	#ln -svf ${var} `basename ${var}`
 done
