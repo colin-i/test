@@ -1,5 +1,5 @@
 
-#1 name[-b]  2 is_restore
+#1 name[-b]  optional 2 is_restore
 
 name=${1}
 root=`pwd`/

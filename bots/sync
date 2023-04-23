@@ -1,2 +1,4 @@
 
-~/test/sync/commit sync x
+#optional 1 no message flag
+
+~/test/sync/commit sync ${1}
