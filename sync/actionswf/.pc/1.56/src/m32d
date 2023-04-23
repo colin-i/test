@@ -1,2 +1,0 @@
-
-OFLAGSEXTRA="function_name 1" ./make32 $@ && make link syms= items_prefix=/home/bc/s/actionswf-1/src/ LD=/home/bc/Desktop/out/LD-.glibc2.27-x86_64.AppImage

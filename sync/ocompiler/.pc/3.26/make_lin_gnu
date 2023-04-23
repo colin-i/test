@@ -1,5 +1,0 @@
-
-./o ./src/linux/obj.s
-mkdir ./buildg
-gcc -Wl,-melf_i386 -nostdlib "./src/linux/obj.o" -o "./buildg/o" -lc
-cp ./.ocompiler.txt ./buildg/

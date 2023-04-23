@@ -1,2 +1,0 @@
-
-OFLAGSEXTRA="function_name 1" ./make64 $@ && ./make64 syms= link
