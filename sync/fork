@@ -41,3 +41,5 @@ echo -n ${srcs} > ${parent}
 #ovideo: one was: gstreamer 0.10 <-> 1
 #pyaudio: prebuilded pyaudio
 #torra: prebuilded python3-setuptools for deb.yml
+
+#to diff now with fatal ambigous, example: git diff impish master --
