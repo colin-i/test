@@ -24,14 +24,14 @@ if [ -z "${2}" ]; then
 	mv debian/patches ${root}debian && \
 	mv .pc ${root} && \
 	if [ "${parent}" != "" ]; then
-		swt ${proj}-${parent} && \
-		cd .pc && \
+		swt ${proj}-${parent} || exit 1
+		cd .pc || exit 1
 		for var in "${files[@]}"; do
 			mv ${var} ${root}.pc || exit 1
 			#&& break will result in $?=0
 		done
 		#done && is useless, same $?=0
-		cd ../debian/patches && \
+		cd ../debian/patches || exit 1
 		for var in "${files[@]}"; do
 			mv ${var} ${root}debian/patches || exit 1
 		done
@@ -40,11 +40,11 @@ if [ -z "${2}" ]; then
 fi
 
 if [ "${parent}" != "" ]; then
-	cd .pc && \
+	cd .pc || exit 1
 	for var in "${files[@]}"; do
 		rm -r ${var} || exit 1
 	done
-	cd ../debian/patches && \
+	cd ../debian/patches || exit 1
 	for var in "${files[@]}"; do
 		rm ${var} || exit 1
 	done

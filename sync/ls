@@ -1,0 +1,7 @@
+
+a=( `git branch -a | xargs | sed 's/*//g'` )
+echo > 1
+for var in "${a[@]}"; do
+	echo ${var} >> 1
+	git ls-tree -r ${var} >> 1
+done
