@@ -1,0 +1,64 @@
+
+#1 name[-b]  2 is_restore
+
+name=${1}
+root=`pwd`/
+
+swt () {
+	if [ "`git rev-parse --abbrev-ref HEAD`" != "${1}" ]; then
+		git switch ${1}
+	fi
+}
+
+parent=
+if [ -e "parent" ]; then
+	parent=`cat parent`
+	files=( `cat ${parent}` )
+fi
+
+if [ -z "${2}" ]; then
+	proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+	cd ~/sync && \
+	swt ${name} && \
+	#git switch will ignore deletions and at switch back will put them back
+	mv debian/patches ${root}debian && \
+	mv .pc ${root} && \
+	if [ "${parent}" != "" ]; then
+		swt ${proj}-${parent} && \
+		cd .pc && \
+		for var in "${files[@]}"; do
+			mv ${var} ${root}.pc || exit 1
+			#&& break will result in $?=0
+		done
+		#done && is useless, same $?=0
+		cd ../debian/patches && \
+		for var in "${files[@]}"; do
+			mv ${var} ${root}debian/patches || exit 1
+		done
+	fi
+	exit $?
+fi
+
+if [ "${parent}" != "" ]; then
+	cd .pc && \
+	for var in "${files[@]}"; do
+		rm -r ${var} || exit 1
+	done
+	cd ../debian/patches && \
+	for var in "${files[@]}"; do
+		rm ${var} || exit 1
+	done
+fi
+cd ~/sync && \
+swt ${name} && \
+cd ${root} && \
+#
+#this is better when no switch and in normal flow
+#mv .pc ~/sync && \
+#mv debian/patches ~/sync/debian
+#
+#if files are restored at switch, mv cannot overwrite even with -f
+rsync -av .pc ~/sync && \
+rsync -av debian/patches ~/sync/debian && \
+rm -r .pc && \
+rm -r debian/patches

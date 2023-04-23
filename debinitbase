@@ -15,6 +15,12 @@ else
  dist=${2}
 fi
 
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+br=`git rev-parse --abbrev-ref HEAD`
+if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
+      name=${name}-${br}
+fi
+
 echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter
 echo -n "${version}" | xclip -selection clipboard
 read -r version
@@ -24,8 +30,12 @@ dch -v ${major}-${version} --distribution=${dist} && \
 # "${msg}"
 # --create --package "pkgpkg" --newversion 0.0.0.0-0.test
 echo -n ${major}.${version} | xclip -selection clipboard && \
-dpkg-source --commit --include-removal
+#"patch: **** Can't rename file ... to .pc/... : Too many levels of symbolic links" for .pc,debian/patches symbolic links
+#"the patch has fuzz which is not allowed" for .pc/X,debian/patches/X symbolic links
+~/test/debinithelper ${name} && \
+dpkg-source --commit --include-removal && \
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
+~/test/debinithelper ${name} x
 
 
 

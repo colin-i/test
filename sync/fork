@@ -1,49 +1,38 @@
 
 #1 src  2 dest
 
-one=${1}
-first=${one}/.pc
-second=${one}/debian/patches
-dest=${2}
+#src is in ~/sync dest at proj
 
-start=`pwd`
+cd ${1}
 
-src=( `ls ${first} | xargs` )
-cd ${first}
-srcs=( )
-i=0
+parent=`git rev-parse --abbrev-ref HEAD | grep -Poe "(?<=\-).*"`
+
+cd .pc
+src=( `ls | xargs` )
+srcs=
 for var in "${src[@]}"; do
 	if [ -d "${var}" ]; then
-		srcs[${i}]=../../${first}/${var}
-		#`pwd/` is not ok at workflow
-		i=$((i+1))
+		srcs+=" ${var}"
 	fi
 done
-cd ${start}
-cd ${dest}
-mkdir .pc
-cd .pc
-for var in "${srcs[@]}"; do
-	ln -sv ${var} `basename ${var}`
-	#ln -svnf ${var} `basename ${var}`
-done
+srcs=${srcs:1}
 
-cd ${start}
-src=( `ls ${second} | xargs` )
-cd ${second}
-srcs=( )
-i=0
-for var in "${src[@]}"; do
-	if [ "${var}" != "series" ]; then
-		srcs[${i}]=../../../${second}/${var}
-		i=$((i+1))
-	fi
-done
-cd ${start}
-cd ${dest}
-mkdir -p debian/patches
-cd debian/patches
-for var in "${srcs[@]}"; do
-	ln -sv ${var} `basename ${var}`
-	#ln -svf ${var} `basename ${var}`
-done
+#this is THE SAME
+#cd ../debian/patches
+#src=( `ls | xargs` )
+#srcs2=
+#for var in "${src[@]}"; do
+#	if [ "${var}" != "series" ]; then
+#		srcs2+=" ${var}"
+#	fi
+#done
+#srcs2=${srcs2:1}
+
+cd ${2}
+
+echo ${parent}
+echo ${srcs}
+#echo ${srcs2}
+echo -n ${parent} > parent
+echo -n ${srcs} > ${parent}
+#echo -n ${srcs2} > debfiles
