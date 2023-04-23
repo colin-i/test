@@ -36,3 +36,8 @@ echo ${srcs}
 echo -n ${parent} > parent
 echo -n ${srcs} > ${parent}
 #echo -n ${srcs2} > debfiles
+
+#reasons
+#ovideo: one was: gstreamer 0.10 <-> 1
+#pyaudio: prebuilded pyaudio
+#torra: prebuilded python3-setuptools for deb.yml
