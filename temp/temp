@@ -10,7 +10,7 @@ on=${1}
 fi
 
 if [ -z "${2}" ]; then
-sen2=0
+sen2=1
 else
 sen2=${2}
 fi

@@ -13,10 +13,10 @@ from . import query
 
 disp=Gdk.Display.get_default()
 rect=disp.get_primary_monitor().get_geometry()
-w=rect.width/4
-h=rect.height/3
+y=30
+w=rect.width/6
+h=rect.height-y
 x=rect.width-w
-y=rect.height-h
 
 win = Gtk.Window()
 t="Activity"
@@ -45,6 +45,7 @@ for window_id in window_ids:
 			y=y.__int__(),
 			width=w.__int__(),
 			height=h.__int__()
+			#border_width=10
 			#,stack_mode=Xlib.X.Above
 		)
 		d.sync()

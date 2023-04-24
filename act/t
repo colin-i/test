@@ -1,0 +1,11 @@
+
+cp term.desktop ~/.local/share/applications
+cd ~/.local/share/applications
+if [ ! -e "term.png" ]; then
+	wget https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/GNOME_Terminal_icon_2019.svg/128px-GNOME_Terminal_icon_2019.svg.png -O term.png
+fi
+
+#for geometry:
+#stty size
+#--geometry can't go out of the screen, with remaining size adjust y
+#from 105 is max, next is maximizing, that is a lot of space for widget

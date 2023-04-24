@@ -1,18 +1,17 @@
 
 screen -list
 if [ "$?" = "1" ]; then
+	#only if a flag is set on main comp, used when having multiple monitorless machines
+	echo -n a > /dev/tcp/192.168.1.11/8000 && {
+		i=10;while [ ${i} -ge 1 ]; do echo ${i};sleep 1;i=$((i-1));done
+		#need on parallel wi-fi connection
+		#and to can ctrl+c
+		#press Ctrl-C while sleep is running, because sleep has no special handler on SIGINT, it will die and report to bash that it died of a SIGINT
+		#and bash will exit
 
-i=10;while [ ${i} -ge 1 ]; do echo ${i};sleep 1;i=$((i-1));done
-#need on parallel wi-fi connection
-#and to can ctrl+c
-#press Ctrl-C while sleep is running, because sleep has no special handler on SIGINT, it will die and report to bash that it died of a SIGINT
-#and bash will exit
-
-#only if a flag is set on main comp, used when having multiple monitorless machines
-echo -n a > /dev/tcp/192.168.1.11/8000 && {
-	screen -dmS 1
-	screen -x 1 -X stuff $'./min\n'
-}
+		screen -dmS 1
+		screen -x 1 -X stuff $'./min\n'
+	}
 
 fi
 

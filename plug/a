@@ -1,0 +1,6 @@
+
+#1 off_start/on_start  2 temp offset
+
+python ~/test/plug/a.py ${1} 0 ${2}
+
+#autolaunch with gnome-terminal --geometry [from ~/test/live/term.desktop] -- ~/temp

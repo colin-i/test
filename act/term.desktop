@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Term_geo
+Icon=/home/bc/.local/share/applications/term.png
+Exec=/usr/bin/gnome-terminal --geometry 105x32+0+35
+Terminal=false
+Categories=Development;

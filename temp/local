@@ -1,5 +1,4 @@
 
-
 screen -list
 if [ "$?" = "1" ]; then
 screen -dmS 1
@@ -7,4 +6,4 @@ sleep 10
 screen -x 1 -X stuff $'./temp\n'
 fi
 
-#the other autolaunch is gnome-terminal -- ./temp
+#since w1 temperature, tget and tempget files are only to test
