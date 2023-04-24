@@ -19,6 +19,8 @@ else
 	echo ${choose_term_profile}
 fi
 
+if [ "${resizeterm}" != "" ]; then resize -s 32 114; fi
+
 uname -a
 if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
 
