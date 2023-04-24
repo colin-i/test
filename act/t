@@ -8,4 +8,4 @@ fi
 #for geometry:
 #stty size
 #--geometry can't go out of the screen, with remaining size adjust y
-#from 105 is max, next is maximizing, that is a lot of space for widget
+#105 is max, next is maximizing, for widget remains 1/6
