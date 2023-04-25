@@ -1,4 +1,17 @@
 
+color_scheme () {
+	current=`gsettings get org.gnome.desktop.interface color-scheme`
+	if [ "${current}" = "'default'" ]; then
+		if [ "${1}" = "n" ]; then
+			gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+		fi
+	else
+		if [ "${1}" = "a" ]; then
+			gsettings set org.gnome.desktop.interface color-scheme "default"
+		fi
+	fi
+}
+
 if [ -z "${choose_term_profile}" ]; then
 	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 	#	${SSH_CONNECTION} , ${SSH_CLIENT}
@@ -7,10 +20,12 @@ if [ -z "${choose_term_profile}" ]; then
 			if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
 				#rgb:3030/0a0a/2424
 				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
+				color_scheme a
 			fi
 		else
 			if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
 				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
+				color_scheme n
 			fi
 		fi
 		echo ${nexttime}
