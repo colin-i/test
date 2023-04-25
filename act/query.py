@@ -35,30 +35,29 @@ from datetime import date
 import time
 from string import Template
 
-def full():
-	t=time.time()
-	yesterday=date.fromtimestamp(t-(24*3600))
-	tomorrow=date.fromtimestamp(t+(24*3600))
+def day(delta):
+	stamp=date.fromtimestamp(time.time()-delta)
 
-	dict = { 'from': yesterday.year.__str__()+"-"+shifted(yesterday.month)+"-"+shifted(yesterday.day),
-		'to': tomorrow.year.__str__()+"-"+shifted(tomorrow.month)+"-"+shifted(tomorrow.day) }
+	dict = {'day': stamp.year.__str__()+"-"+shifted(stamp.month)+"-"+shifted(stamp.day)}
 
 	#with .format there are too many {}
+	#"You must provide a `first` or `last`". it gets 1: yesterday one and today one
+	#	occurredAt	is always same
+	#	totalCount	is commitCount1+...n	n is 1
+	#
 	q=Template("""query {
 	  viewer {
-	    contributionsCollection(from:"${from}T00:00:00Z",to:"${to}T00:00:00Z") {
+	    contributionsCollection(from:"${day}T00:00:00Z",to:"${day}T23:59:59Z") {
 	      commitContributionsByRepository{
 	        repository{
 	         name
 	        }
-	        contributions(first:2){
+	        contributions(first:1){
 	          edges{
 	            node{
-	              occurredAt
 	              commitCount
 	            }
 	          }
-	         totalCount
 	        }
 	      }
 	    }
@@ -66,4 +65,12 @@ def full():
 	}""").substitute(**dict)
 	#for forks get like at stats and totalCount (can go further exactly as at stats with author compare)
 
-	return client.execute(query=q)
+	js=client.execute(query=q)
+
+	return js
+
+def yesterday():
+	return day(24*3600)
+
+def today():
+	return day(0)

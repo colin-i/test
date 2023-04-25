@@ -3,13 +3,9 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk,GLib,Gdk
 
-import json
 import Xlib.display
 
-from . import query
-
-#data=query.full()
-#print(json.dumps(data, indent=1))
+from . import datacode
 
 disp=Gdk.Display.get_default()
 rect=disp.get_primary_monitor().get_geometry()
@@ -23,7 +19,7 @@ t="Activity"
 win.set_title(t)
 win.set_decorated(False)
 #win.set_default_size(w,h)
-loop = GLib.MainLoop()
+win.set_child(Gtk.ScrolledWindow(child=datacode.init()))
 win.show()
 
 #xid=win.get_surface().get_xid()
@@ -50,4 +46,5 @@ for window_id in window_ids:
 		)
 		d.sync()
 
+loop = GLib.MainLoop()
 loop.run()
