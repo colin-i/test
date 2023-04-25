@@ -1,13 +1,24 @@
 
 color_scheme () {
 	current=`gsettings get org.gnome.desktop.interface color-scheme`
-	if [ "${current}" = "'default'" ]; then
-		if [ "${1}" = "n" ]; then
-			gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+
+	#1 app that use this is at ~/test/act
+	theme=`gsettings get org.gnome.desktop.interface gtk-theme | tr -d "\'"`
+	legacy=` echo -n ${theme} | grep -o "[^\-]*$"`
+
+	if [ "${1}" = "n" ]; then
+		if [ "${current}" = "'default'" ]; then
+			gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+		fi
+		if [ "${legacy}" != "dark" ]; then
+			gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme}-dark'"`
 		fi
 	else
-		if [ "${1}" = "a" ]; then
-			gsettings set org.gnome.desktop.interface color-scheme "default"
+		if [ "${current}" != "'default'" ]; then
+			gsettings set org.gnome.desktop.interface color-scheme 'default'
+		fi
+		if [ "${legacy}" = "dark" ]; then
+			gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme:0:$((${#theme}-${#legacy}-1))}'"`
 		fi
 	fi
 }
