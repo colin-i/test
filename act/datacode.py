@@ -16,19 +16,24 @@ def form(js):
 def init():
 	text=Gtk.TextView(editable=False) #,wrap_mode=Gtk.WrapMode.NONE
 	show(text,form(query.yesterday()))
+	line(text)
 	global storage
 	storage=form(query.today())
 	show(text,storage)
+	line(text)
 	GLib.timeout_add_seconds(60*60,callba,text)
 	return text
 
 line_end='\r\n'
 
+def line(text):
+	b=text.get_buffer()
+	it=b.get_start_iter()
+	b.insert(it,"-"+line_end,-1)
+
 def show(text,data):
 	b=text.get_buffer()
 	it=b.get_start_iter()
-
-	b.insert(it,"-"+line_end,-1)
 	for x in data:
 		n=data[x]
 		for i in range(0,n):
