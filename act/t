@@ -8,4 +8,4 @@ fi
 #for geometry:
 #stty size
 #--geometry can't go out of the screen, with remaining size adjust y
-#105 is max, next is maximizing, use "resize" command at bashrc
+#105 is max, next is maximizing, use "resize -s {rows} {cols}" command at bashrc
