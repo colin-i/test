@@ -36,7 +36,9 @@ import time
 from string import Template
 
 def day(delta):
-	stamp=date.fromtimestamp(time.time()-delta)
+	return day_core(time.time(),delta)
+def day_core(tm,delta):
+	stamp=date.fromtimestamp(tm-delta)
 
 	dict = {'day': stamp.year.__str__()+"-"+shifted(stamp.month)+"-"+shifted(stamp.day)}
 

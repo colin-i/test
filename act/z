@@ -1,0 +1,3 @@
+
+id=`ps -C python -o pid,cmd | grep "python -m act" | tr -s ' ' | cut -d' ' -f2`
+kill -2 ${id}

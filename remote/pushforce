@@ -8,21 +8,21 @@ a=${2}
 fi
 
 if [ -z "${3}" ]; then
-b=1
+b=--force
 else
-b=${3}
+b="${3} --force"
 fi
 
 if [ -z "${4}" ]; then
-c=
+c=1
 else
 c=${4}
 fi
 
 if [ -z "${5}" ]; then
-d=--force
+d=
 else
-d="${5} --force"
+d=${5}
 fi
 
-~/test/push ${1} ${a} ${b} "${c}" "${d}"
+~/test/remote/push ${1} ${a} "${b}" ${c} "${d}"

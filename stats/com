@@ -3,5 +3,5 @@
 
 echo -n "${1}-${2}" | xclip -selection clipboard && \
 git commit -a && \
-~/test/push test && \
+~/test/remote/push test && \
 ./commit ${1} ${2}

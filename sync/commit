@@ -12,5 +12,5 @@ cc ${a}a.c -lyuarel -o ${f} && \
 if [ -z "${2}" ]; then git commit --author="${n} <${em}>" -am "${n}";
 else git commit --author="${n} <${em}>";
 fi && \
-~/test/push $(${f} $(git config --get remote.origin.url)) 2 && \
+~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2 && \
 rm ${f}

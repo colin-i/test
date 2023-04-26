@@ -1,4 +1,15 @@
 
+#1 to
+
+git ls-remote --refs -h $1 | grep `git rev-parse HEAD`
+if [ "$?" = "0" ]; then
+echo egal
+else
+echo NU ESTE EGAL
+fi
+
+git rev-list --all --count
+
 
 #a=$(git ls-remote --refs -h $1 | head -1 | cut -f1)
 #b=$(git rev-parse HEAD)
@@ -16,15 +27,6 @@
 #echo NU ESTE EGAL
 #fi
 #fi
-
-git ls-remote --refs -h $1 | grep `git rev-parse HEAD`
-if [ "$?" = "0" ]; then
-echo egal
-else
-echo NU ESTE EGAL
-fi
-
-git rev-list --all --count
 
 #git reflog --relative-date
 #git reflog --date=local

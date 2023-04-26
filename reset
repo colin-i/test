@@ -5,7 +5,7 @@ name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 
 git reset ${1} && \
 git reflog --relative-date && \
-~/test/pushforce ${name} && \
+~/test/remote/pushforce ${name} && \
 if [ -z "${2}" ]; then
 	git stash && \
 	~/test/switch_merge master && \

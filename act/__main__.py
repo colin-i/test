@@ -10,7 +10,7 @@ from . import datacode
 disp=Gdk.Display.get_default()
 rect=disp.get_primary_monitor().get_geometry()
 y=30
-w=rect.width/10
+w=rect.width/16
 h=rect.height-y
 x=rect.width-w
 

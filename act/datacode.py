@@ -1,6 +1,8 @@
 
 from gi.repository import GLib,Gtk
 
+import time
+
 from . import query
 
 def form(js):
@@ -12,7 +14,7 @@ def form(js):
 	return out
 
 def init():
-	text=Gtk.TextView(editable=False,wrap_mode=Gtk.WrapMode.WORD_CHAR)
+	text=Gtk.TextView(editable=False) #,wrap_mode=Gtk.WrapMode.NONE
 	show(text,form(query.yesterday()))
 	global storage
 	storage=form(query.today())
@@ -20,18 +22,26 @@ def init():
 	GLib.timeout_add_seconds(60*60,callba,text)
 	return text
 
+line_end='\r\n'
+
 def show(text,data):
 	b=text.get_buffer()
 	it=b.get_start_iter()
 
+	b.insert(it,"-"+line_end,-1)
 	for x in data:
 		n=data[x]
 		for i in range(0,n):
-			b.insert(it,x+'\r\n',-1)
+			mark(b,it,'xx-large',x)
+
+def mark(b,it,s,x):
+	b.insert_markup(it,'<span size=\"'+s+'\">'+x+'</span>'+line_end,-1)
 
 def callba(text):
+	t=time.time()
+
 	global storage
-	now=form(query.today())
+	now=form(query.day_core(t,0))
 
 	dif={}
 	for x in now:
@@ -46,6 +56,8 @@ def callba(text):
 	storage=now
 
 	#print the hour
+	b=text.get_buffer()
+	mark(b,b.get_start_iter(),'small',time.localtime(t).tm_hour.__str__())
 
 	if len(dif):
 		show(text,dif)
