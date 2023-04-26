@@ -1,3 +1,5 @@
 
 id=`ps -C python -o pid,cmd | grep "python -m act" | tr -s ' ' | cut -d' ' -f2`
-kill -2 ${id}
+
+kill -9 ${id}
+#-2 is not always working

@@ -24,6 +24,7 @@ class GraphqlClient:
 
 with open("/home/bc/n/pat", "r") as file:
 	client = GraphqlClient(endpoint="https://api.github.com/graphql",headers={"Authorization": "Bearer {}".format(file.read())})
+	#must have read:user for private repos
 
 def shifted(a):
 	b=a.__str__()

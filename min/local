@@ -30,3 +30,6 @@ fi
 ##This will:
 ##   Create the folder /etc/systemd/system/getty@tty1.service.d if necessary
 ##   Create the file /etc/systemd/system/getty@tty1.service.d/override.conf if necessary
+
+#/etc/apt/apt.conf.d/20auto-upgrades
+#Ensure everything is set to 0 from 1
