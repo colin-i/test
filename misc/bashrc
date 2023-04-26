@@ -30,13 +30,13 @@ if [ -z "${choose_term_profile}" ]; then
 		if [ "${nexttime:0:1}" = "-" ]; then
 			if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
 				#rgb:3030/0a0a/2424
-				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
 				color_scheme a
+				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
 			fi
 		else
 			if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
-				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
 				color_scheme n
+				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
 			fi
 		fi
 		echo ${nexttime}
