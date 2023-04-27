@@ -26,7 +26,9 @@ done
 #	cherry-pick -m 1 A
 #4. a rare case when cherry-pick but is ignoring a file with an ending new line, git merge A --allow-unrelated-histories, copy if conflicts, commit with author
 
-#to conclude
+#to conclude, git diff master remotes/x/main
+#
+#old:
 #diff -r A B -x ".git"
 #and diff --name-only C0 CN to not have ".git" (e.g. ".gitignore" is ok)
 #git --shortstat is for fileschanged,additions,deletions
