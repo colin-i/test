@@ -2,7 +2,7 @@
 if [ -z "${choose_term_profile}" ]; then
 	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 	#	${SSH_CONNECTION} , ${SSH_CLIENT}
-		~/test/startup/setcolors
+		~/test/startup/setcolors || exit
 	fi
 else
 	echo ${choose_term_profile}

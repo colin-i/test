@@ -15,7 +15,7 @@ if [ "${nexttime:0:1}" = "-" ]; then
 	fi
 	if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
 		#rgb:3030/0a0a/2424
-		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
+		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit 1
 	fi
 else
 	if [ "${colorstyle}" = "'default'" ]; then
@@ -25,7 +25,7 @@ else
 		gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme}-dark'"`
 	fi
 	if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
-		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
+		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit 1
 	fi
 fi
 echo ${nexttime}

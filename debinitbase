@@ -67,3 +67,6 @@ dpkg-source --commit --include-removal && \
 #read:org (gh)
 #repo
 #workflow
+
+#Repository access
+#Read access to code and metadata, Read and Write access to actions
