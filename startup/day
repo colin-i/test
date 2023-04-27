@@ -3,7 +3,7 @@ to=$(dirname $(pwd))
 
 cd ${to}
 
-nexttime=`php -f /home/bc/test/misc/is_day.php`
+nexttime=`php -f /home/bc/test/startup/is_day.php`
 if [ "${nexttime:0:1}" = "-" ]; then
 	if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
 		~/test/keyring

@@ -1,0 +1,31 @@
+
+nexttime=`php -f /home/bc/test/startup/is_day.php`
+colorstyle=`gsettings get org.gnome.desktop.interface color-scheme`
+
+#1 app that use this is at ~/test/act
+theme=`gsettings get org.gnome.desktop.interface gtk-theme | tr -d "\'"`
+legacy=` echo -n ${theme} | grep -o "[^\-]*$"`
+
+if [ "${nexttime:0:1}" = "-" ]; then
+	if [ "${colorstyle}" != "'default'" ]; then
+		gsettings set org.gnome.desktop.interface color-scheme 'default'
+	fi
+	if [ "${legacy}" = "dark" ]; then
+		gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme:0:$((${#theme}-${#legacy}-1))}'"`
+	fi
+	if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
+		#rgb:3030/0a0a/2424
+		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
+	fi
+else
+	if [ "${colorstyle}" = "'default'" ]; then
+		gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+	fi
+	if [ "${legacy}" != "dark" ]; then
+		gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme}-dark'"`
+	fi
+	if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
+		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
+	fi
+fi
+echo ${nexttime}

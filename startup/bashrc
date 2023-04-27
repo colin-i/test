@@ -1,45 +1,8 @@
 
-color_scheme () {
-	current=`gsettings get org.gnome.desktop.interface color-scheme`
-
-	#1 app that use this is at ~/test/act
-	theme=`gsettings get org.gnome.desktop.interface gtk-theme | tr -d "\'"`
-	legacy=` echo -n ${theme} | grep -o "[^\-]*$"`
-
-	if [ "${1}" = "n" ]; then
-		if [ "${current}" = "'default'" ]; then
-			gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-		fi
-		if [ "${legacy}" != "dark" ]; then
-			gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme}-dark'"`
-		fi
-	else
-		if [ "${current}" != "'default'" ]; then
-			gsettings set org.gnome.desktop.interface color-scheme 'default'
-		fi
-		if [ "${legacy}" = "dark" ]; then
-			gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme:0:$((${#theme}-${#legacy}-1))}'"`
-		fi
-	fi
-}
-
 if [ -z "${choose_term_profile}" ]; then
 	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 	#	${SSH_CONNECTION} , ${SSH_CLIENT}
-		nexttime=`php -f /home/bc/test/misc/is_day.php`
-		if [ "${nexttime:0:1}" = "-" ]; then
-			if [ "`xtermcontrol --get-bg`" != "rgb:ffff/ffff/ffff" ]; then
-				#rgb:3030/0a0a/2424
-				color_scheme a
-				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit
-			fi
-		else
-			if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
-				color_scheme n
-				choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit
-			fi
-		fi
-		echo ${nexttime}
+		~/test/startup/setcolors
 	fi
 else
 	echo ${choose_term_profile}
@@ -57,7 +20,7 @@ export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PKG_CONFIG_PATH=${PKG_CONFIG_PATH} PATH=${PATH}
 
-source ~/test/misc/aliases
+source ~/test/startup/aliases
 
 
 #if set grep will stop working for example: echo a | grep a, is with -r will not search at stdin

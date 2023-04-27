@@ -1,6 +1,6 @@
 
 #shopt -s expand_aliases
-#source ~/test/misc/aliases
+#source ~/test/startup/aliases
 #files=( `gre ${1} -l | xargs` )
 
 grep -r --color ${1}
