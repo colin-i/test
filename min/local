@@ -1,11 +1,15 @@
 
 screen -list
 if [ "$?" = "1" ]; then
-	i=3;while [ ${i} -ge 1 ]; do
-		#only if a flag is set on main comp, used when having multiple monitorless machines
-		echo -n a > /dev/tcp/192.168.1.11/8000 && break
-		echo ${i};sleep 4;i=$((i-1))
-	done
+	#only if a flag is set on main comp, used when having multiple monitorless machines
+	i=3
+	echo -n a > /dev/tcp/192.168.1.11/8000 || {
+		while [ ${i} -ge 1 ]; do
+			echo ${i};sleep 4
+			echo -n a > /dev/tcp/192.168.1.11/8000 && break
+			i=$((i-1))
+		done
+	}
 	if [ ${i} -ge 1 ]; then
 		i=5;while [ ${i} -ge 1 ]; do echo ${i};sleep 1;i=$((i-1));done
 		#need on parallel wi-fi connection
