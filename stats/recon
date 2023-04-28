@@ -1,0 +1,44 @@
+
+#1 name
+
+#for new projects start, recognizer
+
+name=${1}
+
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"'"${name}"'\") {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 100) {
+                totalCount
+                edges{
+                  node{
+                    committer{
+                      date
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }"
+}'
+
+raw=$(curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)")
+
+dates=( `echo -n ${raw} | jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .node.committer.date" | xargs` )
+total=`echo -n ${raw} | jq -r ".data.viewer.repository.defaultBranchRef.target.history.totalCount"`
+echo ${total}
+
+#current limit
+#echo ${count}
+
+echo ${name}
+# ${dif}
