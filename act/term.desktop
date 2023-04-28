@@ -2,6 +2,6 @@
 Type=Application
 Name=Term_geo
 Icon=/home/bc/.local/share/applications/term.png
-Exec=env resizeterm=1 /usr/bin/gnome-terminal --geometry 105x32+0+35
+Exec=env resizeterm=1 /usr/bin/gnome-terminal --geometry 114x36+0+0
 Terminal=false
 Categories=Development;

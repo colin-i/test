@@ -16,8 +16,10 @@ if [ ${a} != ${b} ]; then
 	echo dif size; exit 1
 fi
 
-IFS=$'\n' c=($(sort <<<"${knowngames[*]}")); unset IFS
-IFS=$'\n' d=($(sort <<<"${remotegames[*]}")); unset IFS
+IFS=$'\n' c=($(sort <<<"${knowngames[*]}"))
+#; unset IFS
+IFS=$'\n' d=($(sort <<<"${remotegames[*]}"))
+#; unset IFS
 #printf "%s\n" "${sorted[@]}"
 #echo ${remotegames[@]} ${knowngames[@]} | tr ' ' '\n' | sort | uniq -u
 

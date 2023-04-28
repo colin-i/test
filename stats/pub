@@ -1,7 +1,9 @@
 
-#1 year  2 month
+#1 year  2 month   optional newproj1 x1 ... newprojN xN
 
+./newpre ${@:3} && \
 ./prepare ${1} ${2} && \
+./newpost ${@} && \
 echo -e "\n\npush?" && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
@@ -10,8 +12,6 @@ else
 echo no
 fi
 
-#when adding new project:
-#	add at h: proj=X/0
-#	prepare
-#	if X, add it at y/m/h (can wrong at reconcatenator (combine counted/uncounted))
-#	push
+#adding new project:
+#	newpre is: add at h: proj=X/0
+#	newpost is: if X, add it at y/m/h (can wrong at reconcatenator (combine counted/uncounted))

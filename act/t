@@ -8,4 +8,7 @@ fi
 #for geometry:
 #stty size
 #--geometry can't go out of the screen, with remaining size adjust y
-#105 is max, next is maximizing, use "resize -s {rows} {cols}" command at bashrc
+#there is a max, next is maximizing, use "resize -s {rows} {cols}" command at bashrc
+#font: Ubuntu Mono 12
+
+#modify at .desktop, bashrc, ~/file, startup
