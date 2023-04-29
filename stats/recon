@@ -60,5 +60,6 @@ done
 if [ ${dif} -lt ${max} ]; then
 	echo ${dif}
 	echo ${name} $((total-dif))
+else
+	echo "limit error"
 fi
-echo "limit error"
