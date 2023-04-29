@@ -57,10 +57,8 @@ for d in "${dates[@]}"; do
 	if [ ${dt} -lt ${t} ]; then break; fi
 	dif=$((dif+1))
 done
-if [ ${dif} = ${max} ]; then
-	echo "limit error"
-	exit 1
+if [ ${dif} -lt ${max} ]; then
+	echo ${dif}
+	echo ${name} $((total-dif))
 fi
-echo ${dif}
-
-echo ${name} $((total-dif))
+echo "limit error"
