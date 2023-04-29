@@ -7,6 +7,8 @@ if [ -z "${2}" ]; then m_dif=1; else m_dif=${2}; fi
 
 name=${1}
 
+max=100
+
 QUERY='
 {"query": "
   query {
@@ -15,7 +17,7 @@ QUERY='
         defaultBranchRef {
           target {
             ... on Commit {
-              history(first: 100) {
+              history(first: '"${max}"') {
                 totalCount
                 edges{
                   node{
@@ -55,6 +57,10 @@ for d in "${dates[@]}"; do
 	if [ ${dt} -lt ${t} ]; then break; fi
 	dif=$((dif+1))
 done
+if [ ${dif} = ${max} ]; then
+	echo "limit error"
+	exit 1
+fi
 echo ${dif}
 
 echo ${name} $((total-dif))
