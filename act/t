@@ -11,4 +11,4 @@ fi
 #there is a max, next is maximizing, use "resize -s {rows} {cols}" command at bashrc
 #font: Ubuntu Mono 12
 
-#modify at .desktop, bashrc, ~/file, startup
+#modify at .desktop, bashrc, a, startup gui

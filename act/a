@@ -1,0 +1,7 @@
+
+resize -s 36 132
+
+sleep 30
+#must loop timedatectl status and wait for System clock synchronized: yes
+
+~/arh/activity &
