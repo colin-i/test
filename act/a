@@ -1,7 +1,14 @@
 
+#launch command: ~/test/act/a &
 resize -s 36 132
 
-sleep 30
-#must loop timedatectl status and wait for System clock synchronized: yes
+while :
+do
+	a=`timedatectl -p NTPSynchronized show`
+	echo ${a}
+	if [ "${a}" = "NTPSynchronized=yes" ]; then break; fi
+	#even at init 6
+	sleep 10
+done
 
-~/arh/activity &
+~/arh/activity
