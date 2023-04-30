@@ -1,2 +1,7 @@
 
-sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.list -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+#optional  1 file
+
+if [ -z "${1}" ]; then file="colin-i-ubuntu-ppa"
+else file="${1}"; fi
+
+sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
