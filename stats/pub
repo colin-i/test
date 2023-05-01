@@ -4,13 +4,15 @@
 ./newpre ${@:3} && \
 ./prepare ${1} ${2} && \
 ./newpost ${@} && \
-echo -e "\n\npush?" && \
+echo -e "\n\npush? y?" && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
-./com ${1} ${2}
+./commit ${1} ${2}
 else
 echo no
 fi
+
+#for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
 #adding new project:
 #	newpre is: add at h: proj=X/0

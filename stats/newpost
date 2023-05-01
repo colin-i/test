@@ -28,4 +28,6 @@ done
 out=${out:1}
 echo -n ${out} > h
 
+echo
 cat h
+echo

@@ -59,7 +59,9 @@ for d in "${dates[@]}"; do
 done
 if [ ${dif} -lt ${max} ]; then
 	echo ${dif}
-	echo ${name} $((total-dif))
+	text="${name} $((total-dif))"
+	echo ${text}
+	echo -n "${text}" | xclip -selection clipboard
 else
 	echo "limit error"
 fi
