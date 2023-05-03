@@ -54,33 +54,39 @@ int main(int argc, char **argv)
 	struct sockaddr_in client_addr;
 	int client_fd;
 
-	memset(&client_addr, 0, sizeof(client_addr));
-	client_fd = accept(server_sock, (struct sockaddr *) &client_addr, (socklen_t*)&len);
-	if (client_fd == -1)
-	{
-		printf("Accept error: %s\n", strerror(errno));
-		close(client_fd);
-		//unlink(SERVER_SOCK_PATH);
-		close(server_sock);
-		exit(1);
-	}
-
 	int minutes;int n=sizeof(unsigned short);int max=n+1;
-	char re = recv(client_fd, &minutes, max, 0);
-	if (re == -1|| re == max){//anyone can send more than 2 bytes on the network
-		printf("Error when receiving message: %s\n", strerror(errno));
+	memset(&client_addr, 0, sizeof(client_addr));
+	while(1){
+		client_fd = accept(server_sock, (struct sockaddr *) &client_addr, (socklen_t*)&len);
+		if (client_fd == -1)
+		{
+			printf("Accept error: %s\n", strerror(errno));
+			close(client_fd);
+			//unlink(SERVER_SOCK_PATH);
+			close(server_sock);
+			exit(1);
+		}
+
+		char re = recv(client_fd, &minutes, max, 0);
+		if (re == -1){//anyone can send more than 2 bytes on the network
+			printf("Error when receiving message: %s\n", strerror(errno));
+			close(client_fd);
+			//unlink(SERVER_SOCK_PATH);
+			close(server_sock);
+			exit(1);
+		}
 		close(client_fd);
-		//unlink(SERVER_SOCK_PATH);
-		close(server_sock);
-		exit(1);
+		if(re == max){
+			system("notify-send \"Not connected\"");
+			continue;
+		}
+
+		#define for "notify-send \"Time\" \"%d\""
+		char out[sizeof(for)-2+5];
+		sprintf(out,for,minutes);
+		system(out);
+		break;
 	}
-
-	#define for "notify-send \"Time\" \"%d\""
-	char out[sizeof(for)-2+5];
-	sprintf(out,for,minutes);
-	system(out);
-
-	close(client_fd);
 	//unlink(SERVER_SOCK_PATH);
 	close(server_sock);
 
