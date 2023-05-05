@@ -71,7 +71,6 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 		close(client_fd);
-		if(a!='a')break;
 	}
 	close(server_sock);
 

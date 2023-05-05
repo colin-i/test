@@ -120,10 +120,11 @@ void main(int argc,char**argv){
 			sprintf(path,"%u",shares);
 			fwrite(path,strlen(path),1,fp);
 			fclose(fp);
-		}else if(strstr(b,"Not connected")!=NULL){
+		}else if(strstr(b,"not-connected")!=NULL){
 			int nothing;
 			send_data("192.168.1.11",&nothing,3);
 			send_data("192.168.1.8",NULL,0);
+			send_data("192.168.1.14",NULL,0);
 			if(access("problem",F_OK)==0)stop();
 		}
 	}

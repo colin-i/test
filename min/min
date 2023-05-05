@@ -20,7 +20,7 @@ do
 	 2>&1 | ./a.out ${logflag}
 
 	if [ -e ~/problem ]; then
-		while [ -e ~/problem ]; then sleep 10; fi
+		while [ -e ~/problem ]; do sleep 10; done
 		if [ -e ~/stopmin ]; then break; fi
 	else
 		break
