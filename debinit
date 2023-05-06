@@ -1,5 +1,5 @@
 
-#1 msg               optional 2 major version
+#1 msg               optional 2 distribution
 
 ~/test/debinitbase "$@" && \
 ~/test/debinitpush "${1}" && \

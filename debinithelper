@@ -59,6 +59,4 @@ cd ${root} && \
 #
 #if files are restored at switch, mv cannot overwrite even with -f
 rsync -av .pc ~/sync && \
-rsync -av debian/patches ~/sync/debian && \
-rm -r .pc && \
-rm -r debian/patches
+rsync -av debian/patches ~/sync/debian

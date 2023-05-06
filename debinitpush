@@ -1,6 +1,8 @@
 
 #1 msg
 
+rm -r .pc && \
+rm -r debian/patches && \
 echo -n "${1}" | xclip -selection clipboard && \
 git commit -a && \
 #push
