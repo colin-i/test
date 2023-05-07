@@ -54,7 +54,8 @@ int main(int argc, char **argv)
 	struct sockaddr_in client_addr;
 	int client_fd;
 
-	int minutes;int n=sizeof(unsigned short);int max=n+1;
+	int minutes=0;//=0 at start, time is coming on 2 bytes, upper part must be 0
+	int n=sizeof(unsigned short);int max=n+1;
 	memset(&client_addr, 0, sizeof(client_addr));
 	while(1){
 		client_fd = accept(server_sock, (struct sockaddr *) &client_addr, (socklen_t*)&len);
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 		}
 
 		char re = recv(client_fd, &minutes, max, 0);
-		if (re == -1){//anyone can send more than 2 bytes on the network
+		if (re == -1){//anyone can send more than 3 bytes on the network
 			printf("Error when receiving message: %s\n", strerror(errno));
 			close(client_fd);
 			//unlink(SERVER_SOCK_PATH);
