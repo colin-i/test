@@ -1,0 +1,10 @@
+
+#1 dest
+
+fs=( `ls` )
+
+a=`pwd`
+
+for f in "${fs[@]}"; do
+	ln -s ${a}/${f} ${1}/${f}
+done
