@@ -27,7 +27,7 @@ source ~/test/startup/aliases
 #alias will list aliases and grep is 'grep --color=auto'
 
 #PATh :/home/bc/.local/bin:/snap/bin is already
-#doar act 26 poate upload_release_asset
+#doar act 26 (0.2.26) poate upload_release_asset
 
 #alias 'ls -l'
 #xdotool sleep 1 key l s Return
