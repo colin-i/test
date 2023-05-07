@@ -1,5 +1,5 @@
 
-source ./newparse
+source ~/test/stats/newparse
 
 for (( j=0; j < ${i}; j++ )); do
 	echo -n " ${a[${j}]}=${b[${j}]}"

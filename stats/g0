@@ -11,8 +11,8 @@ if [ "$?" != "0" ]; then
 fi
 
 #a.out a waiter with a socket
-cc a.c
-cc b.c -o b.out
+cc ~/test/stats/a.c
+cc ~/test/stats/b.c -o b.out
 cp a.out a2.out
 cp b.out b2.out
 cp a.out a3.out
@@ -26,7 +26,7 @@ rps=( `cat h` )
 #rps4=( `cat h4` )
 i=0
 
-source ./projs
+source ~/test/stats/projs
 
 for name in "${reps[@]}"; do
 
@@ -40,7 +40,7 @@ prevCount=`echo -n ${rps[${i}]} | grep -o [^=]*$`
 ./a3.out &
 ./a4.out &
 
-./g1 ${name} ${prevCount}
+~/test/stats/g1 ${name} ${prevCount}
 
 processedCount=`./b.out`
 processedCount2=`./b2.out`

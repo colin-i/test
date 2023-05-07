@@ -4,7 +4,7 @@ shift
 m=${1}
 shift
 
-source ./newparse
+source ~/test/stats/newparse
 
 cd ${y}/${m}
 

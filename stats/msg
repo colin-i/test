@@ -111,13 +111,13 @@ if [ "${more_data}" != "" ]; then
 		#cd ..
 		#add at commit time git add arh
 		cd ${start}
-		./concat ${y}/${m}
+		~/test/stats/concat ${y}/${m}
 	else
 		echo no concat
 		cd ${start}
 	fi
 
-	./gh .
+	~/test/stats/gh .
 	echo -ne "\n\nAll time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
 fi
 

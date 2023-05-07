@@ -17,7 +17,7 @@ cp 2021/h4 ${out}h4
 start=`pwd`/
 
 cd ${out}
-${start}concat ${start}2022
+~/test/stats/concat ${start}2022
 #cd ${start}
 
 if [ ${year} = 2022 ]; then exit 0; fi
@@ -33,7 +33,7 @@ yearconcat () {
 	#cd ${out}
 	y=${1}
 	for ((i=1;i<=${2};i++)) do
-		${start}concat ${start}${y}/${i}
+		~/test/stats/concat ${start}${y}/${i}
 	done
 	#cd ${start}
 }
