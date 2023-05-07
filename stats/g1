@@ -1,0 +1,58 @@
+
+#1 name  2 prevCount
+
+name=${1}
+prevCount=${2}
+
+query='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"'"${name}"'\") {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 1) {
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    }
+  }"
+}'
+
+sleep 1
+count=$(
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $query)" | \
+  jq ".data.viewer.repository.defaultBranchRef.target.history.totalCount"
+)
+
+difCount=$((count-prevCount))
+echo ${name} ${prevCount} ${count} ${difCount}
+./g2 ${name} ${difCount}
+
+
+
+
+#total count last year
+
+#the behaviour for contributionsCollection is as follow, tested on 2023-01-28/29/30 at test, 1 on 28, 3 on 29:
+#	is ignoring right of T at timestamp
+#	amend message on 30 for last one of 29 it will be authored 29, commit 30, but contributionsCollection will see 4 on 29
+#	it is counting deleted contributions
+
+#"authoredDate":  "2015-03-10T17:53:15Z"
+#"committedDate": "2015-03-10T19:26:14Z"
+#"pushedDate":    "2015-03-10T19:28:11Z"
+
+#{
+#  repository(owner: "google", name: "gson") {
+#    refs(first: 10, refPrefix: "refs/heads/") {
+
+#the author date is when someone first creates a commit with git commit . The commit date is identical to the author date unless someone changes the commit date by using git commit --amend
+
+#query {
+#  viewer {
+# repositories(first:1){

@@ -1,0 +1,67 @@
+
+#1 name  optional 2 month dif
+
+#for new projects start, recognizer
+
+if [ -z "${2}" ]; then m_dif=1; else m_dif=${2}; fi
+
+name=${1}
+
+max=100
+
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"'"${name}"'\") {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: '"${max}"') {
+                totalCount
+                edges{
+                  node{
+                    committer{
+                      date
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }"
+}'
+
+raw=$(curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)")
+
+dates=( `echo -n ${raw} | jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .node.committer.date" | xargs` )
+total=`echo -n ${raw} | jq -r ".data.viewer.repository.defaultBranchRef.target.history.totalCount"`
+echo ${total}
+
+#current limit
+t=`date +%s`
+y=`date -d @${t} +%Y`
+m=`date -d @${t} +%m`
+m=$((m-${m_dif}))
+if [ "${m}" = 0 ]; then y=$((y-1)); m=12; fi
+t=`date -u -d ${y}-${m}-1 +%s`
+date -d @${t}
+
+#dif
+dif=0
+for d in "${dates[@]}"; do
+	dt=`date -u -d ${d} +%s`
+	if [ ${dt} -lt ${t} ]; then break; fi
+	dif=$((dif+1))
+done
+if [ ${dif} -lt ${max} ]; then
+	echo ${dif}
+	text="${name} $((total-dif))"
+	echo ${text}
+	echo -n "${text}" | xclip -selection clipboard
+else
+	echo "limit error"
+fi

@@ -1,0 +1,22 @@
+
+QUERY='
+{"query": "
+  query {
+    viewer {
+      repositories(first:100){
+        edges{
+          node{
+            name
+          }
+        }
+      }
+    }
+  }"
+}'
+
+sleep 1
+#-o 1
+reps=( $(
+curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+  jq -r ".data.viewer.repositories.edges[] | .node.name"
+))

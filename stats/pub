@@ -1,0 +1,19 @@
+
+#1 year  2 month   optional newproj1 x1 ... newprojN xN
+
+./newpre ${@:3} && \
+./prepare ${1} ${2} && \
+./newpost ${@} && \
+echo -e "\n\npush? y?" && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ]; then
+./commit ${1} ${2}
+else
+echo no
+fi
+
+#for ./ files let stats to be the author. before was not, message was "${1}-${2}"
+
+#adding new project:
+#	newpre is: add at h: proj=X/0
+#	newpost is: if X, add it at y/m/h (can wrong at reconcatenator (combine counted/uncounted))

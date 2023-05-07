@@ -1,0 +1,15 @@
+
+a=( )
+b=( )
+
+i=0
+for var in "${@}"
+do
+	if [ $((i%2)) = 0 ]; then
+		a[$((i/2))]=${var}
+	else
+		b[$((i/2))]=${var}
+	fi
+	i=$((i+1))
+done
+i=$((i/2))

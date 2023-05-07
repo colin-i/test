@@ -1,0 +1,11 @@
+
+source ./newparse
+
+for (( j=0; j < ${i}; j++ )); do
+	echo -n " ${a[${j}]}=${b[${j}]}"
+	echo -n " ${a[${j}]}=${b[${j}]}" >> h
+done
+
+echo
+cat h
+echo

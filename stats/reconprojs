@@ -1,0 +1,6 @@
+
+source ./projs
+
+for name in "${reps[@]}"; do
+echo ${name}
+done

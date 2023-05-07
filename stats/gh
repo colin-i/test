@@ -1,0 +1,72 @@
+
+#1 folder
+
+cd ${1}
+
+ins=( `cat h3` )
+rms=( `cat h4` )
+
+#these, index array, are not working; need associative array
+declare -A adds
+declare -A dels
+
+i=0
+for var in "${ins[@]}"
+do
+	IFS='=' read -a addr <<< "${var}"
+	adds[$i,0]=${addr[0]}
+	adds[$i,1]=${addr[1]}
+	i=$((i+1))
+done
+i=0
+for var in "${rms[@]}"
+do
+	IFS='=' read -a addr <<< "${var}"
+	dels[$i]=${addr[1]}
+	i=$((i+1))
+done
+
+out=
+total=0
+totalplus=0
+totalminus=0
+
+for ((j=0;j<i;j++)) do
+	name=${adds[$j,0]}
+	plus=${adds[$j,1]}
+	minus=${dels[$j]}
+	dif=$((plus-minus))
+
+	out="${out} ${name}=${dif}"
+
+	total=$((total+dif))
+	totalplus=$((totalplus+plus))
+	totalminus=$((totalminus+minus))
+
+	echo ${name} ${dif} ${plus} ${minus} >> hh6
+done
+
+out=${out,1}
+echo ${out} > h5
+cat h5
+
+sort -k2nr hh6 -o h6
+rm hh6
+cat h6
+
+coms=( `cat h2` )
+commits=0
+for var in "${coms[@]}"
+do
+	IFS='=' read -a addr <<< "${var}"
+	commits=$((commits+addr[1]))
+done
+
+echo ${commits} > hh2
+echo commits `cat hh2`
+echo ${totalplus} > hh3
+echo additions `cat hh3`
+echo ${totalminus} > hh4
+echo deletions `cat hh4`
+echo ${total} > hh5
+echo delta `cat hh5`

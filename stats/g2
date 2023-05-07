@@ -1,0 +1,143 @@
+
+#1 name  2 count  optional 3 limit
+
+name=${1}
+nr=${2}
+
+echo ${name} ${nr}
+
+cursor=
+
+#for tests main reason
+if [ -z "${3}" ]; then
+	maximumlimit=100
+else
+	maximumlimit=${3}
+fi
+
+gh_id="MDQ6VXNlcjEwOTI1OTAz"
+
+not_this_year=0
+
+changesets=0
+additions=0
+deletions=0
+
+dlimit=$(cat date)
+
+while [ "${nr}" -gt 0 ]; do
+	if [ "${nr}" -ge ${maximumlimit} ]; then cursornr=${maximumlimit}
+	else
+		cursornr=${nr}
+	fi
+
+	#get viewer and contributors commits
+	#we know author date is different than a commit amend message date
+
+	QUERY='
+{"query": "
+  query {
+    viewer {
+      repository(name: \"'"${name}"'\") {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: '"${cursornr}"''"${cursor}"') {
+                edges{
+                  node{
+                    author{
+                      date
+                      email
+                      user{
+                        id
+                      }
+                    }
+                    additions
+                    deletions
+                  }
+                  cursor
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }"
+}'
+	echo ${cursornr}
+
+	sleep 1
+	raw=$(
+	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.email, .node.author.user.id, .node.additions, .node.deletions"
+	)
+	#is with new lines not space for ( ), IFS was not helping at last tests
+	#-t for trim new line
+	readarray -t data <<<"$raw"
+
+	for ((i = 0; i < ${#data[@]}; ))
+	do
+		crs=${data[${i}]}
+		i=$((i+1))
+
+		dt=${data[${i}]}
+		i=$((i+1))
+
+		email=${data[${i}]}
+		i=$((i+1))
+
+		id=${data[${i}]}
+		i=$((i+1))
+
+		adds=${data[${i}]}
+		i=$((i+1))
+
+		dels=${data[${i}]}
+		i=$((i+1))
+
+		dt=`date -u -d ${dt} +%s`
+
+		if [ $dt -ge $dlimit ]; then
+			continue
+		fi
+
+		not_this_year=$((not_this_year+1))
+
+		if [ "${id}" != "${gh_id}" ]; then
+			if [ "${name}" != "flashalizer" ]; then
+				continue
+			else
+				#old commits was with another email
+				if [ "${email}" != "costin.b.84@gmail.com" ]; then
+					#was a period with name instead of email
+					if [ "${email}" != "Costin Botescu" ]; then
+						continue
+					elif [ $dt -gt 1490127937 ] || [ $dt -lt 1487947137 ]; then
+						continue
+					fi
+				elif [ $dt -gt 1440604066 ] || [ $dt -lt 1426009995 ]; then
+					continue
+				fi
+			fi
+		fi
+		#there is also 1 from github-actions at test on May 19, 2022
+		#recognized bots: bot, sync, stats, state, tests
+
+		changesets=$((changesets+1))
+		additions=$((additions+adds))
+		deletions=$((deletions+dels))
+	done
+
+	cursor=",after:\\\"${crs}\\\""
+	#:1:-1      not -r("a b") will not be ok
+
+	nr=$((nr-cursornr))
+
+	echo ${not_this_year} ${changesets} ${additions} ${deletions}
+done
+
+./b.out ${not_this_year}
+./b2.out ${changesets}
+./b3.out ${additions}
+./b4.out ${deletions}
