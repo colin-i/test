@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	struct sockaddr_in client_addr;
 	int client_fd;
 
-	int minutes=0;//=0 at start, time is coming on 2 bytes, upper part must be 0
+	unsigned int minutes;
 	int n=sizeof(unsigned short);int max=n+1;
 	memset(&client_addr, 0, sizeof(client_addr));
 	while(1){
@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 
+		//minutes^=minutes;
 		char re = recv(client_fd, &minutes, max, 0);
 		if (re == -1){//anyone can send more than 3 bytes on the network
 			printf("Error when receiving message: %s\n", strerror(errno));
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		#define for "notify-send \"Time\" \"%d\""
+		#define for "notify-send \"Time\" \"%hu\""
 		char out[sizeof(for)-2+5];
 		sprintf(out,for,minutes);
 		system(out);
