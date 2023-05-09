@@ -1,0 +1,28 @@
+
+
+mkdir libc6-i386.AppDir
+cd libc6-i386.AppDir/
+tar -xf ../data.tar ./
+cd usr
+mkdir -p bin
+cd bin
+ln -s ../../lib32/ld-linux.so.2 ./libc6-i386
+cd ../../
+cat > libc6-i386.desktop << EOF
+[Desktop Entry]
+Type=Application
+Name=libc6-i386
+Exec=libc6-i386
+Icon=libc6-i386
+Categories=Utility;
+EOF
+convert -size 256x256 canvas: libc6-i386.png
+cp ../AppRun-i686 ./AppRun
+#cp ../AppRun-x86_64 ./AppRun
+cd ..
+
+mksquashfs libc6-i386.AppDir libc6.squashfs -root-owned -noappend
+cat runtime-i686 > libc6-i386.AppImage
+#cat runtime-x86_64 > libc6-i386.AppImage
+cat libc6.squashfs >> libc6-i386.AppImage
+chmod a+x libc6-i386.AppImage
