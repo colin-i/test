@@ -1,4 +1,4 @@
 
 #optional 1 no message flag
 
-~/test/sync/commit sync ${1}
+~/test/bots/commit sync ${1}
