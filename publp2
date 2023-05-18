@@ -41,10 +41,17 @@ for n in "${name[@]}"; do
 	for var in "${arh[@]}"
 	do
 		echo ${var}
+		counter=0
+		AGAINST=
 		while true
 		do
 			OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${var} ${name} ${version} x | head -1`
-			echo =${OUTPUT}
+			if [ "${OUTPUT}" != "${AGAINST}" ]; then
+				counter=0
+				AGAINST=${OUTPUT}
+			fi
+			counter=$((counter+1))
+			echo ${counter} ${OUTPUT}
 			if [ "${OUTPUT}" = 'Published' ]; then
 				break
 			fi
