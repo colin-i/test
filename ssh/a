@@ -1,2 +1,2 @@
 
-sshpass -p `cat ~/n/pat3` ssh pi@192.168.1.12
+~/test/ssh/aa pi 12
