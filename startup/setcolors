@@ -23,6 +23,7 @@ else
 	fi
 	if [ "${legacy}" != "dark" ]; then
 		gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme}-dark'"`
+		sleep 1 #else will be xtermcontrol: --get-bg is unsupported . only here
 	fi
 	if [ "`xtermcontrol --get-bg`" = "rgb:ffff/ffff/ffff" ]; then
 		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit 1
