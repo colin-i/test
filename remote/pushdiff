@@ -1,10 +1,21 @@
 
-#optional 1 count
+#optional 1 number of diffs  2 length of a diff  3 diff args
 
 nr=1
 if [ -n "$1" ]; then
 nr=$1
 fi
+
+len=1
+if [ -n "$2" ]; then
+len=$2
+fi
+
+args=" --unified=0"
+if [ -n "$3" ]; then
+args=${3}
+fi
+echo ${args}
 
 a=
 b=
@@ -12,8 +23,11 @@ b=
 while [ $nr -gt 0 ]
 do
 
+for (( i=0; i < ${len}; i++ )); do
 a+=^
-git diff HEAD${a} HEAD${b} --unified=0
+done
+
+git diff ${args} HEAD${a} HEAD${b}
 b=${a}
 
 #this will mix branches
