@@ -1,0 +1,4 @@
+
+#1 files
+
+find -name ${1} -exec du -b {} \; | sort -k1nr
