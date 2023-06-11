@@ -1,9 +1,0 @@
-
-screen -list
-if [ "$?" = "1" ]; then
-screen -dmS 1
-sleep 10
-screen -x 1 -X stuff $'./temp\n'
-fi
-
-#since w1 temperature, tget and tempget files are only to test

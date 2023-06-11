@@ -58,7 +58,10 @@ def test(t):
 
 if len(sys.argv)==7:
 	on=bool(int(sys.argv[1]))
-	sen2=bool(int(sys.argv[2]))
+	min=25+float(sys.argv[2])
+	max=27+float(sys.argv[3])
+	sen2=bool(int(sys.argv[4]))
+	send=bool(int(sys.argv[5]))
 	if sen2:
 		import glob
 		#import os
@@ -68,10 +71,8 @@ if len(sys.argv)==7:
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
 		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
-	min=25+float(sys.argv[3])
-	max=27+float(sys.argv[4])
-	send=bool(int(sys.argv[5]))
-	base=sys.argv[6]
+	else:
+		base=sys.argv[6]
 	print(sys.argv[1]+' '+sys.argv[2]+' '+min.__str__()+' '+max.__str__()+' '+sys.argv[5]+' '+sys.argv[6])
 	while True:
 		#a=

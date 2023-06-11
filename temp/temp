@@ -1,4 +1,17 @@
 
+#temp, .py and min with ./temp 0 0.4  , and local from ~/test/min/local
+#since w1 temperature, tget and tempget files are only to test
+
+#w1 has 0.0625 steps.  github package with information: timofurrer/w1thermsensor
+#in /boot/config.txt:
+##default:
+#dtoverlay=w1-gpio
+##another one, in case a pimoroni fanshim is on default pin:
+#dtoverlay=w1-gpio,gpiopin=5
+#reboot
+#ls -l /sys/bus/w1/devices  #filename starting with "28-"
+#for i in /sys/bus/w1/devices/28-*; do cat $i/w1_slave; done   #and is only one file
+
 cd `dirname ${0}`
 dir=`pwd`
 cd ~/gree-remote/PythonCLI
@@ -10,21 +23,26 @@ on=${1}
 fi
 
 if [ -z "${2}" ]; then
-sen2=1
+dif_min=0
 else
-sen2=${2}
+dif_min=${2}
 fi
 
 if [ -z "${3}" ]; then
-dif_min=0
+if [ -n "${2}" ]; then
+	dif_max=${dif_min}
 else
-dif_min=${3}
+	dif_max=0
+fi
+else
+dif_max=${3}
 fi
 
+
 if [ -z "${4}" ]; then
-dif_max=0
+sen2=1
 else
-dif_max=${4}
+sen2=${4}
 fi
 
 if [ -z "${5}" ]; then
@@ -39,4 +57,4 @@ else
 base=${6}
 fi
 
-python ${dir}/temperature_sensor_code.py ${on} ${sen2} ${dif_min} ${dif_max} ${send} ${base}
+python ${dir}/temperature_sensor_code.py ${on} ${dif_min} ${dif_max} ${sen2} ${send} ${base}

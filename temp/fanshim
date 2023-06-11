@@ -1,0 +1,18 @@
+
+cd ~/fanshim-python
+
+sudo apt install python3-rpi.gpio && \
+#sudo apt install python3-pip && \
+sudo pip3 install fanshim || exit 1
+
+on=65
+high=61
+low=59
+off=55
+
+cd examples
+#sudo, else root warning
+sudo ./install-service.sh --brightness 10    --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
+#                                      0-255
+
+#cat /sys/class/thermal/thermal_zone*/temp
