@@ -1,0 +1,4 @@
+
+cat text.txt
+read -n1 -t $((60*60*24))
+echo -n > text.txt
