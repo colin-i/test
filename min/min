@@ -4,12 +4,15 @@
 #nvidia-smi -q -d power
 #60-140
 
-~/keyring
-sudo nvidia-smi --persistence-mode=1 # -i 1
-sudo nvidia-smi -pl 60               # -i 1
+#~/keyring
+#sudo nvidia-smi --persistence-mode=1 # -i 1
+#sudo nvidia-smi -pl 60               # -i 1
 
 logflag=0
 if [ -e ~/logflag ]; then logflag=1; fi
+
+cp sharesall shares
+cp shares sharesleft
 
 #if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
 # | tee ${to}
@@ -22,6 +25,7 @@ do
 	if [ -e ~/problem ]; then
 		while [ -e ~/problem ]; do sleep 10; done
 		if [ -e ~/stopmin ]; then break; fi
+		cp sharesleft shares
 	else
 		break
 	fi
