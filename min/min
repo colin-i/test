@@ -28,11 +28,15 @@ do
 
 	if [ -e ~/problem ]; then
 		while [ -e ~/problem ]; do sleep 10; done
-		if [ -e ~/stopmin ]; then break; fi
+		if [ -e ~/stopmin ]; then
+			rm ~/stopmin
+			break
+		fi
 	else
 		break
 	fi
 done
+
 #lines are visible on 2
 #-DCMAKE_BUILD_TYPE=Debug
 #debug ~/ethminer/build/ethminer/ethminer
