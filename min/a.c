@@ -95,7 +95,7 @@ void main(int argc,char**argv){
 
 	FILE *fp;
 
-	fp=fopen("shares","rb");
+	fp=fopen("sharesleft","rb");
 	size_t shlen=fread(path,1,10,fp);//10,1? will return 0
 	fclose(fp);
 	path[shlen]='\0';

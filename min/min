@@ -12,8 +12,7 @@ logflag=0
 if [ -e ~/logflag ]; then logflag=1; fi
 
 if [ ! -e ~/continue ]; then
-	cp sharesall shares
-	cp shares sharesleft   #and this too, is copy sharesleft to shares
+	cp sharesall sharesleft
 fi
 
 #if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
@@ -23,8 +22,6 @@ while :
 do
 	~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555 \
 	 2>&1 | ./a.out ${logflag}
-
-	cp sharesleft shares    #here because can be continuation later
 
 	if [ -e ~/problem ]; then
 		while [ -e ~/problem ]; do sleep 10; done
