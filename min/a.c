@@ -98,7 +98,7 @@ time_t interval_get(){
 	fclose(fp);
 	path[shlen]='\0';
 	int mintime=atoi(path);
-	printf("past time: %u",mintime);
+	printf("\npast time: %u\n",mintime);
 	now=now-(60*mintime);
 	return now;
 }
