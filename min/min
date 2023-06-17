@@ -13,6 +13,7 @@ if [ -e ~/logflag ]; then logflag=1; fi
 
 if [ ! -e ~/continue ]; then
 	cp sharesall sharesleft
+	echo -n 0 > interval
 fi
 
 #if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
@@ -25,14 +26,20 @@ do
 
 	if [ -e ~/problem ]; then
 		while [ -e ~/problem ]; do sleep 10; done
-		if [ -e ~/stopmin ]; then
-			rm ~/stopmin
-			break
-		fi
+		if [ -e ~/stopmin ]; then break; fi
 	else
 		break
 	fi
 done
+
+if [ -e ~/stopmin ]; then
+	rm ~/stopmin
+else
+	#https://manpages.ubuntu.com/manpages/bionic/en/man5/sudoers_timestamp.5.html
+	#15 minutes
+	~/keyring
+	sudo init 0
+fi
 
 #lines are visible on 2
 #-DCMAKE_BUILD_TYPE=Debug
@@ -50,8 +57,3 @@ done
 # -mi 0 -li 9999
 # -gt 1
 # -powlim -75
-
-#https://manpages.ubuntu.com/manpages/bionic/en/man5/sudoers_timestamp.5.html
-#15 minutes
-~/keyring
-sudo init 0

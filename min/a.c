@@ -53,15 +53,7 @@ void send_data(char*host,void*data,size_t len){
 	close(client_sock);
 }
 
-void send_time(time_t start){
-	time_t now=time(NULL);
-	time_t dif=now-start;
-	time_t minutes=dif/60;
-	if(minutes>65535){printf("No\n");return;}//16777215
-	send_data("192.168.1.11",&minutes,2);
-}
-
-static FILE*logfile=NULL;
+FILE*logfile=NULL;
 void putlog(char*b){
 	if(logfile!=NULL){
 		fwrite(b,strlen(b),1,logfile);
@@ -85,8 +77,47 @@ void stop(){
 	}
 }
 
+int mintime(time_t start){
+	time_t now=time(NULL);
+	time_t dif=now-start;
+	return dif/60;
+}
+
+char*mintimefile="interval";
+void interval_set(time_t start){
+	int minutes=mintime(start);
+	FILE*fp=fopen(mintimefile,"wb");
+	sprintf(path,"%u",minutes);
+	fwrite(path,strlen(path),1,fp);
+	fclose(fp);
+}
+time_t interval_get(){
+	time_t now=time(NULL);
+	FILE*fp=fopen(mintimefile,"rb");
+	size_t shlen=fread(path,1,10,fp);
+	fclose(fp);
+	path[shlen]='\0';
+	int mintime=atoi(path);
+	printf("past time: %u",mintime);
+	now=now-(60*mintime);
+	return now;
+}
+
+int send_time(time_t start){
+	time_t minutes=mintime(start);
+
+	if(minutes<60){
+		printf("At least one hour");
+		return 1;
+	}
+
+	if(minutes>65535)printf("No\n");//16777215
+	else send_data("192.168.1.11",&minutes,2);
+	return 0;
+}
+
 void main(int argc,char**argv){
-	time_t start=time(NULL);
+	time_t start=interval_get();
 	//send_time(start);return;
 
 	if(argv[1][0]=='1'){
@@ -111,8 +142,8 @@ void main(int argc,char**argv){
 		if(strstr(b,"**Accepted")!=NULL){
 			shares--;
 			if(shares==0){
-				send_time(start);
-				stop();
+				shares=send_time(start);
+				if(shares==0)stop();
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 			//in case of problems
@@ -125,7 +156,10 @@ void main(int argc,char**argv){
 			send_data("192.168.1.11",&nothing,3);
 			send_data("192.168.1.8",NULL,0);
 			send_data("192.168.1.14",NULL,0);
-			if(access("problem",F_OK)==0)stop();
+			if(access("problem",F_OK)==0){
+				interval_set(start);
+				stop();
+			}
 		}
 	}
 	free(b);
