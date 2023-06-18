@@ -160,6 +160,10 @@ void main(int argc,char**argv){
 				interval_set(start);
 				stop();
 			}
+		}else if(access("problem",F_OK)==0){//it is working but want to exit
+			//remove problem if not wanting to change something and restart
+			interval_set(start);
+			stop();
 		}
 	}
 	free(b);
