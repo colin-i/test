@@ -48,8 +48,12 @@ else:
 if len(sys.argv)>3:
 	print(sys.argv[3])
 	dif=int(sys.argv[3])
+	dif2=dif
+	if len(sys.argv)>4:
+		print(sys.argv[4])
+		dif2=int(sys.argv[4])
 	min+=dif
-	max+=dif
+	max+=dif2
 
 print(min.__str__())
 print(max.__str__())
