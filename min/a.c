@@ -164,7 +164,7 @@ void main(int argc,char**argv){
 			//remove problem if not wanting to change something and restart
 			interval_set(start);
 			stop();
-		}else if(strstr(b,"ifficulty")!=NULL){
+		}else if(strstr(b,"difficulty")!=NULL){
 			fp=fopen("difficulty","wb");
 			fwrite(b,strlen(b),1,fp);
 			fclose(fp);
