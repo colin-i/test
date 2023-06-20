@@ -23,7 +23,8 @@ fi
 
 while :
 do
-	~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555 \
+	#~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555 \
+	~/etc1/etcminer/build/etcminer/etcminer -U -P stratum2+tcp://botescu%2e1:x@europe.etchash-hub.miningpoolhub.com:20615 \
 	 2>&1 | ./a.out ${logflag}
 
 	if [ -e ~/problem ]; then
@@ -43,12 +44,11 @@ else
 	sudo init 0
 fi
 
+#d=1 at password not working
+
 #lines are visible on 2
 #-DCMAKE_BUILD_TYPE=Debug
 #debug ~/ethminer/build/ethminer/ethminer
-#https://support.bitfly.at/support/solutions/articles/8000093295-etc-ethermine-org-payout-policy
-#Payouts take place immediately after the configured threshold (Min 0.1 ETC Max 10 ETC) is reached. The default configured threshold is 1 ETC, and can be changed by providing the IP address of the highest performing mining rig.
-#Balances above 0.01 ETC will be paid out after 7 days independent of ones threshold.
 
 # --cu-streams 1 --dag-load-mode 1
 # --cu-devices 1
