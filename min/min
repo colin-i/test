@@ -44,7 +44,7 @@ else
 	sudo init 0
 fi
 
-#d=1 at password not working
+#d=1 at password not working at miningpoolhub
 
 #lines are visible on 2
 #-DCMAKE_BUILD_TYPE=Debug
