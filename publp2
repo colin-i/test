@@ -53,7 +53,14 @@ for n in "${name[@]}"; do
 			counter=$((counter+1))
 			echo ${counter} ${OUTPUT}
 			if [ "${OUTPUT}" = 'Published' ]; then
+				if [ -e ~/stopwaitingflag ]; then
+					rm ~/stopwaitingflag
+				fi
 				break
+			elif [ -e ~/stopwaitingflag ]; then
+				rm ~/stopwaitingflag
+				echo stopped
+				exit 1
 			fi
 			sleep 200
 		done
