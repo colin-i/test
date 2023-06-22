@@ -3,6 +3,7 @@
 
 cd /home/bc/.config/${1}
 
+#at diff command: arg2,< --- arg1,>
 diff /media/bc/sandisk/a/arh/config/${1}/config config
 if [ "$?" != 0 ]; then
 	echo store \? y \? && \
