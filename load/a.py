@@ -1,15 +1,20 @@
 
-class bcolors:
-    red = '\033[101m'
-    green = '\033[102m'
-    yellow = '\033[103m'
-    end = '\033[0m'
-    bold = '\033[1m'
-    underline = '\033[4m'
-#print(f"{bcolors.bold}{bcolors.underline}{bcolors.red}1{bcolors.green}2{bcolors.yellow}3{bcolors.end}123")
-#print(f"{bcolors.bold}{bcolors.underline}{bcolors.red}1{bcolors.green}2{bcolors.yellow}3")
-#print("123")
-print(f"{bcolors.bold}{bcolors.underline}{bcolors.red} {bcolors.green} {bcolors.yellow} {bcolors.end}")
 
-import os
-cols=os.get_terminal_size().columns
+from multiprocessing.connection import Client
+
+address = ('192.168.1.11', 6000)
+conn = Client(address)
+conn.send("123")
+conn.close()
+
+#/* test for multiple cpu-s
+##include <stdio.h>
+##include <pthread.h>
+##include <unistd.h>
+#void* func1(void*) { while (1) { //sleep(2);
+#  }}
+#void* func2(void*) { while (1) { //sleep(2);
+#  }}
+#int main(){ pthread_t thread_id; pthread_t thread_id2;
+#  pthread_create(&thread_id, NULL, func1, NULL); pthread_create(&thread_id2, NULL, func2, NULL);
+#  sleep(8); printf("done\n"); return 0;}*/
