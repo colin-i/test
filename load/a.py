@@ -1,11 +1,14 @@
 
 
 from multiprocessing.connection import Client
+import sys
 
 address = ('192.168.1.11', 6000)
 conn = Client(address)
-conn.send("123")
+conn.send(sys.argv[1])
 conn.close()
+
+#echo 123 > /dev/tcp/192.168.1.11/6000  #will connect, but need "123" there
 
 #/* test for multiple cpu-s
 ##include <stdio.h>
