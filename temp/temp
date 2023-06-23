@@ -1,5 +1,5 @@
 
-#temp, .py and min with ./temp 0 0.4  , and local from ~/test/min/local
+#temp, .py and min with ./temp 0 [[+val] or [+min +max]] , and local from ~/test/min/local
 #since w1 temperature, tget and tempget files are only to test
 
 #w1 has 0.0625 steps.  github package with information: timofurrer/w1thermsensor
