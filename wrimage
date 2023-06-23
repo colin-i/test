@@ -1,0 +1,59 @@
+
+#1 img.xz
+if [ -z "${1}" ]; then
+	echo argument required
+	exit 1
+fi
+#a=( `df | cut -f1 -d' ' | tail -n +2` )
+a=( `sudo fdisk -l | grep "^/" | cut -f1 -d' '` )
+echo Plug the card and press a key.
+read -n1 -t $((60*60*24))
+#b=( `df | cut -f1 -d' ' | tail -n +2` ) #only when is automounting
+b=( `sudo fdisk -l | grep "^/" | cut -f1 -d' '` )
+aa=${#a[@]}
+bb=${#b[@]}
+c=( )
+k=0
+sudo fdisk -l
+for ((i = 0; i < ${bb}; i++ )); do
+	for ((j = 0; j < ${aa}; j++ )); do
+		if [ "${a[${j}]}" = "${b[${i}]}" ]; then
+			break
+		fi
+	done
+	if [ ${j} -eq ${aa} ]; then
+		df | tail -n +$((i+2)) | head -1
+		c[${k}]=${b[${i}]}
+		k=$((k+1))
+		break
+	fi
+done
+if [ ${k} -gt 0 ]; then
+	for var in "${c[@]}"; do
+		echo ${var}
+		echo -e "blind umount or exit. y?"
+		read -n1 -t $((60*60*24)) ans
+		if [ "${ans}" = "y" ]; then
+			sudo umount ${var}
+		else
+			echo no
+			exit 1
+		fi
+	done
+	name=${c[0]}
+	for ((x = ${#name}; x > 0 ; )); do
+		x=$((x-1))
+		printf -v n "%d\n" "'${name:x:1}"
+		if [ ${n} -ge 48 ] && [ ${n} -le 57 ]; then continue; fi
+		break
+	done
+	name=${name:0:x+1}
+	echo ${name}
+	echo -e "Is ok? y?"
+	read -n1 -t $((60*60*24)) ans
+	if [ "${ans}" = "y" ]; then
+		xzcat ${1} | sudo dd of=${name} status=progress
+	else
+		echo no
+	fi
+fi
