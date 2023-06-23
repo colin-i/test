@@ -14,6 +14,7 @@ else
 fi
 to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
 
+#pass "$@" (with quotes) to see blank ""
 git push ${3} ${to} && \
 ~/${5}test/remote/pushdiff ${4} && \
 ~/${5}test/remote/pushinfo ${to}

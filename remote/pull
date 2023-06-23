@@ -1,5 +1,5 @@
 
-#1/2 same as push
+#1,2 same as push
 
 if [ "${2}" = "1" ]; then
 	to=gist.github.com/colin-i/${1}
