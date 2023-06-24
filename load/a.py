@@ -3,7 +3,7 @@
 from multiprocessing.connection import Client
 import sys
 
-address = ('192.168.1.11', 6000)
+address = ('192.168.1.15', 6000)
 conn = Client(address)
 conn.send(sys.argv[1])
 conn.close()

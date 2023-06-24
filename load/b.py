@@ -17,7 +17,7 @@ print(os.get_terminal_size().columns)
 
 from multiprocessing.connection import Listener
 
-address = ('192.168.1.11', 6000)     # family is deduced to be 'AF_INET'
+address = ('192.168.1.15', 6000)     # family is deduced to be 'AF_INET'
 listener = Listener(address)
 
 conn = listener.accept()
