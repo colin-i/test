@@ -20,7 +20,8 @@ from multiprocessing.connection import Listener
 address = ('192.168.1.15', 6000)     # family is deduced to be 'AF_INET'
 listener = Listener(address)
 
-conn = listener.accept()
-print('connection accepted from', listener.last_accepted)
-print(conn.recv())
-conn.close()
+while True:
+	conn = listener.accept()
+	#print('connection accepted from', listener.last_accepted)
+	print(conn.recv())
+	conn.close()
