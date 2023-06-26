@@ -107,7 +107,7 @@ int send_time(time_t start){
 	time_t minutes=mintime(start);
 
 	if(minutes<60||system("./a")!=0){
-		printf("At least one hour and pool balance");
+		printf("\nat least one hour and pool balance\n");
 		return 1;
 	}
 
@@ -116,12 +116,14 @@ int send_time(time_t start){
 	return 0;
 }
 
+void logfileinit(){
+	logfile=fopen("logfile","wb");
+}
+
 void main(int argc,char**argv){
 	time_t start=interval_get();
 
-	if(argv[1][0]=='1'){
-		logfile=fopen("logfile","wb");
-	}
+	if(argv[1][0]=='1')logfileinit();
 
 	FILE *fp;
 
@@ -175,7 +177,11 @@ void main(int argc,char**argv){
 				if(mins>9){
 					shares=WEXITSTATUS(system("./a"));//1 return is 0x100
 					if(shares==0)stop();
-					else pooltime=time(NULL);
+					else{
+						pooltime=time(NULL);
+						printf("\npool is not finding blocks\n");
+						if(access("logflag",F_OK)==0)if(logfile==NULL)logfileinit();
+					}
 				}
 			}
 		}
