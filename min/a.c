@@ -10,6 +10,11 @@
 #include <errno.h>
 #include "a.h"
 
+FILE*logfile=NULL;
+char path[11];
+char*mintimefile="interval";
+int before_time=1;
+
 void send_data(char*host,void*data,size_t len){
 	int client_sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (client_sock == -1)
@@ -53,7 +58,6 @@ void send_data(char*host,void*data,size_t len){
 	close(client_sock);
 }
 
-FILE*logfile=NULL;
 void putlog(char*b){
 	if(logfile!=NULL){
 		fwrite(b,strlen(b),1,logfile);
@@ -62,7 +66,6 @@ void putlog(char*b){
 	puts(b);
 }
 
-char path[11];
 void stop(){
 	FILE* fp = popen("ps aux|grep etcminer|grep -v grep|tr -s ' '|cut -f2 -d' '", "r");
 	if (fp != NULL) {
@@ -83,7 +86,6 @@ int mintime(time_t start){
 	return dif/60;
 }
 
-char*mintimefile="interval";
 void interval_set(time_t start){
 	int minutes=mintime(start);
 	FILE*fp=fopen(mintimefile,"wb");
@@ -104,13 +106,12 @@ time_t interval_get(){
 }
 
 int send_time(time_t start){
-	time_t minutes=mintime(start);
-
-	if(minutes<60||system("./a")!=0){
-		printf("\nat least one hour and pool balance\n");
+	if(before_time||system("./a")!=0){
+		printf("\nat least one hour and wallet balance\n");
 		return 1;
 	}
 
+	time_t minutes=mintime(start);
 	if(minutes>65535)printf("No\n");//16777215
 	else send_data("192.168.1.11",&minutes,2);
 	return 0;
@@ -171,8 +172,10 @@ void main(int argc,char**argv){
 			fwrite(b,strlen(b),1,fp);
 			fclose(fp);
 		}else if(shares==1){//to not wait for last share if there is no dust and shares seem ok
-			if(pooltime==0)pooltime=time(NULL);
-			else{
+			if(before_time){
+				before_time=mintime(start)<60;
+				if(before_time==0)pooltime=time(NULL);
+			}else{
 				int mins=mintime(pooltime);
 				if(mins>9){
 					shares=WEXITSTATUS(system("./a"));//1 return is 0x100
