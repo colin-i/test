@@ -36,6 +36,6 @@ while True:
 	c=readchar.readchar()
 	if c=='q':
 		break
-listener.close()   #this will close after accept gets next client
 print("will close")
+listener.close()   #this will close after accept gets next client
 #if there are threads python will not exit
