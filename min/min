@@ -21,6 +21,7 @@ fi
 #if [ ~/1 -nt ~/2 ]; then to=~/2; else to=~/1; fi
 # | tee ${to}
 
+./a   #dust guard
 while :
 do
 	#~/etc1/etcminer/build/etcminer/etcminer -U -P stratum1+ssl://0x5f1455F6a293832c32021B06fE30EEe6298616C2.worker1@eu1-etc.ethermine.org:5555 \
@@ -34,6 +35,7 @@ do
 		break
 	fi
 done
+rm ./dust
 
 if [ -e ~/stopmin ]; then
 	rm ~/stopmin

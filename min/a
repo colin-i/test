@@ -1,0 +1,16 @@
+
+if [ -e ./ignoredust ]; then exit 0; fi
+
+k=`cat mph`
+a=`curl -s "http://ethereum-classic.miningpoolhub.com/index.php?page=api&action=getuserbalance&api_key=${k}"`
+c=`echo ${a} | jq ".getuserbalance.data.confirmed"`
+d=`echo ${a} | jq ".getuserbalance.data.unconfirmed"`
+s=`echo "${c}+${d}" | bc`
+
+if [ ! -e ./dust ]; then
+	echo -n ${s} > ./dust
+else
+	z=`cat ./dust`
+	if [ "${s}" = "${z}" ]; then exit 1
+	else exit 0; fi
+fi

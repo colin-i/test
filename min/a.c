@@ -143,7 +143,12 @@ void main(int argc,char**argv){
 			shares--;
 			if(shares==0){
 				shares=send_time(start);
-				if(shares==0)stop();
+				if(shares==0){
+					//still can be dust
+					int dust=system("./a");
+					if(dust==0)stop();//1 return is 0x100
+					else shares=1;
+				}
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 			//in case of problems
