@@ -106,8 +106,8 @@ time_t interval_get(){
 int send_time(time_t start){
 	time_t minutes=mintime(start);
 
-	if(minutes<60){
-		printf("At least one hour");
+	if(minutes<60||system("./a")!=0){
+		printf("At least one hour and pool balance");
 		return 1;
 	}
 
@@ -118,7 +118,6 @@ int send_time(time_t start){
 
 void main(int argc,char**argv){
 	time_t start=interval_get();
-	//send_time(start);return;
 
 	if(argv[1][0]=='1'){
 		logfile=fopen("logfile","wb");
@@ -137,18 +136,14 @@ void main(int argc,char**argv){
 	//int startshares=shares;
 	size_t n=1000;
 	char*b=malloc(n);
+	time_t pooltime=0;
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
 		putlog(b);
 		if(strstr(b,"**Accepted")!=NULL){
 			shares--;
 			if(shares==0){
 				shares=send_time(start);
-				if(shares==0){
-					//still can be dust
-					int dust=system("./a");
-					if(dust==0)stop();//1 return is 0x100
-					else shares=1;
-				}
+				if(shares==0)stop();
 			}
 			printf("\nRemaining shares: %d\n",shares);//fflush(stdout);
 			//in case of problems
@@ -173,6 +168,16 @@ void main(int argc,char**argv){
 			fp=fopen("difficulty","wb");
 			fwrite(b,strlen(b),1,fp);
 			fclose(fp);
+		}else if(shares==1){//to not wait for last share if there is no dust and shares seem ok
+			if(pooltime==0)pooltime=time(NULL);
+			else{
+				int mins=mintime(pooltime);
+				if(mins>9){
+					shares=WEXITSTATUS(system("./a"));//1 return is 0x100
+					if(shares==0)stop();
+					else pooltime=time(NULL);
+				}
+			}
 		}
 	}
 	free(b);
