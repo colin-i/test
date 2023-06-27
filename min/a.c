@@ -62,6 +62,10 @@ void putlog(char*b){
 	if(logfile!=NULL){
 		fwrite(b,strlen(b),1,logfile);
 		fflush(logfile);
+		if(access("logflag",F_OK)!=0){
+			fclose(logfile);
+			logfile=NULL;
+		}
 	}
 	puts(b);
 }
@@ -140,6 +144,7 @@ void main(int argc,char**argv){
 	size_t n=1000;
 	char*b=malloc(n);
 	time_t pooltime=0;
+	int lastmins=0;
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
 		putlog(b);
 		if(strstr(b,"**Accepted")!=NULL){
@@ -177,13 +182,17 @@ void main(int argc,char**argv){
 				if(before_time==0)pooltime=time(NULL);
 			}else{
 				int mins=mintime(pooltime);
-				if(mins>9){
-					shares=WEXITSTATUS(system("./a"));//1 return is 0x100
-					if(shares==0)stop();
-					else{
-						pooltime=time(NULL);
-						printf("\npool is not finding blocks\n");
-						if(access("logflag",F_OK)==0)if(logfile==NULL)logfileinit();
+				if(lastmins!=mins){
+					lastmins=mins;
+					printf("\nanother minute, %d\n",mins);
+					if(mins>9){
+						shares=WEXITSTATUS(system("./a"));//1 return is 0x100
+						if(shares==0)stop();
+						else{
+							pooltime=time(NULL);
+							printf("\npool is not finding blocks\n");
+							if(access("logflag",F_OK)==0)if(logfile==NULL)logfileinit();
+						}
 					}
 				}
 			}
