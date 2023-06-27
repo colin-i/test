@@ -15,6 +15,14 @@ from multiprocessing.connection import Listener
 address = ('192.168.1.15', 6000)     # family is deduced to be 'AF_INET'
 listener = Listener(address)
 zone=False
+outfile=open("./load-output.html","w")
+
+def outtitle(s):
+	print(f"{bcolors.bold}Overall{bcolors.end}")  #if not end will continue at next print
+	outfile.write("<h3>"+s+"</h3>\n")
+def outline(s):
+	print(s)
+	outfile.write(s+"<br>\n")
 
 def t2_f():
 	global zone
@@ -45,8 +53,9 @@ def t2_f():
 		for val in values:
 			sum+=val
 			i+=1
-	print(f"{bcolors.bold}Overall{bcolors.end}")  #if not end will continue at next print
-	print("Entries: "+str(i)+" , Ratio: "+str(int(sum/i)))
+	outtitle("Overall")
+	outline("Entries: "+str(i)+" , Ratio: "+str(int(sum/i)))
+	outfile.close()
 
 import threading
 t2 = threading.Thread(target=t2_f)
