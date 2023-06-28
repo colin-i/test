@@ -3,16 +3,15 @@ nexttime=`php -f /home/bc/test/startup/is_day.php`
 colorstyle=`gsettings get org.gnome.desktop.interface color-scheme`
 
 #1 app that use this is at ~/test/act
-#but now it is working with color-scheme only (activity/settings/nautilus)
-#no, is working only when settings app is also opened, when testing activity/nautilus is working only for nautilus
+#it is working with color-scheme only (activity/settings/nautilus), but for activity: only if settings app is also opened
 theme=`gsettings get org.gnome.desktop.interface gtk-theme | tr -d "\'"`
 legacy=` echo -n ${theme} | grep -o "[^\-]*$"`
 bg=`xtermcontrol --get-bg`
 
 if [ "${nexttime:0:1}" = "-" ]; then
-	#if [ "${legacy}" = "dark" ]; then
-	#	gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme:0:$((${#theme}-${#legacy}-1))}'"`
-	#fi
+	if [ "${legacy}" = "dark" ]; then
+		gsettings set org.gnome.desktop.interface gtk-theme `echo -n "'${theme:0:$((${#theme}-${#legacy}-1))}'"`
+	fi
 	if [ "${colorstyle}" != "'default'" ]; then
 		gsettings set org.gnome.desktop.interface color-scheme 'default'
 	fi

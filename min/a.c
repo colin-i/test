@@ -10,7 +10,7 @@
 #include <errno.h>
 #include "a.h"
 
-FILE*logfile=NULL;
+FILE*logfile=NULL;//cc a.c && stat -c %y a.out
 char path[11];
 char*mintimefile="interval";
 int before_time=1;
@@ -144,7 +144,7 @@ void main(int argc,char**argv){
 	size_t n=1000;
 	char*b=malloc(n);
 	time_t pooltime;
-	int lastmins=0;
+	int lastmins;
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
 		putlog(b);
 		if(strstr(b,"**Accepted")!=NULL){
@@ -179,7 +179,9 @@ void main(int argc,char**argv){
 		}else if(shares==1){//to not wait for last share if there is no dust and shares seem ok
 			if(before_time){
 				before_time=mintime(start)<60;
-				if(before_time==0)pooltime=time(NULL);
+				if(before_time==0){
+					pooltime=time(NULL);lastmins=0;
+				}
 			}else{
 				int mins=mintime(pooltime);
 				if(lastmins!=mins){
