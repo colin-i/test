@@ -143,7 +143,7 @@ void main(int argc,char**argv){
 	//int startshares=shares;
 	size_t n=1000;
 	char*b=malloc(n);
-	time_t pooltime=0;
+	time_t pooltime;
 	int lastmins=0;
 	while(getline(&b,&n,stdin)!=-1){//first process must print with flushes
 		putlog(b);
@@ -189,7 +189,7 @@ void main(int argc,char**argv){
 						shares=WEXITSTATUS(system("./a"));//1 return is 0x100
 						if(shares==0)stop();
 						else{
-							pooltime=time(NULL);
+							pooltime=time(NULL);lastmins=0;
 							printf("\npool is not finding blocks\n");
 							if(access("logflag",F_OK)==0)if(logfile==NULL)logfileinit();
 						}
