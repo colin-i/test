@@ -109,16 +109,18 @@ time_t interval_get(){
 	return now;
 }
 
+int send_the_time(time_t start){
+	time_t minutes=mintime(start);
+	if(minutes>65535)printf("No\n");//16777215
+	else send_data("192.168.1.11",&minutes,2);
+	return 0;
+}
 int send_time(time_t start){
 	if(before_time||system("./a")!=0){
 		printf("\nat least one hour and wallet balance\n");
 		return 1;
 	}
-
-	time_t minutes=mintime(start);
-	if(minutes>65535)printf("No\n");//16777215
-	else send_data("192.168.1.11",&minutes,2);
-	return 0;
+	return send_the_time(start);
 }
 
 void logfileinit(){
@@ -189,8 +191,10 @@ void main(int argc,char**argv){
 					printf("\nanother minute, %d\n",mins);
 					if(mins>9){
 						shares=WEXITSTATUS(system("./a"));//1 return is 0x100
-						if(shares==0)stop();
-						else{
+						if(shares==0){
+							send_the_time(start);
+							stop();
+						}else{
 							pooltime=time(NULL);lastmins=0;
 							printf("\npool is not finding blocks\n");
 							if(access("logflag",F_OK)==0)if(logfile==NULL)logfileinit();

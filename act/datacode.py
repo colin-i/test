@@ -60,9 +60,10 @@ def callba(text):
 			dif[x]=b
 	storage=now
 
-	#print the hour
+	#print the hour:min
 	b=text.get_buffer()
-	mark(b,b.get_start_iter(),'small',time.localtime(t).tm_hour.__str__())
+	loctim=time.localtime(t)
+	mark(b,b.get_start_iter(),'small',loctim.tm_hour.__str__()+loctim.tm_min.__str__())
 
 	if len(dif):
 		show(text,dif)
