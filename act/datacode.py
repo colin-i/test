@@ -63,7 +63,7 @@ def callba(text):
 	#print the hour:min
 	b=text.get_buffer()
 	loctim=time.localtime(t)
-	mark(b,b.get_start_iter(),'small',loctim.tm_hour.__str__()+loctim.tm_min.__str__())
+	mark(b,b.get_start_iter(),'small',loctim.tm_hour.__str__()+":"+loctim.tm_min.__str__())
 
 	if len(dif):
 		show(text,dif)

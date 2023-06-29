@@ -35,24 +35,30 @@ echo $tars
 
 if [ -z "${1}" ] || [ "${1}" = "0" ]; then
 	p=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
-	#source name is enough
-	#prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
 
-	i=1
-	#for p in "${prog[@]}"; do
-	raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
-	arhs=
-	for var in "${raw[@]}"
-	do
-		if [ "${var}" = "all" ]; then
-			var=amd64
-		fi
-		arhs+=" ${var}"
+#this will wrong, for example: lunar, jammy, jammy->kinetic, mantic will go with jammy, there is syncSources from 1.0 there
+#ubuntu-archive-tools will use devel and will do right
+#	#source name is enough
+#	#prog=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
+#	i=1
+#	#for p in "${prog[@]}"; do
+#	raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
+#	arhs=
+#	for var in "${raw[@]}"
+#	do
+#		if [ "${var}" = "all" ]; then
+#			var=amd64
+#		fi
+#		arhs+=" ${var}"
+#	done
+#	echo $p $dist $arhs
+#	ppa-copy-packages -O colin-i -p ${p} -s ${dist} -t ${tars} --architectures ${arhs}
+#	#	i=$((i+1))
+#	#done
+
+	for destin in ${tars}; do
+		/home/bc/Desktop/ubuntu-archive-tools/copy-package -y --include-binaries --from ppa:colin-i/ubuntu/ppa -s ${dist} --to-suite ${destin} ${p}
 	done
-	echo $p $dist $arhs
-	ppa-copy-packages -O colin-i -p ${p} -s ${dist} -t ${tars} --architectures ${arhs}
-	#	i=$((i+1))
-	#done
 else
 	#if [ "${1}" = "x" ]; then
 	t=`echo -n ${tars} | grep -o '[^ ]*$'`
