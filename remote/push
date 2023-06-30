@@ -1,5 +1,5 @@
 
-#1 gist/git  optional  2 how to handle  3 push args  4 diffs  5 if mounting
+#1 gist/git  optional  2 how to handle  3 diffs  4 push args  5 if mounting
 
 #git remote add origin https://github.com/colin-i/.git
 #no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config
@@ -15,6 +15,6 @@ fi
 to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
 
 #pass "$@" (with quotes) to see blank ""
-git push ${3} ${to} && \
-~/${5}test/remote/pushdiff ${4} && \
+git push ${4} ${to} && \
+~/${5}test/remote/pushdiff ${3} && \
 ~/${5}test/remote/pushinfo ${to}
