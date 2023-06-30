@@ -3,11 +3,17 @@ if [ -z "${1}" ]; then
 	k=`cat mph`
 else
 	k=${1}
+	if [ -n "${2}" ]; then
+		a=`curl -s "http://ethereum-classic.miningpoolhub.com/index.php?page=api&action=${2}&api_key=${k}"`
+		echo ${a}
+		exit
+	fi
 fi
 a=`curl -s "http://ethereum-classic.miningpoolhub.com/index.php?page=api&action=getuserbalance&api_key=${k}"`
 c=`echo ${a} | jq ".getuserbalance.data.confirmed"`
 d=`echo ${a} | jq ".getuserbalance.data.unconfirmed"`
-s=`echo "${c}+${d}" | bc`
+s=`python -c "print(${c}+${d})"`
+#bc will not know 9.479e-5
 
 if [ -z "${1}" ]; then
 	if [ ! -e ./dust ]; then

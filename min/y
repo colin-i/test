@@ -1,1 +1,10 @@
-./a `cat ~/n/pat5`
+
+b=`cat ~/n/pat5`
+./a ${b}
+
+c=getblockstats
+a=`./a ${b} ${c}`
+d=`echo ${a} | jq ".${c}.data.TotalShares"`
+e=${#d};d=${d:1:e-2}
+e=`echo ${a} | jq ".${c}.data.TotalEstimatedShares"`
+python -c "print(${d}/${e})"
