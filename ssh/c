@@ -1,0 +1,1 @@
+ssh ${1}@192.168.1.${2} 'sudo /usr/sbin/init 0'
