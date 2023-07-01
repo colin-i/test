@@ -18,7 +18,7 @@
 
 #include "a.h"
 
-int sum_time(int more){
+int sum_time(unsigned short more){
 	char path[10];
 	FILE*fp=fopen("/home/bc/min_sum_time","r+");
 	size_t shlen=fread(path,1,10,fp);
@@ -70,7 +70,6 @@ int main(int argc, char **argv)
 	struct sockaddr_in client_addr;
 	int client_fd;
 
-	unsigned int minutes;
 	int n=sizeof(unsigned short);int max=n+1;
 	memset(&client_addr, 0, sizeof(client_addr));
 	while(1){
@@ -84,7 +83,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 
-		//minutes^=minutes;
+		unsigned int minutes;
 		char re = recv(client_fd, &minutes, max, 0);
 		if (re == -1){//anyone can send more than 3 bytes on the network
 			printf("Error when receiving message: %s\n", strerror(errno));
@@ -99,8 +98,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		int s=sum_time(minutes);
-
+		int s=sum_time((unsigned short)minutes);
 		#define for "notify-send \"Time\" \"%hu %hu\""
 		char out[sizeof(for)-3-3+5+5+1];
 		sprintf(out,for,minutes,s);
