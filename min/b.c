@@ -1,4 +1,5 @@
 
+//waittime
 //to be added at Startup Applications
 
 //Sample for UNIX domain socket
@@ -16,6 +17,21 @@
 //#include <libgen.h> //basename
 
 #include "a.h"
+
+int sum_time(int more){
+	char path[10];
+	FILE*fp=fopen("/home/bc/min_sum_time","r+");
+	size_t shlen=fread(path,1,10,fp);
+	path[shlen]='\0';
+	int newtime=atoi(path)+more;
+
+	shlen=sprintf(path,"%u",newtime);
+	rewind(fp);//fgetpos has one cursor
+	fwrite(path,shlen,1,fp);
+	fclose(fp);
+
+	return newtime;
+}
 
 int main(int argc, char **argv)
 {
@@ -83,10 +99,14 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		#define for "notify-send \"Time\" \"%hu\""
-		char out[sizeof(for)-2+5];
-		sprintf(out,for,minutes);
+		int s=sum_time(minutes);
+
+		#define for "notify-send \"Time\" \"%hu %hu\""
+		char out[sizeof(for)-3-3+5+5+1];
+		sprintf(out,for,minutes,s);
 		system(out);
+		#define max_per_month (30*60)+25 //this will be exact 365 hours per year
+		if(s>max_per_month)system("notify-send \"Done\"");
 		break;
 	}
 	//unlink(SERVER_SOCK_PATH);

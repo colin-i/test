@@ -1,4 +1,5 @@
 
+//acceptmin
 //to be added at Startup Applications
 
 //Sample for UNIX domain socket
