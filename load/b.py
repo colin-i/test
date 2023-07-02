@@ -18,6 +18,8 @@ zone=False
 outfile=open("./load-output.html","w")
 middle=95
 hysteresis=5
+paused=False
+chzone="will change zone"
 
 import sys
 try:
@@ -28,7 +30,7 @@ except Exception:
 print("middle="+str(middle)+",hysteresis="+str(hysteresis))
 
 def outtitle(s):
-	print(f"{bcolors.bold}Overall{bcolors.end}")  #if not end will continue at next print
+	print(f"{bcolors.bold}"+s+"{bcolors.end}")  #if not end will continue at next print
 	outfile.write("<h3>"+s+"</h3>\n")
 def outlineend():
 	print()
@@ -52,11 +54,28 @@ def outrtext(sum,i):
 		s=formstr(sum,i)
 		print(f" {bcolors.red}"+s+f"{bcolors.end} ",end='')
 		outfile.write(" <span style=\"color:red\">"+s+"</span> ")
-
 def formstr(sum,i):
 	return "Entries: "+str(i)+" , Ratio: "+str(int(sum/i))
+
+def show(vals,text):
+	sum=0;i=0
+	sumleft=0;ileft=0;sumcenter=0;icenter=0;sumright=0;iright=0;
+	left=middle-hysteresis;right=middle+hysteresis
+	for values in vals:
+		for val in values:
+			sum+=val;i+=1
+			if val<left:
+				sumleft+=val;ileft+=1
+			elif val<right:
+				sumcenter+=val;icenter+=1
+			else:
+				sumright+=val;iright+=1
+	outtitle(text)
+	outline(formstr(sum,i))
+	outgtext(sumleft,ileft);outytext(sumcenter,icenter);outrtext(sumright,iright);outlineend()
+
 def t2_f():
-	global zone
+	global zone, values
 	valuesall=[]
 	try:
 		while True:
@@ -72,7 +91,7 @@ def t2_f():
 				print("new zone")
 				zone=False
 				values=[val];valuesall.append(values)
-			else:
+			elif paused==False:
 				values.append(val)
 			print(val)
 
@@ -81,35 +100,40 @@ def t2_f():
 			conn.close()
 	except Exception:
 		print("closed")
-	sum=0;i=0
-	sumleft=0;ileft=0;sumcenter=0;icenter=0;sumright=0;iright=0;
-	left=middle-hysteresis;right=middle+hysteresis
-	for values in valuesall:
-		for val in values:
-			sum+=val;i+=1
-			if val<left:
-				sumleft+=val;ileft+=1
-			elif val<right:
-				sumcenter+=val;icenter+=1
-			else:
-				sumright+=val;iright+=1
-	outtitle("Overall")
-	outline(formstr(sum,i))
-	outgtext(sumleft,ileft);outytext(sumcenter,icenter);outrtext(sumright,iright);outlineend()
+
+	zonedone()
+	show(valuesall,"Overall")
 	outfile.close()
+
+def zonedone():
+	global zone
+	print(chzone)
+	zone=True
+	show([values],"Zone")
 
 import threading
 t2 = threading.Thread(target=t2_f)
 t2.start()
 
+import readchar
+c=readchar.readchar()
+print(chzone)
+zone=True
+
 while True:
-	import readchar
 	c=readchar.readchar()
 	if c=='q':
 		break
+	elif c==' ':
+		if paused==False:
+			paused=True
+			print("paused")
+		else:
+			paused=False
+			print("resumed")
 	else:
-		print("will change zone")
-		zone=True
+		zonedone()
+
 print("will close")
 listener.close()   #this will close after accept gets next client
 #if there are threads python will not exit

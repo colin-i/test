@@ -1,1 +1,1 @@
-date; while :; do ./x; sleep 3600; done
+while :; do ./x; date; sleep 3600; done
