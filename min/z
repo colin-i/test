@@ -1,4 +1,9 @@
 
-a=`curl -s https://www.zpool.ca/api/walletEX?address=DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu | jq ".payouts[0]"`
-date -d @`echo $a | jq ".time"`
-echo $a | jq ".amount"
+a=`curl -s https://www.zpool.ca/api/walletEX?address=DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu`
+b=`echo ${a} | jq ".payouts[0]"`
+if [ "${b}" != "null" ]; then
+	date -d @`echo ${b} | jq ".time"`
+	echo ${b} | jq ".amount"
+else
+	echo $a | jq ".unpaid"
+fi
