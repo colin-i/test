@@ -58,7 +58,7 @@ def test(t):
 
 if len(sys.argv)==7:
 	on=bool(int(sys.argv[1]))
-	min=25+float(sys.argv[2])
+	min=24+float(sys.argv[2])
 	max=27+float(sys.argv[3])
 	sen2=bool(int(sys.argv[4]))
 	send=bool(int(sys.argv[5]))
