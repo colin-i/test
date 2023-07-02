@@ -1,1 +1,1 @@
-ssh ${1}@192.168.1.${2} 'sudo /usr/sbin/init 0'
+sshpass -p `cat ~/n/pat3` ssh ${1}@192.168.1.${2} 'sudo /usr/sbin/init 0'
