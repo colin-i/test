@@ -8,7 +8,9 @@ echo ${sincelast}
 sleep 2
 
 a=`./a ${k} getdashboarddata`
-prog=`echo ${a} | jq ".getdashboarddata.data.pool.shares.progress"`
+a=`echo ${a} | jq ".getdashboarddata.data"`
+
+prog=`echo ${a} | jq ".pool.shares.progress"`
 echo ${prog}
 expected=`echo "${sincelast}*100/${prog}" | bc`
 dif=`echo "${expected}-${sincelast}" | bc`
@@ -16,3 +18,7 @@ dif=`echo "${expected}-${sincelast}" | bc`
 if [ "${dif}" -ge 0 ]; then echo ${dif} remaining
 else echo $((0-dif)) after 100%
 fi
+
+a=`echo ${a} | jq ".personal"`
+echo valid=`echo ${a} | jq ".shares.valid"`
+echo estimates=`echo ${a} | jq ".estimates.block"`
