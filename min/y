@@ -10,7 +10,5 @@ e=${#d};d=${d:1:e-2}
 e=`echo ${a} | jq ".${c}.data.TotalEstimatedShares"`
 python -c "print(${d}/${e})"
 
-sleep 2
-c=getpoolstatus
-a=`./a ${b} ${c}`
-echo ${a} | jq ".${c}.data.efficiency"
+#getpoolstatus efficiency
+#no, the amount is the same +- transactions fees, efficiency here is 100 - invalid percent, and the fees somewhere at e-5 and / thousends of workers, insignificant change
