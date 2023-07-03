@@ -1,8 +1,9 @@
 
 k=`cat ~/n/pat5`
 
-a=`./a ${k} getpoolstatus`
-sincelast=`echo ${a} | jq ".getpoolstatus.data.timesincelast"`
+#getpoolstatus .getpoolstatus.data.timesincelast
+a=`./a ${k} gettimesincelastblock`
+sincelast=`echo ${a} | jq ".gettimesincelastblock.data"`
 echo ${sincelast}
 
 sleep 2

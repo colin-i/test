@@ -20,6 +20,7 @@ middle=95
 hysteresis=5
 paused=False
 chzone="will change zone"
+zonenr=0
 
 import sys
 try:
@@ -30,7 +31,7 @@ except Exception:
 print("middle="+str(middle)+",hysteresis="+str(hysteresis))
 
 def outtitle(s):
-	print(f"{bcolors.bold}"+s+"{bcolors.end}")  #if not end will continue at next print
+	print(f"{bcolors.bold}"+s+f"{bcolors.end}")  #if not end will continue at next print
 	outfile.write("<h3>"+s+"</h3>\n")
 def outlineend():
 	print()
@@ -61,8 +62,8 @@ def show(vals,text):
 	sum=0;i=0
 	sumleft=0;ileft=0;sumcenter=0;icenter=0;sumright=0;iright=0;
 	left=middle-hysteresis;right=middle+hysteresis
-	for values in vals:
-		for val in values:
+	for valus in vals:
+		for val in valus:
 			sum+=val;i+=1
 			if val<left:
 				sumleft+=val;ileft+=1
@@ -74,8 +75,14 @@ def show(vals,text):
 	outline(formstr(sum,i))
 	outgtext(sumleft,ileft);outytext(sumcenter,icenter);outrtext(sumright,iright);outlineend()
 
-def t2_f():
+def newzone(val):
 	global zone, values
+	print("new zone")
+	zone=False
+	values=[val];valuesall.append(values)
+
+def t2_f():
+	global zone, values, valuesall
 	valuesall=[]
 	try:
 		while True:
@@ -84,13 +91,13 @@ def t2_f():
 			conn.close()
 
 			if zone:
+				newzone(val)
 				break
 			print(val)
 		while True:
 			if zone:
-				print("new zone")
-				zone=False
-				values=[val];valuesall.append(values)
+				zonedone()
+				newzone(val)
 			elif paused==False:
 				values.append(val)
 			print(val)
@@ -105,11 +112,14 @@ def t2_f():
 	show(valuesall,"Overall")
 	outfile.close()
 
-def zonedone():
+def zonedoneset():
 	global zone
 	print(chzone)
 	zone=True
-	show([values],"Zone")
+def zonedone():
+	global zonenr
+	zonenr=zonenr+1
+	show([values],"Zone "+str(zonenr))
 
 import threading
 t2 = threading.Thread(target=t2_f)
@@ -128,11 +138,12 @@ while True:
 		if paused==False:
 			paused=True
 			print("paused")
+			zonedoneset()
 		else:
 			paused=False
 			print("resumed")
 	else:
-		zonedone()
+		zonedoneset()
 
 print("will close")
 listener.close()   #this will close after accept gets next client
