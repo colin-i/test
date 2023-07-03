@@ -19,7 +19,6 @@ outfile=open("./load-output.html","w")
 middle=95
 hysteresis=5
 paused=False
-chzone="will change zone"
 zonenr=0
 
 import sys
@@ -55,25 +54,28 @@ def outrtext(sum,i):
 		s=formstr(sum,i)
 		print(f" {bcolors.red}"+s+f"{bcolors.end} ",end='')
 		outfile.write(" <span style=\"color:red\">"+s+"</span> ")
+def ens(i):
+	return "Entries: "+str(i)
+def ratio(sum,i):
+	return " , Ratio: "+str(int(i*100/sum))
 def formstr(sum,i):
-	return "Entries: "+str(i)+" , Ratio: "+str(int(sum/i))
-
+	return ens(i)+ratio(sum,i)
 def show(vals,text):
-	sum=0;i=0
-	sumleft=0;ileft=0;sumcenter=0;icenter=0;sumright=0;iright=0;
+	i=0;ileft=0;icenter=0;iright=0;
+	#sum=0;sumleft=0;sumcenter=0;sumright=0;
 	left=middle-hysteresis;right=middle+hysteresis
 	for valus in vals:
 		for val in valus:
-			sum+=val;i+=1
+			i+=1 #sum+=val
 			if val<left:
-				sumleft+=val;ileft+=1
+				ileft+=1 #sumleft+=val
 			elif val<right:
-				sumcenter+=val;icenter+=1
+				icenter+=1 #sumcenter+=val
 			else:
-				sumright+=val;iright+=1
+				iright+=1 #sumright+=val
 	outtitle(text)
-	outline(formstr(sum,i))
-	outgtext(sumleft,ileft);outytext(sumcenter,icenter);outrtext(sumright,iright);outlineend()
+	outline(ens(i))
+	outgtext(i,ileft);outytext(i,icenter);outrtext(i,iright);outlineend()
 
 def newzone(val):
 	global zone, values
@@ -92,19 +94,19 @@ def t2_f():
 
 			if zone:
 				newzone(val)
+				print(val)
 				break
 			print(val)
 		while True:
+			conn = listener.accept()
+			val=int(conn.recv())
+			conn.close()
 			if zone:
 				zonedone()
 				newzone(val)
 			elif paused==False:
 				values.append(val)
 			print(val)
-
-			conn = listener.accept()
-			val=int(conn.recv())
-			conn.close()
 	except Exception:
 		print("closed")
 
@@ -114,7 +116,7 @@ def t2_f():
 
 def zonedoneset():
 	global zone
-	print(chzone)
+	print("will change zone")
 	zone=True
 def zonedone():
 	global zonenr
@@ -127,7 +129,7 @@ t2.start()
 
 import readchar
 c=readchar.readchar()
-print(chzone)
+print("will start")
 zone=True
 
 while True:
