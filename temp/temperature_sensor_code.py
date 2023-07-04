@@ -32,12 +32,17 @@ def read_gree_temp():
 		return float('nan')
 	return t
 
+import os
+print()
+iplocation=os.path.expanduser('~')+"/gree_ip"
+with open(iplocation,"rb") as f:
+	greeip=f.read()
 
 def gree(a,b):
 	s='Pow='+a
 	if send:
 		#return is 0 at timeout later
-		subprocess.run([sys.executable,'gree.py','-c','192.168.1.9','-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
+		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
 		#.returncode
 	print(s)
 	global on
