@@ -1,7 +1,4 @@
 
-#import os
-#print(os.get_terminal_size().columns)
-
 class bcolors:
 	red = '\033[101m'
 	green = '\033[102m'
@@ -10,6 +7,10 @@ class bcolors:
 	bold = '\033[1m'
 	#underline = '\033[4m'
 
+import sys
+import threading
+import readchar
+import os
 from multiprocessing.connection import Listener
 
 address = ('192.168.1.15', 6000)     # family is deduced to be 'AF_INET'
@@ -21,7 +22,6 @@ hysteresis=5
 paused=False
 zonenr=0
 
-import sys
 try:
 	middle=int(sys.argv[1])
 	hysteresis=int(sys.argv[2])
@@ -76,6 +76,7 @@ def show(vals,text):
 	outtitle(text)
 	outline(ens(i))
 	outgtext(i,ileft);outytext(i,icenter);outrtext(i,iright);outlineend()
+	zoneline(i,ileft,icenter,iright)
 
 def newzone(val):
 	global zone, values
@@ -123,14 +124,28 @@ def zonedone():
 	zonenr=zonenr+1
 	show([values],"Zone "+str(zonenr))
 
-import threading
 t2 = threading.Thread(target=t2_f)
 t2.start()
 
-import readchar
 c=readchar.readchar()
 print("will start")
 zone=True
+
+def zoneline(i,l,c,r):
+	columns=os.get_terminal_size().columns
+	x=l*columns
+	y=c*columns
+	z=r*columns
+	solids=[int(x/i),int(y/i),int(z/i)]
+	rests=[(x%i,0),(y%i,1),(z%i,2)]
+	columnstobeshared=(rests[0]+rests[1]+rests[2])/i
+	rests.sort(reverse=True)
+
+	while columnstobeshared:
+		rest,col=rests[0]
+		rests.pop(0)
+		solids[col]+=1
+		columnstobeshared-=1
 
 while True:
 	c=readchar.readchar()
