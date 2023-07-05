@@ -1,9 +1,11 @@
 
 
-from multiprocessing.connection import Client
 import sys
+import os
+from multiprocessing.connection import Client
 
-address = ('192.168.1.15', 6000)
+with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
+	address = (f.read(), 6000)
 conn = Client(address)
 conn.send(sys.argv[1])
 conn.close()

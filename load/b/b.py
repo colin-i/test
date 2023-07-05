@@ -13,47 +13,39 @@ import readchar
 import os
 from multiprocessing.connection import Listener
 
-address = ('192.168.1.15', 6000)     # family is deduced to be 'AF_INET'
-listener = Listener(address)
-zone=False
-outfile=open("./load-output.html","w")
-middle=95
-hysteresis=5
-paused=False
-zonenr=0
-
-try:
-	middle=int(sys.argv[1])
-	hysteresis=int(sys.argv[2])
-except Exception:
-	pass
-print("middle="+str(middle)+",hysteresis="+str(hysteresis))
-
 def outtitle(s):
 	print(f"{bcolors.bold}"+s+f"{bcolors.end}")  #if not end will continue at next print
 	outfile.write("<h3>"+s+"</h3>\n")
 def outlineend():
+	outlineend2(outfile)
+def outlineend2(outfile): #can't let outfile twice declared
 	print()
 	outfile.write("<br>\n")
 def outline(s):
 	print(s,end='')
 	outfile.write(s)
 	outlineend()
+def text_and_colors(s,c):
+	e=f"{bcolors.end}"
+	print(" "+c+" "+e+s+c+" "+e+" ",end='')
+def text_and_colors_file(s,c):
+	a=" <span style=\"color:"+c+"\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> "
+	outfile.write(a+s+a)
 def outgtext(sum,i):
 	if i:
 		s=formstr(sum,i)
-		print(f" {bcolors.green}"+s+f"{bcolors.end} ",end='')
-		outfile.write(" <span style=\"color:green\">"+s+"</span> ")
+		text_and_colors(s,f"{bcolors.green}")
+		text_and_colors_file(s,"green")
 def outytext(sum,i):
 	if i:
 		s=formstr(sum,i)
-		print(f" {bcolors.yellow}"+s+f"{bcolors.end} ",end='')
-		outfile.write(" <span style=\"color:yellow\">"+s+"</span> ")
+		text_and_colors(s,f"{bcolors.yellow}")
+		text_and_colors_file(s,"yellow")
 def outrtext(sum,i):
 	if i:
 		s=formstr(sum,i)
-		print(f" {bcolors.red}"+s+f"{bcolors.end} ",end='')
-		outfile.write(" <span style=\"color:red\">"+s+"</span> ")
+		text_and_colors(s,f"{bcolors.red}")
+		text_and_colors_file(s,"red")
 def ens(i):
 	return "Entries: "+str(i)
 def ratio(sum,i):
@@ -76,6 +68,7 @@ def show(vals,text):
 	outtitle(text)
 	outline(ens(i))
 	outgtext(i,ileft);outytext(i,icenter);outrtext(i,iright);outlineend()
+
 	zoneline(i,ileft,icenter,iright)
 
 def newzone(val):
@@ -124,44 +117,46 @@ def zonedone():
 	zonenr=zonenr+1
 	show([values],"Zone "+str(zonenr))
 
-t2 = threading.Thread(target=t2_f)
-t2.start()
+if __name__ == "__main__":
+	with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
+		address = (f.read(), 6000)     # family is deduced to be 'AF_INET'
+	listener = Listener(address)
+	zone=False
+	outfile=open("./load-output.html","w")
+	middle=95
+	hysteresis=5
+	paused=False
+	zonenr=0
 
-c=readchar.readchar()
-print("will start")
-zone=True
+	from .bb import zoneline
 
-def zoneline(i,l,c,r):
-	columns=os.get_terminal_size().columns
-	x=l*columns
-	y=c*columns
-	z=r*columns
-	solids=[int(x/i),int(y/i),int(z/i)]
-	rests=[(x%i,0),(y%i,1),(z%i,2)]
-	columnstobeshared=(rests[0]+rests[1]+rests[2])/i
-	rests.sort(reverse=True)
+	try:
+		middle=int(sys.argv[1])
+		hysteresis=int(sys.argv[2])
+	except Exception:
+		pass
+	print("middle="+str(middle)+",hysteresis="+str(hysteresis))
 
-	while columnstobeshared:
-		rest,col=rests[0]
-		rests.pop(0)
-		solids[col]+=1
-		columnstobeshared-=1
-
-while True:
+	t2 = threading.Thread(target=t2_f)
+	t2.start()
 	c=readchar.readchar()
-	if c=='q':
-		break
-	elif c==' ':
-		if paused==False:
-			paused=True
-			print("paused")
-			zonedoneset()
+	print("will start")
+	zone=True
+	while True:
+		c=readchar.readchar()
+		if c=='q':
+			break
+		elif c==' ':
+			if paused==False:
+				paused=True
+				print("paused")
+				zonedoneset()
+			else:
+				paused=False
+				print("resumed")
 		else:
-			paused=False
-			print("resumed")
-	else:
-		zonedoneset()
+			zonedoneset()
 
-print("will close")
-listener.close()   #this will close after accept gets next client
-#if there are threads python will not exit
+	print("will close")
+	listener.close()   #this will close after accept gets next client
+	#if there are threads python will not exit

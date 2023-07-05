@@ -33,7 +33,6 @@ def read_gree_temp():
 	return t
 
 import os
-print()
 iplocation=os.path.expanduser('~')+"/gree_ip"
 with open(iplocation,"rb") as f:
 	greeip=f.read()
