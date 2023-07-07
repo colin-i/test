@@ -38,6 +38,7 @@ done
 rm ./dust
 
 if [ -e ~/stopmin ]; then
+	~/send_time `cat interval`
 	rm ~/stopmin
 else
 	#https://manpages.ubuntu.com/manpages/bionic/en/man5/sudoers_timestamp.5.html
