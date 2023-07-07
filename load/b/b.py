@@ -56,13 +56,12 @@ if __name__ == "__main__":
 	def show(vals,text):
 		i=0;ileft=0;icenter=0;iright=0;
 		#sum=0;sumleft=0;sumcenter=0;sumright=0;
-		left=middle-hysteresis;right=middle+hysteresis
 		for valus in vals:
 			for val in valus:
 				i+=1 #sum+=val
-				if val<left:
+				if val<leftlim:
 					ileft+=1 #sumleft+=val
-				elif val<right:
+				elif val<rightlim:
 					icenter+=1 #sumcenter+=val
 				else:
 					iright+=1 #sumright+=val
@@ -89,10 +88,10 @@ if __name__ == "__main__":
 
 				if zone:
 					newzone(val)
-					print(val)
 					break
-				print(val)
+				valueline(val,False)
 			while True:
+				valueline(val,True)
 				conn = listener.accept()
 				val=int(conn.recv())
 				conn.close()
@@ -101,7 +100,6 @@ if __name__ == "__main__":
 					newzone(val)
 				elif paused==False:
 					values.append(val)
-				print(val)
 		except Exception:
 			print("closed")
 
@@ -127,15 +125,22 @@ if __name__ == "__main__":
 	hysteresis=5
 	paused=False
 	zonenr=0
-
-	from .bb import zoneline
-
 	try:
 		middle=int(sys.argv[1])
 		hysteresis=int(sys.argv[2])
 	except Exception:
 		pass
 	print("middle="+str(middle)+",hysteresis="+str(hysteresis))
+	leftlim=middle-hysteresis;rightlim=middle+hysteresis
+
+	#first value is the process id for maximum usage calculations
+	conn = listener.accept()
+	global procthreads
+	procthreads=conn.recv()
+	conn.close()
+
+	from .bb import zoneline
+	from .bb import valueline
 
 	t2 = threading.Thread(target=t2_f)
 	t2.start()

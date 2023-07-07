@@ -5,7 +5,8 @@
 
 #-n
 
-cgminer -o stratum+tcp://sha256.eu.mine.zpool.ca:3333 -u DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu -p c=DGB
+cgminer -o stratum+tcp://sha256.eu.mine.zpool.ca:3333 -u DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu -p `cat ~/asic_password`
+#c=DGB
 #,zap=DGB-sha
 #"If you want to always mine the most profitable coins, do NOT use ZAP"
 

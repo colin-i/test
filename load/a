@@ -24,6 +24,8 @@ CLK_TCK=$(getconf CLK_TCK)
 #echo The PID $PID has spent ${PROCESS_UTIME_SEC}s in user mode, ${PROCESS_STIME_SEC}s in kernel mode. Total CPU usage is ${PROCESS_USAGE_SEC}s
 #echo The process has been running for ${PROCESS_ELAPSED_SEC}s. So, the process has used ${PROCESS_USAGE}% of CPU
 
+python aa.py ${PID}
+
 while :; do
 	sleep 10
 
