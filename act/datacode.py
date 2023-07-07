@@ -20,7 +20,7 @@ def init():
 	global storage
 	storage=form(query.today())
 	show(text,storage)
-	line(text)
+	smallmark(text,time.time())
 	GLib.timeout_add_seconds(60*60,callba,text)
 	return text
 
@@ -41,6 +41,10 @@ def show(text,data):
 
 def mark(b,it,s,x):
 	b.insert_markup(it,'<span size=\"'+s+'\">'+x+'</span>'+line_end,-1)
+def smallmark(text,t):
+	loctim=time.localtime(t)
+	b=text.get_buffer()
+	mark(b,b.get_start_iter(),'small',loctim.tm_hour.__str__()+":"+loctim.tm_min.__str__())
 
 def callba(text):
 	t=time.time()
@@ -61,9 +65,7 @@ def callba(text):
 	storage=now
 
 	#print the hour:min
-	b=text.get_buffer()
-	loctim=time.localtime(t)
-	mark(b,b.get_start_iter(),'small',loctim.tm_hour.__str__()+":"+loctim.tm_min.__str__())
+	smallmark(text,t)
 
 	if len(dif):
 		show(text,dif)
