@@ -5,10 +5,10 @@
 
 #-n
 
-cgminer -o stratum+tcp://sha256.eu.mine.zpool.ca:3333 -u DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu -p `cat ~/asic_password`
+cgminer -o stratum+tcp://sha256.eu.mine.zpool.ca:3333 -u DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu -p `cat ~/asic_password` `cat ~/asic_args`
 #c=DGB,zap=DGB-sha,d=64
 #"If you want to always mine the most profitable coins, do NOT use ZAP", but is more (when others are coming and complete the block)
 #dif example: 18G+333M, work utility: /=60, 18333M/60 , ~ 305/minute at dif 64 , ~ 5 shares/minute
+#--gekko-2pac-freq 150
 
 #cgminer -o stratum+tcp://europe.dgb256.online:8080 -u DPK6t296EMSHNMzuoMyP2zbxRjtisaaCRu -p x
-#--gekko-2pac-freq 150
