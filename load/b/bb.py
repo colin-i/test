@@ -1,10 +1,11 @@
 
 import os
 import sys
-import math
 
 from .b import bcolors
 from .b import outlineend2
+from .b import outlineend3
+from .b import colortext
 
 outfile=sys.modules['__main__'].outfile
 leftlim=sys.modules['__main__'].leftlim
@@ -12,9 +13,18 @@ rightlim=sys.modules['__main__'].rightlim
 centersize=rightlim-leftlim
 rightsize=(sys.modules['__main__'].procthreads*100)-rightlim
 
+outfile.write("<head><style>\
+	.green{background-color:green;display:inline-block}\
+	.yellow{background-color:yellow;display:inline-block}\
+	.red{background-color:red;display:inline-block}\
+	.chgreen{color:green}\
+	.chyellow{color:yellow}\
+	.chred{color:red}\
+</style></head>\n")
+
 def write2(z,c,a):
 	#from .b import outfile #cannot import name 'outfile' from 'b.b'
-	outfile.write("<div style=\"width:"+str(z)+"%;background-color:"+c+";display:inline-block\">"+a+"</div>")
+	outfile.write("<div style=\"width:"+str(z)+"%\" class=\""+c+"\">"+a+"</div>")
 def write(z,c):
 	write2(z,c,"&nbsp;")
 
@@ -55,7 +65,6 @@ def zoneline(i,l,c,r):
 	outlineend2(outfile)
 
 def valueline(val,started):
-	columns=os.get_terminal_size().columns
 	if val<leftlim:
 		a=val/leftlim
 		b=f"{bcolors.green}"
@@ -68,14 +77,17 @@ def valueline(val,started):
 		a=(val-rightlim)/rightsize
 		b=f"{bcolors.red}"
 		c="red"
-	x=math.ceil(columns*a)
-	y=math.ceil(100*a)
+	x=round(os.get_terminal_size().columns*a)
+	y=round(100*a)
 	d=f"{bcolors.end}"
 
 	s=str(val);print(b+s+d,end='')
 	x-=len(s)
 	if(x>0):
 		print(b+form(x)+d,end='')
-	outlineend2(outfile)
 	if started:
-		write2(y,c,s)
+		if y>0:
+			write2(y,c,s)
+		else:
+			outfile.write(colortext(c,s))
+	outlineend3(outfile,started)

@@ -6,9 +6,14 @@ class bcolors:
 	end = '\033[0m'
 	bold = '\033[1m'
 	#underline = '\033[4m'
-def outlineend2(outfile): #can't let outfile twice declared
+def outlineend2(outfile):
+	outlineend3(outfile,True)
+def outlineend3(outfile,started): #can't let outfile twice declared
 	print()
-	outfile.write("<br>\n")
+	if started:
+		outfile.write("<br>\n")
+def colortext(c,text):
+	return "<span class=\"ch"+c+"\">"+text+"</span>"
 
 if __name__ == "__main__":
 	import sys
@@ -30,7 +35,7 @@ if __name__ == "__main__":
 		e=f"{bcolors.end}"
 		print(" "+c+" "+e+s+c+" "+e+" ",end='')
 	def text_and_colors_file(s,c):
-		a=" <span style=\"color:"+c+"\">&#x2588;</span> "
+		a=" "+colortext(c,"&#x2588;")+" "
 		outfile.write(a+s+a)
 	def outgtext(sum,i):
 		if i:
@@ -53,7 +58,7 @@ if __name__ == "__main__":
 		return " , Ratio: "+str(int(i*100/sum))
 	def formstr(sum,i):
 		return ens(i)+ratio(sum,i)
-	def show(vals,text):
+	def show(vals):
 		i=0;ileft=0;icenter=0;iright=0;
 		#sum=0;sumleft=0;sumcenter=0;sumright=0;
 		for valus in vals:
@@ -65,15 +70,15 @@ if __name__ == "__main__":
 					icenter+=1 #sumcenter+=val
 				else:
 					iright+=1 #sumright+=val
-		outtitle(text)
 		outline(ens(i))
 		outgtext(i,ileft);outytext(i,icenter);outrtext(i,iright);outlineend()
 
 		zoneline(i,ileft,icenter,iright)
 
 	def newzone(val):
-		global zone, values
-		print("new zone")
+		global zone, values, zonenr
+		zonenr=zonenr+1
+		outtitle("Zone "+str(zonenr))
 		zone=False
 		values=[val];valuesall.append(values)
 
@@ -104,7 +109,8 @@ if __name__ == "__main__":
 			print("closed")
 
 		zonedone()
-		show(valuesall,"Overall")
+		outtitle("Overall")
+		show(valuesall)
 		outfile.close()
 
 	def zonedoneset():
@@ -112,9 +118,7 @@ if __name__ == "__main__":
 		print("will change zone")
 		zone=True
 	def zonedone():
-		global zonenr
-		zonenr=zonenr+1
-		show([values],"Zone "+str(zonenr))
+		show([values])
 
 	with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
 		address = (f.read(), 6000)     # family is deduced to be 'AF_INET'
