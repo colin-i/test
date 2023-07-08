@@ -4,7 +4,7 @@ class bcolors:
 	low = '\x1b[37;44m'
 
 	normal = '\x1b[30;42m'
-	#yellow? 103 and 48;2;255;255;0 will be same vga orange 170,85,0 (43), to differ from red(170,0,0) use 104 which is 0,0,170
+	#yellow? 103 and 48;2;255;255;0 will be same vga orange 170,85,0 (43), to differ from red(170,0,0) use 44 which is 0,0,170
 
 	end = '\033[0m'
 	bold = '\033[1m'
