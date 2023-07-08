@@ -9,6 +9,9 @@ with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
 conn = Client(address)
 
 pid=int(sys.argv[1])
-conn.send(len(os.sched_getaffinity(pid)))
+if pid:
+	conn.send(len(os.sched_getaffinity(pid)))
+else:
+	conn.send(1) #system overall case
 
 conn.close()

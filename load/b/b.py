@@ -1,11 +1,18 @@
 
 class bcolors:
-	red = '\033[101m'
-	green = '\033[102m'
-	yellow = '\033[103m'
+	high = '\x1b[37;41m'
+	low = '\x1b[37;44m'
+
+	normal = '\x1b[30;42m'
+	#yellow? 103 and 48;2;255;255;0 will be same vga orange 170,85,0 (43), to differ from red(170,0,0) use 104 which is 0,0,170
+
 	end = '\033[0m'
 	bold = '\033[1m'
 	#underline = '\033[4m'
+def outline2(s,outfile):
+	print(s,end='')
+	outfile.write(s)
+	outlineend2(outfile)
 def outlineend2(outfile):
 	outlineend3(outfile,True)
 def outlineend3(outfile,started): #can't let outfile twice declared
@@ -25,12 +32,10 @@ if __name__ == "__main__":
 	def outtitle(s):
 		print(f"{bcolors.bold}"+s+f"{bcolors.end}")  #if not end will continue at next print
 		outfile.write("<h3>"+s+"</h3>\n")
+	def outline(s):
+		outline2(s,outfile)
 	def outlineend():
 		outlineend2(outfile)
-	def outline(s):
-		print(s,end='')
-		outfile.write(s)
-		outlineend()
 	def text_and_colors(s,c):
 		e=f"{bcolors.end}"
 		print(" "+c+" "+e+s+c+" "+e+" ",end='')
@@ -40,18 +45,18 @@ if __name__ == "__main__":
 	def outgtext(sum,i):
 		if i:
 			s=formstr(sum,i)
-			text_and_colors(s,f"{bcolors.green}")
-			text_and_colors_file(s,"green")
+			text_and_colors(s,f"{bcolors.low}")
+			text_and_colors_file(s,"low")
 	def outytext(sum,i):
 		if i:
 			s=formstr(sum,i)
-			text_and_colors(s,f"{bcolors.yellow}")
-			text_and_colors_file(s,"yellow")
+			text_and_colors(s,f"{bcolors.normal}")
+			text_and_colors_file(s,"normal")
 	def outrtext(sum,i):
 		if i:
 			s=formstr(sum,i)
-			text_and_colors(s,f"{bcolors.red}")
-			text_and_colors_file(s,"red")
+			text_and_colors(s,f"{bcolors.high}")
+			text_and_colors_file(s,"high")
 	def ens(i):
 		return "Entries: "+str(i)
 	def ratio(sum,i):
@@ -125,7 +130,7 @@ if __name__ == "__main__":
 	listener = Listener(address)
 	zone=False
 	outfile=open("./load-output.html","w")
-	middle=95
+	middle=90
 	hysteresis=5
 	paused=False
 	zonenr=0
@@ -134,7 +139,6 @@ if __name__ == "__main__":
 		hysteresis=int(sys.argv[2])
 	except Exception:
 		pass
-	print("middle="+str(middle)+",hysteresis="+str(hysteresis))
 	leftlim=middle-hysteresis;rightlim=middle+hysteresis
 
 	#first value is the process id for maximum usage calculations

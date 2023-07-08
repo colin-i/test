@@ -3,6 +3,7 @@ import os
 import sys
 
 from .b import bcolors
+from .b import outline2
 from .b import outlineend2
 from .b import outlineend3
 from .b import colortext
@@ -14,13 +15,15 @@ centersize=rightlim-leftlim
 rightsize=(sys.modules['__main__'].procthreads*100)-rightlim
 
 outfile.write("<head><style>\
-	.green{background-color:green;display:inline-block}\
-	.yellow{background-color:yellow;display:inline-block}\
-	.red{background-color:red;display:inline-block}\
-	.chgreen{color:green}\
-	.chyellow{color:yellow}\
-	.chred{color:red}\
+	.low{background-color:blue;display:inline-block}\
+	.normal{background-color:green;display:inline-block}\
+	.high{background-color:red;display:inline-block}\
+	.chlow{color:blue}\
+	.chnormal{color:green}\
+	.chhigh{color:red}\
 </style></head>\n")
+
+outline2("left "+str(leftlim)+" , center "+str(centersize)+" , right "+str(rightsize),outfile)
 
 def write2(z,c,a):
 	#from .b import outfile #cannot import name 'outfile' from 'b.b'
@@ -54,29 +57,29 @@ def zoneline(i,l,c,r):
 	term=shares(i,l,c,r,os.get_terminal_size().columns)
 	file=shares(i,l,c,r,100)
 	if term[0]:
-		print(f"{bcolors.green}"+form(term[0])+f"{bcolors.end}",end='')
-		write(file[0],"green")
+		print(f"{bcolors.low}"+form(term[0])+f"{bcolors.end}",end='')
+		write(file[0],"low")
 	if term[1]:
-		print(f"{bcolors.yellow}"+form(term[1])+f"{bcolors.end}",end='')
-		write(file[1],"yellow")
+		print(f"{bcolors.normal}"+form(term[1])+f"{bcolors.end}",end='')
+		write(file[1],"normal")
 	if term[2]:
-		print(f"{bcolors.red}"+form(term[2])+f"{bcolors.end}",end='')
-		write(file[2],"red")
+		print(f"{bcolors.high}"+form(term[2])+f"{bcolors.end}",end='')
+		write(file[2],"high")
 	outlineend2(outfile)
 
 def valueline(val,started):
 	if val<leftlim:
 		a=val/leftlim
-		b=f"{bcolors.green}"
-		c="green"
+		b=f"{bcolors.low}"
+		c="low"
 	elif val<rightlim:
 		a=(val-leftlim)/centersize
-		b=f"{bcolors.yellow}"
-		c="yellow"
+		b=f"{bcolors.normal}"
+		c="normal"
 	else:
 		a=(val-rightlim)/rightsize
-		b=f"{bcolors.red}"
-		c="red"
+		b=f"{bcolors.high}"
+		c="high"
 	x=round(os.get_terminal_size().columns*a)
 	y=round(100*a)
 	d=f"{bcolors.end}"
