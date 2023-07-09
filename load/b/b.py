@@ -142,16 +142,16 @@ if __name__ == "__main__":
 		show([values])
 
 	def wait():
-		global waiter
-		waiter+=1
-		while waiter>0:
+		global is_ready
+		while is_ready==False:
 			print(".",end='',flush=True)
 			time.sleep(1)
+		is_ready=False
 	def unwait():
-		global waiter
-		waiter-=1
+		global is_ready
+		is_ready=True
 
-	waiter=0
+	is_ready=False
 	with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
 		address = (f.read(), 6000)     # family is deduced to be 'AF_INET'
 	listener = Listener(address)
