@@ -27,6 +27,7 @@ if __name__ == "__main__":
 	import threading
 	import readchar
 	import os
+	import time
 	from multiprocessing.connection import Listener
 
 	def outtitle(s):
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 		values=[val];valuesall.append(values)
 
 	def t2_f():
-		global zone, values, valuesall
+		global zone, values, valuesall, paused
 		valuesall=[]
 		try:
 			while True:
@@ -100,16 +101,31 @@ if __name__ == "__main__":
 					newzone(val)
 					break
 				valueline(val,False)
+			valueline(val,True)
+			unwait()
 			while True:
-				valueline(val,True)
 				conn = listener.accept()
 				val=int(conn.recv())
 				conn.close()
 				if zone:
 					zonedone()
 					newzone(val)
+					valueline(val,True)
+					if threadspaused:
+						paused=True
+						print("paused")
+					unwait()
 				elif paused==False:
 					values.append(val)
+					valueline(val,True)
+				else:
+					valueline(val,False)
+					if threadspaused==False:
+						paused=False
+						print("resumed")
+						unwait()
+					else:
+						print("skipped")
 		except Exception:
 			print("closed")
 
@@ -125,6 +141,17 @@ if __name__ == "__main__":
 	def zonedone():
 		show([values])
 
+	def wait():
+		global waiter
+		waiter+=1
+		while waiter>0:
+			print(".",end='',flush=True)
+			time.sleep(1)
+	def unwait():
+		global waiter
+		waiter-=1
+
+	waiter=0
 	with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
 		address = (f.read(), 6000)     # family is deduced to be 'AF_INET'
 	listener = Listener(address)
@@ -133,6 +160,7 @@ if __name__ == "__main__":
 	middle=90
 	hysteresis=5
 	paused=False
+	threadspaused=False
 	zonenr=0
 	try:
 		middle=int(sys.argv[1])
@@ -155,20 +183,24 @@ if __name__ == "__main__":
 	c=readchar.readchar()
 	print("will start")
 	zone=True
+	wait()
 	while True:
 		c=readchar.readchar()
 		if c=='q':
 			break
 		elif c==' ':
-			if paused==False:
-				paused=True
-				print("paused")
+			if threadspaused==False:
+				threadspaused=True
 				zonedoneset()
+				print("will pause")
+				wait()
 			else:
-				paused=False
-				print("resumed")
+				threadspaused=False
+				print("will resume")
+				wait()
 		else:
 			zonedoneset()
+			wait()
 
 	print("will close")
 	listener.close()   #this will close after accept gets next client

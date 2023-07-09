@@ -67,7 +67,7 @@ def zoneline(i,l,c,r):
 		write(file[2],"high")
 	outlineend2(outfile)
 
-def valueline(val,started):
+def valueline(val,log_to_file):
 	if val<leftlim:
 		a=val/leftlim
 		b=f"{bcolors.low}"
@@ -88,9 +88,9 @@ def valueline(val,started):
 	x-=len(s)
 	if(x>0):
 		print(b+form(x)+d,end='')
-	if started:
+	if log_to_file:
 		if y>0:
 			write2(y,c,s)
 		else:
 			outfile.write(colortext(c,s))
-	outlineend3(outfile,started)
+	outlineend3(outfile,log_to_file)
