@@ -1,1 +1,1 @@
-while :; do ./x; date; sleep 3600; done
+while :; do echo; ./x; date; sleep 3600; done

@@ -41,8 +41,9 @@ def gree(a,b):
 	s='Pow='+a
 	if send:
 		#return is 0 at timeout later
-		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
-		#.returncode
+		r=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
+		if r!=0:
+			return
 	print(s)
 	global on
 	on=b
