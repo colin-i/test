@@ -2,3 +2,27 @@
 d=`dirname ${0}`
 python a.py
 rm ${d}/geckodriver.log
+
+readarray -t data <<<"$(cat a.txt)"
+rm a.txt
+
+j=0
+n="${#data[@]}"
+for ((i = 11; i < ${n}; i++ )); do
+	a[${j}]=${data[${i}]}
+	j=$((j+1))
+done
+
+n="${#a[@]}"
+for ((i = 0; i < ${n}; i+=10 )); do
+	nm=`echo ${a[$((i+1))]} | sed 's/ /_/g'`
+	for ((j = 0; j < 10; j++ )); do
+		if [ "${a[$((i+j))]}" = "" ]; then #example when market cap is nothing
+			i=$((i-1))
+		fi
+	done
+	echo ${nm} ${a[$((i+8))]} >> b.txt
+done
+
+sort -k2nr b.txt
+rm b.txt
