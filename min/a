@@ -21,8 +21,8 @@ if [ -z "${1}" ]; then
 	else
 		if [ -e ./ignoredust ]; then exit 0; fi
 		z=`cat ./dust`
-		if [ "${s}" = "${z}" ]; then exit 1
-		else exit 0; fi
+		if [ "${s}" = "${z}" ]; then exit 1; fi
+		exit 0
 	fi
 else
 	echo ${s}
