@@ -1,0 +1,4 @@
+
+d=`dirname ${0}`
+python a.py
+rm ${d}/geckodriver.log
