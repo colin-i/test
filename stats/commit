@@ -11,6 +11,7 @@ else
 	m=$((m-1))
 fi
 
-git add -f ${y}/${m}/arh && \
-git add -f ${1}/${2} && \
+git add ${y}/${m}/arh && \
+# -f was when .gitignore was
+git add ${1}/${2} && \
 ~/test/sync/commit stats

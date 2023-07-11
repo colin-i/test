@@ -14,7 +14,7 @@ totalplus=`cat hh3`
 totalminus=`cat hh4`
 total=`cat hh5`
 
-readarray -t data <<<"$(cat h6 | head -n3)"
+readarray -t data <<<"$(cat h6)"    # | head -n3
 
 cd ${start}
 
@@ -72,17 +72,30 @@ echo "I made $(echo -n ${commits}) commits.">>${out}
 echo -n "The number of rows was">>${out}
 echo -n " increased by">>${out}
 echo " ${total} (${totalplus} added, ${totalminus} removed).">>${out}
-echo "Projects' top 3:">>${out}
+
 n="${#data[@]}"
-i=1
+i=0
+j=0
+top=( )
 for var in "${data[@]}"
 do
 	ar=( ${var} )
-	if [ ${n} != ${i} ]; then
+	if [ "${ar[1]}" != "0" ] || [ "${ar[2]}" != "0" ]   #only removed !=0 is not possible
+	then
+		top[${i}]=${data[${j}]}
+		if [ "${i}" = "2" ]; then break; fi
+		i=$((i+1))
+	fi
+	j=$((j+1))
+done
+
+echo "Projects' top $((i+1)):">>${out}
+for ((j = 0; j <= ${i}; j++ )); do
+	ar=( ${top[${j}]} )
+	if [ ${j} != ${i} ]; then
 		#at the moment, tabs are displaying in tweet editor but not on the final tweet, and are counted in tweet editor
 		#echo -e "\t"
 		echo " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
-		i=$((i+1))
 	else
 		echo -n " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
 	fi

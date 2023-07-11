@@ -1,5 +1,5 @@
 
-#1 name  optional 2 no am
+#1 name  optional 2 no message
 
 n=${1}
 
