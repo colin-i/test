@@ -83,22 +83,22 @@ do
 	if [ "${ar[1]}" != "0" ] || [ "${ar[2]}" != "0" ]   #only removed !=0 is not possible
 	then
 		top[${i}]=${data[${j}]}
-		if [ "${i}" = "2" ]; then break; fi
 		i=$((i+1))
+		if [ "${i}" = "3" ]; then break; fi
 	fi
 	j=$((j+1))
 done
 
-echo "Projects' top $((i+1)):">>${out}
-for ((j = 0; j <= ${i}; j++ )); do
+echo "Projects' top ${i}:">>${out}
+for ((j = 0; j < ${i}; j++ )); do
 	ar=( ${top[${j}]} )
-	if [ ${j} != ${i} ]; then
-		#at the moment, tabs are displaying in tweet editor but not on the final tweet, and are counted in tweet editor
-		#echo -e "\t"
-		echo " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
-	else
-		echo -n " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
-	fi
+	#if [ $((j+1)) != ${i} ]; then
+	#at the moment, tabs are displaying in tweet editor but not on the final tweet, and are counted in tweet editor
+	#echo -e "\t"
+	echo " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+	#else
+	#	echo -n " ${ar[0]} ${ar[1]} (+${ar[2]} -${ar[3]})">>${out}
+	#fi
 done
 
 if [ "${more_data}" != "" ]; then
@@ -131,7 +131,7 @@ if [ "${more_data}" != "" ]; then
 	fi
 
 	~/test/stats/gh .
-	echo -ne "\n\nAll time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
+	echo -ne "\nAll time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
 fi
 
 cat ${out}
