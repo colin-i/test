@@ -1,0 +1,12 @@
+
+#1 in  2 out
+
+#replace /* */
+cat ${1} | perl -pe 's/(?=\/\*)..[^\*]*.\///g' > /tmp/testtemptest
+
+#replace <!-- -->
+cat /tmp/testtemptest | perl -pe 's/(?=<).![^>]*.//g' > ${2}
+
+rm /tmp/testtemptest
+
+diff ${1} ${2} --color
