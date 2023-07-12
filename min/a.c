@@ -10,6 +10,7 @@ FILE*logfile=NULL;//cc a.c && stat -c %y a.out
 char path[11];
 char*mintimefile="interval";
 int before_time=1;
+char*main_ip="192.168.1.11";
 
 void putlog(char*b){
 	if(logfile!=NULL){
@@ -65,7 +66,7 @@ time_t interval_get(){
 int send_the_time(time_t start){
 	time_t minutes=mintime(start);
 	if(minutes>65535)printf("No\n");//16777215
-	else send_data("192.168.1.11",&minutes,2);
+	else send_data(main_ip,&minutes,2);
 	return 0;
 }
 int send_time(time_t start){
@@ -116,9 +117,17 @@ void main(int argc,char**argv){
 			fclose(fp);
 		}else if(strstr(b,"not-connected")!=NULL){
 			int nothing;
-			send_data("192.168.1.11",&nothing,3);
-			send_data("192.168.1.8",NULL,0);
-			send_data("192.168.1.14",NULL,0);
+			send_data(main_ip,&nothing,3);
+
+			char *lineptr=NULL;
+			size_t n;//this is not strlen or streln+1, is allocated size
+			FILE*fp=fopen("problems","rb");
+			while(getline(&lineptr,&n,fp)!=-1){
+				n=strlen(lineptr);
+				if(lineptr[n-1]=='\n')lineptr[n-1]='\0';
+				send_data(lineptr,NULL,0);
+			}
+			free(lineptr);
 			if(access("problem",F_OK)==0){
 				interval_set(start);
 				stop();
