@@ -5,7 +5,7 @@
 cat ${1} | perl -pe 's/(?=\/\*)..[^\*]*.\///g' > /tmp/testtemptest
 
 #replace <!-- -->
-cat /tmp/testtemptest | perl -pe 's/(?=<).![^>]*.//g' > ${2}
+cat /tmp/testtemptest | perl -pe 's/(?=<).!-[^>]*.//g' > ${2}
 
 rm /tmp/testtemptest
 
