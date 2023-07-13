@@ -1,5 +1,6 @@
 
 b=`cat ~/n/pat5`
+
 ./a ${b}
 
 sleep 2
@@ -12,3 +13,14 @@ python -c "print(${d}/${e})"
 
 #getpoolstatus efficiency
 #no, the amount is the same +- transactions fees, efficiency here is 100 - invalid percent, and the fees somewhere at e-5 and / thousends of workers, insignificant change
+
+a=`./a ${b} getdashboarddata`
+a=`echo ${a} | jq ".getdashboarddata.data.recent_credits"`
+echo ${a} | jq -c '.[]' | while read object; do
+	d=`echo "${object}" | jq ".date"`
+	v=`echo "${object}" | jq ".amount"`
+	if [ ${v} != 0 ]; then
+		echo ${d} ${v}
+		break
+	fi
+done
