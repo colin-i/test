@@ -10,21 +10,23 @@ do
 	while true
 	do
 		#head will break tabs, and echo same
-		status1=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1`
-		echo ${status1}, ${var}
-		if [ "${status1}" = "completed" ]; then
+		status=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1`
+		echo ${status}, ${var}
+		if [ "${status}" = "completed" ]; then
 			#&&
 			while true
 			do
-				status2=`~/test/slow gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1`
-				if [ "${status2}" = "" ]; then
-					echo status not ready
+				sleep 30
+				#~/test/slow was with: eval $@
+				conclusion=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1`
+				if [ "${conclusion}" = "" ]; then
+					echo conclusion not ready
 					continue
 				fi
 				break
 			done
-			echo "${status2}, ${var}"
-			if [ "${status2}" = "success" ]; then
+			echo "${conclusion}, ${var}"
+			if [ "${conclusion}" = "success" ]; then
 				break
 			fi
 			exit 1
