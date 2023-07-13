@@ -14,6 +14,7 @@ python -c "print(${d}/${e})"
 #getpoolstatus efficiency
 #no, the amount is the same +- transactions fees, efficiency here is 100 - invalid percent, and the fees somewhere at e-5 and / thousends of workers, insignificant change
 
+sleep 2
 a=`./a ${b} getdashboarddata`
 a=`echo ${a} | jq ".getdashboarddata.data.recent_credits"`
 echo ${a} | jq -c '.[]' | while read object; do
