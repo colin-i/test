@@ -1,5 +1,5 @@
 
-#same as arh
+#same as arh  2 no appimage
 
 echo delete ${1} \? y \?
 
@@ -7,7 +7,10 @@ read -n1 -t $((60*60*24)) ans
 
 if [ "${ans}" = "y" ]; then
 echo yes
-~/test/arh ${1}
+	if [ -z "${2}" ]; then
+		~/test/del x ${1}
+	fi
+	~/test/arh ${1}
 else
-echo no
+	echo no
 fi
