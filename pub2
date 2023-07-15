@@ -9,6 +9,6 @@ else
 url=https://github.com/colin-i/arh/releases/tag/${1}
 fi
 
-echo open browser
+echo ${url}
 #firefox ${url}
 notify-send "Publish" "${url}"
