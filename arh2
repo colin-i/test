@@ -6,10 +6,10 @@ echo delete ${1} \? y \?
 read -n1 -t $((60*60*24)) ans
 
 if [ "${ans}" = "y" ]; then
-echo yes
-	if [ -z "${2}" ];
+	echo yes
+	if [ -z "${2}" ]; then
 		~/test/del x ${1}
-	elif [ "${2}" = "0"]; then
+	elif [ "${2}" = "0" ]; then
 		~/test/del x ${1} x
 	fi && \
 	~/test/arh ${1}
