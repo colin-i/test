@@ -1,5 +1,5 @@
 
-#same as arh  optional  2 no appimage
+#same as arh  optional  2 no appimage or appimage+glib
 
 echo delete ${1} \? y \?
 
@@ -7,9 +7,11 @@ read -n1 -t $((60*60*24)) ans
 
 if [ "${ans}" = "y" ]; then
 echo yes
-	if [ -z "${2}" ]; then
+	if [ -z "${2}" ];
 		~/test/del x ${1}
-	fi
+	elif [ "${2}" = "0"]; then
+		~/test/del x ${1} x
+	fi && \
 	~/test/arh ${1}
 else
 	echo no
