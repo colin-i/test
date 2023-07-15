@@ -1,5 +1,5 @@
 
-#same as arh  2 no appimage
+#same as arh  optional  2 no appimage
 
 echo delete ${1} \? y \?
 
