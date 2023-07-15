@@ -18,12 +18,14 @@
 
 #include "a.h"
 
-int sum_time(unsigned short more){
+char*filepath="/home/bc/min_sum_time";
+
+unsigned short sum_time(unsigned short more){
 	char path[10];
-	FILE*fp=fopen("/home/bc/min_sum_time","r+");
+	FILE*fp=fopen(filepath,"r+");
 	size_t shlen=fread(path,1,10,fp);
 	path[shlen]='\0';
-	int newtime=atoi(path)+more;
+	unsigned short newtime=atoi(path)+more;
 
 	shlen=sprintf(path,"%u",newtime);
 	rewind(fp);//fgetpos has one cursor
@@ -98,13 +100,20 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		int s=sum_time((unsigned short)minutes);
+		unsigned short s=sum_time((unsigned short)minutes);
 		#define for "notify-send \"Time\" \"%hu %hu\""
 		char out[sizeof(for)-3-3+5+5+1];
+		#define max_per_month (30*60)+25 //this will be exact 365 hours per year
+		if(s>max_per_month){
+			if((s-minutes)>max_per_month){//must be a new part
+				sum_time(~s+1);
+				truncate(filepath,1);
+				s=sum_time(minutes);
+				sprintf(out,for,minutes,s);
+			}else system("notify-send \"Done\"");
+		}
 		sprintf(out,for,minutes,s);
 		system(out);
-		#define max_per_month (30*60)+25 //this will be exact 365 hours per year
-		if(s>max_per_month)system("notify-send \"Done\"");
 		break;
 	}
 	//unlink(SERVER_SOCK_PATH);
