@@ -5,3 +5,11 @@ if [ -z "${1}" ]; then file="colin-i-ubuntu-ppa"
 else file="${1}"; fi
 
 sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+
+#colin-i-ubuntu-ppa.list  docker.list  github-cli.list  google-chrome.list  google-earth-pro.list  mozillateam-ubuntu-ppa.list
+
+#echo '
+#Package: *
+#Pin: release o=LP-PPA-mozillateam
+#Pin-Priority: 1001
+#' | sudo tee /etc/apt/preferences.d/mozilla-firefox
