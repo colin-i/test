@@ -2,6 +2,8 @@
 from gi.repository import GLib,Gtk
 
 import time
+import os.path
+from subprocess import check_output
 
 from . import query
 
@@ -15,21 +17,22 @@ def form(js):
 
 def init():
 	text=Gtk.TextView(editable=False) #,wrap_mode=Gtk.WrapMode.NONE
+
 	show(text,form(query.yesterday()))
-	line(text)
+
+	f=os.path.join(os.path.dirname(__file__),'x')
+	t=check_output(f)
+	total={};total["+"+t.decode()]=1
+	show(text,total)
+
 	global storage
 	storage=form(query.today())
 	show(text,storage)
+
 	smallmark(text,time.time())
+
 	GLib.timeout_add_seconds(60*60,callba,text)
 	return text
-
-line_end='\r\n'
-
-def line(text):
-	b=text.get_buffer()
-	it=b.get_start_iter()
-	b.insert(it,"-"+line_end,-1)
 
 def show(text,data):
 	b=text.get_buffer()
@@ -40,7 +43,7 @@ def show(text,data):
 			mark(b,it,'xx-large',x)
 
 def mark(b,it,s,x):
-	b.insert_markup(it,'<span size=\"'+s+'\">'+x+'</span>'+line_end,-1)
+	b.insert_markup(it,'<span size=\"'+s+'\">'+x+'</span>\r\n',-1)
 def smallmark(text,t):
 	loctim=time.localtime(t)
 	b=text.get_buffer()

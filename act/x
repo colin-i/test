@@ -1,11 +1,11 @@
-
+#!/bin/bash
 #twurl authorize --consumer-key `cat ~/n/pat6` \
 #                --consumer-secret `cat ~/n/pat7`
-text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".data.includes.tweets[0].text"`
+text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".includes.tweets[0].text"`
 #\&tweet.fields=text        history,id and text are always
 #-t to see response headers
 #x-app-limit-24hour-reset
 
 n=`echo ${text} | grep -Poe "[^ ]*(?:.(?! rows))+$" | grep -Poe "[^ ]*" | head -1`
 k=`echo ${n}/1000 | bc`
-echo ${k}
+echo -n ${k}
