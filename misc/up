@@ -15,3 +15,5 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o 
 #' | sudo tee /etc/apt/preferences.d/mozilla-firefox
 
 #this is not true: "sudo apt update command again brings back the snap"; if is true, pin-prio.. -10 and pin .. a=* for pack.. snapd
+
+#dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge
