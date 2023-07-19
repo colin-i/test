@@ -34,7 +34,8 @@ git rev-list --all --count
 #dupa git reset --hard aia de la reflog
 #git push -f
 
-#git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/o.git --delete no_build
+#git push https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git --delete no_build
 #git branch --delete no_build
+#git branch -m archived
 
 #git merge --squash A

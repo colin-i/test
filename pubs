@@ -1,0 +1,9 @@
+
+#1 branch2  2 msg
+b2=${1}
+msg=${2}
+
+./arh/pub "${msg}" && \
+git switch ${b2} && \
+./arh/pub "${msg}" && \
+git switch master
