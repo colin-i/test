@@ -9,18 +9,16 @@ fi
 if [ -z "${2}" ]; then
 	if [ "${dist}" = "xenial" ]; then
 	#2026-04-23
-		tars="bionic focal jammy kinetic lunar mantic"
+		tars="bionic focal jammy lunar mantic"
 	elif [ "${dist}" = "bionic" ]; then
 	#2023-05-31 Must run on the oldest still-supported Ubuntu LTS release
-		tars="focal jammy kinetic lunar mantic"
+		tars="focal jammy lunar mantic"
 	elif [ "${dist}" = "focal" ]; then
 	#"impish is obsolete and will not accept new uploads."
-		tars="jammy kinetic lunar mantic"
+		tars="jammy lunar mantic"
 	elif [ "${dist}" = "jammy" ]; then
-		tars="kinetic lunar mantic"
-	elif [ "${dist}" = "kinetic" ]; then
-	#2023-07-20
 		tars="lunar mantic"
+	#kinetic 2023-07-20, no more copy packages
 	elif [ "${dist}" = "lunar" ]; then
 	#2024-01-25
 		tars="mantic"
