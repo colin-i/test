@@ -1,3 +1,3 @@
 
-sudo apt list ocompiler ovideo actionswf edor sirc torra dicopp audapa
-sudo apt install ocompiler ovideo actionswf edor sirc torra dicopp audapa
+apt list ocompiler ovideo actionswf edor sirc torra dicopp audapa
+apt install --just-print ocompiler ovideo actionswf edor sirc torra dicopp audapa | grep -E "is already|^Inst"
