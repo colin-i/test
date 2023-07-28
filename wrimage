@@ -1,9 +1,14 @@
 
-#1 img.xz
+#1 input name
 if [ -z "${1}" ]; then
 	echo argument required
 	exit 1
 fi
+fullname=${1}
+filename=$(basename -- "${fullname}")
+extension="${filename##*.}"
+echo ${extension}
+
 #a=( `df | cut -f1 -d' ' | tail -n +2` )
 a=( `sudo fdisk -l | grep "^/" | cut -f1 -d' '` )
 echo Plug the card and press a key.
@@ -52,7 +57,11 @@ if [ ${k} -gt 0 ]; then
 	echo -e "Is ok? y?"
 	read -n1 -t $((60*60*24)) ans
 	if [ "${ans}" = "y" ]; then
-		xzcat ${1} | sudo dd of=${name} status=progress
+		if [ "${extension}" = "xz" ]; then
+			xzcat ${1} | sudo dd of=${name} status=progress
+		else
+			sudo dd if=${fullname} of=${name} status=progress
+		fi
 	else
 		echo no
 	fi
