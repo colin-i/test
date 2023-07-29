@@ -1,11 +1,2 @@
 
-numbers=( `cat ./v2 | sed 's/\./ /g'` )
-len=${#numbers[@]}
-last=$((len-1))
-numbers[last]=$((numbers[last]+1))
-for var in "${numbers[@]}"; do
-	out=${out}.${var}
-done
-out=${out:1}
-echo -n ${out} > ./v2
-cat v2
+~/test/xver ./v2
