@@ -16,8 +16,9 @@ if [ -e "parent" ]; then
 	files=( `cat ${parent}` )
 fi
 
+proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
 if [ -z "${2}" ]; then
-	proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 	cd ~/sync && \
 	swt ${name} && \
 	#git switch will ignore deletions and at switch back will put them back
@@ -39,14 +40,23 @@ if [ -z "${2}" ]; then
 	exit $?
 fi
 
+#need to sync now, but can't delete parent because need to put it back if local debuild and can't put it back if not commiting sync folder
+#the solution is to move parent to tmp and back
+
+a=../tmp/.pc
+b=../tmp/debian/patches
 if [ "${parent}" != "" ]; then
+	mkdir ${a} || exit 1
 	cd .pc || exit 1
 	for var in "${files[@]}"; do
-		rm -r ${var} || exit 1
+		mv ${var} ../${a} || exit 1
 	done
-	cd ../debian/patches || exit 1
+	cd .. || exit 1
+	mkdir ../tmp/debian || exit 1
+	mkdir ${b} || exit 1
+	cd ./debian/patches || exit 1
 	for var in "${files[@]}"; do
-		rm ${var} || exit 1
+		mv ${var} ../../${b} || exit 1
 	done
 fi
 cd ~/sync && \
@@ -59,4 +69,13 @@ cd ${root} && \
 #
 #if files are restored at switch, mv cannot overwrite even with -f
 rsync -av .pc ~/sync && \
-rsync -av debian/patches ~/sync/debian
+rsync -av debian/patches ~/sync/debian && \
+#and now, put parent back, needed at local debuild
+if [ "${parent}" != "" ]; then
+	mv ${a}/* .pc && \
+	mv ${b}/* debian/patches && \
+	rm -r ${a} && \
+	rm -r ${b} && \
+	rm -r ../tmp/debian
+	#rm -r ${b}/..
+fi
