@@ -1,0 +1,3 @@
+
+gist=$(basename $(pwd))
+~/test/remote/push ${gist} 1
