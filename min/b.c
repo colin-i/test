@@ -1,5 +1,5 @@
 
-//waittime
+//cc b.c -o ~/arh/waittime
 //to be added at Startup Applications
 
 //Sample for UNIX domain socket
@@ -105,12 +105,14 @@ int main(int argc, char **argv)
 		char out[sizeof(for)-3-3+5+5+1];
 		#define max_per_month (30*60)+25 //this will be exact 365 hours per year
 		if(s>max_per_month){
-			if((s-minutes)>max_per_month){//must be a new part
-				sum_time(~s+1);
-				truncate(filepath,1);
-				s=sum_time(minutes);
-				sprintf(out,for,minutes,s);
-			}else system("notify-send \"Done\"");
+			//new parts are closed by manual monthly review, and can let more Done messages
+			//if((s-minutes)>max_per_month){//must be a new part
+			//	sum_time(~s+1);
+			//	truncate(filepath,1);
+			//	s=sum_time(minutes);
+			//	sprintf(out,for,minutes,s);
+			//}else
+			system("notify-send \"Done\"");
 		}
 		sprintf(out,for,minutes,s);
 		system(out);
