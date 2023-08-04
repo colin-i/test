@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#python -m b.b there, ./a here
 
 #IFS='\n' a=`cat /proc/stat`
 a=( `cat /proc/stat | head -1` )
