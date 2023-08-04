@@ -1,3 +1,7 @@
 
 apt list ocompiler ovideo actionswf edor sirc torra dicopp audapa
 apt install --just-print ocompiler ovideo actionswf edor sirc torra dicopp audapa | grep -E "is already|^Inst"
+
+#dpkg -l | awk '/^ii/ && $4 == "i386" { print }' | wc -l
+#dpkg -l | awk '/^ii/ && $4 == "amd64" { print }' | wc -l
+#dpkg -l | awk '/^ii/ && $4 == "all" { print }' | wc -l
