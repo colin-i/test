@@ -16,7 +16,7 @@ def form(js):
 	return out
 
 def init():
-	text=Gtk.TextView(editable=False) #,wrap_mode=Gtk.WrapMode.NONE
+	text=Gtk.TextView(editable=False,vexpand=True) #,wrap_mode=Gtk.WrapMode.NONE
 
 	show(text,form(query.yesterday()))
 
@@ -31,8 +31,21 @@ def init():
 
 	smallmark(text,time.time())
 
-	GLib.timeout_add_seconds(60*60,callba,text)
-	return text
+	box=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+	box.append(text)
+
+	state=Gtk.Button.new_with_label("Start")
+	state.connect('clicked', toggle, text)
+	box.append(state)
+
+	if not os.path.isfile(get_flag()):
+		toggle(state,text)
+
+	get=Gtk.Button.new_with_label("Get")
+	get.connect('clicked', getfn, text)
+	box.append(get)
+
+	return box
 
 def show(text,data):
 	b=text.get_buffer()
@@ -74,3 +87,22 @@ def callba(text):
 		show(text,dif)
 
 	return True
+
+def getfn(b,text):
+	callba(text)
+
+def get_flag():
+	return os.path.expanduser("~/arh/activity_flag")
+def toggle(b,text):
+	global callid
+	f=get_flag()
+	if b.get_label()=='Start':
+		callid=GLib.timeout_add_seconds(60*60,callba,text)
+		b.set_label('Pause')
+		if os.path.isfile(f):
+			os.remove(f) #remove flag
+	else:
+		GLib.source_remove(callid) #boolean
+		b.set_label('Start')
+		file=open(f, "w") #set flag
+		file.close()
