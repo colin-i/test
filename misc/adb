@@ -1,2 +1,5 @@
 
 adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
+
+#adb shell "cd /storage/self/primary/Pictures && ls"
+#adb push qr-barcode.png /storage/self/primary/Pictures
