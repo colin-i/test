@@ -1,0 +1,9 @@
+
+#1 file name
+
+convert -density 300 -trim -quality 100 ${1} a.jpg && \
+tesseract a.jpg 1 && \
+edor 1.txt && \
+diff 0 1.txt && \
+rm a.jpg && \
+rm 1.txt
