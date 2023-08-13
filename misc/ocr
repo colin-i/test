@@ -2,7 +2,10 @@
 #1 file name
 
 convert -density 300 -trim -quality 100 ${1} a.jpg && \
+\
+#bmp or pdf? "cannot read compressed BMP files"(convert files) and "Pdf reading is not supported"
 tesseract a.jpg 1 && \
+\
 edor 1.txt && \
 diff 0 1.txt && \
 rm a.jpg && \
