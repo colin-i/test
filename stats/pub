@@ -10,6 +10,13 @@ if [ "${ans}" = "y" ]; then
 ~/test/stats/commit ${1} ${2}
 else
 echo no
+fi && \
+echo -e "\n\nwiki check? y?" && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ]; then
+newsboat
+else
+echo no
 fi
 
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
