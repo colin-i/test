@@ -1,0 +1,23 @@
+
+echo "n to deny"
+
+a=( `git diff --name-only` )  #this is ok in subfolders but git add in subfolders with this is not ok
+for var in "${a[@]}"; do
+	if [ "${var:0:5}" = "tests" ]; then
+		echo "no ${var}"
+		b=0
+		read -n1 -t $((60*60*24)) ans
+		if [ "${ans}" = "n" ]; then
+			b=1
+		fi
+	else
+		echo "yes ${var}"
+		b=1
+		read -n1 -t $((60*60*24)) ans
+		if [ "${ans}" = "n" ]; then
+			b=0
+		fi
+	fi
+	if [ ${b} = 1 ]; then git add ${var}; fi
+done
+git commit
