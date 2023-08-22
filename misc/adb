@@ -6,3 +6,6 @@ adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
 
 #adb shell getprop ril.iccid.sim1
 #19 digits and one letter, only the digits are like the number phisically written
+
+#imei
+#adb shell service call iphonesubinfo 1 | awk -F "'" '{print $2}' | sed '1 d' | tr -d '.' | awk '{print}' ORS=
