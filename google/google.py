@@ -1,5 +1,5 @@
 
-#1 file name  optional 2 list only
+#same as ./a
 
 from __future__ import print_function
 

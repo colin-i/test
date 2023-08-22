@@ -1,3 +1,5 @@
 
+#1 file name  optional 2 list only
+
 GOOGLE_APPLICATION_CREDENTIALS=~/n/pat8 python ~/test/google/google.py ${1} ${2} && \
 ods2tsv state.ods | grep "`date +%Y-%m`"
