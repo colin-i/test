@@ -1,5 +1,5 @@
 
-adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
+#adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
 
 #adb shell "cd /storage/self/primary/Pictures && ls"
 #adb push qr-barcode.png /storage/self/primary/Pictures
@@ -8,4 +8,9 @@ adb shell pm grant ${1} android.permission.SYSTEM_ALERT_WINDOW
 #19 digits and one letter, only the digits are like the number phisically written
 
 #imei
-#adb shell service call iphonesubinfo 1 | awk -F "'" '{print $2}' | sed '1 d' | tr -d '.' | awk '{print}' ORS=
+adb shell service call iphonesubinfo ${1} | awk -F "'" '{print $2}' | sed '1 d' | tr -d '.' | awk '{print}' ORS=
+#AA-BBBBBB-CCCCCC-D
+#AA-BBBBBB-CCCCCC-EE for IMEISV (imei software version)
+
+#name
+#adb shell getprop ro.product.model
