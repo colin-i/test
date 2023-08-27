@@ -2,12 +2,8 @@
 #same as ./a
 
 import sys
-import io
-
 import google.auth
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from googleapiclient.http import MediaIoBaseDownload
 
 mim='application/vnd.oasis.opendocument.spreadsheet'
 
@@ -69,12 +65,15 @@ creds, _ = google.auth.default()
 service = build('drive', 'v3', credentials=creds)
 
 fname=sys.argv[1]
-try:
+if len(sys.argv)>2:
 	flag=sys.argv[2]
 	if flag=="0":
+		import io
+		from googleapiclient.http import MediaIoBaseDownload
 		search_file(None,True)
 	else:
 		search_file(None)
-except:
+else:
+	from googleapiclient.http import MediaFileUpload
 	f=upload_basic()
 	search_file(f['id'])
