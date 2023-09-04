@@ -1,14 +1,15 @@
 
-#launch command: ~/test/act/a &
 resize -s 36 132
 
 while :
 do
+	#even at init 6
+	sleep 10
+	#sleep is first, if Sync yes is first time, can have wrong measurements next
+
 	a=`timedatectl -p NTPSynchronized show`
 	echo ${a}
 	if [ "${a}" = "NTPSynchronized=yes" ]; then break; fi
-	#even at init 6
-	sleep 10
 done
 
 ~/arh/activity
