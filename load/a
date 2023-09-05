@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #python -m b.b there, ./a here
+#space is pause, q quit, else new zone
 
 #IFS='\n' a=`cat /proc/stat`
 a=( `cat /proc/stat | head -1` )
