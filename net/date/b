@@ -3,7 +3,7 @@
 
 #xhttp.open("POST", "https://www.digi.ro/my-account/my-services/digi-mobil-cost-control", false);
 #//xhttp.setRequestHeader("content-type","text/html; charset=UTF-8");
-#xhttp.send("${1}"); 
+#xhttp.send("${1}");
 
 curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -X POST \
