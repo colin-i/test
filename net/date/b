@@ -24,5 +24,4 @@ curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -H "Sec-Fetch-Mode: cors" \
 -H "Sec-Fetch-Site: same-origin" \
 -H "TE: trailers" \
---output - | gunzip -
-# > 1
+--output - | gunzip - > 1
