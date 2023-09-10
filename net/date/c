@@ -1,7 +1,0 @@
-
-a=`xmllint --html --xpath '/html/body/div/div/div/div/div/div/div/div/p[5]' 1 2>/dev/null`
-b=`xmllint --html --xpath '/html/body/div/div/div/div/div/div/div/div/p[6]' 1 2>/dev/null`
-a=`echo ${a} | grep -Poe '(?<=4G: )[^ ]*'`
-b=`echo ${b} | grep -Poe '(?<=4G: )[^ ]*'`
-c=`echo ${a}-${b} | bc`
-echo ${c}

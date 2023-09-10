@@ -5,7 +5,7 @@
 #//xhttp.setRequestHeader("content-type","text/html; charset=UTF-8");
 #xhttp.send("${1}");
 
-curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
+curl --silent https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -X POST \
 -d "${1}" \
 -H "Host: www.digi.ro" \
