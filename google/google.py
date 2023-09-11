@@ -26,7 +26,10 @@ def upload_basic():
 
 	return file
 
-def search_file(newid,download=False):
+def print_file(file): #,extra=''
+	print(F'Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}')
+	#+((' '+extra) if extra else '')
+def search_file(newid,download=False,all=False):
 	#files = []
 	page_token = None
 	while True:
@@ -37,23 +40,26 @@ def search_file(newid,download=False):
 			                    'files(id, name, createdTime)',
 			                    pageToken=page_token).execute()
 		for file in response.get('files', []):
-			# Process change
-			if file.get("name")==fname:
-				print(F'Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}')
-				if newid!=None:
-					id=file['id']
-					if id!=newid:
-						service.files().delete(fileId=id).execute()
-						print('deleted')
-				elif download==True:
-					#file_back = service.files().get(fileId=file['id'], fields='webContentLink').execute()  # or fields='*'
-					request = service.files().get_media(fileId=file['id'])
-					file = io.FileIO(fname,'wb')
-					downloader = MediaIoBaseDownload(file, request)
-					done = False
-					while done is False:
-						status, done = downloader.next_chunk()
-						print(F'Download {int(status.progress() * 100)}.')
+			if all==False:
+				if file.get("name")==fname:
+					print_file(file)
+					if newid!=None:
+						id=file['id']
+						if id!=newid:
+							service.files().delete(fileId=id).execute()
+							print('deleted')
+					elif download==True:
+						request = service.files().get_media(fileId=file['id'])
+						file = io.FileIO(fname,'wb')
+						downloader = MediaIoBaseDownload(file, request)
+						done = False
+						while done is False:
+							status, done = downloader.next_chunk()
+							print(F'Download {int(status.progress() * 100)}.')
+			else:
+				#file_back = service.files().get(fileId=file['id'], fields='webContentLink').execute()  # or fields='*'
+				#,file_back['webContentLink']
+				print_file(file)
 
 		#files.extend(response.get('files', []))
 		page_token = response.get('nextPageToken', None)
@@ -74,6 +80,9 @@ if len(sys.argv)>2:
 	else:
 		search_file(None)
 else:
-	from googleapiclient.http import MediaFileUpload
-	f=upload_basic()
-	search_file(f['id'])
+	if fname!="0":
+		from googleapiclient.http import MediaFileUpload
+		f=upload_basic()
+		search_file(f['id'])
+	else:
+		search_file(None,all=True)

@@ -1,5 +1,5 @@
 
-#1 file name  optional 2=0 download else list
+#1 =0 list else file name  optional 2 =0 download else list
 
 GOOGLE_APPLICATION_CREDENTIALS=~/n/pat8 python ~/test/google/google.py ${1} ${2} && \
 if [ "${1}" = "state.ods" ]; then
