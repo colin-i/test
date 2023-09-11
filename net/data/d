@@ -13,6 +13,7 @@ days=`echo ${last_day} - ${this_day} | bc`
 echo days=${days}
 
 ratio=`echo "${data} / ${days}" | bc -l`
-ratio=${ratio/./,}
+ratio=`echo ${ratio} | sed 's/\./,/'`
+#${ratio/./,} only at bash is ok
 z=$(printf %.2f ${ratio})
 echo data/days=${z}
