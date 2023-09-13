@@ -1,2 +1,2 @@
 
-~/test/bots/commit tests
+~/test/bots/commit tests $@
