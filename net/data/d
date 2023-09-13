@@ -13,7 +13,18 @@ days=`echo ${last_day} - ${this_day} | bc`
 echo days=${days}
 
 ratio=`echo "${data} / ${days}" | bc -l`
-ratio=`echo ${ratio} | sed 's/\./,/'`
-#${ratio/./,} only at bash is ok
+
+if [ "`readlink /proc/$$/exe`" = "/usr/bin/dash" ]; then
+	export LC_NUMERIC=en_US.UTF
+
+	#ratio=`echo ${ratio} | sed 's/\./,/'` ?
+	#data=23.45 days=18 ./d: ..: printf: 1,30277777777777777777: not completely converted
+else
+	#/usr/bin/bash
+	ratio=${ratio/./,}
+	#/bin/sh , ./d: ..: Bad substitution
+fi
+
 z=$(printf %.2f ${ratio})
+
 echo data/days=${z}
