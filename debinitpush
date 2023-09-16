@@ -6,7 +6,7 @@ rm -r debian/patches && \
 echo Set file permissions and press a key. && \
 read -n1 -t $((60*60*24)) && \
 echo -n "${1}" | xclip -selection clipboard && \
-~/test/bots/sync x
+~/test/bots/sync -a
 
 #git commit -a && \
 #push
