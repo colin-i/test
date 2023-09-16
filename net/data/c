@@ -1,5 +1,10 @@
 
-#1 post data  2 cookie
+#1 post data  2 firefox folder
+
+cp /home/bc/.mozilla/firefox/${2}.default-release/cookies.sqlite ./1
+#Error: in prepare, database is locked (5)
+
+k_v=( `sqlite3 -separator $'\t' ./1 "select name, value from moz_cookies where host='.digi.ro';"` )
 
 #xhttp.open("POST", "https://www.digi.ro/my-account/my-services/digi-mobil-cost-control", false);
 #//xhttp.setRequestHeader("content-type","text/html; charset=UTF-8");
@@ -19,7 +24,7 @@ curl --silent https://www.digi.ro/my-account/my-services/digi-mobil-cost-control
 -H "Origin: https://www.digi.ro" \
 -H "Connection: keep-alive" \
 -H "Referer: https://www.digi.ro/my-account/my-services" \
--H "Cookie: ${2}; cmp_level=15; webpush=0; black_friday=1" \
+-H "Cookie: ${k_v[0]}=${k_v[1]}; cmp_level=15; webpush=0; black_friday=1" \
 -H "Sec-Fetch-Dest: empty" \
 -H "Sec-Fetch-Mode: cors" \
 -H "Sec-Fetch-Site: same-origin" \
