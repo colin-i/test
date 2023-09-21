@@ -3,7 +3,7 @@
 
 import os
 
-if os.environ['mimeType']:
+if os.environ.get('mimeType'):
 	mim=os.environ['mimeType']
 else:
 	mim='application/vnd.oasis.opendocument.spreadsheet'
@@ -16,7 +16,7 @@ creds, _ = google.auth.default()
 # create drive api client
 service = build('drive', 'v3', credentials=creds)
 
-if os.environ['folder']:
+if os.environ.get('folder'):
 	response = service.files().list(q="mimeType='application/vnd.google-apps.folder'" "and name = '"+os.environ['folder']+"'"
 		,spaces='drive',fields='files(id)').execute()
 	folderid=response['files'][0]['id']
@@ -44,7 +44,7 @@ def upload_basic():
 	#}
 	#service.permissions().create(fileId=fileid, body=permission).execute()
 
-	if os.environ['anyone']:
+	if os.environ.get('anyone'):
 		permission = {
 			'type': 'anyone',
 			'role': 'reader'
