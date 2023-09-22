@@ -1,2 +1,2 @@
 
-sudo modprobe pcspkr && cc beep.c && sudo ./a.out && rm a.out
+sudo modprobe pcspkr && cc beep.c && sudo ./a.out && rm a.out   #/dev/console is root 640 and need xx4
