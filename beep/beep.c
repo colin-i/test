@@ -27,7 +27,7 @@ int console_fd = -1;
 
 void play_beep(beep_parms_t parms) {
   int i; /* loop counter */
-  
+
   /* try to snag the console */
   if((console_fd = open("/dev/console", O_WRONLY)) == -1) {
     fprintf(stderr, "Could not open /dev/console for writing.\n");
@@ -60,7 +60,7 @@ int main() {
 
   printf("Going to beep!\n");
   play_beep(*parms);
-  
+
   free(parms);
 
   return 0;
