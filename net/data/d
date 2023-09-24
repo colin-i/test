@@ -4,13 +4,13 @@ b=`xmllint --html --xpath '/html/body/div/div/div/div/div/div/div/div/p[6]' 1 2>
 a=`echo ${a} | grep -Poe '(?<=4G: )[^ ]*'`
 b=`echo ${b} | grep -Poe '(?<=4G: )[^ ]*'`
 data=`echo ${a}-${b} | bc`
-echo data=${data}
+echo data=${data} | tee ~/net_data
 
 this_day=`date +%e`
 last_day=$(date -d "$(date +%Y%m01) +1 month -1 day" +%e)
 last_day=`echo ${last_day}+1 | bc`
 days=`echo ${last_day} - ${this_day} | bc`
-echo days=${days}
+echo days=${days} | tee -a ~/net_data
 
 ratio=`echo "${data} / ${days}" | bc -l`
 
@@ -27,4 +27,4 @@ fi
 
 z=$(printf %.2f ${ratio})
 
-echo data/days=${z}
+echo data/days=${z} | tee -a ~/net_data

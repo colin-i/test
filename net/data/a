@@ -4,5 +4,6 @@ last=$(date -d @$(stat -c %Y ~/net_data) +%d)
 today=`date +%d`
 if [ ${last} != ${today} ]; then
 	echo another day
-	cd ~/test/net/data && ./b && ./d && rm 1 && touch ~/net_data
+	cd ~/test/net/data && ./b && ./d && rm 1
+	# && touch ~/net_data
 fi
