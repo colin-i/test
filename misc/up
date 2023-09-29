@@ -6,6 +6,7 @@ else file="${1}"; fi
 
 sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
+#/var/cache/apt
 #sudo apt update -o Dir::Cache=./apt_cache
 #sudo apt install --download-only ovideo -o Dir::Cache::archives=./apt_cache/archives -o Dir::Cache=./apt_cache
 
