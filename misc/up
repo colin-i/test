@@ -9,7 +9,7 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o 
 #/var/cache/apt
 #sudo apt update -o Dir::Cache=./apt_cache
 #sudo apt install --download-only ovideo -o Dir::Cache::archives=./apt_cache/archives -o Dir::Cache=./apt_cache
-#when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages, do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
+#when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages(example will put sudo,git and not libc and sudo,git will not work), do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
 
 #colin-i-ubuntu-ppa.list  docker.list  github-cli.list  google-chrome.list  google-earth-pro.list  mozillateam-ubuntu-ppa.list
 

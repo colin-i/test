@@ -58,9 +58,10 @@ if [ ${k} -gt 0 ]; then
 	read -n1 -t $((60*60*24)) ans
 	if [ "${ans}" = "y" ]; then
 		if [ "${extension}" = "xz" ]; then
-			xzcat ${1} | sudo dd of=${name} status=progress
+			xzcat ${1} | sudo dd of=${name} status=progress bs=134217728
 		else
-			sudo dd if=${fullname} of=${name} status=progress
+			sudo dd if=${fullname} of=${name} status=progress bs=134217728
+			#default bs is 512
 		fi
 	else
 		echo no
