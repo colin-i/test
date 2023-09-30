@@ -1,6 +1,9 @@
 #!/bin/bash
+
+#sudo gem install twurl 
 #twurl authorize --consumer-key `cat ~/n/pat6` \
 #                --consumer-secret `cat ~/n/pat7`
+
 text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".includes.tweets[0].text"`
 #\&tweet.fields=text        history,id and text are always
 #-t to see response headers
