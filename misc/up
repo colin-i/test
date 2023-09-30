@@ -9,9 +9,12 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o 
 #/var/cache/apt
 #sudo apt update -o Dir::Cache=./apt_cache
 #sudo apt install --download-only ovideo -o Dir::Cache::archives=./apt_cache/archives -o Dir::Cache=./apt_cache
-#when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages(example will put sudo,git and not libc and sudo,git will not work), do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
+#when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages(example will put sudo and not libc and will be a kernel boot panic), do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
 
 #colin-i-ubuntu-ppa.list  docker.list  github-cli.list  google-chrome.list  google-earth-pro.list  mozillateam-ubuntu-ppa.list
+
+#snap list , and remove ... , and apt snapd purge, then, this is not require:
+#dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge
 
 #echo '
 #Package: *
@@ -20,5 +23,3 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file}.list -o 
 #' | sudo tee /etc/apt/preferences.d/mozilla-firefox
 
 #this is not true: "sudo apt update command again brings back the snap"; if is true, pin-prio.. -10 and pin .. a=* for pack.. snapd
-
-#dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge
