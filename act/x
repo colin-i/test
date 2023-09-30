@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#sudo gem install twurl 
+#sudo gem install twurl
 #twurl authorize --consumer-key `cat ~/n/pat6` \
 #                --consumer-secret `cat ~/n/pat7`
 
