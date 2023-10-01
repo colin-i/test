@@ -152,7 +152,7 @@ if __name__ == "__main__":
 		is_ready=True
 
 	is_ready=False
-	with open(os.path.expanduser('~')+"/rpi2_ip","rb") as f:
+	with open(os.path.expanduser('~')+"/load_ip","rb") as f:
 		address = (f.read(), 6000)     # family is deduced to be 'AF_INET'
 	listener = Listener(address)
 	zone=False
