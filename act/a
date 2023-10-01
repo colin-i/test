@@ -1,5 +1,5 @@
 
-resize -s 36 132
+resize -s `cat ~/n/pat11`
 
 while :
 do
