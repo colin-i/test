@@ -1,6 +1,0 @@
-
-#1 year  2 month
-
-~/test/stats/g0 ${1}/${2} && \
-~/test/stats/gh ${1}/${2} && \
-~/test/stats/msg ${1} ${2}

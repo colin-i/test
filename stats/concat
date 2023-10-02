@@ -1,7 +1,8 @@
 
-#1 f
+#1 f  optional 2 deconcatenate
 
 f=${1}/
+deconcatenate=${2}
 
 a=( `cat h` )
 b=( `cat h2` )
@@ -20,25 +21,41 @@ for (( i=0; i < ${n}; i++))
 do
 	IFS='=' read -a addr <<<"${a[${i}]}"
 	IFS='=' read -a addr2 <<<"${a2[${i}]}"
-	addr[1]=$((addr[1]+addr2[1]))
+	if [ -z "${deconcatenate}" ]; then
+		addr[1]=$((addr[1]+addr2[1]))
+	else
+		addr[1]=$((addr[1]-addr2[1]))
+	fi
 	a[${i}]=${addr[0]}=${addr[1]}
 	out="${out} ${a[${i}]}"
 
 	IFS='=' read -a addr <<<"${b[${i}]}"
 	IFS='=' read -a addr2 <<<"${b2[${i}]}"
-	addr[1]=$((addr[1]+addr2[1]))
+	if [ -z "${deconcatenate}" ]; then
+		addr[1]=$((addr[1]+addr2[1]))
+	else
+		addr[1]=$((addr[1]-addr2[1]))
+	fi
 	b[${i}]=${addr[0]}=${addr[1]}
 	out2="${out2} ${b[${i}]}"
 
 	IFS='=' read -a addr <<<"${c[${i}]}"
 	IFS='=' read -a addr2 <<<"${c2[${i}]}"
-	addr[1]=$((addr[1]+addr2[1]))
+	if [ -z "${deconcatenate}" ]; then
+		addr[1]=$((addr[1]+addr2[1]))
+	else
+		addr[1]=$((addr[1]-addr2[1]))
+	fi
 	c[${i}]=${addr[0]}=${addr[1]}
 	out3="${out3} ${c[${i}]}"
 
 	IFS='=' read -a addr <<<"${d[${i}]}"
 	IFS='=' read -a addr2 <<<"${d2[${i}]}"
-	addr[1]=$((addr[1]+addr2[1]))
+	if [ -z "${deconcatenate}" ]; then
+		addr[1]=$((addr[1]+addr2[1]))
+	else
+		addr[1]=$((addr[1]-addr2[1]))
+	fi
 	d[${i}]=${addr[0]}=${addr[1]}
 	out4="${out4} ${d[${i}]}"
 done

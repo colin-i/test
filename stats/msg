@@ -105,24 +105,15 @@ if [ "${more_data}" != "" ]; then
 	y=${1}
 	m=${2}
 
-	#store current state in case something bad happens
+	#allow message modifications without concat
+	#this is tricky. the flag is at previous month but the concat is at current month
 	if [ "${m}" = "1" ]; then
 		cd $((y-1))/12
 	else
 		cd ${y}/$((m-1))
 	fi
-	#mkdir arh
-	#if [ "$?" = "0" ]; then
 	if ! [ -f "arh" ]; then
 		touch arh
-		#to allow message modifications without concat
-		#cd arh
-		#cp ${start}h .
-		#cp ${start}h2 .
-		#cp ${start}h3 .
-		#cp ${start}h4 .
-		#cd ..
-		#add at commit time git add arh
 		cd ${start}
 		~/test/stats/concat ${y}/${m}
 	else
