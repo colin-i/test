@@ -5,7 +5,7 @@ cp /home/bc/.mozilla/firefox/${2}.default-release/cookies.sqlite ./1
 #Error: in prepare, database is locked (5)
 
 #dash does not have arrays
-k_v="`sqlite3 -separator ' ' ./1 "select name, value from moz_cookies where host='.digi.ro';"`"
+k_v="`sqlite3 -separator ' ' ./1 "select name, value from moz_cookies where host='.digi.ro' and name not like '\_%' escape '\';" | head -1`"
 k=`echo ${k_v} | grep -o "^[^ ]*"`
 v=`echo ${k_v} | grep -o "[^ ]*$"`
 
