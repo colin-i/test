@@ -8,7 +8,7 @@ else
 	echo ${choose_term_profile}
 fi
 
-if [ "${resizeterm}" != "" ]; then resize -s 36 132; fi
+if [ "${resizeterm}" != "" ]; then resize -s `cat ~/n/pat11`; fi
 
 uname -a
 if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
