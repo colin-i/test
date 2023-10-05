@@ -1,0 +1,3 @@
+
+resize -s `cat ~/n/pat11`
+xdotool getactivewindow windowmove 0 0

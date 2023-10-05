@@ -1,7 +1,4 @@
 
-xdotool getactivewindow windowmove 0 0
-resize -s `cat ~/n/pat11`
-
 while :
 do
 	sleep 10
