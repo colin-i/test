@@ -25,6 +25,13 @@ with open(os.getenv('HOME')+'/tempmax', 'r') as file:
 with open(os.getenv('HOME')+'/tempmin', 'r') as file:
 	min = int(file.read())
 
+#https://github.com/mjg59/python-broadlink
+import broadlink
+
+devices = broadlink.discover(discover_ip_address='192.168.1.255') #the arugment is if manual wlan connection if have both wwan and wlan
+device=devices[0]
+device.auth()
+
 import sys
 
 on=int(sys.argv[1])
@@ -63,13 +70,6 @@ if len(sys.argv)>3:
 
 print(min.__str__())
 print(max.__str__())
-
-#https://github.com/mjg59/python-broadlink
-import broadlink
-
-devices = broadlink.discover(discover_ip_address='192.168.1.255') #the arugment is if manual wlan connection if have both wwan and wlan
-device=devices[0]
-device.auth()
 
 import time
 
