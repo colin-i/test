@@ -1,5 +1,5 @@
 
-#1 off_start/on_start  2 temp offset/or min  3 max
+#1 -1=automatic/off_start/on_start  optional  2 temp offset / or min  3 max
 
 python ~/test/plug/a.py ${1} 0 ${2} ${3}
 

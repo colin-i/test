@@ -1,5 +1,5 @@
 
-#required on local
+#same as ./a
 
 import os
 import subprocess
@@ -27,8 +27,12 @@ with open(os.getenv('HOME')+'/tempmin', 'r') as file:
 
 import sys
 
-on=bool(int(sys.argv[1]))
-print(on.__str__())
+on=int(sys.argv[1])
+if on==-1:
+	on=device.check_power()
+else:
+	on=bool(on)
+print("On="+on.__str__())
 
 print(sys.argv[2])
 if sys.argv[2]=="0":
