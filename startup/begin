@@ -1,0 +1,12 @@
+
+~/test/act/a
+~/test/net/data/a
+~/test/startup/termsz
+
+~/arh/activity &
+sleep 10 #to not override text with temp
+
+if [ -z "${3}" ]; then a=-1
+else a=${3}
+fi
+~/test/plug/a ${a} ${1} ${2}
