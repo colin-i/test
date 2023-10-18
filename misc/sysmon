@@ -1,12 +1,11 @@
 
 #only make is not working
-make install
-# && \
-#will error at next
-
+make install && \
+\
 #at paradoxxx build is ok, do not remove, [and skip "install"?]
 rm -r /home/bc/.local/share/gnome-shell/extensions/system-monitor-next@paradoxxx.zero.gmail.com && \
 #without at next, but on updates?
+\
 cd system-monitor@paradoxxx.zero.gmail.com && \
 zip -ru ../../z.zip ./* && \
 gnome-extensions install ../../z.zip && \
