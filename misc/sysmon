@@ -9,8 +9,10 @@ rm -r /home/bc/.local/share/gnome-shell/extensions/system-monitor-next@paradoxxx
 #without at next, but on updates?
 cd system-monitor@paradoxxx.zero.gmail.com && \
 zip -ru ../../z.zip ./* && \
-gnome-extensions install --force ../../z.zip && \
+gnome-extensions install ../../z.zip && \
+# --force    #is rm
 cd .. && \
-make clean
+make clean && \
+git status
 
 #alt+f2 r
