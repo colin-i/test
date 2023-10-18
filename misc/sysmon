@@ -1,9 +1,13 @@
 
 #only make is not working
-make install && \
-#at paradoxxx build is ok, do not remove, and skip "install"
-rm -r /home/bc/.local/share/gnome-shell/extensions/system-monitor@paradoxxx.zero.gmail.com && \
-\
+make install
+# && \
+#will error maybe
+
+#at paradoxxx build is ok, do not remove, [and skip "install"?]
+#rm -r /home/bc/.local/share/gnome-shell/extensions/system-monitor@paradoxxx.zero.gmail.com && \
+#without at next
+
 cd system-monitor@paradoxxx.zero.gmail.com && \
 zip -ru ../../z.zip ./* && \
 gnome-extensions install --force ../../z.zip && \
