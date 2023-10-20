@@ -11,10 +11,10 @@ fi
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 file=${name}-${version}.${arch}.rpm
 
-if [ ! -e "./${file}" ]; then
-	id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
-	repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
-fi
+#if [ ! -e "./${file}" ]; then
+id=$(gh run list --workflow=rpm.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
+repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+#fi
 
 startdir=`pwd`
 cd /tmp
@@ -57,13 +57,13 @@ sudo docker exec ${contid} rpmrebuild -s text ./${file} && \
 sudo docker container cp ${contid}:/text text && \
 \
 if [ -e "${startdir}/arh/re" ]; then
-cp text text_cmp && \
-${startdir}/arh/re ${startdir} && \
-cat text && \
-diff text text_cmp || \
-rm text_cmp
+	cp text text_cmp && \
+	${startdir}/arh/re ${startdir} && \
+	cat text && \
+	diff text text_cmp || \
+	rm text_cmp
 fi && \
-mkdir ${dir} && \
+mkdir -p ${dir} && \
 mv usr ${dir}/ && \
 rpmbuild -bb --target ${arch} text && \
 sudo docker exec ${contid} rm -rf /text && \
