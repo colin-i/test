@@ -30,6 +30,12 @@ fi
 
 
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
+#sudo docker run -ti fedora
+#exit
+#sudo docker ps -a
+#sudo docker start ${contid}
+#sudo docker attach ${contid}
+#	yum install rpmrebuild
 contid=`sudo docker ps -a -f ancestor=fedora -q`
 
 #specific steps
