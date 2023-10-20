@@ -17,3 +17,4 @@ make clean && \
 git status
 
 #alt+f2 r
+#seeing constant warnings at journalctl -f ? MaxLevelStore=err at /etc/systemd/journald.conf, then systemctl restart systemd-journald
