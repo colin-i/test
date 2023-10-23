@@ -5,3 +5,10 @@ python a.py &
 ./c
 
 fg 1
+
+#to simulate traffic:
+#sudo netsniff-ng --in wlp3s0 --out tcpsyn.pcap       #listen
+#sudo hping3 -c 1 -I wlp3s0 -p 443 -S 192.168.1.1     #send
+#                                                     #close listen
+#netsniff-ng --in tcpsyn.pcap --out tcpsyn.cfg        #for trafgen
+#sudo trafgen --in tcpsyn.cfg --out wlp3s0 --num 1000 #send this a few times
