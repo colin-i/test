@@ -13,8 +13,13 @@ if [ "${resizeterm}" != "" ]; then ~/test/startup/termsz; fi
 uname -a
 if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
 
-export PATH=/home/bc/.cargo/bin:/home/bc/Desktop/act:$PATH
-export PYTHONPYCACHEPREFIX=/home/bc/pycache
+a=~/.local/bin
+echo ${PATH} | grep -F "${a}"
+if [ $? = 1 ]; then
+	export PATH=${a}:$PATH
+fi
+export PATH=~/.cargo/bin:~/Desktop/act:$PATH
+export PYTHONPYCACHEPREFIX=~/pycache
 export PYTHONPATH=$PYTHONPATH:
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 
