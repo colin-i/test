@@ -2,8 +2,14 @@
 a=`xmllint --html --xpath '/html/body/div/div/div/div/div/div/div/div/p[5]' 1 2>/dev/null`
 b=`xmllint --html --xpath '/html/body/div/div/div/div/div/div/div/div/p[6]' 1 2>/dev/null`
 a=`echo ${a} | grep -Poe '(?<=4G: )[^ ]*'`
+c=`echo ${b} | grep -Poe '(?=M).'`
 b=`echo ${b} | grep -Poe '(?<=4G: )[^ ]*'`
-data=`echo ${a}-${b} | bc`
+
+if [ "${c}" = "M" ]; then
+	data=`echo "${a}-(${b}/1000)" | bc`
+else
+	data=`echo ${a}-${b} | bc`
+fi
 echo data=${data} | tee ~/net_data
 
 this_day=`date +%e`
