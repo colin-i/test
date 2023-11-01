@@ -25,12 +25,19 @@ curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -H "Origin: https://www.digi.ro" \
 -H "Connection: keep-alive" \
 -H "Referer: https://www.digi.ro/my-account/my-services" \
--H "Cookie: ${k}=${v}; cmp_level=15; webpush=0; black_friday=1" \
+-H "Cookie: ${k}=${v}; cmp_level=15; webpush=0" \
 -H "Sec-Fetch-Dest: empty" \
 -H "Sec-Fetch-Mode: cors" \
 -H "Sec-Fetch-Site: same-origin" \
 -H "TE: trailers" \
---silent --output - | gunzip - > 1
+--silent > 3
+#--output -
+
+cat 3 | gunzip - > 1
+
+if [ $? = 1 ]; then cat 3; fi
+
+rm ./3
 
 #xhttp.open("POST", "https://www.digi.ro/my-account/my-services/digi-mobil-cost-control", false);
 #//xhttp.setRequestHeader("content-type","text/html; charset=UTF-8");
