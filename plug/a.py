@@ -31,6 +31,7 @@ import broadlink
 devices = broadlink.discover(discover_ip_address='192.168.1.255') #the arugment is if manual wlan connection if have both wwan and wlan
 device=devices[0]
 device.auth()
+#Authentication failed ? Unlock the device from the mobile app
 
 import sys
 

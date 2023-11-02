@@ -1,10 +1,11 @@
-
+i=1
 while :
 do
 	sleep 10
 	#sleep is first, if Sync yes is first time, can have wrong measurements next, observed at startup with login screen
 
 	a=`timedatectl -p NTPSynchronized show`
-	echo ${a}
+	echo ${i} ${a}
 	if [ "${a}" = "NTPSynchronized=yes" ]; then break; fi
+	i=$((i+1))
 done
