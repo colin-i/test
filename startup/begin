@@ -1,7 +1,10 @@
 
+#needed at termsz, after sleeps, to do something else in the meantime
+window_pid=`xdotool getactivewindow`
+
 ~/test/act/a
 ~/test/net/data/a
-~/test/startup/termsz
+window_pid=${window_pid} ~/test/startup/termsz
 
 ~/arh/activity &
 sleep 10 #to not override text with temp
