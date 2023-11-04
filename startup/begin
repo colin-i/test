@@ -1,6 +1,8 @@
 
+sleep 10
 #needed at termsz, after sleeps, to do something else in the meantime
 window_pid=`xdotool getactivewindow`
+echo ${window_pid}
 
 ~/test/act/a
 ~/test/net/data/a
