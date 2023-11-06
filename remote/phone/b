@@ -1,0 +1,18 @@
+
+f=/var/www/html/remote.txt
+while :; do
+	a=`cat ${f}`
+	if [ -n "${a}" ]; then break; fi
+	sleep 5
+	echo waiting
+done
+
+echo -n > ${f}
+
+echo start
+
+./d
+rm a.jpg
+a=`cat 1`
+rm 1
+echo -n ${a} > /var/www/html/remote2.txt

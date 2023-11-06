@@ -6,7 +6,7 @@
 <?php
 
 if(array_key_exists('text',$_GET)){
-	$fp = fopen('text.txt', 'w');
+	$fp = fopen('text.txt', 'w');//must create,chmod__w the file first
 	fwrite($fp, $_GET['text']);
 	fclose($fp);
 }

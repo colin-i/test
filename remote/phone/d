@@ -1,0 +1,20 @@
+
+win=`xdotool search --class scrcpy`
+
+xdotool click 1
+
+for (( i=0; i < 3; i++ )); do
+	sleep 5
+	echo try
+	import -window ${win} -crop 300x50+10+380 a.jpg
+	tesseract a.jpg 1
+	a=`cat 1.txt`
+	a=${a//[!0-9]/}
+	z=${#a}
+	if [ ${z} = 6 ]; then
+		echo -n ${a} > 1
+		break
+	fi
+done
+
+rm 1.txt

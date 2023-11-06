@@ -1,0 +1,8 @@
+
+win=`xdotool search --class scrcpy`
+xdotool windowmove ${win} 0 0
+xdotool windowactivate ${win}
+
+#sleep 1
+#xdotool mousemove --sync 130 480 click 1
+xdotool mousemove 130 480

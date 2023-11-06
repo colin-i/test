@@ -1,0 +1,8 @@
+
+#apache2 ./a ./b scrcpy ./c
+#nokia e71: proxysite.com
+#https://wondrous-thankfully-swift.ngrok-free.app/remote.php
+
+#auth first
+
+~/Downloads/ngrok http --domain=wondrous-thankfully-swift.ngrok-free.app 80
