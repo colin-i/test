@@ -13,7 +13,7 @@ curl_setopt_array($curl, array(
     CURLOPT_CUSTOMREQUEST => 'GET',
 //CURLOPT_HTTPHEADER => [
 //    'ngrok-skip-browser-warning: 2'
-//]//or User-Agent like this one that curl sends
+//]//or 'User-Agent: custom/non-standard' or like curl is sending the agent
 ));
 
 $response = curl_exec($curl);
