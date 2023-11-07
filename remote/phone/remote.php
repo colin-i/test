@@ -1,5 +1,5 @@
-
 <?php
+
 $fp = fopen('remote.txt', 'w');//must create,chmod__w the file first
 fwrite($fp, "a");
 fclose($fp);
@@ -16,5 +16,16 @@ fclose($fp);
 $fp = fopen($f, 'w');
 fclose($fp);
 echo($a);
+
+$image = imagecreatefromjpeg('a.jpg');
+ob_start();
+imagepng($image);
+$imgData=ob_get_clean();
+imagedestroy($image);
+echo '<img src="data:image/png;base64,'.base64_encode($imgData).'" />';
+
+$fp = fopen('remote.txt', 'w');
+fwrite($fp, "a");
+fclose($fp);
 
 ?>
