@@ -21,7 +21,7 @@ mv a.jpg /var/www/html
 while :; do
 	a=`cat ${f}`
 	if [ -n "${a}" ]; then break; fi
-	sleep 5
+	sleep 1
 	echo waiting
 done
 echo -n > ${f}
