@@ -3,12 +3,13 @@ win=`xdotool search --class scrcpy`
 
 xdotool click 1
 
-for (( i=0; i < 3; i++ )); do
-	sleep 5
+for (( i=0; i < 15; i++ )); do
+	sleep 1
 	echo try
 	import -window ${win} -crop 300x50+10+380 a.jpg
 	tesseract a.jpg 1
 	a=`cat 1.txt`
+	a=${a//O/0}
 	a=${a//[!0-9]/}
 	z=${#a}
 	if [ ${z} = 6 ]; then

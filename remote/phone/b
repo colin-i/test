@@ -1,29 +1,36 @@
 
 f=/var/www/html/remote.txt
 while :; do
-	a=`cat ${f}`
-	if [ -n "${a}" ]; then break; fi
-	sleep 5
-	echo waiting
+	a=`stat -c %s ${f}`
+	if [ "${a}" != 0 ]; then break; fi
+	sleep 1
+	echo waitingA
 done
 echo -n > ${f}
 
 echo start
 
 ./d
-a=`cat 1`
-rm 1
-echo -n ${a} > /var/www/html/remote2.txt
 
+#import -window root a.jpg
+#cp ~/arh/a.jpg .
 mv a.jpg /var/www/html
+
+#echo -n 11 > 1
+a=`cat 1`
+echo ${a}
+rm 1
+
+echo -n ${a} > /var/www/html/remote2.txt
 
 #waiting again for a.jpg print
 while :; do
-	a=`cat ${f}`
-	if [ -n "${a}" ]; then break; fi
+	a=`stat -c %s ${f}`
+	if [ "${a}" != 0 ]; then break; fi
 	sleep 1
-	echo waiting
+	echo waitingB
 done
 echo -n > ${f}
 
-rm /var/www/html/a.jpg
+#rm /var/www/html/a.jpg
+mv /var/www/html/a.jpg ~/arh/a.jpg
