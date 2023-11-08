@@ -15,8 +15,24 @@ def form(js):
 		out[x["repository"]["name"]]=x["contributions"]["edges"][0]["node"]["commitCount"]
 	return out
 
+from multiprocessing.connection import Listener
+import threading
+
+def from_th(text):
+	callba(text)
+
+def th_f(text):
+	address = ('192.168.1.11', 5000)
+	listener = Listener(address)
+	while listener.accept():
+		GLib.idle_add(from_th,text)
+		#c.close() #Warning: Source ID 91 was not found when attempting to remove it
+
 def init():
 	text=Gtk.TextView(editable=False,vexpand=True) #,wrap_mode=Gtk.WrapMode.NONE
+
+	th = threading.Thread(target=th_f,args=[text])
+	th.start()
 
 	show(text,form(query.yesterday()))
 
