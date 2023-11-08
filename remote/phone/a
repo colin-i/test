@@ -1,5 +1,5 @@
 
-#apache2 ./a ./b scrcpy ./c
+# apache2 ./a ./b scrcpy ./c
 #nokia e71: https://bedight-solvent.000webhostapp.com
 #           proxysite.com with https://wondrous-thankfully-swift.ngrok-free.app/remote.php
 #           bedight with opera, proxy with uc browser
