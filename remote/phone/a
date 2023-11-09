@@ -5,8 +5,8 @@
 #./c && firefox https://wondrous-thankfully-swift.ngrok-free.app/remote.php && ./b
 #./c && firefox http://localhost/remote.php && ./b
 
-#nokia e71: https://bedight-solvent.000webhostapp.com with opera
-#           proxysite.com with https://wondrous-thankfully-swift.ngrok-free.app/remote.php with uc browser
+#nokia e71: ok with the stock browser http://bedight-solvent.000webhostapp.com , opera, uc browser
+#           can also use proxysite.com with ...wondrous...
 
 #auth first
 
