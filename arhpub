@@ -1,0 +1,21 @@
+
+#1 version
+
+start=`pwd`
+name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+fl=old
+list=${start}/${fl}
+arhname=${name}_${1}
+
+cd ~/arhiva && \
+echo ${arhname} && \
+gh release download ${arhname} -p *.rpm && \
+#it is only one file
+file=`ls` && \
+echo ${file} && \
+#if the file is too large, can move them at google in folder 2023 , 2024 , ...
+~/test/google/b ${file} > ${list} && \
+rm ${file} && \
+cd ${start} && \
+git diff ${fl} && \
+~/test/bots/sync

@@ -119,9 +119,15 @@ if len(sys.argv)>2:
 		search_file(None)
 else:
 	if fname!="0":
-	#upload and delete old
+	#upload
 		from googleapiclient.http import MediaFileUpload
-		search_file(upload_basic())
+		file_id=upload_basic()
+		if not os.environ.get('keep_old'):
+		#and delete old
+			search_file(file_id)
+		else:
+		#list name
+			search_file(None)
 	else:
 	#list all
 		search_file(None,all=True)

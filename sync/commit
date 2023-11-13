@@ -16,5 +16,5 @@ else
 	if [ "${z}" != "" ]; then args+=" \"${n}\""; fi
 fi && \
 git commit --author="${n} <${em}>" ${args} && \
-~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2 && \
+no_activity=1 ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2 && \
 rm ${f}
