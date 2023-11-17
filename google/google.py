@@ -126,17 +126,14 @@ else:
 		#and delete old
 			search_file(file_id)
 		else:
-		#list name
-			search_file(None)
+		#list all
+			search_file(None,all=True)
 	else:
 	#list all
 		search_file(None,all=True)
 
 
-#file_metadata = {
-#      'name': 'old',
-#      'mimeType': mim
-#}
+#file_metadata = { 'name': 'old/o', 'mimeType': 'application/vnd.google-apps.folder' }
 #service.files().create(body=file_metadata).execute()
 
 #service.permissions().delete(fileId=file['id'],permissionId='anyoneWithLink').execute()

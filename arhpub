@@ -14,7 +14,7 @@ gh release download ${arhname} -p *.rpm && \
 file=`ls` && \
 echo ${file} && \
 #if the file is too large, can move them at google in folder 2023 , 2024 , ...
-~/test/google/b ${file} > ${list} && \
+pname=${name} ~/test/google/b ${file} > ${list} && \
 rm ${file} && \
 cd ${start} && \
 git diff ${fl} && \
