@@ -57,5 +57,6 @@ fi
 
 #with ssh-ppa , in /etc/dput.cf there is ssh-ppa section , at login use colin-i instead of *
 #and ssh key at launchpad, and store ~/.ssh/id_rsa , id_rsa.pub
-dput -f ssh-ppa:colin-i/ppa${1} ${prog_ver}_source.changes && \
-rm ${files} && rm ../last.zip && rm ${prog_ver}_source.ppa.upload
+dest=ssh-ppa
+dput -f ${dest}:colin-i/ppa${1} ${prog_ver}_source.changes && \
+rm ${files} && rm ../last.zip && rm ${prog_ver}_source.${dest}.upload
