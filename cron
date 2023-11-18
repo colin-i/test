@@ -1,0 +1,18 @@
+
+hm=/home/bc
+
+db=${hm}/.mozilla/firefox/`cat ${hm}/n/pat10`.default-release/places.sqlite
+db2=${hm}/Desktop/places.sqlite
+#it is locked if using firefox
+cp ${db} ${db2}
+
+#echo sqlite3 ~/.mozilla/firefox/`cat ~/n/pat10`.default-release/places.sqlite ".backup /home/bc/u/b/bookmarks"
+sqlite3 ${db2} ".backup /home/bc/u/b/bookmarks"
+#                                                                         .restore
+rm ${db2}
+
+#crontab -h for help
+
+#if not on servers:
+#man anacron        cat /etc/anacrontab                 cd /etc/cron.daily     ln -s this .
+#Unlike cron(8), it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't  running 24 hours a day, to control daily, weekly, and monthly jobs that are usually controlled by cron
