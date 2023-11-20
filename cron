@@ -14,5 +14,5 @@ rm ${db2}
 #crontab -h for help
 
 #if not on servers:
-#man anacron        cat /etc/anacrontab                 cd /etc/cron.daily     ln -s this .
+#man anacron        cat /etc/anacrontab                 cd /etc/cron.weekly     ln -s this .
 #Unlike cron(8), it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't  running 24 hours a day, to control daily, weekly, and monthly jobs that are usually controlled by cron
