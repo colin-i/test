@@ -10,6 +10,10 @@ cp ${db} ${db2}
 sqlite3 ${db2} ".backup /home/bc/u/b/bookmarks"
 #                                                                         .restore
 rm ${db2}
+#will be actualized: Access yes
+#                    Modify yes
+#                    Change yes
+#                    Birth  no
 
 #crontab -h for help
 
