@@ -19,5 +19,6 @@ git push ${4} ${to} && \
 ~/${5}test/remote/pushdiff ${3} && \
 ~/${5}test/remote/pushinfo ${to} && \
 if [ -z "${no_activity}" ]; then
+	sleep 5
 	echo -n > /dev/tcp/192.168.1.11/5000
 fi
