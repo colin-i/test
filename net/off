@@ -1,0 +1,5 @@
+
+#1 H:MM
+
+a=$((`date -d ${1} +%s`-`date +%s`))
+sleep ${a};xrandr --output eDP-1 --auto;sleep 60;~/test/net/mm/ns.sh
