@@ -17,3 +17,6 @@ fi
 
 #windows grep:
 #Select-String -Path "Users\*.csv" -Pattern "Joe"
+
+#find all comments that will replace ==
+#grep -r "==" | sed -e '/^[^ \t]*[[:space:]]*#/!d'
