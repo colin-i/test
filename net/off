@@ -10,4 +10,9 @@ pause () {
 	echo ${1}
 	sleep ${1}
 }
-pause ${a};~/test/keyring;xrandr --output eDP-1 --auto;pause 60;~/test/net/mm/ns.sh
+xrandr --output eDP-1 --off
+pause ${a}
+xrandr --output eDP-1 --auto
+pause 60
+~/test/keyring
+~/test/net/mm/ns.sh
