@@ -6,4 +6,8 @@ if [ -n "`echo -n ${1} | grep :`" ]; then
 else
 	a=$((${1}*60))
 fi
-sleep ${a};xrandr --output eDP-1 --auto;sleep 60;~/test/net/mm/ns.sh
+pause () {
+	echo ${1}
+	sleep ${1}
+}
+pause ${a};~/test/keyring;xrandr --output eDP-1 --auto;pause 60;~/test/net/mm/ns.sh
