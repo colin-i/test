@@ -1,5 +1,5 @@
 
-#1 post data  2 firefox folder
+#1 post data  2 firefox folder  3 is debug
 
 cp /home/bc/.mozilla/firefox/${2}.default-release/cookies.sqlite ./2
 #Error: in prepare, database is locked (5)
@@ -8,7 +8,10 @@ cp /home/bc/.mozilla/firefox/${2}.default-release/cookies.sqlite ./2
 k_v="`sqlite3 -separator ' ' ./2 "select name, value from moz_cookies where host='.digi.ro' and name not like '\_%' escape '\';" | head -1`"
 k=`echo ${k_v} | grep -o "^[^ ]*"`
 v=`echo ${k_v} | grep -o "[^ ]*$"`
-#echo ${k};echo ${v}
+if [ -n "${3}" ]; then
+	echo ${k};echo ${v}
+fi
+
 rm ./2
 
 curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
@@ -35,8 +38,10 @@ curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 
 cat 3 | gunzip - > 1
 
-if [ $? = 1 ]; then cat 3; fi
-
+if [ -n "${3}" ]; then
+	cat 3
+	cat 1
+fi
 rm ./3
 
 #xhttp.open("POST", "https://www.digi.ro/my-account/my-services/digi-mobil-cost-control", false);
