@@ -15,4 +15,5 @@ pause ${a}
 xrandr --output eDP-1 --auto
 pause 60
 ~/test/keyring
-~/test/net/mm/ns.sh
+sudo ifconfig wwan0 down
+echo down
