@@ -1,5 +1,9 @@
 
-#1 H:MM
+#1 H:MM or M
 
-a=$((`date -d ${1} +%s`-`date +%s`))
+if [ -n "`echo -n ${1} | grep :`" ]; then
+	a=$((`date -d ${1} +%s`-`date +%s`))
+else
+	a=$((${1}*60))
+fi
 sleep ${a};xrandr --output eDP-1 --auto;sleep 60;~/test/net/mm/ns.sh
