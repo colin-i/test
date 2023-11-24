@@ -10,15 +10,18 @@ else
 	a=$((${1}*60))
 fi
 pause () {
-	echo ${1}
-	sleep ${1}
+	sleep 60
 }
 gsettings set org.gnome.desktop.session idle-delay 0
 {
 	xrandr --output eDP-1 --off
-	pause ${a}
+	while [ ${a} -gt 0 ]; do
+		echo ${a}
+		pause
+		a=$((a-60))
+	done
 	xrandr --output eDP-1 --auto
-	pause 60
+	pause
 	~/test/keyring
 	sudo ifconfig wwan0 down
 	echo down
