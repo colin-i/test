@@ -23,12 +23,14 @@ back () {
 	gsettings set org.gnome.desktop.session idle-delay 120
 }
 
+stop
+
 while :; do
 	b=`date +%s`
 	read -n1 -t 60
 	c=`date +%s`
 	a=$((a-(c-b)))
-	echo ${a}
+	echo ${a} q quit, space start, o stop, f finish
 
 	#"read .. ans" for some reason does not work for space key
 	#REPLY is cleared at again
@@ -39,6 +41,8 @@ while :; do
 		start
 	elif [ "${REPLY}" = "o" ]; then
 		stop
+	elif [ "${REPLY}" = "f" ]; then
+		break
 	fi
 
 	if [ ${a} -lt 0 ]; then
@@ -48,4 +52,8 @@ done
 
 back
 ~/test/keyring
+
+i=`ip r | grep '^default' | cut -d' ' -f3`
+ping -c1 ${i}
 sudo ifconfig wwan0 down
+ping -c1 ${i}
