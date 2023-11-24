@@ -18,5 +18,8 @@ fi
 #windows grep:
 #Select-String -Path "Users\*.csv" -Pattern "Joe"
 
-#find all comments that will replace ==
-#grep -r "==" | sed -e '/^[^ \t]*[[:space:]]*#/!d'
+#find all comments that will replace ==, exclude them, replace for the rest, and overall
+#grep -rn "==" | sed -e '/^[^:]*.[^:]*.[[:space:]]*#/!d'
+#sed -i -e '3b;5,6b;s/==/=/g' q
+#find ./ ! -name "q" -type f -exec sed -i "s/${1}/${2}/g" {} \;
+#! -wholename "./w/*"
