@@ -21,6 +21,7 @@ gsettings set org.gnome.desktop.session idle-delay 0
 		a=$((a-60))
 	done
 	xrandr --output eDP-1 --auto
+	echo done
 	pause
 	~/test/keyring
 	sudo ifconfig wwan0 down
