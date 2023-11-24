@@ -9,35 +9,43 @@ elif [ -n "`echo -n ${1} | grep :`" ]; then
 else
 	a=$((${1}*60))
 fi
-pause () {
-	sleep 60
-}
+
 gsettings set org.gnome.desktop.session idle-delay 0
-{
+
+stop () {
 	xrandr --output eDP-1 --off
-	while [ ${a} -gt 0 ]; do
-		echo ${a}
-		pause
-		a=$((a-60))
-	done
+}
+start () {
 	xrandr --output eDP-1 --auto
-	echo done
-	pause
-	~/test/keyring
-	sudo ifconfig wwan0 down
-	echo down
-} &
+}
+back () {
+	start
+	gsettings set org.gnome.desktop.session idle-delay 120
+}
+
 while :; do
-	echo q for exit, o for off
-	read -n1 -t $((60*60*24)) ans
-	if [ "${ans}" = "o" ]; then
-		xrandr --output eDP-1 --off
-	else
-		xrandr --output eDP-1 --auto
-		if [ "${ans}" = "q" ]; then
-			break
-		fi
+	b=`date +%s`
+	read -n1 -t 60
+	c=`date +%s`
+	a=$((a-(c-b)))
+	echo ${a}
+
+	#"read .. ans" for some reason does not work for space key
+	#REPLY is cleared at again
+	if [ "${REPLY}" = "q" ]; then
+		back
+		exit
+	elif [ "${REPLY}" = " " ]; then
+		start
+	elif [ "${REPLY}" = "o" ]; then
+		stop
+	fi
+
+	if [ ${a} -lt 0 ]; then
+		break
 	fi
 done
-gsettings set org.gnome.desktop.session idle-delay 120
-exit
+
+back
+~/test/keyring
+sudo ifconfig wwan0 down
