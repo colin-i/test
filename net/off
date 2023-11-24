@@ -1,5 +1,6 @@
 
 #1 H:MM or M
+#there is an alias off for this file
 
 if [ -n "`echo -n ${1} | grep :`" ]; then
 	a=$((`date -d ${1} +%s`-`date +%s`))
@@ -10,10 +11,27 @@ pause () {
 	echo ${1}
 	sleep ${1}
 }
-xrandr --output eDP-1 --off
-pause ${a}
-xrandr --output eDP-1 --auto
-pause 60
-~/test/keyring
-sudo ifconfig wwan0 down
-echo down
+gsettings set org.gnome.desktop.session idle-delay 0
+{
+	xrandr --output eDP-1 --off
+	pause ${a}
+	xrandr --output eDP-1 --auto
+	pause 60
+	~/test/keyring
+	sudo ifconfig wwan0 down
+	echo down
+} &
+while :; do
+	echo q for exit, o for off
+	read -n1 -t $((60*60*24)) ans
+	if [ "${ans}" = "o" ]; then
+		xrandr --output eDP-1 --off
+	else
+		xrandr --output eDP-1 --auto
+		if [ "${ans}" = "q" ]; then
+			break
+		fi
+	fi
+done
+gsettings set org.gnome.desktop.session idle-delay 120
+exit
