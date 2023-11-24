@@ -1,8 +1,10 @@
 
-#1 H:MM or M
+#optional 1 H:MM or M
 #there is an alias off for this file
 
-if [ -n "`echo -n ${1} | grep :`" ]; then
+if [ -z "${1}" ]; then
+	a=3600
+elif [ -n "`echo -n ${1} | grep :`" ]; then
 	a=$((`date -d ${1} +%s`-`date +%s`))
 else
 	a=$((${1}*60))
