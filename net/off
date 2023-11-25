@@ -50,10 +50,15 @@ while :; do
 	fi
 done
 
-back
+echo done
 ~/test/keyring
+
+back
+sleep 60
 
 #i=`ip r | grep '^default' | cut -d' ' -f3`
 #ping -c1 ${i}
 sudo ifconfig enp2s0 down
 #ping -c1 ${i}
+
+exit
