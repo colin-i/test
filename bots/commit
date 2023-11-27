@@ -2,7 +2,9 @@
 #same
 
 git commit --dry-run
-echo -e "\n\nok? y ?" && \
+echo -e "\n"
+echo -n $@
+echo " ok? y ?" && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
 	~/test/sync/commit $@
