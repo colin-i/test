@@ -7,8 +7,12 @@ else file="${1}"; fi  #is sources now but if set with list like in old examples,
 sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 #/var/cache/apt
-#sudo apt update -o Dir::Cache=./apt_cache
+
+#sudo apt update -o Dir::Cache=./apt_cache -o Dir::State::Lists=./apt_lists
+#this will not fail if apt_cache is not existent and will not create a directory, will put in default /var/cache/apt
+
 #sudo apt install --download-only ovideo -o Dir::Cache::archives=./apt_cache/archives -o Dir::Cache=./apt_cache
+#this will create the directory
 #when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages(example will put sudo and not libc and will be a kernel boot panic), do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
 
 #colin-i-ubuntu-ppa.sources  mozillateam-ubuntu-ppa.sources  google-chrome.list  google-earth-pro.list

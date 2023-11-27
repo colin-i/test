@@ -1,6 +1,9 @@
 
 apt list ocompiler ovideo actionswf edor sirc torra dicopp audapa
-apt install --just-print ocompiler ovideo actionswf edor sirc torra dicopp audapa | grep -E "is already|^Inst"
+apt install --just-print ocompiler actionswf edor sirc torra dicopp audapa | grep -E "is already|^Inst"
+
+apt install --just-print ovideo | grep -E "is already|^Inst"
+#if no i386, use dpkg --add-architecture / --remove-architecture, update apt lists in separate folder like in misc/up
 
 #dpkg -l | awk '/^ii/ && $4 == "i386" { print }' | wc -l
 #dpkg -l | awk '/^ii/ && $4 == "amd64" { print }' | wc -l
