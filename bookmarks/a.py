@@ -20,9 +20,9 @@ conn = sqlite3.connect(sys.argv[1])
 cursor = conn.cursor()
 cursor.execute("""
     SELECT
-        moz_places.id, 
-        moz_bookmarks.title, 
-        moz_places.url, 
+        moz_places.id,
+        moz_bookmarks.title,
+        moz_places.url,
         moz_bookmarks.dateAdded,
         moz_bookmarks.lastModified,
         moz_bookmarks.parent
@@ -49,9 +49,9 @@ for place_id, title, url, date_added, last_modified, parent_id in rows:
     # A tag relationship is established by row in the moz_bookmarks table with NULL
     # title where parent is the tag ID (in moz_bookmarks) and fk is the URL.
     cursor.execute("""
-        SELECT 
-            A.title 
-        FROM 
+        SELECT
+            A.title
+        FROM
             moz_bookmarks A, moz_bookmarks B
         WHERE
             A.id <> B.id
