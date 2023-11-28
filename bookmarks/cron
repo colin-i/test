@@ -6,7 +6,7 @@ db2=${hm}/Desktop/places.sqlite
 #it is locked if using firefox
 cp ${db} ${db2}
 
-f=${hm}/u/b/bookmarks
+f=${hm}/u/b/bm/bookmarks.`date +%s`
 
 sqlite3 ${db2} ".backup ${f}"
 #               .restore

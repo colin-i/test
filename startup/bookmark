@@ -1,0 +1,20 @@
+
+cd ~/u/b/bm || exit
+
+a=( `find -name "*.txt" | xargs` )
+
+for var in "${a[@]}"
+do
+	echo bookmarks
+	read -n1 -t $((3600*24)) ans
+	if [ "${ans}" = "y" ]; then
+		cat ./${var}
+		read -n1 -t $((3600*24)) ans
+		if [ "${ans}" = "y" ]; then
+			mv ${var} ..
+			var=${var:0:-4}
+			echo ${var}
+			mv ${var} ..
+		fi
+	fi
+done
