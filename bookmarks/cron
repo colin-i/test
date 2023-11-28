@@ -1,0 +1,31 @@
+
+hm=/home/bc
+
+db=${hm}/.mozilla/firefox/`cat ${hm}/n/pat10`.default-release/places.sqlite
+db2=${hm}/Desktop/places.sqlite
+#it is locked if using firefox
+cp ${db} ${db2}
+
+f=${hm}/u/b/bookmarks
+
+sqlite3 ${db2} ".backup ${f}"
+#               .restore
+#will be actualized: Access yes
+#                    Modify yes
+#                    Change yes
+#                    Birth  no
+
+#crontab -h for help
+
+#if not on servers:
+#man anacron        cat /etc/anacrontab                 cd /etc/cron.weekly     ln -s this .
+#Unlike cron(8), it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't  running 24 hours a day, to control daily, weekly, and monthly jobs that are usually controlled by cron
+
+#get the date when last weekly war run
+# sudo cat /var/spool/anacron/cron.weekly
+
+python ${hm}/test/bookmarks/a.py ${db2} > ${f}.txt
+
+# sudo cp ./cron /etc/cron.weekly/
+
+rm ${db2}
