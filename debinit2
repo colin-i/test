@@ -1,7 +1,7 @@
 
 #1 msg               optional 2 distribution
 
-~/test/debinitbase "$@" && \
+~/test/debinitbase "${1}" ${2} && \
 ~/test/debuild && \
-~/test/debinitpush "${1}" && \
+~/test/debinitpush "${1}" ${no_sync} && \
 ~/test/sync/s

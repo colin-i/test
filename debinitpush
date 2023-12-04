@@ -1,12 +1,14 @@
 
-#1 msg
+#1 msg  optional 2 no_push
 
 rm -r .pc && \
 rm -r debian/patches && \
-echo Set file permissions and press a key. && \
+echo Set file permissions and press a key (sync can be later but must be). && \
 read -n1 -t $((60*60*24)) && \
 echo -n "${1}" | xclip -selection clipboard && \
-~/test/bots/sync -a
+if [ -z "${2}" ]; then
+	~/test/bots/sync -a
+fi
 
 #git commit -a && \
 #push
