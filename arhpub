@@ -17,5 +17,6 @@ echo ${file} && \
 pname=${name} ~/test/google/b ${file} > ${list} && \
 rm ${file} && \
 cd ${start} && \
-git diff ${fl} && \
-~/test/bots/sync
+git diff ${fl}
+
+#debpush will sync ~/test/bots/sync

@@ -3,5 +3,5 @@
 
 ~/test/debinitbase "${1}" ${2} && \
 ~/test/debuild && \
-~/test/debinitpush "${1}" ${no_sync} && \
+~/test/debinitpush "${1}" && \
 ~/test/sync/s
