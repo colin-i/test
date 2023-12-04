@@ -3,11 +3,13 @@
 
 rm -r .pc && \
 rm -r debian/patches && \
-echo Set file permissions and press a key (sync can be later but must be). && \
+echo Set file permissions and press a key. && \
 read -n1 -t $((60*60*24)) && \
-echo -n "${1}" | xclip -selection clipboard && \
 if [ -z "${2}" ]; then
+	echo -n "${1}" | xclip -selection clipboard && \
 	~/test/bots/sync -a
+else
+	echo sync skipped
 fi
 
 #git commit -a && \
