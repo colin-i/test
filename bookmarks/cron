@@ -1,3 +1,4 @@
+#!/bin/sh
 
 hm=/home/bc
 
@@ -18,10 +19,14 @@ sqlite3 ${db2} ".backup ${f}"
 #crontab -h for help
 
 #if not on servers:
-#man anacron        cat /etc/anacrontab                 cd /etc/cron.weekly     ln -s this .
+#man anacron        cat /etc/anacrontab        sudo cp ./cron /etc/cron.weekly/
 #Unlike cron(8), it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't  running 24 hours a day, to control daily, weekly, and monthly jobs that are usually controlled by cron
+#see if will run
+#sudo run-parts --test /etc/cron.weekly
+#see how it runs
+#sudo run-parts --report /etc/cron.weekly
 
-#get the date when last weekly war run
+#get the date when last weekly was run
 # sudo cat /var/spool/anacron/cron.weekly
 
 python ${hm}/test/bookmarks/a.py ${db2} > ${f}.txt
