@@ -1,6 +1,12 @@
 
 #1 version
 
+if [ -z "${version}" ]; then
+#can be when there is not a version to archive
+	echo no version
+	exit 0
+fi
+
 start=`pwd`
 name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 fl=old
