@@ -1,7 +1,7 @@
 
 #1 version
 
-if [ -z "${version}" ]; then
+if [ -z "${1}" ]; then
 #can be when there is not a version to archive
 	echo no version
 	exit 0
