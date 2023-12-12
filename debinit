@@ -1,6 +1,7 @@
 
 #1 msg               optional 2 distribution
 
+#without quotes: ./debinit "a b" 2   is 1=a 2=b   not 1=a b  2=2
 ~/test/debinitbase "$@" && \
 ~/test/debinitpush "${1}" && \
 ~/test/sync/s && \
