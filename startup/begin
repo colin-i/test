@@ -1,12 +1,19 @@
 
 sleep 10
-#needed at termsz, after sleeps, to do something else in the meantime
-window_pid=`xdotool getactivewindow`
-echo ${window_pid}
+if [ -f ~/desktops ]; then
+	wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
+	echo $?
+else
+	#needed at termsz, after sleeps, to do something else in the meantime
+	window_pid=`xdotool getactivewindow`
+	echo ${window_pid}
+fi
 
 ~/test/act/a
 ~/test/net/data/a
-window_pid=${window_pid} ~/test/startup/termsz
+if [ -n "${window_pid}" ]; then
+	window_pid=${window_pid} ~/test/startup/termsz
+fi
 
 ~/arh/activity &
 sleep 10 #to not override text with temp
