@@ -27,8 +27,9 @@ def th_f(text):
 	while listener.accept():
 		GLib.idle_add(from_th,text)
 		#c.close() #Warning: Source ID 91 was not found when attempting to remove it
+	#print('closed')
 
-def init():
+def init(loop,pointer):
 	text=Gtk.TextView(editable=False,vexpand=True) #,wrap_mode=Gtk.WrapMode.NONE
 
 	th = threading.Thread(target=th_f,args=[text])
@@ -60,6 +61,14 @@ def init():
 	get=Gtk.Button.new_with_label("Get")
 	get.connect('clicked', getfn, text)
 	box.append(get)
+
+	relaunch=Gtk.Button.new_with_label("Relaunch")
+	relaunch.connect('clicked', relaunchfn, (loop,pointer))
+	box.append(relaunch)
+
+	exit=Gtk.Button.new_with_label("Exit")
+	exit.connect('clicked', exitfn, loop)
+	box.append(exit)
 
 	return box
 
@@ -122,3 +131,13 @@ def toggle(b,text):
 		b.set_label('Start')
 		file=open(f, "w") #set flag
 		file.close()
+
+def relaunchfn(b,pack):
+	loop,container=pack
+	container[0]=True
+	loop.quit()
+
+def exitfn(b,loop):
+	#global listener
+	#listener.close() still must accept one more
+	loop.quit()

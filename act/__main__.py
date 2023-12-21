@@ -14,12 +14,15 @@ w=rect.width/16
 h=rect.height-y
 x=rect.width-w
 
+loop = GLib.MainLoop()
+container = [False]
+
 win = Gtk.Window()
 t="Activity"
 win.set_title(t)
 win.set_decorated(False)
 #win.set_default_size(w,h)
-win.set_child(Gtk.ScrolledWindow(child=datacode.init()))
+win.set_child(Gtk.ScrolledWindow(child=datacode.init(loop,container)))
 win.show()
 
 #xid=win.get_surface().get_xid()
@@ -46,5 +49,8 @@ for window_id in window_ids:
 		)
 		d.sync()
 
-loop = GLib.MainLoop()
 loop.run()
+
+#exit() needs closing the second thread, more at the second thread
+import os
+os._exit(container[0])
