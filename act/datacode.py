@@ -134,7 +134,7 @@ def toggle(b,text):
 
 def relaunchfn(b,pack):
 	loop,container=pack
-	container[0]=True
+	container[0]=1
 	loop.quit()
 
 def exitfn(b,loop):

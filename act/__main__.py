@@ -15,7 +15,7 @@ h=rect.height-y
 x=rect.width-w
 
 loop = GLib.MainLoop()
-container = [False]
+container = [0]
 
 win = Gtk.Window()
 t="Activity"

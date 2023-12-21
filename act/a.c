@@ -8,6 +8,7 @@ void main(){
 	int a;
 	do{
 		a=system("PYTHONPYCACHEPREFIX=/home/bc/pycache python -m act");
-		//a=WIFEXITED(a); WIFEXITED(0) is 1 WIFEXITED(256) is 1
-	}while(a);
+		if(WIFEXITED(a))if(WEXITSTATUS(a)==1)continue;
+		break;
+	}while(1);
 }
