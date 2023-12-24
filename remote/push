@@ -15,12 +15,13 @@ fi
 to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
 
 #pass "$@" (with quotes) to see blank ""
-git push ${4} ${to} && \
+git push ${4} ${to} || {
+~/test/remote/waswrong ${to}
+exit 1
+}
 ~/${5}test/remote/pushdiff ${3} && \
 ~/${5}test/remote/pushinfo ${to} && \
 if [ -z "${no_activity}" ]; then
 	sleep 5
 	echo -n > /dev/tcp/192.168.1.11/5000
 fi
-
-#when wronging push, use git ls-remote and git show commitNumber to see the time of remote

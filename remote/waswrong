@@ -1,0 +1,26 @@
+
+#1 to
+
+b=`git branch --show-current`
+echo ${b}
+f=`git show-ref | grep ${b} | head -1 | cut -d ' ' -f1`
+echo ${f}
+from=`git show -s --format="%at" ${f}`
+t=`git ls-remote --refs -h ${1} | grep ${b} | cut -f1`
+echo ${t}
+while :; do
+	read -t $((60*60*24)) ans
+	cd ${ans}
+	pwd
+	if [ "${ans}" = "." ]; then break; fi
+done
+git show ${t}
+date
+
+to=`git show -s --format="%at" ${t}`
+
+echo ${from}
+echo ${to}
+
+if [ "${from}" != "${to}" ]; then echo different
+else echo "wrong"; fi
