@@ -22,3 +22,5 @@ if [ -z "${no_activity}" ]; then
 	sleep 5
 	echo -n > /dev/tcp/192.168.1.11/5000
 fi
+
+#when wronging push, use git ls-remote and git show commitNumber to see the time of remote
