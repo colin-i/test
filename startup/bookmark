@@ -1,11 +1,16 @@
 
-cd ~/u/b/bm || exit
+cd ~/u/b || exit
+
+b=0
+bb=( `find -maxdepth 1 -name "bookmarks*"` )
+
+cd bm || exit
 
 a=( `find -name "*.txt" | xargs` )
 
 for var in "${a[@]}"
 do
-	echo bookmarks
+	echo bookmarks?
 	read -n1 -t $((3600*24)) ans
 	if [ "${ans}" = "y" ]; then
 		cat ./${var}
@@ -15,6 +20,19 @@ do
 			var=${var:0:-4}
 			echo ${var}
 			mv ${var} ..
+			b=1
 		fi
 	fi
 done
+
+if [ ${b} = 1 ]; then
+	echo remove old?
+	read -n1 -t $((3600*24)) ans
+	if [ "${ans}" = "y" ]; then
+		cd .. || exit
+		for var in "${bb[@]}"
+		do
+			rm ${var}
+		done
+	fi
+fi
