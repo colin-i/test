@@ -60,6 +60,7 @@ for n in "${name[@]}"; do
 			elif [ -e ~/stopwaitingflag ]; then
 				rm ~/stopwaitingflag
 				echo stopped
+				notify-send "stopped"
 				exit 1
 			fi
 			sleep 200
