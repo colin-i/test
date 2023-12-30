@@ -21,6 +21,7 @@ else
 fi
 echo ${dist} ${version} ${ppa}
 
+i=1
 for n in "${name[@]}"; do
 	echo ${n}
 	if [ -z "${4}" ]; then
@@ -45,6 +46,7 @@ for n in "${name[@]}"; do
 		AGAINST=
 		while true
 		do
+			sleep 1   #if there is a Published loop
 			OUTPUT=`python3 ~/test/lp.py ${ppa} ${dist} ${var} ${name} ${version} x | head -1`
 			if [ "${OUTPUT}" != "${AGAINST}" ]; then
 				counter=0
