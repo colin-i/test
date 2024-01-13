@@ -22,5 +22,5 @@ fi
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
 #adding new project:
-#	newpre is: add at h: proj=X/0
+#	newpre is: add at h: proj = X or 0 ; when 0, adding new project, can `./newpre proj 0` at the time of proj creation and can skip ./newpost
 #	newpost is: if X, add it at y/m/h (can wrong at reconcatenator (combine counted/uncounted))
