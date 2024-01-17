@@ -1,0 +1,19 @@
+
+folder=$(basename $(pwd))
+db="dbg"
+if [ "${folder}" = "${db}" ]; then
+	cd ../*-1
+fi
+
+a=( `git ls-files` )
+b="../${db}/"
+for var in "${a[@]}"; do
+	diff ${var} ${b}${var}
+	if [ $? != 0 ]; then
+		cp ${var} ${b}${var}
+		if [ $? != 0 ]; then
+			c=`dirname ${b}${var}`
+			mkdir ${c}
+		fi
+	fi
+done
