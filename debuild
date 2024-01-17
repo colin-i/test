@@ -13,3 +13,5 @@ cd tmp && \
 zip ../last.zip ./* && \
 rm ./*
 #at exit working dir will not remain in tmp
+
+#DEB_BUILD_OPTIONS=nocheck debuild -us -uc
