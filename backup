@@ -1,0 +1,5 @@
+
+not=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp )
+#                                   c75b874(and cpp_support/freetype_support)
+#zero= bitstorm        etcminer           sync
+#      petcap/bitstorm +etcminer1/etcminer
