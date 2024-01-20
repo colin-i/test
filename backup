@@ -1,3 +1,63 @@
 
-not=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync )
-#                                   c75b874(and cpp_support/freetype_support)                                              zero petcap/bitstorm +etcminer1/etcminer
+# optional 1: 0=set path, 1=git status, 2=diff
+
+no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync )
+#                                  c75b874(and cpp_support/freetype_support)                                              zero petcap/bitstorm +etcminer1/etcminer
+yes=( `cat ~/stats/h` )
+
+n=0;m=0
+for var in "${yes[@]}"; do
+	m=$((m+1))
+	IFS='=' read -a addr <<< "${var}"
+	proj=${addr[0]}
+
+	a=0;i=0
+	for b in "${no[@]}"; do
+		if [ "${proj}" = "${b}" ]; then
+			no=( ${no[@]:0:i} ${no[@]:i+1} )
+			a=1
+			break
+		fi
+		i=$((i+1))
+	done
+	if [ $a = 0 ]; then
+		z[$n]=${proj}
+		n=$((n+1))
+	fi
+done
+echo ${m} ${n}
+i=0
+paths=( `cat ~/backup_paths` )
+for var in "${z[@]}"; do
+	src=${paths[$i]}
+	dest=~/dbg/${var}
+	if [ ! -e ${dest} ]; then
+		mkdir ${dest}
+	fi
+	#echo ${src} ${dest}
+	cd ${src}
+	if [ -z "${1}" ]; then
+		while :; do
+			~/test/dbg ${var}
+			if [ $? = 0 ]; then
+				break
+			fi
+		done
+	elif [ "${1}" = 0 ]; then
+		read -t $((60*60*24)) ans
+		echo " ${ans}" >> ~/backup_paths
+	elif [ "${1}" = 1 ]; then
+		git status -s
+	else
+	#if [ "${1}" = 2 ]; then
+		tmp=/tmp/dbgtmp
+		diff -r ${src} ${dest} > ${tmp}
+		firstrow=`head -n 1 ${tmp}`
+		if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
+		tail -n +2 ${tmp}
+	fi
+	i=$((i+1))
+done
+if [ "${1}" = 2 ]; then
+	rm ${tmp}
+fi

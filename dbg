@@ -1,19 +1,35 @@
 
-folder=$(basename $(pwd))
-db="dbg"
-if [ "${folder}" = "${db}" ]; then
-	cd ../*-1
+# optional 1 named  2 silent
+
+tmp=/tmp/dbgtmp
+git ls-files > ${tmp}
+
+b=~/dbg/
+if [ -n "${1}" ]; then
+	b+="${1}"/
+else
+	b+=$(basename $(pwd))/ #here must remove ending -1
 fi
 
-a=( `git ls-files` )
-b="../${db}/"
-for var in "${a[@]}"; do
-	diff ${var} ${b}${var}
+response=0
+while read var; do
+	if [ -n "${2}" ]; then
+		diff "${var}" "${b}${var}" > /dev/null 2>&1
+	else
+		diff "${var}" "${b}${var}"
+	fi
 	if [ $? != 0 ]; then
-		cp ${var} ${b}${var}
+		if [ -n "${2}" ]; then
+			cp "${var}" "${b}${var}" > /dev/null 2>&1
+		else
+			cp "${var}" "${b}${var}"
+		fi
 		if [ $? != 0 ]; then
-			c=`dirname ${b}${var}`
-			mkdir ${c}
+			c=`dirname "${b}${var}"`
+			mkdir -p "${c}"
+			response=1
 		fi
 	fi
-done
+done < ${tmp}
+rm ${tmp}
+exit ${response}
