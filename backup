@@ -45,7 +45,7 @@ for var in "${z[@]}"; do
 			~/test/dbg ${var}
 			case $? in
 			  0) break;;
-			  1) response=1;break;; 
+			  1) response=1;break;;
 			  *) response=1;;
 			esac
 		done
