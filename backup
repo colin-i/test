@@ -1,5 +1,5 @@
 
-# optional 1: 0=set path, 1=status&diff
+# optional  1: 0=set init  else projName
 
 no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync )
 #                                  c75b874(and cpp_support/freetype_support)                                              zero petcap/bitstorm +etcminer1/etcminer
@@ -26,35 +26,65 @@ for var in "${yes[@]}"; do
 	fi
 done
 echo ${m} ${n}
+
+dst=~/dbg
 i=0
 paths=( `cat ~/backup_paths` )
+is_pub=( `cat ~/backup_is_pub` )
+
 for var in "${z[@]}"; do
 	src=${paths[$i]}
-	dest=~/dbg/${var}
-	if [ ! -e ${dest} ]; then
-		mkdir ${dest}
-	fi
-	#echo ${src} ${dest}
-	cd ${src}
-	if [ -z "${1}" ]; then
+	dest=${dst}/${var}
+	if [ -z "${1}" ] || [ "${1}" = "${var}" ]; then
+		cd ${src}
+		if [ ! -e ${dest} ]; then
+			mkdir ${dest}
+		fi
+		response=0
 		while :; do
 			~/test/dbg ${var}
-			if [ $? = 0 ]; then
-				break
-			fi
+			case $? in
+			  0) break;;
+			  1) response=1;break;; 
+			  *) response=1;;
+			esac
 		done
-	elif [ "${1}" = 1 ]; then
-		git status -s
+		if [ "${response}" = 1 ]; then
+			if [ ${is_pub[$i]} = 1 ]; then
+				echo pub  ${var}
+				anyone=anyone=1
+			else
+				echo priv ${var}
+				anyone=
+			fi
 
-		tmp=/tmp/dbgtmp
-		diff -r ${src} ${dest} > ${tmp}
-		firstrow=`head -n 1 ${tmp}`
-		if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
-		tail -n +2 ${tmp}
-	else
-	#if [ "${1}" = 0 ]; then
+			git status -s
+
+			tmp=/tmp/dbgtmp
+			diff -r ${src} ${dest} > ${tmp}
+			firstrow=`head -n 1 ${tmp}`
+			if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
+			tail -n +2 ${tmp}
+
+			read -n1 -t $((60*60*24)) ans
+			if [ "${ans}" = "y" ]; then
+				cd ${dst}
+				f=${var}.tar
+				fz=${f}.gz
+				tar -cf ${f} ${var}
+				gzip ${f}
+				mimeType='application/gzip' folder="arh" anyone=${anyone} ~/test/google/a ${fz}
+				rm ${fz}
+			else
+				echo no
+			fi
+		fi
+	elif [ "${1}" = 0 ]; then
+		cd ${src}
+		echo ${var}
 		read -t $((60*60*24)) ans
 		echo " ${ans}" >> ~/backup_paths
+		echo " ${ans}" >> ~/backup_is_pub
 	fi
 	i=$((i+1))
 done

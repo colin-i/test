@@ -27,7 +27,8 @@ while read var; do
 		if [ $? != 0 ]; then
 			c=`dirname "${b}${var}"`
 			mkdir -p "${c}"
-			response=1
+			response=2
+		elif [ ${response} = 0 ]; then response=1
 		fi
 	fi
 done < ${tmp}
