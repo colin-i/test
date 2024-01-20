@@ -1,5 +1,5 @@
 
-# optional 1: 0=set path, 1=git status, 2=diff
+# optional 1: 0=set path, 1=status&diff
 
 no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync )
 #                                  c75b874(and cpp_support/freetype_support)                                              zero petcap/bitstorm +etcminer1/etcminer
@@ -43,21 +43,21 @@ for var in "${z[@]}"; do
 				break
 			fi
 		done
-	elif [ "${1}" = 0 ]; then
-		read -t $((60*60*24)) ans
-		echo " ${ans}" >> ~/backup_paths
 	elif [ "${1}" = 1 ]; then
 		git status -s
-	else
-	#if [ "${1}" = 2 ]; then
+
 		tmp=/tmp/dbgtmp
 		diff -r ${src} ${dest} > ${tmp}
 		firstrow=`head -n 1 ${tmp}`
 		if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
 		tail -n +2 ${tmp}
+	else
+	#if [ "${1}" = 0 ]; then
+		read -t $((60*60*24)) ans
+		echo " ${ans}" >> ~/backup_paths
 	fi
 	i=$((i+1))
 done
-if [ "${1}" = 2 ]; then
+if [ "${1}" = 1 ]; then
 	rm ${tmp}
 fi
