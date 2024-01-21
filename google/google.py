@@ -54,9 +54,9 @@ def upload_basic():
 	return fileid
 
 def print_file(file): #,extra=''
-	print(F'Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}, {file.get("webContentLink")}')
+	print(F'<p>Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}, {file.get("webContentLink")}')
 	response=service.permissions().list(fileId=file.get("id")).execute()
-	print(response['permissions'][0]['id'])
+	print(response['permissions'][0]['id']+"</p>")
 	#+((' '+extra) if extra else '')
 def deletefile(id):
 	service.files().delete(fileId=id).execute()

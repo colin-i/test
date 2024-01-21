@@ -76,7 +76,7 @@ for var in "${z[@]}"; do
 				fz=${f}.gz
 				tar -cf ${f} ${var}
 				gzip ${f}
-				mimeType='${mim}' folder="${fold}" anyone=${anyone} ~/test/google/a ${fz}
+				mimeType='${mim}' folder="${fold}" anyone=${anyone} ~/test/google/a ${fz} || exit 1
 				rm ${fz}
 				overall=1
 			else
@@ -96,6 +96,6 @@ done
 
 if [ ${overall} = 1 ]; then
 	f=~/arh/index.html
-	mimeType='${mim}' folder="${fold}" ~/test/google/a 0 > ${f}
+	mimeType='${mim}' folder="${fold}" ~/test/google/a 0 > ${f} && \
 	~/test/remote/ftp ${f}
 fi

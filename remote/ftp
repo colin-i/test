@@ -1,2 +1,4 @@
 
-curl -T ${1} ftp://depozit.atwebpages.com/www/ --user `cat ~/n/pat12`
+s=depozit.atwebpages.com
+curl -T ${1} ftp://${s}/www/ --user `cat ~/n/pat12` && \
+wget -O -   http://${s}
