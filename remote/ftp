@@ -1,0 +1,2 @@
+
+curl -T ${1} ftp://depozit.atwebpages.com/www/ --user `cat ~/n/pat12`

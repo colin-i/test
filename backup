@@ -31,6 +31,9 @@ dst=~/dbg
 i=0
 paths=( `cat ~/backup_paths` )
 is_pub=( `cat ~/backup_is_pub` )
+overall=0
+mim=application/gzip
+fold=arh
 
 for var in "${z[@]}"; do
 	src=${paths[$i]}
@@ -73,11 +76,13 @@ for var in "${z[@]}"; do
 				fz=${f}.gz
 				tar -cf ${f} ${var}
 				gzip ${f}
-				mimeType='application/gzip' folder="arh" anyone=${anyone} ~/test/google/a ${fz}
+				mimeType='${mim}' folder="${fold}" anyone=${anyone} ~/test/google/a ${fz}
 				rm ${fz}
+				overall=1
 			else
 				echo no
 			fi
+			rm ${tmp}
 		fi
 	elif [ "${1}" = 0 ]; then
 		cd ${src}
@@ -88,6 +93,9 @@ for var in "${z[@]}"; do
 	fi
 	i=$((i+1))
 done
-if [ "${1}" = 1 ]; then
-	rm ${tmp}
+
+if [ ${overall} = 1 ]; then
+	f=~/arh/index.html
+	mimeType='${mim}' folder="${fold}" ~/test/google/a 0 > ${f}
+	~/test/remote/ftp ${f}
 fi
