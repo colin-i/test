@@ -54,9 +54,12 @@ def upload_basic():
 	return fileid
 
 def print_file(file): #,extra=''
-	print(F'<p>Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}, {file.get("webContentLink")}')
+	print(F'<p>Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}, {file.get("size")}, {file.get("webContentLink")}')
 	response=service.permissions().list(fileId=file.get("id")).execute()
-	print(response['permissions'][0]['id']+"</p>")
+	if response['permissions'][0]['id']=="anyoneWithLink":
+		print("anyoneWithLink</p>")
+	else:
+		print("</p>")
 	#+((' '+extra) if extra else '')
 def deletefile(id):
 	service.files().delete(fileId=id).execute()
@@ -69,7 +72,7 @@ def search_file(newid,download=False,all=False,delete=False):
 		response = service.files().list(q="mimeType='"+mim+"'"+folder,
 			                    spaces='drive',
 			                    fields='nextPageToken, '
-			                    'files(id, name, createdTime, webContentLink)',
+			                    'files(id, name, createdTime, size, webContentLink)',
 			                    pageToken=page_token).execute() # fields='*' was ok, here files(*)?
 		for file in response.get('files', []):
 			if all==False:
