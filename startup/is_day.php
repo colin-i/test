@@ -8,13 +8,17 @@ if($argc==2){
 		echo "$key: " . date("H:i:s", $val) . "\n";
 	}
 }
-if($a['sunrise']<=$t && $t<=$a['sunset']){
-	$remaining=$a['sunset']-$t;
-}else{
+if($a['sunrise']<=$t && $t<=$a['sunset']){  //daylight
+	$remaining=$a['sunset']-$t;  //positive
+	$passed=$t-$a['sunrise'];    //positive
+}else{  //nightime
 	$remaining=$t-$a['sunrise'];
-	if($a['sunset']<$t){
-		$remaining=-(3600*24-$remaining);
+	if($a['sunset']<$t){   //after evening, positive
+		$remaining=-(3600*24-$remaining);  //turned to negative, the opposite value of the period
+		$passed=$a['sunset']-$t;  //to keep sign tradition
+	}else{   //until the morning
+		$passed=-(3600*24-($a['sunset']-$a['sunrise'])-$remaining);  //same
 	}
 }
-echo (int)($remaining/60);
+echo((int)($remaining/60)."_".(int)($passed/60));
 ?>
