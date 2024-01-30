@@ -69,4 +69,4 @@ dpkg-source --commit --include-removal && \
 #workflow
 
 #Repository access
-#Read access to code and metadata, Read and Write access to actions
+#Read access to code and metadata, Read and Write access to actions (Write to execute the action, option Write-only isn't there)
