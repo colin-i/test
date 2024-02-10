@@ -22,13 +22,24 @@ do
 	OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${arh} x | head -1`
 	echo =${OUTPUT}
 	if [ "${OUTPUT}" = 'Successfully built' ]; then
-		break
-	elif [ "${OUTPUT}" = 'Needs building' ]; then
-		sleep ${slp}
-		if [ $slp -lt 300 ]; then
-			slp=$((slp*2))
+		if [ -e ~/stopwaitingflag ]; then
+			rm ~/stopwaitingflag
 		fi
-		continue
+		break
+	else
+		if [ -e ~/stopwaitingflag ]; then
+			rm ~/stopwaitingflag
+			echo stopped
+			notify-send "stopped"
+			exit 1
+		fi
+		if [ "${OUTPUT}" = 'Needs building' ] || [ "${OUTPUT}" = '' ]; then
+			sleep ${slp}
+			if [ $slp -lt 300 ]; then
+				slp=$((slp*2))
+			fi
+			continue
+		fi
 	fi
 	sleep 60
 done
