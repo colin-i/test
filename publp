@@ -26,20 +26,15 @@ do
 			rm ~/stopwaitingflag
 		fi
 		break
-	else
-		if [ -e ~/stopwaitingflag ]; then
-			rm ~/stopwaitingflag
-			echo stopped
-			notify-send "stopped"
-			exit 1
-		fi
-		if [ "${OUTPUT}" = 'Needs building' ] || [ "${OUTPUT}" = '' ]; then
-			sleep ${slp}
-			if [ $slp -lt 300 ]; then
-				slp=$((slp*2))
-			fi
-			continue
-		fi
 	fi
-	sleep 60
+	if [ -e ~/stopwaitingflag ]; then
+		rm ~/stopwaitingflag
+		echo stopped
+		notify-send "stopped"
+		exit 1
+	fi
+	sleep ${slp}
+	if [ $slp -lt 300 ]; then
+		slp=$((slp+15))
+	fi
 done
