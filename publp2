@@ -65,7 +65,7 @@ for n in "${name[@]}"; do
 				notify-send "stopped"
 				exit 1
 			fi
-			sleep 200
+			sleep $((((counter/10)+1)*100))
 		done
 	done
 done
