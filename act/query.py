@@ -32,14 +32,14 @@ def shifted(a):
 		return '0'+b
 	return b
 
-from datetime import date
+from datetime import datetime
 import time
 from string import Template
 
 def day(delta):
 	return day_core(time.time(),delta)
 def day_core(tm,delta):
-	stamp=date.fromtimestamp(tm-delta)
+	stamp=datetime.utcfromtimestamp(tm-delta)
 
 	dict = {'day': stamp.year.__str__()+"-"+shifted(stamp.month)+"-"+shifted(stamp.day)}
 
