@@ -16,8 +16,7 @@ arhname=${name}_${1}
 cd ~/arhiva && \
 echo ${arhname} && \
 gh release download ${arhname} -p *.rpm && \
-#it is only one file
-file=`ls` && \
+file=`find -maxdepth 1 -name *rpm` && \
 echo ${file} && \
 #if the file is too large, can move them at google in folder 2023 , 2024 , ...
 pname=${name} ~/test/google/b ${file} > ${list} && \
