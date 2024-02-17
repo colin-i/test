@@ -1,0 +1,8 @@
+
+sudo apt update
+apt list --upgradable > ~/aptlist2
+diff -y -W `stty size | cut -d' ' -f2` --suppress-common-lines ~/aptlist ~/aptlist2
+
+shopt -s expand_aliases
+source ~/test/startup/aliases
+mov ~/aptlist2 ~/aptlist
