@@ -3,6 +3,15 @@ sudo apt update
 apt list --upgradable > ~/aptlist2
 diff -y -W `stty size | cut -d' ' -f2` --suppress-common-lines ~/aptlist ~/aptlist2
 
+echo "upgrade ? y ?"
+
+read -n1 -t $((60*60*24)) ans
+
+if [ "${ans}" = "y" ]; then
+	sudo apt upgrade && \
+	echo > ~/aptlist2
+fi
+
 shopt -s expand_aliases
 source ~/test/startup/aliases
 mov ~/aptlist2 ~/aptlist
