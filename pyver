@@ -1,2 +1,8 @@
 
-~/test/xver ./v2
+echo pypi.org \? y \? && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ]; then
+	~/test/xver ./v2
+else
+	echo no
+fi
