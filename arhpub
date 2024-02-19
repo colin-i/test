@@ -9,7 +9,7 @@ fi
 
 start=`pwd`
 name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
-fl=old
+fl=old.html
 list=${start}/${fl}
 arhname=${name}_${1}
 
