@@ -22,5 +22,5 @@ to=`git show -s --format="%at" ${t}`
 echo ${from}
 echo ${to}
 
-if [ "${from}" != "${to}" ]; then echo different
+if [ "${from}" != "${to}" ]; then echo different\(ok\)
 else echo "wrong"; fi
