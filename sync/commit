@@ -12,8 +12,8 @@ cc ${a}a.c -lyuarel -o ${f} && \
 if [ -z "${2}" ]; then args="-am \"${n}\""
 else
 	args=${2}
-	z=`echo ${args} | grep -o m`
-	if [ "${z}" != "" ]; then args+=" \"${n}\""; fi
+	z=`echo ${args} | grep -o m$`
+	if [ -n "${z}" ]; then args+=" \"${n}\""; fi
 fi && \
 git commit --author="${n} <${em}>" ${args} && \
 no_activity=1 ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2 && \
