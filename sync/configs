@@ -1,15 +1,24 @@
 
 #1 restore
 
+#is for torra at the moment
+#if [ -z "${name}" ]; then
 nm=torra
+#fi
 
 if [ -z "${1}" ]; then echo home to media; else echo media to home; fi
 
-cd /home/bc/.config/${nm}
+p=/home/bc/.config/${nm}/
+cd ${p}
 
 #at diff command: arg2,< --- arg1,>
 diff /media/bc/sandisk/a/arh/config/${nm}/config config
 if [ "$?" != 0 ]; then
+	if [ -z "${1}" ]; then
+		echo "${p}config -> /media/bc/sandisk/a/arh/config/${nm}/config"
+	else
+		echo "/media/bc/sandisk/a/arh/config/${nm}/config -> ${p}config"
+	fi
 	echo sync \? y \? && \
 	read -n1 -t $((60*60*24)) ans && \
 	if [ "${ans}" = "y" ]; then
@@ -25,6 +34,11 @@ fi
 
 diff /media/bc/sandisk/a/arh/config/${nm}/configs configs
 if [ "$?" != 0 ]; then
+	if [ -z "${1}" ]; then
+		echo "${p}configs -> /media/bc/sandisk/a/arh/config/${nm}/configs"
+	else
+		echo "/media/bc/sandisk/a/arh/config/${nm}/configs -> ${p}configs"
+	fi
 	echo sync \? y \? && \
 	read -n1 -t $((60*60*24)) ans && \
 	if [ "${ans}" = "y" ]; then
