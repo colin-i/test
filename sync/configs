@@ -12,6 +12,8 @@ p=/home/bc/.config/${nm}/
 cd ${p}
 
 #at diff command: arg2,< --- arg1,>
+cat config | jq > 1
+mv 1 config
 diff /media/bc/sandisk/a/arh/config/${nm}/config config
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
@@ -32,6 +34,8 @@ if [ "$?" != 0 ]; then
 	fi
 fi
 
+cat configs | jq > 1
+mv 1 configs
 diff /media/bc/sandisk/a/arh/config/${nm}/configs configs
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
