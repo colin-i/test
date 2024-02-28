@@ -1,18 +1,35 @@
 
+#1 requirements/service
+
+#fanshim-python from https://github.com/pimoroni/fanshim-python (make install will update and will fail at python-configparser)
+#long press the button(blue blinking) to switch from manual(same button short press) or auto (high red, green low)
+
 cd ~/fanshim-python
+if [ -z "${1}" ]; then
+	sudo apt install python3-rpi.gpio && \
+	sudo pip3 install fanshim  --break-system-packages
+else
+	#rpi4
+	#on=65
+	#high=61
+	#low=59
+	#off=55
 
-sudo apt install python3-rpi.gpio && \
-#sudo apt install python3-pip && \
-sudo pip3 install fanshim || exit 1
+	#rpi3 console
+	#on=45
+	#high=43
+	#low=42
+	#off=40
 
-on=65
-high=61
-low=59
-off=55
+	on=${1}
+	high=${2}
+	low=${3}
+	off=${4}
 
-cd examples
-#sudo, else root warning
-sudo ./install-service.sh --brightness 10    --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
-#                                      0-255
+	cd examples
+	#sudo, else root warning
+	sudo ./install-service.sh --brightness 10    --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
+	#                                      0-255
+fi
 
-#cat /sys/class/thermal/thermal_zone*/temp
+cat /sys/class/thermal/thermal_zone*/temp

@@ -10,7 +10,8 @@
 #dtoverlay=w1-gpio,gpiopin=5
 #reboot
 #ls -l /sys/bus/w1/devices  #filename starting with "28-"
-#for i in /sys/bus/w1/devices/28-*; do cat $i/w1_slave; done   #and is only one file
+#cat /sys/bus/w1/devices/28-*/w1_slave
+#or multi files #for i in /sys/bus/w1/devices/28-*; do cat $i/w1_slave; done
 
 cd `dirname ${0}`
 dir=`pwd`
