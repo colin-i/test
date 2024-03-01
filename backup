@@ -71,12 +71,14 @@ for var in "${z[@]}"; do
 					j=$((j+1))
 				fi
 			done < ${tmp}
-			for vr in "${z[@]}"; do
-				echo ${vr}
-				rm -ri ${vr}
-			done
+			if [ $j != 0 ]; then
+				for vr in "${z[@]}"; do
+					echo ${vr}
+					rm -ri ${vr}
+				done
 
-			response=1
+				response=1
+			fi
 		fi
 
 		if [ "${response}" = 1 ]; then
