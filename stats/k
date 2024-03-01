@@ -27,6 +27,7 @@ if [ $? = 0 ]; then
 		rm 3
 		rm 4
 		mv 5 kong
+		~/test/bots/stats  #will ask yes or no inside
 	else
 		echo no
 	fi
