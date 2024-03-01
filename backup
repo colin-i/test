@@ -2,7 +2,7 @@
 # optional  1: 0=set init  else projName
 
 #                                                                                                                     < 0 lines                                      >
-no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync )
+no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle )
 #                                  c75b874(and cpp_support/freetype_support)                                                   petcap/bitstorm +etcminer1/etcminer
 yes=( `cat ~/stats/h` )
 
