@@ -5,7 +5,11 @@ do
 
 	a=`timedatectl -p NTPSynchronized show`
 	echo ${i} ${a}
-	if [ "${a}" = "NTPSynchronized=yes" ]; then break; fi
+	if [ "${a}" = "NTPSynchronized=yes" ]; then break
+	elif [ -e ~/skip_ntp_sync ]; then
+		rm ~/skip_ntp_sync
+		break
+	fi
 	i=$((i+1))
 	sleep 10
 done
