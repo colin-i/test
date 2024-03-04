@@ -95,6 +95,7 @@ for var in "${z[@]}"; do
 			diff -r ${src} ${dest} > ${tmp}
 			tail -n +2 ${tmp}
 
+			echo push \? y \?
 			read -n1 -t $((60*60*24)) ans
 			if [ "${ans}" = "y" ]; then
 				cd ${dst}
