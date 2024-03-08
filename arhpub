@@ -1,8 +1,8 @@
 
 #1 version
-
-if [ -z "${1}" ]; then
-#can be when there is not a version to archive
+echo ${1}
+if [ -z "${1}" ] || [ "${1}" = "null" ]; then
+                    #can be when there is not a version to archive
 	echo no version
 	exit 0
 fi
