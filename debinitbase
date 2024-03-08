@@ -36,6 +36,7 @@ echo -n ${major}.${version} | xclip -selection clipboard && \
 ~/test/debinithelper ${name} && \
 #when testing only the row above and below, don't forget to "restore .pc/.*" files, normal files are ok, more hidden files to restore? no, tested it, more inside hidden files are ok
 dpkg-source --commit --include-removal && \
+#                                      --include-binaries  #for ocompiler .expected tests binaries , but will upload nothing
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
 ~/test/debinithelper ${name} x
 
