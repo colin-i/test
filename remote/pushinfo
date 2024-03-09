@@ -39,3 +39,8 @@ git rev-list --all --count
 #git branch -m archived
 
 #git merge --squash A
+
+#to pull specific tag only:
+#git fetch orig refs/tags/nightly-2024-03-09
+#git checkout FETCH_HEAD
+#git switch -c fetch
