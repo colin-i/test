@@ -36,7 +36,7 @@ done
 if [ ${k} -gt 0 ]; then
 	for var in "${c[@]}"; do
 		echo ${var}
-		echo -e "blind umount or exit. y?"
+		echo "blind umount or exit. y?"
 		read -n1 -t $((60*60*24)) ans
 		if [ "${ans}" = "y" ]; then
 			sudo umount ${var}
@@ -54,7 +54,7 @@ if [ ${k} -gt 0 ]; then
 	done
 	name=${name:0:x+1}
 	echo ${name}
-	echo -e "Is ok? y?"
+	echo "Is ok? y?"
 	read -n1 -t $((60*60*24)) ans
 	if [ "${ans}" = "y" ]; then
 		if [ "${extension}" = "xz" ]; then
