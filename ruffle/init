@@ -1,10 +1,12 @@
 
-sudo docker pull ubuntu:noble
-sudo docker container create ubuntu:noble
-id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q | head -1`
+sudo docker pull ubuntu:latest
+sudo docker container create ubuntu:latest
+id=`sudo docker container ls -a -f ancestor=ubuntu:latest -q | head -1`
 sudo docker cp ./script ${id}:/
 sudo docker commit ${id} rufflebld:latest
 sudo docker push image0/rufflebld:latest
 
 #sudo docker build --tag rufflebld0 .
 #this is committing to another image using with a Dockerfile with FROM and RUN
+
+#sudo docker manifest inspect ubuntu:latest
