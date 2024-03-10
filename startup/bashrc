@@ -18,7 +18,7 @@ echo ${PATH} | grep -Fq "${a}"
 if [ $? = 1 ]; then
 	export PATH=${a}:$PATH
 fi
-export PATH=~/.cargo/bin:~/Desktop/act:$PATH
+export PATH=~/Desktop/act:$PATH
 export PYTHONPYCACHEPREFIX=~/pycache
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 

@@ -1,0 +1,12 @@
+
+apt update && \
+apt install -y curl git gcc pkgconf libssl-dev libudev-dev libasound2-dev openjdk-8-jre-headless && \
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+source "$HOME/.cargo/env" && \
+git clone https://github.com/colin-i/ruffle/ -b test --depth 1 && \
+cd ruffle && \
+cd desktop && \
+cargo build --release && \
+exit 0
+
+exit 1

@@ -1,0 +1,23 @@
+
+sudo docker pull image0/ruffle:latest && {
+	id=`sudo docker container ls -a -f ancestor=rufflebld -q | head -1`
+	if [ -z "${id}" ]; then
+		sudo docker container create -i rufflebld && \
+		id=`sudo docker container ls -a -f ancestor=rufflebld -q | head -1`
+	fi
+	if [ -n "${id}" ]; then
+		sudo docker container start ${id} && \
+		sudo docker exec ${id} /bin/bash /script && \
+		sudo docker container stop ${id} && \
+		if [ ! -d ~/.cargo/bin ]; then
+			mkdir -p ~/.cargo/bin && \
+			echo add ~/.cargo/bin to \$PATH
+		fi && \
+		sudo docker cp ${id}:/ruffle/target/release/ruffle_desktop ~/.cargo/bin/ && \
+		echo ruffle_desktop is at ~/.cargo/bin/ && \
+		echo remove the container with: sudo docker container rm ${id} && \
+		exit 0
+	fi
+}
+echo errors
+exit 1
