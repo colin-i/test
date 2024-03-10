@@ -6,6 +6,12 @@ s=image0/rufflebld:latest
 d=~/.cargo/bin
 f=ruffle_desktop
 
+read_char() {
+  stty -icanon -echo
+  eval "$1=\$(dd bs=1 count=1 2>/dev/null)"
+  stty icanon echo
+}
+
 sudo docker pull ${s} && {
 	id=`sudo docker container ls -a -f ancestor=${s} -q | head -1`
 	if [ -z "${id}" ]; then
@@ -13,7 +19,7 @@ sudo docker pull ${s} && {
 	else
 		if [ ${confirm} = 1 ]; then
 			echo reuse ${id} \? y \? launch with an argument to skip the confirmation.
-			read -n1 -t $((60*60*24)) ans
+			read_char ans
 			if [ "${ans}" != "y" ]; then
 				echo no. remove the container first.
 				exit 1
