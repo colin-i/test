@@ -1,20 +1,36 @@
 
-sudo docker pull image0/ruffle:latest && {
-	id=`sudo docker container ls -a -f ancestor=rufflebld -q | head -1`
+confirm=1
+if [ -n "${1}" ]; then confirm=0; fi
+
+s=image0/rufflebld:latest
+d=~/.cargo/bin
+f=ruffle_desktop
+
+sudo docker pull ${s} && {
+	id=`sudo docker container ls -a -f ancestor=${s} -q | head -1`
 	if [ -z "${id}" ]; then
-		sudo docker container create -i rufflebld && \
-		id=`sudo docker container ls -a -f ancestor=rufflebld -q | head -1`
+		id=`sudo docker container create -i ${s}`
+	else
+		if [ ${confirm} = 1 ]; then
+			echo reuse ${id} \? y \? launch with an argument to skip the confirmation.
+			read -n1 -t $((60*60*24)) ans
+			if [ "${ans}" != "y" ]; then
+				echo no. remove the container first.
+				exit 1
+			fi
+		fi
 	fi
 	if [ -n "${id}" ]; then
 		sudo docker container start ${id} && \
 		sudo docker exec ${id} /bin/bash /script && \
 		sudo docker container stop ${id} && \
-		if [ ! -d ~/.cargo/bin ]; then
-			mkdir -p ~/.cargo/bin && \
-			echo add ~/.cargo/bin to \$PATH
+		if [ ! -d ${d} ]; then
+			mkdir -p ${d} && \
+			echo add ${d} to \$PATH
 		fi && \
-		sudo docker cp ${id}:/ruffle/target/release/ruffle_desktop ~/.cargo/bin/ && \
-		echo ruffle_desktop is at ~/.cargo/bin/ && \
+		sudo docker cp ${id}:/ruffle/target/release/${f} ${d} && \
+		stat ${d}/${f} && \
+		echo ${f} is at ${d} && \
 		echo remove the container with: sudo docker container rm ${id} && \
 		exit 0
 	fi
