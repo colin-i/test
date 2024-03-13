@@ -2,8 +2,10 @@
 confirm=1
 if [ -n "${1}" ]; then confirm=0; fi
 
+rep_tag=image0/rufflebld:latest
 if [ -z "${ancestor}" ]; then
-	ancestor=image0/rufflebld:latest
+	ancestor=${rep_tag}
+	#can be created without tag for tests
 fi
 d=~/.cargo/bin
 f=ruffle_desktop
@@ -14,7 +16,7 @@ read_char() {
   stty icanon echo
 }
 
-sudo docker pull ${ancestor} && {
+sudo docker pull ${rep_tag} && {
 	id=`sudo docker container ls -a -f ancestor=${ancestor} -q | head -1`
 	if [ -z "${id}" ]; then
 		id=`sudo docker container create -i ${ancestor}`
