@@ -3,23 +3,19 @@ confirm=1
 if [ -n "${1}" ]; then confirm=0; fi
 
 rep_tag=image0/rufflebld:latest
-if [ -z "${ancestor}" ]; then
-	ancestor=${rep_tag}
-	#can be created without tag for tests
-fi
 d=~/.cargo/bin
 f=ruffle_desktop
 
 read_char() {
-  stty -icanon -echo
+  stty -icanon
   eval "$1=\$(dd bs=1 count=1 2>/dev/null)"
-  stty icanon echo
+  stty icanon
 }
 
 sudo docker pull ${rep_tag} && {
-	id=`sudo docker container ls -a -f ancestor=${ancestor} -q | head -1`
+	id=`sudo docker container ls -a -f ancestor=${rep_tag} -q | head -1`
 	if [ -z "${id}" ]; then
-		id=`sudo docker container create -i ${ancestor}`
+		id=`sudo docker container create -i ${rep_tag}`
 	else
 		if [ ${confirm} = 1 ]; then
 			echo reuse ${id} \? y \? launch with an argument to skip the confirmation.
