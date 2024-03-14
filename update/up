@@ -16,6 +16,7 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #when doing this at a large scale (upgrading dist), don't do later "dpkg -i ./*", it is not ordered and will fail for most of the packages(example will put sudo and not libc and will be a kernel boot panic), do the same apt update/upgrade and will be: Need to get X B / XXX B (will not download what it is not required again)
 
 #colin-i-ubuntu-ppa.sources  mozillateam-ubuntu-ppa.sources  google-chrome.list  google-earth-pro.list
+#colin-i        ppa      ppa:mozillateam       /ppa
 
 #snap list , and remove ... , and apt snapd purge, then, this is not require:
 #dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge

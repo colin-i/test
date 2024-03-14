@@ -1,0 +1,17 @@
+
+samba/(mount -t cifs) is not keeping the permissions
+
+sudo apt install nfs-kernel-server
+
+/etc/exports:
+/home/bc           *(rw,sync,no_subtree_check)
+
+sudo exportfs -a
+sudo systemctl restart nfs-kernel-server
+sudo ufw status # inactive? ok
+
+and:
+
+sudo apt-get install nfs-common
+sudo mount 192.168.1.11:/home/bc ./a
+ln -s ./a/test ./test
