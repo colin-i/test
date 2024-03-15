@@ -1,0 +1,30 @@
+
+#mmcli -V
+#mmcli --scan-modems
+#mmcli --list-modems
+#mmcli --modem=0
+##mmcli --modem=0 --sim=0 --pin=****
+#mmcli --modem=0 --enable
+#mmcli --modem=0
+mmcli -m 0 --simple-connect='apn=internet,ip-type=ipv4v6'
+#mmcli --modem=0
+#mmcli -m 0 --simple-disconnect
+#mmcli --modem=0 --bearer=0
+#from bearer notice apn = internet     from modem notice primari port = cdc-wdm0
+
+#https://ubuntu.com/core/docs/networkmanager/configure-cellular-connections
+nmcli c add type gsm ifname cdc-wdm0 con-name wwanul apn internet
+nmcli r wwan on
+
+
+and shared:
+
+#on desk can stop auto for current blinking that is trying: right, advanced, edit, Wired..1, "the wheel", General, Connect auto...
+
+nmcli c add con-name ethul type ethernet ifname eth0 ipv4.method shared ipv6.method ignore
+nmcli c up ethul
+
+#nmcli d
+#nmcli r wifi on
+#nmcli d wifi list
+#nmcli d wifi connect my_wifi password <password>
