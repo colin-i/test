@@ -23,5 +23,5 @@ exit 1
 ~/${5}test/remote/pushinfo ${to} && \
 if [ -z "${no_activity}" ]; then
 	sleep 5
-	echo -n > /dev/tcp/192.168.1.11/5000
+	echo -n > /dev/tcp/`cat ~/load_ip`/5000
 fi
