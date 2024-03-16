@@ -22,7 +22,8 @@ def from_th(text):
 	callba(text)
 
 def th_f(text):
-	address = ('192.168.1.11', 5000)
+	with open(os.path.expanduser('~')+"/load_ip","rb") as f:
+		address = (f.read(), 5000)
 	listener = Listener(address)
 	while listener.accept():
 		GLib.idle_add(from_th,text)
