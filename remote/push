@@ -1,18 +1,7 @@
 
 #1 gist/git  optional  2 how to handle  3 diffs  4 push args  5 if mounting
 
-#git remote add origin https://github.com/colin-i/.git
-#no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config
-#       git branch --unset-upstream master
-
-if [ "${2}" = "1" ]; then
-	to=gist.github.com/colin-i/${1}
-elif [ "${2}" = "2" ]; then
-	to=${1}
-else
-	to=github.com/colin-i/${1}.git
-fi
-to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
+source ~/test/remote/pushbase
 
 #pass "$@" (with quotes) to see blank ""
 git push ${4} ${to} || {
