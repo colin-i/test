@@ -2,13 +2,27 @@
 s=ubuntu:latest
 d=image0/rufflebld:latest
 
-sudo docker pull ${s}
-id=`sudo docker container create ${s}`
-sudo docker cp ./script ${id}:/
-sudo docker commit ${id} ${d}
-sudo docker push ${d}
+#sudo docker pull ${s}
+#id=`sudo docker container create ${s}`
+#sudo docker cp ./script ${id}:/
+#sudo docker commit ${id} ${d}
+#sudo docker push ${d}
 
 #sudo docker build --tag rufflebld0 .
 #this is committing to another image using with a Dockerfile with FROM and RUN
 
 #sudo docker manifest inspect ubuntu:latest
+
+# apt install docker.io docker-buildx
+
+cat > Dockerfile <<EOF
+ARG ARCH=
+FROM \${ARCH}${s}
+
+COPY ./script /script
+EOF
+exit
+sudo docker buildx create --name=container --driver=docker-container --use --bootstrap container
+sudo docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ${d} .
+sudo docker buildx rm --keep-state container
+rm Dockerfile
