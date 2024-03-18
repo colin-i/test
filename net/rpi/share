@@ -10,8 +10,24 @@ sudo exportfs -a
 sudo systemctl restart nfs-kernel-server
 sudo ufw status # inactive? ok
 
+before login?
+sudo blkid /dev/sdb1  #for UUID
+
+/etc/fstab:
+UUID=34beaa52-a032-4ee4-b908-e77bbfdd04f9 /media/bc/sandisk auto nosuid,nodev,nofail 0 0
+UUID=3da161a7-a9dd-496b-aecf-434489e9d2da /media/bc/3da161a7-a9dd-496b-aecf-434489e9d2da auto nosuid,nodev,nofail 0 0
+
+
 and:
 
 sudo apt-get install nfs-common
-sudo mount 192.168.1.11:/home/bc ./a
+sudo mount 192.168.1.11:/home/bc /home/bc/a
 ln -s ./a/test ./test
+
+and:
+/etc/rc.local:
+#!/bin/sh -e
+/home/bc/mnt
+exit 0
+
+chmod u+x rc.local

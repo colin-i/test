@@ -1,8 +1,4 @@
 
-"""
-Author:  Ian Fisher
-"""
-
 import sys
 import pprint
 import sqlite3

@@ -1,6 +1,8 @@
 
 #optional 1 H:MM or M
-#there is an alias off for this file
+
+#alias off='source ~/test/net/off ${1}'
+#alias on='sudo ifconfig enp2s0 up'
 
 if [ -z "${1}" ]; then
 	a=3600
