@@ -16,9 +16,12 @@ if [ -n "${window_pid}" ]; then
 fi
 
 ~/arh/activity &
-sleep 10 #to not override text with temp
 
-if [ -z "${3}" ]; then a=-1
-else a=${3}
+if [ -z "${no_temp}" ]; then
+	sleep 10 #to not override text with temp
+
+	if [ -z "${3}" ]; then a=-1
+	else a=${3}
+	fi
+	~/test/plug/a ${a} ${1} ${2}
 fi
-~/test/plug/a ${a} ${1} ${2}

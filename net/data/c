@@ -1,7 +1,7 @@
 
 #1 post data  2 firefox folder  3 is debug
 
-cp /home/bc/.mozilla/firefox/${2}.default-release/cookies.sqlite ./2
+cp /home/bc/.mozilla/firefox/`cat ~/n/pat${2}`.default-release/cookies.sqlite ./2
 #Error: in prepare, database is locked (5)
 
 #dash does not have arrays
