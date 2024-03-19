@@ -19,6 +19,10 @@ if [ $? = 1 ]; then
 	export PATH=${a}:$PATH
 fi
 export PATH=~/Desktop/act:$PATH
+if [ "`uname -m`" != "x86_64" ]; then
+	export PATH=${PATH}:~/x86_64
+fi
+
 export PYTHONPYCACHEPREFIX=~/pycache
 export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 

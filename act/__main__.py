@@ -12,7 +12,7 @@ disp=Gdk.Display.get_default()
 rect=disp.get_primary_monitor().get_geometry()
 y=30
 w=rect.width/16
-h=rect.height-y
+h=rect.height-y-5 #-5? will not fit and will go in another monitor
 x=rect.width-w
 
 loop = GLib.MainLoop()

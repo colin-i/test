@@ -15,13 +15,13 @@ if [ -n "${window_pid}" ]; then
 	window_pid=${window_pid} ~/test/startup/termsz
 fi
 
-~/arh/activity &
-
 if [ -z "${no_temp}" ]; then
+	~/arh/activity &
 	sleep 10 #to not override text with temp
-
 	if [ -z "${3}" ]; then a=-1
 	else a=${3}
 	fi
 	~/test/plug/a ${a} ${1} ${2}
+else
+	~/arh/activity
 fi

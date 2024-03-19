@@ -3,4 +3,4 @@
 
 python ~/test/plug/a.py ${1} 0 ${2} ${3}
 
-#autolaunch with gnome-terminal --geometry [from ~/test/live/term.desktop] -- ~/temp
+#autolaunch with gnome-terminal --geometry [from ~/test/live/term.desktop] -- ~/temp    # gnome-terminal -- ~/temp

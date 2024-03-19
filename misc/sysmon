@@ -1,6 +1,8 @@
 
 d=system-monitor-next
 
+# sudo apt install gir1.2-gtop-2.0
+
 #only make is not working
 make install && \
 \
