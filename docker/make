@@ -1,8 +1,8 @@
 
-#./post tag #optional# ./ante
+#./post #optional# ./ante
 #source# dtext ftext
-
 #run ../make from inside
+
 rep_tag=image0/$(basename $(pwd)):latest
 
 confirm=1
