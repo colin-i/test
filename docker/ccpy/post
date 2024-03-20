@@ -3,8 +3,6 @@ dtext=~/before
 ftext=x86_64-linux-gnu-ld.bfd
 
 sudo docker cp ${id}:/usr/x86_64-linux-gnu/lib ${dtext} && \
-sudo ln -snf ${dtext} /usr/x86_64-linux-gnu && \
-#         n if is already there to not follow there and f is force
 sudo docker cp ${id}:/usr/lib/aarch64-linux-gnu/libbfd-2.30-i386.so ${dtext} && \
 sudo docker cp ${id}:/usr/lib/aarch64-linux-gnu/libbfd-2.30-amd64.so ${dtext} && \
 sudo docker cp ${id}:/usr/bin/i686-linux-gnu-ld.bfd ${dtext} && \
