@@ -1,0 +1,2 @@
+
+sudo docker exec ${id} /bin/bash /script

@@ -1,10 +1,12 @@
 
+#./post tag #optional# ./ante
+#source# dtext ftext
+
+#run ../make from inside
+rep_tag=image0/$(basename $(pwd)):latest
+
 confirm=1
 if [ -n "${1}" ]; then confirm=0; fi
-
-rep_tag=image0/rufflebld:latest
-d=~/.cargo/bin
-f=ruffle_desktop
 
 read_char() {
   stty -icanon
@@ -28,15 +30,17 @@ sudo docker pull ${rep_tag} && {
 	fi
 	if [ -n "${id}" ]; then
 		sudo docker container start ${id} && \
-		sudo docker exec ${id} /bin/bash /script && \
+		if [ -e ./ante ]; then
+			id=${id} ./ante
+		fi && \
 		sudo docker container stop ${id} && \
 		if [ ! -d ${d} ]; then
 			mkdir -p ${d} && \
 			echo add ${d} to \$PATH
 		fi && \
-		sudo docker cp ${id}:/ruffle/target/release/${f} ${d} && \
-		stat ${d}/${f} && \
-		echo ${f} is at ${d} && \
+		source ./post && \
+		stat ${dtext}/${ftext} && \
+		echo ${ftext} is at ${dtext} && \
 		echo remove the container with: sudo docker container rm ${id} && \
 		exit 0
 	fi

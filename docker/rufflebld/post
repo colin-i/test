@@ -1,0 +1,5 @@
+
+dtext=~/.cargo/bin
+ftext=ruffle_desktop
+
+sudo docker cp ${id}:/ruffle/target/release/${ftext} ${dtext}
