@@ -28,3 +28,35 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #' | sudo tee /etc/apt/preferences.d/mozilla-firefox
 
 #this is not true: "sudo apt update command again brings back the snap"; if is true, pin-prio.. -10 and pin .. a=* for pack.. snapd
+
+
+#chrome arm64 is not. chromium is snap. mint no arm64. debian arm64
+
+#Package: *
+#Pin: release n=bookworm
+#Pin-Priority: -1
+
+## a=stable ?
+
+#Package: chromium
+#Pin: release n=bookworm
+#Pin-Priority: 1001
+##even if chromium-browser is a snap
+
+#Package: libjpeg62-turbo
+#Pin: release n=bookworm
+#Pin-Priority: 500
+
+#Package: chromium-common
+#Pin: release n=bookworm
+#Pin-Priority: 500
+
+#Package: chromium-sandbox
+#Pin: release n=bookworm
+#Pin-Priority: 500
+
+#deb http://ftp.ro.debian.org/debian bookworm main
+##deb http://ftp.ro.debian.org/debian stable main
+
+#keys from:
+#https://packages.debian.org/bookworm/all/debian-archive-keyring/download
