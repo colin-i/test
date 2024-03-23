@@ -1,0 +1,21 @@
+
+read -r -d '' UNIT_FILE << EOF
+[Unit]
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=python /home/bc/test/plug/a.py -1 0
+
+[Install]
+WantedBy=default.target
+EOF
+
+SERVICE_PATH=/etc/systemd/system/plug-temperature-dog.service
+
+sudo echo "$UNIT_FILE" > $SERVICE_PATH
+
+systemctl daemon-reload
+systemctl enable --no-pager plug-temperature-dog.service
+systemctl restart --no-pager plug-temperature-dog.service
+systemctl status --no-pager plug-temperature-dog.service
