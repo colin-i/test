@@ -32,3 +32,5 @@ else
 
 	cat /sys/class/thermal/thermal_zone*/temp
 fi
+
+# vcgencmd measure_temp
