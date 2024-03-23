@@ -4,7 +4,7 @@
 
 #w1 has 0.0625 steps.  github package with information: timofurrer/w1thermsensor
 #in /boot/config.txt:
-##default: # sau la all
+##default: # or at all
 #dtoverlay=w1-gpio
 ##another one, in case a pimoroni fanshim is on default pin:
 #dtoverlay=w1-gpio,gpiopin=5
