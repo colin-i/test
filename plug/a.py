@@ -1,11 +1,23 @@
+#!/usr/bin/python3 -u
+#without -u is not flushing at .service
 
 #same as ./a
 
 import os
+
+HOME=os.getenv('HOME') #working in .service only with User=<user>
+log=HOME+'/'+os.getenv('fname')
+
+# to not write from SEEK_SET again at .service
+with open(log,"w") as f:  ##os.remove() will not print again in this run
+	f.truncate()   # os.remove is doing but this? sudo chown <user>:<user> ~/<log> one time
+
+print(HOME)
+
 import subprocess
 
 def get_temp_inter():
-	with open(os.getenv('HOME')+'/pass', 'r') as file:
+	with open(HOME+'/pass', 'r') as file:
 		p = file.read()
 		subprocess.run(['sshpass','-p',p,'sftp','bc@10.42.0.1:/home/bc/n/temp/a','/tmp/a'])
 		with open('/tmp/a', 'r') as f:
@@ -20,13 +32,13 @@ def get_temp_local(n1,n2,n3):
 		return j[n1][n2]["temp"+n3+"_input"]
 	return j[n1]["temp"+n2+"_input"]
 
-with open(os.getenv('HOME')+'/tempmax', 'r') as file:
+with open(HOME+'/tempmax', 'r') as file:
 	max = int(file.read())
-with open(os.getenv('HOME')+'/tempmin', 'r') as file:
+with open(HOME+'/tempmin', 'r') as file:
 	min = int(file.read())
 
 #https://github.com/mjg59/python-broadlink
-import broadlink
+import broadlink  # only with: WorkingDirectory=/home/<user>/
 
 devices = broadlink.discover(discover_ip_address='192.168.1.255') #the arugment is if manual wlan connection if have both wwan and wlan
 device=devices[0]
@@ -45,7 +57,7 @@ print("On="+on.__str__())
 print(sys.argv[2])
 if sys.argv[2]=="0":
 	local=True
-	with open(os.getenv('HOME')+'/tempdata', 'r') as file:
+	with open(HOME+'/tempdata', 'r') as file:
 		data=file.read().split(',')
 		name1=data[0]
 		print(name1)
