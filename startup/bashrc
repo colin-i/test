@@ -5,7 +5,7 @@ if [ -z "${choose_term_profile}" ]; then
 		~/test/startup/setcolors || exit
 	fi
 else
-	echo ${choose_term_profile}
+	echo ${choose_term_profile} #[export] choose_term_profile= #or unset choose_term_profile #still new tab with same value
 fi
 
 if [ "${resizeterm}" != "" ]; then ~/test/startup/termsz; fi
