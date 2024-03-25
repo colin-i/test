@@ -1,1 +1,3 @@
-x11vnc -auth guess -forever -loop -noxdamage -repeat -rfbauth /home/bc/.vnc/passwd -rfbport 5900 -shared
+
+#x11vnc -storepasswd
+x11vnc

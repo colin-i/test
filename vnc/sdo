@@ -1,0 +1,7 @@
+
+while :; do
+	ping `cat ~/arm_ip` -w 5
+	if [ "$?" = 1 ]; then
+		init 0
+	fi
+done

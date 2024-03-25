@@ -14,7 +14,7 @@ StandardOutput=file:/home/bc/_temp.log
 [Install]
 WantedBy=default.target
 " #read -r -d '' UNIT_FILE << EOF will not work inside: sudo "$0"
-echo $UNIT_FILE
+
 SERVICE_PATH=/etc/systemd/system/plug-temperature-dog.service
 
 #sudo echo in script is not bringing password prompt. then why sudo? if was sudo once and is still active and wanting to call again here

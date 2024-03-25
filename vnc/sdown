@@ -1,0 +1,22 @@
+
+UNIT_FILE="
+[Unit]
+Description=async shutdown
+
+[Service]
+Type=simple
+ExecStart=/home/bc/test/vnc/sdo
+"
+#[Install]
+#WantedBy=default.target
+
+SERVICE_PATH=/etc/systemd/system/shutdown-async.service
+
+sudo echo "$UNIT_FILE" > $SERVICE_PATH  #same as plug service
+if [ $? != 0 ]; then
+	sudo "$0" # "$@"
+	exit
+fi
+
+cat ${SERVICE_PATH}
+systemctl daemon-reload

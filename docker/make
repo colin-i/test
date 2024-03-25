@@ -8,11 +8,7 @@ rep_tag=image0/$(basename $(pwd)):latest
 confirm=1
 if [ -n "${1}" ]; then confirm=0; fi
 
-read_char() {
-  stty -icanon
-  eval "$1=\$(dd bs=1 count=1 2>/dev/null)"
-  stty icanon
-}
+. ~/test/misc/read_char
 
 sudo docker pull ${rep_tag} && {
 	id=`sudo docker container ls -a -f ancestor=${rep_tag} -q | head -1`

@@ -1,20 +1,29 @@
+#!/bin/sh
+#is started with sh anyway
 
 cd ~/u/b || exit
 
 b=0
-bb=( `find -maxdepth 1 -name "bookmarks*"` )
+#bb=( `find -maxdepth 1 -name "bookmarks*"` )
+bb=`find -maxdepth 1 -name "bookmarks*"`
 
 cd bm || exit
 
-a=( `find -name "*.txt" | xargs` )
+#a=( `find -name "*.txt" | xargs` )
+a=`find -name "*.txt" | xargs`
 
-for var in "${a[@]}"
+. ~/test/misc/read_char
+
+#for var in "${a[@]}"
+for var in ${a}       #assuming no space in files
 do
 	echo bookmarks?
-	read -n1 -t $((3600*24)) ans
+	#read -n1 -t $((3600*24)) ans
+	read_char ans
 	if [ "${ans}" = "y" ]; then
 		cat ./${var}
-		read -n1 -t $((3600*24)) ans
+		#read -n1 -t $((3600*24)) ans
+		read_char ans
 		if [ "${ans}" = "y" ]; then
 			mv ${var} ..
 			var=${var:0:-4}
@@ -27,10 +36,12 @@ done
 
 if [ ${b} = 1 ]; then
 	echo remove old?
-	read -n1 -t $((3600*24)) ans
+	#read -n1 -t $((3600*24)) ans
+	read_char ans
 	if [ "${ans}" = "y" ]; then
 		cd .. || exit
-		for var in "${bb[@]}"
+		#for var in "${bb[@]}"
+		for var in "${bb}"      #assuming no space in files
 		do
 			rm ${var}
 		done
