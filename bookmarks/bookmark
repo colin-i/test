@@ -41,7 +41,7 @@ if [ ${b} = 1 ]; then
 	if [ "${ans}" = "y" ]; then
 		cd .. || exit
 		#for var in "${bb[@]}"
-		for var in "${bb}"      #assuming no space in files
+		for var in ${bb}      #assuming no space in files
 		do
 			rm ${var}
 		done
