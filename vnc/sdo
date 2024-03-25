@@ -1,6 +1,6 @@
-
+#!/bin/sh
 while :; do
-	ping `cat ~/arm_ip` -w 5
+	ping `cat /home/bc/arm_ip` -w 5
 	if [ "$?" = 1 ]; then
 		init 0
 	fi
