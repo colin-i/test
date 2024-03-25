@@ -1,7 +1,7 @@
 
 UNIT_FILE="
 [Unit]
-After=network.target
+After=network-online.target
 
 [Service]
 Type=simple

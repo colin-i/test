@@ -1,27 +1,31 @@
 
 sleep 10
+~/test/act/a
+
 if [ -f ~/desktops ]; then
 	wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
 	echo $?
 else
-	#needed at termsz, after sleeps, to do something else in the meantime
 	window_pid=`xdotool getactivewindow`
 	echo ${window_pid}
-fi
-
-~/test/act/a
-~/test/net/data/a
-if [ -n "${window_pid}" ]; then
 	window_pid=${window_pid} ~/test/startup/termsz
 fi
 
-if [ -z "${no_temp}" ]; then
-	~/arh/activity &
-	sleep 10 #to not override text with temp
-	if [ -z "${3}" ]; then a=-1
-	else a=${3}
+~/test/bookmarks/bookmark
+
+if [ -z "${is_vnc}" ]; then
+	~/test/net/data/a
+
+	if [ -z "${no_temp}" ]; then
+		~/arh/activity &
+		sleep 10 #to not override text with temp
+		if [ -z "${3}" ]; then a=-1
+		else a=${3}
+		fi
+		~/test/plug/a ${a} ${1} ${2}
+	else
+		~/arh/activity
 	fi
-	~/test/plug/a ${a} ${1} ${2}
 else
-	~/arh/activity
+	~/test/vnc/vnc
 fi

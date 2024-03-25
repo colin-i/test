@@ -1,0 +1,9 @@
+
+# -FullScreenSelectedMonitors=2 -FullscreenMode Selected -Fullscreen #is not working, is going to the second monitor but fast switching back, without -Fullscreen can manual do ok
+# -geometry ...  -Fullscreen -> Fullscreen then geometry
+k=F10
+{
+  sleep 3
+  ~/test/dotool key ${k}; sleep 1; ~/test/dotool key Down; sleep 1; ~/test/dotool key Down; ~/test/dotool key Enter
+} &
+VNC_PASSWORD=`cat ~/n/pat14` vncviewer -geometry 800x600+2000+0 -MenuKey ${k} `cat ~/amd_ip`

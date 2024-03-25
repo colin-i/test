@@ -1,14 +1,14 @@
 
 t=$(loginctl show-session $(loginctl | awk '/tty/ {print $1}') -p Type | awk -F= '{print $2}')
 
-echo =${t}
 a=${1}
 shift
 b=${1}
 shift
+echo ${t} ${a} ${b}
 if [ "${t}" = "x11" ]; then
-	if [ "${b}" = "enter" ]; then b="Return"; fi
-	sudo xdotool ${a} ${b} $@
+	if [ "${b}" = "Enter" ]; then b="Return"; fi
+	xdotool ${a} ${b} $@
 else
-	sudo ydotool ${a} ${b} $@
+	ydotool ${a} ${b} $@
 fi
