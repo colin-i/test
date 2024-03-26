@@ -1,0 +1,45 @@
+
+apt list --installed | grep "\[Instalat\]$" > 1
+installed=( `cat 1 | grep -Po "^.*(?=\/)"` )
+rm 1
+
+zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt install (?!.*--reinstall)\K.*' > 2
+#zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt-get install (?!.*--reinstall)\K.*' >> 2
+#more work with this at sorting
+
+#this is not required at live installs, only at .img first line is not required
+cat 2 | tail -n +2 > 3
+rm 2
+
+#need to get the command. last is the recent install command. reversing
+tac 3 > 4
+rm 3
+
+manual=( `cat 4` ) # a\n b c\n will be   a b c
+readarray -t mrev < 4
+rm 4
+
+#and manual & installed
+n=${#installed[@]}
+for m in "${manual[@]}"; do
+	for (( j=0; j < ${n}; j++)); do
+		if [ "${m}" = "${installed[${j}]}" ]; then
+			#and what command?
+			for mr in "${mrev[@]}"; do
+				if [ "${mr}" = "${m}" ]; then a="${mr}"; break; fi
+				if [[ ${mr} == "${m} "* ]]; then a="${mr}"; break; fi
+				if [[ ${mr} == *" ${m} "* ]]; then a="${mr}"; break; fi
+				if [[ ${mr} == *" ${m}" ]]; then a="${mr}"; break; fi
+			done
+			echo "${m} ---------- ${a}" >> 5
+			break
+		fi
+	done
+done
+
+sort 5
+rm 5
+
+#dpkg -l | awk '/^ii/ && $4 == "i386" { print }' | wc -l
+#dpkg -l | awk '/^ii/ && $4 == "amd64" { print }' | wc -l
+#dpkg -l | awk '/^ii/ && $4 == "all" { print }' | wc -l
