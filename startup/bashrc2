@@ -2,10 +2,9 @@
 source ~/test/startup/bashrc
 
 f=~/plug_serv
-last=$(date -d @$(stat -c %Y ${f}) +%d)
-today=`date +%d`
-if [ "${last}" != "${today}" ]; then
+if [ "$(date -d @$(stat -c %Y ${f}) +%d)" != "`date +%d`" ]; then
 	systemctl status plug-temperature-dog.service
 	tail ~/_temp.log
 	touch ${f}
 fi
+unset f

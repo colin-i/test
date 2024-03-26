@@ -18,6 +18,7 @@ echo ${PATH} | grep -Fq "${a}"
 if [ $? = 1 ]; then
 	export PATH=${a}:$PATH
 fi
+unset a
 export PATH=~/Desktop/act:$PATH
 if [ "`uname -m`" != "x86_64" ]; then
 	export PATH=${PATH}:~/x86_64

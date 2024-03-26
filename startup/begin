@@ -6,12 +6,12 @@ if [ -f ~/desktops ]; then
 	wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
 	echo $?
 else
-	window_pid=`xdotool getactivewindow`
-	echo ${window_pid}
-	window_pid=${window_pid} ~/test/startup/termsz
+	window_pid=`xdotool getactivewindow` ~/test/startup/termsz
 fi
 
 ~/test/bookmarks/bookmark
+
+df
 
 if [ -z "${is_vnc}" ]; then
 	~/test/net/data/a
