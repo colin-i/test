@@ -37,6 +37,7 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #Pin-Priority: -1
 
 ## a=stable ?
+##>= 1000 to be selected against default package
 
 #Package: chromium
 #Pin: release n=bookworm
