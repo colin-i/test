@@ -1,5 +1,5 @@
 #!/bin/sh
-#is started with sh anyway
+#is started with sh if without a shebang
 
 cd ~/u/b || exit
 
