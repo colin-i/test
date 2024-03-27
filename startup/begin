@@ -11,7 +11,7 @@ fi
 
 ~/test/bookmarks/bookmark
 
-df
+~/test/misc/storage
 
 if [ -z "${is_vnc}" ]; then
 	~/test/net/data/a

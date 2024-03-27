@@ -1,0 +1,5 @@
+
+IFS=',' read -a format <<< "${storage}"
+u=${format[2]}
+a=`df -B${u} | grep "^${format[0]} " |  tr -s ' ' | cut -d' ' -f4`
+echo free: ${a}. free-margin: `echo ${a:0:-1}-${format[1]} | bc`${u}
