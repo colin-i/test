@@ -13,6 +13,7 @@ if [ "${#a}" != 0 ]; then
 	cd bm || exit
 
 	. ~/test/misc/read_char
+	bb=0
 
 	#for var in "${a[@]}"
 	for var in ${a}       #assuming no space in files
@@ -22,6 +23,7 @@ if [ "${#a}" != 0 ]; then
 		read_char ans
 		if [ "${ans}" = "y" ]; then
 			cat ./${var}
+			echo is ok?
 			#read -n1 -t $((3600*24)) ans
 			read_char ans
 			if [ "${ans}" = "y" ]; then
@@ -29,19 +31,22 @@ if [ "${#a}" != 0 ]; then
 				#var=${var:0:-4}
 				var=$(expr substr ${var} 1 $(echo $(expr index ${var} txt)-2 | bc))  # index ... .txt will be 1, txt without dot is ~ 22
 				mv ${var} ..
+				bb=1
 			fi
 		fi
 	done
 
-	echo remove old?
-	#read -n1 -t $((3600*24)) ans
-	read_char ans
-	if [ "${ans}" = "y" ]; then
-		cd .. || exit
-		#for var in "${b[@]}"
-		for var in ${b}      #assuming no space in files
-		do
-			rm ${var}
-		done
+	if [ "${bb}" = 1 ]; then
+		echo remove old?
+		#read -n1 -t $((3600*24)) ans
+		read_char ans
+		if [ "${ans}" = "y" ]; then
+			cd .. || exit
+			#for var in "${b[@]}"
+			for var in ${b}      #assuming no space in files
+			do
+				rm ${var}
+			done
+		fi
 	fi
 fi
