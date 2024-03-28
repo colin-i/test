@@ -1,47 +1,45 @@
 
 #this script is for sh without a shebang
 
-cd ~/u/b || exit
-
-b=0
-#bb=( `find -maxdepth 1 -name "bookmarks*"` )
-bb=`find -maxdepth 1 -name "bookmarks*"`
-
-cd bm || exit
+cd ~/u/b/bm || exit
 
 #a=( `find -name "*.txt" | xargs` )
 a=`find -name "*.txt" | xargs`
 
-. ~/test/misc/read_char
+if [ "${#a}" != 0 ]; then
+	cd .. || exit
+	#b=( `find -maxdepth 1 -name "bookmarks*"` )
+	b=`find -maxdepth 1 -name "bookmarks*"`
+	cd bm || exit
 
-#for var in "${a[@]}"
-for var in ${a}       #assuming no space in files
-do
-	echo bookmarks?
-	#read -n1 -t $((3600*24)) ans
-	read_char ans
-	if [ "${ans}" = "y" ]; then
-		cat ./${var}
+	. ~/test/misc/read_char
+
+	#for var in "${a[@]}"
+	for var in ${a}       #assuming no space in files
+	do
+		echo bookmarks?
 		#read -n1 -t $((3600*24)) ans
 		read_char ans
 		if [ "${ans}" = "y" ]; then
-			mv ${var} ..
-			#var=${var:0:-4}
-			var=$(expr substr ${var} 1 $(echo $(expr index ${var} txt)-2 | bc))  # index ... .txt will be 1, txt without dot is ~ 22
-			mv ${var} ..
-			b=1
+			cat ./${var}
+			#read -n1 -t $((3600*24)) ans
+			read_char ans
+			if [ "${ans}" = "y" ]; then
+				mv ${var} ..
+				#var=${var:0:-4}
+				var=$(expr substr ${var} 1 $(echo $(expr index ${var} txt)-2 | bc))  # index ... .txt will be 1, txt without dot is ~ 22
+				mv ${var} ..
+			fi
 		fi
-	fi
-done
+	done
 
-if [ ${b} = 1 ]; then
 	echo remove old?
 	#read -n1 -t $((3600*24)) ans
 	read_char ans
 	if [ "${ans}" = "y" ]; then
 		cd .. || exit
-		#for var in "${bb[@]}"
-		for var in ${bb}      #assuming no space in files
+		#for var in "${b[@]}"
+		for var in ${b}      #assuming no space in files
 		do
 			rm ${var}
 		done
