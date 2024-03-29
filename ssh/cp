@@ -1,0 +1,4 @@
+
+#1 path
+
+sshpass -p `cat ~/n/pat3` sftp `cat ~/amd_user`@`cat ~/amd_ip`:${1} .

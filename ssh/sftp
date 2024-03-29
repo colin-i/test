@@ -1,0 +1,4 @@
+
+if [ "expr index ${2} ." = 0 ]; then ip=192.168.1.${2}
+else ip=${2}; fi
+sshpass -p `cat ~/n/pat3` sftp ${1}@${ip}

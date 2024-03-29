@@ -1,2 +1,0 @@
-
-sshpass -p `cat ~/n/pat3` sftp ${1}@192.168.1.${2}
