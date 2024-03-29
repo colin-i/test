@@ -7,10 +7,12 @@ if os.environ.get('mimeType'):
 	mim=os.environ['mimeType']
 else:
 	mim='application/vnd.oasis.opendocument.spreadsheet'
+# application/gzip application/pdf application/vnd.debian.binary-package application/vnd.google-apps.folder
 
 import sys
-import google.auth
-from googleapiclient.discovery import build
+
+import google.auth # python3-google-auth
+from googleapiclient.discovery import build # python3-googleapi
 
 creds, _ = google.auth.default()
 # create drive api client
