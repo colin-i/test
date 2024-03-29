@@ -15,6 +15,7 @@ arhname=${name}_${1}
 
 cd ~/arhiva && \
 echo ${arhname} && \
+#~/n/pat
 gh release download ${arhname} -p *.rpm && \
 file=`find -maxdepth 1 -name *rpm` && \
 echo ${file} && \

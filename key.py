@@ -8,7 +8,7 @@ password = sys.argv[1]
 
 path=os.environ["HOME"]+"/"+"autokeyring"
 if not os.path.exists(path):
-	import tkinter
+	import tkinter  # python3-tk
 	from tkinter import messagebox
 	root = tkinter.Tk()
 	root.withdraw()

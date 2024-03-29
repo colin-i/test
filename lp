@@ -55,7 +55,8 @@ if [ -z "${1}" ] || [ "${1}" = "0" ]; then
 #	#done
 
 	for destin in ${tars}; do
-		/home/bc/u/desktop/ubuntu-archive-tools/copy-package -y --include-binaries --from ppa:colin-i/ubuntu/ppa -s ${dist} --to-suite ${destin} ${p}
+		# and with ubuntu-dev-tools
+		~/u/desktop/ubuntu-archive-tools/copy-package -y --include-binaries --from ppa:colin-i/ubuntu/ppa -s ${dist} --to-suite ${destin} ${p} || exit 1
 	done
 else
 	#if [ "${1}" = "x" ]; then

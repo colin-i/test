@@ -2,6 +2,7 @@
 sudo gh act -r -j ubuild --env init=1 workflow_dispatch -W .github/workflows/up.yml
 #sudo gh act -r -j testbuild --env init=1 workflow_dispatch -W .github/workflows/test.yml #-W ? Error: ... https://github.com/nektos/act/issues/1993
 #$(which act) . upload_release_asset at colin-i/test was with error
+# sudo docker save ghcr.io/catthehacker/ubuntu:act-18.04 -o a.tar ; sudo docker load -i a.tar
 
 container=`sudo docker ps -a | grep up-yml | cut -d ' ' -f1`
 #container=`sudo docker ps -a | grep test-yml | cut -d ' ' -f1`
