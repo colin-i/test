@@ -1,0 +1,26 @@
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+br=`git rev-parse --abbrev-ref HEAD`
+if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
+      name=${name}-${br}
+fi
+
+#"patch: **** Can't rename file ... to .pc/... : Too many levels of symbolic links" for .pc,debian/patches symbolic links
+#"the patch has fuzz which is not allowed" for .pc/X,debian/patches/X symbolic links
+~/test/debinithelper ${name} && \
+#when testing only the row above and below, don't forget to "restore .pc/.*" files, normal files are ok, more hidden files to restore? no, tested it, more inside hidden files are ok
+
+dpkg-source --commit --include-removal
+#                                      --include-binaries  #for ocompiler .expected tests binaries , but will upload nothing
+#EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
+exitcod=$?
+#kill -s 9 ` ps aux | grep dpkg-source | head -1 | tr -s ' ' | cut -d ' ' -f2 `
+
+~/test/debinithelper ${name} x
+
+if [ "${exitcod}" != 0 ]; then #why to keep them ?
+	rm -r .pc && \
+	rm -r debian/patches
+fi
+echo debcommit = ${exitcod}
+exit ${exitcod}
