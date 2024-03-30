@@ -1,3 +1,3 @@
 
-ssh `cat ~/amd_user`@`cat ~/amd_ip` 'echo -n `cat ~/n/pat3` | sudo -S systemctl start shutdown-async.service'
+ssh `cat ~/amd_user`@`cat ~/amd_ip` 'echo -n `cat ~/n/pat3` | sudo -S systemctl start shutdown-async.service' && \
 init 0

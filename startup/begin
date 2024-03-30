@@ -1,4 +1,6 @@
 
+sleep 9 # xdotool and act/a
+
 window_pid=`xdotool getactivewindow`
 if [ -f ~/desktops ]; then
 	xdotool windowmove ${window_pid} `cat ~/desktops` 0
