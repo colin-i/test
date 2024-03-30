@@ -1,5 +1,5 @@
 
-#1 name[-b]  optional 2 is_restore
+#1 name[-b]  optional 2 is_restore 0 aborting else continuing
 
 name=${1}
 root=`pwd`/
@@ -64,18 +64,23 @@ swt ${name} && \
 cd ${root} && \
 #
 #this is better when no switch and in normal flow
-#mv .pc ~/sync && \
-#mv debian/patches ~/sync/debian
-#
-#if files are restored at switch, mv cannot overwrite even with -f
-rsync -av .pc ~/sync && \
-rsync -av debian/patches ~/sync/debian && \
+if [ "${2}" != 0 ]; then
+	rsync -av .pc ~/sync && \
+	rsync -av debian/patches ~/sync/debian
+else
+	#                  assuming was restored at switch from parent
+	{ mv .pc ~/sync || rm -r .pc; } && \
+	#                                   no space after \ or && is always true
+	{ mv debian/patches ~/sync/debian || rm -r debian/patches; }
+	#if files are restored at switch, mv cannot overwrite even with -f
+fi && \
 #and now, put parent back, needed at local debuild
 if [ "${parent}" != "" ]; then
-	mv ${a}/* .pc && \
-	mv ${b}/* debian/patches && \
+	if [ "${2}" != 0 ]; then
+		mv ${a}/* .pc && \
+		mv ${b}/* debian/patches
+	fi && \
 	rm -r ${a} && \
 	rm -r ${b} && \
 	rm -r ../tmp/debian
-	#rm -r ${b}/..
 fi

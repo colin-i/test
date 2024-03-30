@@ -17,8 +17,7 @@ dpkg-source --commit --include-removal || \
 {
 	exitcod=$?
 	echo dpkg-source exit ${exitcod}
-	rm -r .pc && \
-	rm -r debian/patches
+	~/test/debinithelper ${name} 0
 	exit ${exitcod}
 }
 
