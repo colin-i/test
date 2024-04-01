@@ -1,10 +1,16 @@
 
+f=./new
+
+if ! [ -e ${f} ]; then exit 0; fi
+
+b=( `cat ${f}` )
+rm ${f}
+i=${#b[@]}
+
 y=${1}
 shift
 m=${1}
 shift
-
-source ~/test/stats/newparse
 
 cd ${y}/${m}
 

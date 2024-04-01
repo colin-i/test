@@ -1,5 +1,18 @@
 
-source ~/test/stats/newparse
+a=( )
+b=( )
+i=0
+for var in "${@}"
+do
+	if [ $((i%2)) = 0 ]; then
+		a[$((i/2))]=${var}
+	else
+		b[$((i/2))]=${var}
+		bb="${bb} ${var}"
+	fi
+	i=$((i+1))
+done
+i=$((i/2))
 
 for (( j=0; j < ${i}; j++ )); do
 	echo -n " ${a[${j}]}=${b[${j}]}"
@@ -9,3 +22,6 @@ done
 echo
 cat h
 echo
+
+echo -n "${bb}" >> ./new
+git add ./new
