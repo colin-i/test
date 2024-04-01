@@ -1,0 +1,11 @@
+
+a=`cat hh5`
+b=`cat hh5prev`
+c=${a:0:3}
+d=${b:0:3}
+
+if [ ${c} = ${d} ]; then
+	echo -n ,${a:3:1} > ~/number_precision
+else
+	echo -n  > ~/number_precision
+fi

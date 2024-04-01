@@ -11,4 +11,4 @@ text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".includes.tweets[0].tex
 
 n=`echo ${text} | grep -Poe "[^ ]*(?:.(?! rows))+$" | grep -Poe "[^ ]*" | head -1`
 k=`echo ${n}/1000 | bc`
-echo -n ${k}
+echo -n ${k}`cat ~/number_precision`

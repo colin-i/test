@@ -121,6 +121,7 @@ if [ "${more_data}" != "" ]; then
 		cd ${start}
 	fi
 
+	cp hh5 hh5prev #for month to month statistics
 	~/test/stats/gh .
 	echo -ne "\nAll time: `cat hh2` commits, `cat hh5` rows (+`cat hh3`, -`cat hh4`).">>${out}
 fi
