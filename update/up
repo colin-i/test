@@ -18,7 +18,7 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #colin-i-ubuntu-ppa.sources  mozillateam-ubuntu-ppa.sources  google-chrome.list  google-earth-pro.list
 #colin-i        ppa      ppa:mozillateam       /ppa
 
-#snap list , and remove ... , and apt snapd purge, then, this is not require:
+#snap list , and remove ... , and apt purge snapd, then, this is not require:
 #dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge
 
 #echo '
