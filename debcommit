@@ -13,7 +13,7 @@ fi
 dpkg-source --commit --include-removal || \
 #                                      --include-binaries  #for ocompiler .expected tests binaries , but will upload nothing
 #EDITOR=/bin/true dpkg-source -q --commit --include-removal . patchsetname
-#kill -s 9 ` ps aux | grep dpkg-source | head -1 | tr -s ' ' | cut -d ' ' -f2 `
+# kill -s 9 ` ps aux | grep dpkg-source | head -1 | tr -s ' ' | cut -d ' ' -f2 `
 {
 	exitcod=$?
 	echo dpkg-source exit ${exitcod}

@@ -1,0 +1,40 @@
+
+if [ -z "${orig}" ]; then orig=orig; fi
+if [ -z "${master}" ]; then master=master; fi
+if [ -z "${test}" ]; then test=test; fi
+if [ -z "${origin}" ]; then origin=origin; fi
+if [ -z "${test_orig}" ]; then test_orig=test_orig; fi
+if [ -z "${email}" ]; then email=costin.botescu@gmail.com; fi
+if [ -z "${proj}" ]; then proj=$(basename $(pwd)); fi
+
+if [ -z "${1}" ] || [ "${1}" = "sync" ]; then
+# ~/test/git/squash
+	git switch ${orig}
+	if [ -z "${1}" ]; then
+		git pull ${orig} ${master}
+	fi
+	a=`git rev-parse HEAD`
+	read #resolve on github
+	git switch ${test}
+	git pull ${origin} ${test}
+	b=`git rev-parse HEAD^`
+	echo ${a} ${b}
+	if [ ${a} = ${b} ]; then
+		echo -n \~/test/git/squash x | xclip -selection clipboard
+		echo = `git rev-parse HEAD`. paste \~/test/git/squash x
+	else
+		echo -n \~/test/git/squash | xclip -selection clipboard
+		echo different. paste again \~/test/git/squash . if different again, git reset --hard ${orig} ${b} and \~/test/git/squash sync
+	fi
+	exit
+fi
+
+git switch ${test_orig} || exit
+a=`git rev-parse HEAD^`
+git reset --hard ${a}
+git merge ${orig}
+git merge --squash `git log --author=${email} --pretty=format:"%H" | xargs`  # %h is short id. without xargs should be same
+#is already some predefined text #echo -n message | xclip -selection clipboard
+git commit #without save inside, hit exit, watch additions deletions to be ok
+echo -n \~/test/remote/pushforce ${proj}
+echo paste \~/test/remote/pushforce ${proj}

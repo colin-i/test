@@ -1,4 +1,5 @@
 
+# sudo gh extension install nektos/gh-act #sudo, will use docker inside, else permission denied
 sudo gh act -r -j ubuild --env init=1 workflow_dispatch -W .github/workflows/up.yml
 #sudo gh act -r -j testbuild --env init=1 workflow_dispatch -W .github/workflows/test.yml #-W ? Error: ... https://github.com/nektos/act/issues/1993
 #$(which act) . upload_release_asset at colin-i/test was with error

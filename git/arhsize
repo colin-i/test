@@ -1,6 +1,8 @@
 
 # optional 1 limit
 
+if [ -z "${arhsizelimit}" ]; then arhsizelimit=$((100*1000*1000))
+
 #for tests main reason
 if [ -z "${1}" ]; then
 	maximumlimit=100
@@ -66,5 +68,5 @@ done
 
 printf "%'d\n" ${s}
 
-if [ ${s} -gt $((1000*1000*1000)) ]; then echo more than one billion
-else echo small; fi
+if [ ${s} -gt ${arhsizelimit} ]; then echo big. more than ${arhsizelimit}
+else echo small. less than ${arhsizelimit}; fi

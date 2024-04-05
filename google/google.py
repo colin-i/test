@@ -7,7 +7,7 @@ if os.environ.get('mimeType'):
 	mim=os.environ['mimeType']
 else:
 	mim='application/vnd.oasis.opendocument.spreadsheet'
-# application/gzip application/pdf application/vnd.debian.binary-package application/vnd.google-apps.folder
+# application/gzip application/pdf application/vnd.debian.binary-package application/vnd.google-apps.folder text/plain
 
 import sys
 
