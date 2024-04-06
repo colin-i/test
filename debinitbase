@@ -18,12 +18,15 @@ fi
 echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter
 echo -n "${version}" | xclip -selection clipboard
 read -r version
+fullversion=${major}-${version}
+patchversion=${major}.${version}
+if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi
 msg=${1}
 echo -n "${msg}" | xclip -selection clipboard && \
-dch -v ${major}-${version} --distribution=${dist} && \
+dch -v ${fullversion} --distribution=${dist} && \
 # "${msg}"
 # --create --package "pkgpkg" --newversion 0.0.0.0-0.test
-echo -n ${major}.${version} | xclip -selection clipboard && \
+echo -n ${patchversion} | xclip -selection clipboard && \
 ~/test/debcommit
 
 
