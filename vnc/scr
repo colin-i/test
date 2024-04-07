@@ -1,0 +1,8 @@
+
+#clipboard guest to server won't work?
+screen -list
+if [ "$?" = "1" ]; then
+	screen -S 1
+else
+	screen -x
+fi
