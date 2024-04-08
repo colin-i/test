@@ -35,13 +35,11 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #Package: *
 #Pin: release n=bookworm
 #Pin-Priority: -1
-
-## a=stable ?
-##>= 1000 to be selected against default package
+## release a=stable... or origin
 
 #Package: chromium
 #Pin: release n=bookworm
-#Pin-Priority: 1001
+#Pin-Priority: 501
 ##even if chromium-browser is a snap
 
 #Package: libjpeg62-turbo
@@ -61,3 +59,5 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 
 #keys from:
 #https://packages.debian.org/bookworm/all/debian-archive-keyring/download
+
+## apt-cache policy for Pins

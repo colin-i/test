@@ -20,3 +20,5 @@ git status
 
 #alt+f2 r
 #seeing constant warnings at journalctl -f ? MaxLevelStore=err at /etc/systemd/journald.conf, then systemctl restart systemd-journald
+
+#for cinnamon, an untested cjs(gjs if at gnome) gist: https://gist.github.com/colin-i/48717cf3f8cebe4dcef654134f7c6873
