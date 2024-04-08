@@ -10,3 +10,5 @@ sudo docker cp ${id}:/usr/bin/${ftext} ${dtext}
 
 #sudo docker cp ${id}:/usr/bin/i686-linux-gnu-gcc-7 ${dtext} && \
 #sudo docker cp ${id}:/usr/bin/x86_64-linux-gnu-gcc-7 ${dtext}
+
+# /usr/bin/x86_64-linux-gnu-objdump with more from /usr/lib/aarch64-linux-gnu/. in lib and resolve libbfd symlinks and xobjdump(objdump is already) with LD_LIBRARY_PATH
