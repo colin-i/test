@@ -1,4 +1,4 @@
 
 #x11vnc -storepasswd
-x11vnc &
+x11vnc -forever &
 echo `cat ~/n/pat3` | sudo -S cpulimit --pid $! --limit `cat ~/vnc_limit`
