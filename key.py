@@ -37,4 +37,4 @@ if (is_locked()):
 	#for x11, xdotool without sudo maybe
 	os.system("sudo ~/test/dotool type " + password)
 	time.sleep(2)
-	os.system("sudo ~/test/dotool key enter")
+	os.system("sudo ~/test/dotool key Enter")
