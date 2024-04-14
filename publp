@@ -20,7 +20,7 @@ slp=60
 while true
 do
 	OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${arh} x | head -1`
-	echo =${OUTPUT}
+	echo =${OUTPUT} ${slp}
 	if [ "${OUTPUT}" = 'Successfully built' ]; then
 		if [ -e ~/stopwaitingflag ]; then
 			rm ~/stopwaitingflag
