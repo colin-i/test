@@ -1,4 +1,6 @@
 
+#after resolving the conflicts (if any)
+
 if [ -z "${orig}" ]; then orig=orig; fi
 if [ -z "${master}" ]; then master=master; fi
 if [ -z "${test}" ]; then test=test; fi
@@ -14,27 +16,28 @@ if [ -z "${1}" ] || [ "${1}" = "sync" ]; then
 		git pull ${orig} ${master}
 	fi
 	a=`git rev-parse HEAD`
-	read #resolve on github
 	git switch ${test}
-	git pull ${origin} ${test}
-	b=`git rev-parse HEAD^`
+	if [ -z "${1}" ]; then
+		git pull ${origin} ${test}
+	fi
+	b=`git rev-list HEAD^..HEAD  | sed -n 2p` #HEAD at rev-list can enumerate some hashes
 	echo ${a} ${b}
 	if [ ${a} = ${b} ]; then
+		git log -1
 		echo -n \~/test/git/squash x | xclip -selection clipboard
-		echo = `git rev-parse HEAD`. paste \~/test/git/squash x
+		echo paste \~/test/git/squash x
 	else
-		echo -n \~/test/git/squash | xclip -selection clipboard
-		echo different. paste again \~/test/git/squash . if different again, git reset --hard ${orig} ${b} and \~/test/git/squash sync
+		echo different. git switch ${orig} , git reset --hard ${b} , \~/test/git/squash sync
 	fi
 	exit
 fi
 
 git switch ${test_orig} || exit
-a=`git rev-parse HEAD^`
+a=`git rev-parse HEAD^`  #rev-parse and rev-list can show different results if there are merges, but is ok
 git reset --hard ${a}
 git merge ${orig}
-git merge --squash `git log --author=${email} --pretty=format:"%H" | xargs`  # %h is short id. without xargs should be same
+git merge --squash `git rev-list --author=${email} --all | xargs`
 #is already some predefined text #echo -n message | xclip -selection clipboard
 git commit #without save inside, hit exit, watch additions deletions to be ok
-echo -n \~/test/remote/pushforce ${proj}
+echo -n \~/test/remote/pushforce ${proj} | xclip -selection clipboard
 echo paste \~/test/remote/pushforce ${proj}
