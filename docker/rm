@@ -6,4 +6,3 @@ if [ -n "${id}" ]; then
 		sudo docker rm ${id}
 	fi
 fi
-	
