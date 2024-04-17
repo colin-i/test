@@ -1,0 +1,9 @@
+
+id=`sudo docker ps -aqf "name=^${1}"`
+if [ -n "${id}" ]; then
+	status=`sudo docker ps -af "id=${id}" --format "table {{.Status}}" | sed -n 2p`
+	if [ "${status}" = "Removal In Progress" ]; then
+		sudo docker rm ${id}
+	fi
+fi
+	

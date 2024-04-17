@@ -6,7 +6,7 @@ name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ -z "${1}" ]; then
 	echo test
 	cd ~/test
-	sudo gh act -j del --env file=${name} --env tag=1.5 -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml
+	sudo gh act -j del --env file=${name} --env tag=1.5 -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml || ~/test/docker/rm act-del-
 else
 	echo prev app delete
 	if [ ! -f "${HOME}/dontdeleteprevappimage" ]; then
@@ -21,7 +21,7 @@ else
 				name=${name}.${glb}
 			fi
 		fi
-		sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml
+		sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml || ~/test/docker/rm act-del-
 	else
 		echo no
 	fi
