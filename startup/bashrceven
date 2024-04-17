@@ -1,0 +1,21 @@
+
+a=`php -f is_day.php`
+IFS='_' read -a b <<< "${a}"
+remaining=${b[0]}
+maximum=`cat ~/maxmindif`
+
+#month of year
+month=`date +%m`
+
+#modulo against june
+modulo=$((6-month))
+modulo=${modulo#-}  #;echo ${modulo}
+
+part=30
+maxmonths=$((maximum/part))
+if [ ${maxmonths} -gt ${modulo} ]; then
+#cut from the day
+	dif=$(((maxmonths-modulo)*part))
+	remaining=$((remaining-dif))
+fi
+echo remaining ${remaining}
