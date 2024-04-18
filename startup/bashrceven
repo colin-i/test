@@ -1,7 +1,8 @@
 
+# is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink)
+
 a=`php -f is_day.php`
-IFS='_' read -a b <<< "${a}"
-remaining=${b[0]}
+remaining=${a%%_*}
 maximum=`cat ~/maxmindif`
 
 #month of year
@@ -18,4 +19,11 @@ if [ ${maxmonths} -gt ${modulo} ]; then
 	dif=$(((maxmonths-modulo)*part))
 	remaining=$((remaining-dif))
 fi
-echo remaining ${remaining}
+
+s=60
+while [ "${remaining}" -ge 0 ]; do
+	echo ${remaining}
+	sleep ${s}
+done
+
+python ~/on.py
