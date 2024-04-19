@@ -1,5 +1,5 @@
 
-# is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink)
+# is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
 a=`php -f is_day.php`
 remaining=${a%%_*}
