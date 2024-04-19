@@ -20,10 +20,11 @@ if [ ${maxmonths} -gt ${modulo} ]; then
 	remaining=$((remaining-dif))
 fi
 
-s=60
+s=1
 while [ "${remaining}" -ge 0 ]; do
 	echo ${remaining}
-	sleep ${s}
+	sleep ${s}m
+	remaining=$((remaining-s))
 done
 
 python ~/on.py
