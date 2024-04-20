@@ -8,6 +8,6 @@ if [ "$?" = "1" ]; then
 	if [ "${ans}" != "n" ]; then
 		screen -dmS 1
 		screen -x 1 -X stuff $'./evening\n'
-		screen -r
+		screen -r  #on another side screen -x  , ctrl-a d
 	fi
 fi

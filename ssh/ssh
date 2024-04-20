@@ -1,4 +1,8 @@
 
-if [ "expr index ${2} ." = 0 ]; then ip=192.168.1.${2}
-else ip=${2}; fi
-sshpass -p `cat ~/n/pat3` ssh ${1}@${ip}
+ix=`expr index ${2} .`
+u=${1}
+if [ "${ix}" = "0" ]; then ip=192.168.1.${2}
+else ip=${2}
+fi
+shift;shift
+sshpass -p `cat ~/n/pat3` ssh ${u}@${ip} $@
