@@ -1,7 +1,7 @@
 
 # optional 1 limit
 
-if [ -z "${arhsizelimit}" ]; then arhsizelimit=$((100*1000*1000))
+if [ -z "${arhsizelimit}" ]; then arhsizelimit=$((100*1000*1000)); fi
 
 #for tests main reason
 if [ -z "${1}" ]; then
@@ -29,6 +29,7 @@ QUERY='
                   }
                 }
               }
+              name
             }
             cursor
           }
@@ -39,13 +40,17 @@ QUERY='
 }'
 	sleep 1
 	raw=$(curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)")
+	raw=`echo ${raw} | jq -r ".data.viewer.repository.releases.edges[]"`
 
-	raw1=`echo ${raw} | jq -r ".data.viewer.repository.releases.edges[] | .cursor"`
-	readarray -t data <<<"$raw1"
-	n=${#data[@]}
-	if [ "${data[0]}" = "" ]; then break;fi
+	raw1=`echo ${raw} | jq -r " .cursor"`
+	readarray -t data1 <<<"$raw1"
+	if [ "${data1[0]}" = "" ]; then break;fi
 
-	raw2=`echo ${raw} | jq -r ".data.viewer.repository.releases.edges[] | .node.releaseAssets.edges[] | .node.size"`
+	n=${#data1[@]}
+
+	echo ${raw} | jq -r " .node.name" >> 1
+
+	raw2=`echo ${raw} | jq -r " .node.releaseAssets.edges[] | .node.size"`
 	readarray -t data2 <<<"$raw2"
 	n2=${#data2[@]}
 
@@ -61,12 +66,28 @@ QUERY='
 
 	if [ ${n} -lt ${maximumlimit} ]; then break; fi
 
-	crs=${data[n-1]}
+	crs=${data1[n-1]}
 
 	cursor=",after:\\\"${crs}\\\""
 done
 
-printf "%'d\n" ${s}
+a=( `cat 1 | cut -d' ' -f1 | sort` )
+rm 1
+b=${a[0]}
+i=0
+for c in "${a[@]}"; do
+	if [ ${b} = ${c} ]; then
+		i=$((i+1))
+	else
+		echo ${b} ${i} >> 1
+		b=${c}
+		i=1
+	fi
+done
+echo ${b} ${i} >> 1
+sort -k2nr 1
+rm 1
 
-if [ ${s} -gt ${arhsizelimit} ]; then echo big. more than ${arhsizelimit}
-else echo small. less than ${arhsizelimit}; fi
+printf "%'d %'d\n" ${s} ${arhsizelimit}
+if [ ${s} -gt ${arhsizelimit} ]; then echo big
+else echo small; fi
