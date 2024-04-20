@@ -20,7 +20,7 @@ else
 	dif=0
 fi
 
-while [ "${remaining}" -ge 0 ]; do #on standby will not decrement
+while [ ${remaining} -ge 0 ]; do #on standby will not decrement
 	a=`php -f is_day.php`
 	remaining=${a%%_*}
 	remaining=$((remaining-dif))

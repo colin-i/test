@@ -6,6 +6,7 @@ if [ "$?" = "1" ]; then
 	echo n or continue in 10 seconds
 	read -n1 -t 10 ans
 	if [ "${ans}" != "n" ]; then
+		sshd  # start it on termux
 		screen -dmS 1
 		screen -x 1 -X stuff $'./evening\n'
 		screen -r  #on another side screen -x  , ctrl-a d
