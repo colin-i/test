@@ -1,0 +1,10 @@
+
+while :
+do
+	printf "%'d\n" `free | sed -n 2p | tr -s ' ' | cut -d' ' -f7`
+	sleep 3
+	if [ -e ./stop ]; then
+		rm ./stop
+		break
+	fi
+done

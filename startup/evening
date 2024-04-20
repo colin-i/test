@@ -1,0 +1,36 @@
+
+# is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
+
+echo n or continue in 10 seconds
+read -n1 -t 10 ans
+if [ "${ans}" != "n" ]; then
+	#month of year
+	month=`date +%m`
+
+	#modulo against june
+	modulo=$((6-month))
+	modulo=${modulo#-}  #;echo ${modulo}
+
+	maximum=`cat ~/maxmindif`
+	part=30
+	maxmonths=$((maximum/part))
+	remaining=1
+
+	if [ ${maxmonths} -gt ${modulo} ]; then
+	#cut from the day
+		dif=$(((maxmonths-modulo)*part))
+	else
+		dif=0
+	fi
+
+	while [ "${remaining}" -ge 0 ]; do #on standby will not decrement
+		a=`php -f is_day.php`
+		remaining=${a%%_*}
+		remaining=$((remaining-dif))
+		echo ${remaining}
+		sleep 1m
+	done
+	echo ${remaining}
+
+	python ~/on.py
+fi
