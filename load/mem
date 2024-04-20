@@ -1,10 +1,13 @@
 
 while :
 do
-	printf "%'d\n" `free | sed -n 2p | tr -s ' ' | cut -d' ' -f7`
+	#not at termux #printf "%'d\n"
+	echo $(echo "`free | sed -n 2p | tr -s ' ' | cut -d' ' -f7`" | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta') KB
 	sleep 3
 	if [ -e ./stop ]; then
 		rm ./stop
 		break
 	fi
 done
+
+#on termux use `whoami` and `passwd` and `ssh` with -p8022
