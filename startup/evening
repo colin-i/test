@@ -30,3 +30,6 @@ done
 echo ${remaining}
 
 python ~/on.py
+echo click a key to stop
+read
+python ~/off.py
