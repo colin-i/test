@@ -6,7 +6,15 @@
 nm=torra
 #fi
 
-if [ -z "${1}" ]; then echo home to media; else echo media to home; fi
+if [ -z "${1}" ]; then
+	echo home to media
+	a=config
+	b=/media/bc/sandisk/a/arh/config/${nm}/config
+else
+	echo media to home
+	a=/media/bc/sandisk/a/arh/config/${nm}/config
+	b=config
+fi
 
 p=/home/bc/.config/${nm}/
 cd ${p}
@@ -14,7 +22,7 @@ cd ${p}
 #at diff command: arg2,< --- arg1,>
 cat config | jq > 1
 mv 1 config
-diff /media/bc/sandisk/a/arh/config/${nm}/config config
+diff ${a} ${b}
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
 		echo "${p}config -> /media/bc/sandisk/a/arh/config/${nm}/config"
@@ -36,7 +44,7 @@ fi
 
 cat configs | jq > 1
 mv 1 configs
-diff /media/bc/sandisk/a/arh/config/${nm}/configs configs
+diff ${a}s ${b}s
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
 		echo "${p}configs -> /media/bc/sandisk/a/arh/config/${nm}/configs"
