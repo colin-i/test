@@ -6,10 +6,13 @@ from multiprocessing.connection import Client
 
 with open(os.path.expanduser('~')+"/load_ip","rb") as f:
 	address = (f.read(), 6000)
-conn = Client(address)
-a=conn.send(sys.argv[1])
+try:
+	conn = Client(address)
+except:
+	exit(1) #after send the next one comes in the set number of seconds, is exit !=0 at except but it is documented?
+conn.send(sys.argv[1])
 conn.close()
-exit(a)
+exit(0)
 
 #echo 123 > /dev/tcp/192.168.1.11/6000  #will connect, but need "123" there
 
