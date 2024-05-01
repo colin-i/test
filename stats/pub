@@ -13,10 +13,16 @@ fi && \
 echo -e "\n\nwiki check? y?" && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
-newsboat
+	if [ "`uname -m`" = "aarch64" ]; then
+		cat ~/.config/nom/config.yml
+		/home/bc/Downloads/nom/nom
+	else
+		newsboat
+	fi
 else
-echo no
-fi
+	echo no
+fi && \
+~/test/stats/dif
 
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
