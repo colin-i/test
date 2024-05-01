@@ -10,7 +10,7 @@ try:
 	conn = Client(address)
 except:
 	exit(1) #after send the next one comes in the set number of seconds, is exit !=0 at except but it is documented?
-conn.send(sys.argv[1])
+conn.send(sys.argv[1])  #this is ok if closed at the other end, ValueError only at 32+MB
 conn.close()
 exit(0)
 
