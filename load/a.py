@@ -7,8 +7,9 @@ from multiprocessing.connection import Client
 with open(os.path.expanduser('~')+"/load_ip","rb") as f:
 	address = (f.read(), 6000)
 conn = Client(address)
-conn.send(sys.argv[1])
+a=conn.send(sys.argv[1])
 conn.close()
+exit(a)
 
 #echo 123 > /dev/tcp/192.168.1.11/6000  #will connect, but need "123" there
 

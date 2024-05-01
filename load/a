@@ -29,7 +29,7 @@ while :; do
 	adif=$((activ_new-activ))
 	x=$((100*adif/sdif))
 
-	python a.py ${x}
+	python a.py ${x} || exit 1
 
 	activ=${activ_new}
 	sum=${sum_new}
