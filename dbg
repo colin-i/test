@@ -14,9 +14,9 @@ fi
 response=0
 while read var; do
 	if [ -n "${2}" ]; then
-		diff "${var}" "${b}${var}" > /dev/null 2>&1
+		diff "${b}${var}" "${var}" > /dev/null 2>&1
 	else
-		diff "${var}" "${b}${var}"
+		diff "${b}${var}" "${var}"
 	fi
 	if [ $? != 0 ]; then
 		if [ -n "${2}" ]; then

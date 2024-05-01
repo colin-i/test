@@ -56,7 +56,7 @@ for var in "${z[@]}"; do
 		done
 
 		#still can have old files only in dest
-		diff -r ${src} ${dest} > ${tmp}
+		diff -r ${dest} ${src} > ${tmp}
 		firstrow=`head -n 1 ${tmp}`
 		if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
 		tail -n +2 ${tmp}
@@ -92,7 +92,7 @@ for var in "${z[@]}"; do
 
 			git status -s
 			echo diff
-			diff -r ${src} ${dest} > ${tmp}
+			diff -r ${dest} ${src} > ${tmp}
 			tail -n +2 ${tmp}
 
 			echo push \? y \?
