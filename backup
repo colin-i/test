@@ -4,6 +4,7 @@
 #                                                                                                                     < 0 lines                                      >
 no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle )
 #                                  c75b874(and cpp_support/freetype_support)                                                   petcap/bitstorm +etcminer1/etcminer
+if [ ! -e ~/stats/h ]; then echo ~/stats/h; exit 1; fi
 yes=( `cat ~/stats/h` )
 
 n=0;m=0
@@ -30,6 +31,8 @@ echo ${m} ${n}
 
 dst=~/dbg
 i=0
+if [ ! -e ~/backup_paths ]; then echo ~/backup_paths; exit 1; fi
+if [ ! -e ~/backup_is_pub ]; then echo ~/backup_is_pub; exit 1; fi
 paths=( `cat ~/backup_paths` )
 is_pub=( `cat ~/backup_is_pub` )
 overall=0
@@ -43,7 +46,7 @@ for var in "${z[@]}"; do
 	if [ -z "${1}" ] || [ "${1}" = "${var}" ]; then
 		cd ${src}
 		if [ ! -e ${dest} ]; then
-			mkdir ${dest}
+			mkdir ${dest} || exit 1
 		fi
 		response=0
 		while :; do
