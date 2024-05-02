@@ -11,7 +11,7 @@ else
 	#low=59
 	#off=55
 
-	#rpi3 console
+	#rpi3
 	#on=45
 	#high=43
 	#low=42
