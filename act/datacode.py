@@ -1,5 +1,5 @@
 
-from gi.repository import GLib,Gtk
+from gi.repository import GLib,Gtk,Gdk
 
 import time
 import os.path
@@ -37,12 +37,12 @@ def init(loop,pointer):
 	th.start()
 
 	show(text,form(query.yesterday()))
-
+	#
 	f=os.path.join(os.path.dirname(__file__),'x')
 	t=check_output(f)
 	total={};total["+"+t.decode()]=1
 	show(text,total)
-
+	#
 	global storage
 	storage=form(query.today())
 	show(text,storage)
@@ -51,6 +51,20 @@ def init(loop,pointer):
 
 	box=Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 	box.append(text)
+
+	global monitors,monitor
+	m=Gdk.Display.get_default().get_primary_monitor()
+	monitors=Gdk.Display.get_default().get_monitors()
+	monitor=0
+	for x in monitors:
+		if x==m:
+			break
+		monitor+=1
+	monitors=monitors.get_n_items()
+	if monitors>1:
+		state=Gtk.Button.new_with_label("Move")
+		state.connect('clicked', move)
+		box.append(state)
 
 	state=Gtk.Button.new_with_label("Start")
 	state.connect('clicked', toggle, text)
@@ -142,3 +156,50 @@ def exitfn(b,loop):
 	#global listener
 	#listener.close() still must accept one more
 	loop.quit()
+
+def move(b):
+	global monitor,monitors
+	monitor=monitor+1
+	if monitor==monitors:
+		monitor=0
+	m=Gdk.Display.get_default().get_monitors()[monitor]
+	position(m)
+
+title="Activity"
+
+# python3-xlib
+import Xlib.display
+
+def position(mon):
+	#xid=win.get_surface().get_xid()
+	#xdisp=disp.get_xdisplay()
+	#xwin = Xlib.display.drawable.Window(xdisp, id)
+	#xwin = Xlib.display.drawable.Window(Xlib.display.Display(), id)
+	#xwin.configure will not work
+
+	rect=mon.get_geometry()
+	y=30
+	w=rect.width/16
+	h=rect.height-y-5 #-5? will not fit and will go in another monitor
+	x=rect.x+rect.width-w
+
+	d = Xlib.display.Display()
+	r = d.screen().root
+	window_ids = r.get_full_property(
+		d.intern_atom('_NET_CLIENT_LIST'), Xlib.X.AnyPropertyType
+	).value
+	for window_id in window_ids:
+		xwin = d.create_resource_object('window', window_id)
+		if title==xwin.get_wm_name():
+			xwin.configure(
+				x=x.__int__(),
+				y=y.__int__(),
+				width=w.__int__(),
+				height=h.__int__()
+				#border_width=10
+				#,stack_mode=Xlib.X.Above
+			)
+			d.sync()
+
+def screen():
+	position(Gdk.Display.get_default().get_monitors()[monitor])
