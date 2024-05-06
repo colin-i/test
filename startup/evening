@@ -32,6 +32,6 @@ echo ${remaining}
 
 python ~/on.py
 date
-echo click a key to stop
+echo Enter for off
 read
 python ~/off.py
