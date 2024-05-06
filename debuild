@@ -1,17 +1,32 @@
 
+build () {
+	debuild -S -us -uc -d && \
+	#is modif by debuild but let always with changes
+	#git restore debian/files && \
+	#version is in ..base but i'm testing without ..base
+	name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*` && \
+	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
+	partname=${name}_${version} && \
+	cd .. && \
+	mv ${partname}* tmp && \
+	cd tmp && \
+	zip ../last${1}.zip ./* && \
+	rm ./*
+	#at exit working dir will not remain in tmp
+	#DEB_BUILD_OPTIONS=nocheck debuild -us -uc
+}
 
-debuild -S -us -uc -d && \
-#is modif by debuild but let always with changes
-#git restore debian/files && \
-#version is in ..base but i'm testing without ..base
-name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*` && \
-version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
-partname=${name}_${version} && \
-cd .. && \
-mv ${partname}* tmp && \
-cd tmp && \
-zip ../last.zip ./* && \
-rm ./*
-#at exit working dir will not remain in tmp
-
-#DEB_BUILD_OPTIONS=nocheck debuild -us -uc
+if [ -z "${builds}" ]; then
+	build
+else
+	b=${builds:0:1}
+	p=`pwd` && \
+	build && \
+	cd ${p} && \
+	dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"` && \
+	sed -i "1s/${dist}/${builds}/" debian/changelog && \
+	sed -i "1s/)/${b})/" debian/changelog && \
+	build ${b} && \
+	sed -i "1s/${builds}/${dist}/" debian/changelog && \
+	sed -i "1s/${b})/)/" debian/changelog
+fi

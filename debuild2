@@ -1,0 +1,12 @@
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+br=`git rev-parse --abbrev-ref HEAD`
+if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
+	name=${name}-${br}
+fi
+~/test/debinithelper ${name} && \
+~/test/debuild && \
+rm -r .pc && \
+rm -r debian/patches && \
+cd ~/sync && \
+git restore .pc && \
+git restore debian/patches

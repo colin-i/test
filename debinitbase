@@ -2,8 +2,6 @@
 #1 msg               optional 2 distribution
 
 major=1
-version=`cat debian/changelog | head -1 | grep -o -e "[^-]*)"`
-version=${version::-1}
 if [ -z "${2}" ]; then
  if [ "$#" -lt "1" ]; then
   echo at least message argument
@@ -15,9 +13,18 @@ else
  dist=${2}
 fi
 
-echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter
-echo -n "${version}" | xclip -selection clipboard
-read -r version
+if [ -z "${use_version_txt}" ]; then
+	version=`cat debian/changelog | head -1 | grep -Poe "[^-]*(?=\))"` && \
+	echo -n "${version}" | xclip -selection clipboard && \
+	echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter && \
+	read -r version
+else
+	version=`cat version.txt | grep -Poe "[^\.]*$"` && \
+	echo version.txt last part is ${version}. press a key && \
+	read
+fi || exit 1
+
+
 fullversion=${major}-${version}
 patchversion=${major}.${version}
 if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi

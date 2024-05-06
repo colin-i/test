@@ -1,7 +1,13 @@
 
 #optional:    1 ppa sufix
 
-if [ ! -e "../last.zip" ]; then
+if [ -z "${builds}" ]; then
+	zipfile=last.zip
+else
+	zipfile=last${builds:0:1}.zip
+fi
+
+if [ ! -e "../${zipfile}" ]; then
 	#gh cli is also on the hosted runner, can get artifact there too
 	id=$(gh run list --workflow=deb.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
 	repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
@@ -11,8 +17,8 @@ if [ ! -e "../last.zip" ]; then
 	#default login <USERNAME> password <PERSONAL ACCESS TOKEN>
 	url=${url:1:-1}
 
-	curl -H "Authorization: token `cat ~/n/pat`" -L -o ../last.zip ${url}
-	#not ok on kinetic curl --netrc-file ~/n/pat2 -L -o ../last.zip ${url}
+	curl -H "Authorization: token `cat ~/n/pat`" -L -o ../${zipfile} ${url}
+	#not ok on kinetic curl --netrc-file ~/n/pat2 -L -o ../${zipfile} ${url}
 	#L is for redirects
 fi
 
@@ -44,7 +50,7 @@ get_prog_ver () {
 }
 
 if [ -z "${array}" ]; then
-	unzip ../last.zip
+	unzip ../${zipfile}
 
 	get_prog_ver
 
@@ -59,4 +65,4 @@ fi
 #and ssh key at launchpad, and store ~/.ssh/id_rsa , id_rsa.pub
 dest=ssh-ppa
 dput -f ${dest}:colin-i/ppa${1} ${prog_ver}_source.changes && \
-rm ${files} && rm ../last.zip && rm ${prog_ver}_source.${dest}.upload
+rm ${files} && rm ../${zipfile} && rm ${prog_ver}_source.${dest}.upload
