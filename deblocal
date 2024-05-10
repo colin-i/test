@@ -1,0 +1,10 @@
+
+# docker pull i386/debian:trixie
+#        create,start,attach ; sudo docker container cp ovideo-1 ...:/
+# apt update ; apt install software-properties-common
+# the key like in the main gist ; and: add-apt-repository -S "deb https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu noble main"
+# apt install make pkg-config libgtk2.0-dev libgstreamer-plugins-base1.0-dev libjpeg-dev libsoup2.4-dev libasound2-dev ocompiler
+# mkdir ld;cd ld; apt download binutils=2.34-6ubuntu1.6~bpo20.04.1~ppa1 binutils-i686-linux-gnu=2.34-6ubuntu1.6~bpo20.04.1~ppa1 libbinutils=2.34-6ubuntu1.6~bpo20.04.1~ppa1 ; ar,xz,tar
+# cd src ; LD_LIBRARY_PATH=/ovideo-1/ld/usr/lib/i386-linux-gnu make all prefix=/usr LD=/ovideo-1/ld/usr/bin/ld items_prefix=`pwd`/
+# sudo apt install ./...deb
+# ~/test/updeb
