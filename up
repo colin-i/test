@@ -15,8 +15,7 @@ sudo docker container cp ${name}.zip ${container}:`pwd`/${name}.zip
 
 sudo gh act -r -j ubuild --env proj=${name} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/up.yml && \
 #sudo gh act -r -j testbuild --env proj=${name} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/test.yml && \
-rm ${name}.zip
-
-sudo docker container stop ${container}
+rm ${name}.zip && \
+sudo docker container stop ${container} && \
 sudo docker container rm ${container}
 #sudo docker volume list #it's only one for file

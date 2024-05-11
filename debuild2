@@ -1,5 +1,5 @@
 
-# optional 1 is docker id
+# optional 1 is build deb
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 br=`git rev-parse --abbrev-ref HEAD`
@@ -8,14 +8,8 @@ if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
 fi
 ~/test/debinithelper ${name} && \
 if [ -n "${1}" ]; then
-	sudo docker cp .pc ${id}:/v/ovideo-1 && \
-	cd debian && \
-	sudo docker cp patches ${id}:/v/ovideo-1/debian && \
-	cd .. && \
-	sudo docker exec ${id} bash -c "cd v && cd ovideo-1 && LD_LIBRARY_PATH=/v/ld/usr/lib/i386-linux-gnu LD=/v/ld/usr/bin/ld dpkg-buildpackage -b -us -uc" && \
-	sudo docker exec ${id} bash -c "cd v && cp ovideo-1/ovideo_*.deb a" && \
-	sudo docker cp ${id}:/v/a/. ..
-	#if problems with libjpeg62-turbo, debian unstable won't help, debuild with -ai386 on ubuntu if is complaining
+	LD_LIBRARY_PATH=/home/bc/Desktop/out/ld/usr/lib/i386-linux-gnu LD=/home/bc/Desktop/out/ld/usr/bin/i686-linux-gnu-ld.bfd dpkg-buildpackage -b -us -uc -ai386 && \
+	git clean -id
 else
 	~/test/debuild && \
 	rm -r .pc && \
@@ -24,3 +18,16 @@ fi && \
 cd ~/sync && \
 git restore .pc && \
 git restore debian/patches
+
+# docker pull i386/debian:trixie
+#        create,start,attach ; sudo docker container cp ovideo-1 ...:/v ; ovideo-1.tar.gz ; ovideo_1.orig.tar.gz ; .pc debian/patches during ~/test/debuild2 x
+# apt update ; apt install software-properties-common
+# the key like in the main gist ; and: add-apt-repository -S "deb https://ppa.launchpadcontent.net/colin-i/ppa/ubuntu noble main"  and  ppa-staging focal
+# apt install make pkg-config libgtk2.0-dev libgstreamer-plugins-base1.0-dev libjpeg-dev libsoup2.4-dev libasound2-dev ocompiler devscripts
+# mkdir ld;cd ld; apt download binutils=2.34-6ubuntu1.6~bpo20.04.1~ppa1 binutils-i686-linux-gnu=2.34-6ubuntu1.6~bpo20.04.1~ppa1 libbinutils=2.34-6ubuntu1.6~bpo20.04.1~ppa1 ; ar,xz,tar
+# mkdir a # for debuild2
+
+#sudo apt install --fix-broken -o Dpkg::Options::="--force-overwrite"
+#sudo docker exec ${id} bash -c "cd v && ... "
+#if problems with libjpeg62-turbo, debian unstable won't help
+# sudo apt install ./...deb
