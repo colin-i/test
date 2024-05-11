@@ -1,12 +1,26 @@
+
+# optional 1 is docker id
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 br=`git rev-parse --abbrev-ref HEAD`
 if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
 	name=${name}-${br}
 fi
 ~/test/debinithelper ${name} && \
-~/test/debuild && \
-rm -r .pc && \
-rm -r debian/patches && \
+if [ -n "${1}" ]; then
+	sudo docker cp .pc ${id}:/v/ovideo-1 && \
+	cd debian && \
+	sudo docker cp patches ${id}:/v/ovideo-1/debian && \
+	cd .. && \
+	sudo docker exec ${id} bash -c "cd v && cd ovideo-1 && LD_LIBRARY_PATH=/v/ld/usr/lib/i386-linux-gnu LD=/v/ld/usr/bin/ld dpkg-buildpackage -b -us -uc" && \
+	sudo docker exec ${id} bash -c "cd v && cp ovideo-1/ovideo_*.deb a" && \
+	sudo docker cp ${id}:/v/a/. ..
+	#if problems with libjpeg62-turbo, debian unstable won't help, debuild with -ai386 on ubuntu if is complaining
+else
+	~/test/debuild && \
+	rm -r .pc && \
+	rm -r debian/patches
+fi && \
 cd ~/sync && \
 git restore .pc && \
 git restore debian/patches
