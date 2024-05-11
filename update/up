@@ -61,3 +61,6 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 #https://packages.debian.org/bookworm/all/debian-archive-keyring/download
 
 ## apt-cache policy for Pins
+
+#to  apt update  without the notifier to observe that:
+# gsettings set com.ubuntu.update-notifier regular-auto-launch-interval -1    # gsettings list-recursively
