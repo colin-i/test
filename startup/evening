@@ -1,7 +1,7 @@
 
 # is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
-if [ -e ~/fixedtime ]; then
+if [ -e ~/fixedtime ]; then #example: 18:00
 	then=$(date -d "$(cat ~/fixedtime)" +%s)
 	now=`date +%s`
 	remaining=$((then-now))
