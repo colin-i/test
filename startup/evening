@@ -1,35 +1,45 @@
 
 # is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
-#month of year
-month=`date +%m`
-
-#modulo against june
-modulo=$((6-month))
-modulo=${modulo#-}  #;echo ${modulo}
-
-maximum=`cat ~/maxmindif`
-part=30
-maxmonths=$((maximum/part))
-remaining=1
-
-if [ ${maxmonths} -gt ${modulo} ]; then
-#cut from the day
-	dif=$(((maxmonths-modulo)*part))
-	echo dif=${dif}
+if [ -e ~/fixedtime ]; then
+	then=$(date -d "$(cat ~/fixedtime)" +%s)
+	now=`date +%s`
+	remaining=$((then-now))
+	while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
+		echo $((remaining/60))
+		sleep 60
+		remaining=$((remaining-60))
+	done
 else
-	dif=0
+	#month of year
+	month=`date +%m`
+
+	#modulo against june
+	modulo=$((6-month))
+	modulo=${modulo#-}  #;echo ${modulo}
+
+	maximum=`cat ~/maxmindif`
+	part=30
+	maxmonths=$((maximum/part))
+	remaining=1
+
+	if [ ${maxmonths} -gt ${modulo} ]; then
+	#cut from the day
+		dif=$(((maxmonths-modulo)*part))
+		echo dif=${dif}
+	else
+		dif=0
+	fi
+
+	while [ ${remaining} -ge 0 ]; do #on standby will not decrement
+		a=`php -f is_day.php`
+		remaining=${a%%_*}
+		remaining=$((remaining-dif))
+		echo ${remaining}
+		sleep 1m
+	done
 fi
-
-while [ ${remaining} -ge 0 ]; do #on standby will not decrement
-	a=`php -f is_day.php`
-	remaining=${a%%_*}
-	remaining=$((remaining-dif))
-	echo ${remaining}
-	sleep 1m
-done
-echo ${remaining}
-
+echo done
 python ~/on.py
 date
 echo Enter for off
