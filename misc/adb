@@ -14,3 +14,5 @@ adb shell service call iphonesubinfo ${1} | awk -F "'" '{print $2}' | sed '1 d' 
 
 #name
 #adb shell getprop ro.product.model
+
+#aptoide for libra
