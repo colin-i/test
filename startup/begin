@@ -1,12 +1,12 @@
 
 sleep 9 # xdotool and act/a
 
-window_pid=`xdotool getactivewindow`
+window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
 if [ -f ~/desktops ]; then
 	xdotool windowmove ${window_pid} `cat ~/desktops` 0
 	wmctrl -r :ACTIVE: -b toggle,maximized_vert,maximized_horz
 else
-	window_pid=`xdotool getactivewindow` ~/test/startup/termsz  #if window_pid was input ( window_pid= ./begin ) it was passed
+	window_pid=${window_pid} ~/test/startup/termsz  #if window_pid was input ( window_pid= ./begin ) it was passed
 fi
 
 ~/test/act/a
