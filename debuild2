@@ -19,6 +19,10 @@ cd ~/sync && \
 git restore .pc && \
 git restore debian/patches
 
+# ~/test/debinithelper ocompiler
+# debuild -b -us -uc
+# git clean        cd sync ...
+
 # docker pull i386/debian:trixie
 #        create,start,attach ; sudo docker container cp ovideo-1 ...:/v ; ovideo-1.tar.gz ; ovideo_1.orig.tar.gz ; .pc debian/patches during ~/test/debuild2 x
 # apt update ; apt install software-properties-common
