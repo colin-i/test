@@ -1,5 +1,5 @@
 
-#optional    1 dist  2 version  3 ppa  4 arh
+#optional    1 dist  2 version  3 ppa
 
 #name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 name=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
@@ -24,7 +24,7 @@ echo ${dist} ${version} ${ppa}
 i=1
 for n in "${name[@]}"; do
 	echo ${n}
-	if [ -z "${4}" ]; then
+	if [ -z "${arch}" ]; then
 		raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
 		arh=
 		for var in "${raw[@]}"
@@ -35,9 +35,8 @@ for n in "${name[@]}"; do
 			arh+=" ${var}"
 		done
 		arh=( ${arh} )
-		i=$((i+1))
 	else
-		arh=( ${4} )
+		arh=( ${arch} )
 	fi
 	for var in "${arh[@]}"
 	do
@@ -68,4 +67,10 @@ for n in "${name[@]}"; do
 			sleep $((((counter/10)+1)*100))
 		done
 	done
+	if [ -n "${terminator}" ]; then
+		if [ ${terminator} -eq ${i} ]; then
+			break
+		fi
+	fi
+	i=$((i+1))
 done

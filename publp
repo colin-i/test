@@ -3,15 +3,17 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-arh=`cat debian/control | grep ^Architecture | head -1 | cut -d ' ' -f2`
 
 if [ -z "${1}" ]; then
 	ppa=ppa
 else
 	ppa=${1}
 fi
-if [ "${arh}" = "all" ]; then
-arh=amd64
+if [ -z "${arh}" ]; then
+	arh=`cat debian/control | grep ^Architecture | head -1 | cut -d ' ' -f2`
+	if [ "${arh}" = "all" ]; then
+		arh=amd64
+	fi
 fi
 echo ${ppa} ${name} ${version} ${arh}
 

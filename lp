@@ -2,8 +2,9 @@
 #optional   1 (bool for query last tar)/0   2 tars
 
 if [ -z "${2}" ] ||  [ "${1}" = "0" ]; then
-	dist=`cat debian/changelog | head -1 | grep -o -e "[^ ]*;"`
-	dist=${dist::-1}
+	if [ -z "${dist}" ]; then
+		dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
+	fi
 fi
 
 if [ -z "${2}" ]; then
@@ -23,7 +24,7 @@ if [ -z "${2}" ]; then
 	#2024-07-11
 		tars="noble"
 	else
-		exit 0
+		exit 1
 	fi
 else
 	tars=${2}
