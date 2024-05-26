@@ -63,4 +63,4 @@ sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::
 ## apt-cache policy for Pins
 
 #to  apt update  without the notifier to observe that: first in gui then:
-# gsettings set com.ubuntu.update-notifier regular-auto-launch-interval -1    # gsettings list-recursively   # is com.ubuntu.update-notifier no-show-notifications true ?
+# gsettings set com.ubuntu.update-notifier regular-auto-launch-interval 2147483647  #-1    # gsettings list-recursively   # is com.ubuntu.update-notifier no-show-notifications true ?

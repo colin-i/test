@@ -37,16 +37,11 @@ if [ "${#a}" != 0 ]; then
 	done
 
 	if [ "${bb}" = 1 ]; then
-		echo remove old?
-		#read -n1 -t $((3600*24)) ans
-		read_char ans
-		if [ "${ans}" = "y" ]; then
-			cd .. || exit
-			#for var in "${b[@]}"
-			for var in ${b}      #assuming no space in files
-			do
-				rm ${var}
-			done
-		fi
+		cd .. || exit
+		#for var in "${b[@]}"
+		for var in ${b}      #assuming no space in files
+		do
+			rm -i ${var}  #will ask anyway since it is root owner
+		done
 	fi
 fi
