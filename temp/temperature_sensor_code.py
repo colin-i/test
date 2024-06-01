@@ -61,6 +61,20 @@ def test(t):
 				#return True
 	#return False
 
+def t2_f():
+	while True:
+		#a=
+		if sen2:
+			#if a==False:
+			test(read_temp())
+		else:
+			test(read_gree_temp())
+		time.sleep(30)
+		if done==1:
+			break
+import threading
+import readchar
+
 if len(sys.argv)==7:
 	on=bool(int(sys.argv[1]))
 	min=24+float(sys.argv[2])
@@ -79,11 +93,9 @@ if len(sys.argv)==7:
 	else:
 		base=sys.argv[6]
 	print(sys.argv[1]+' '+sys.argv[2]+' '+min.__str__()+' '+max.__str__()+' '+sys.argv[5]+' '+sys.argv[6])
-	while True:
-		#a=
-		if sen2:
-			#if a==False:
-			test(read_temp())
-		else:
-			test(read_gree_temp())
-		time.sleep(30)
+	t2 = threading.Thread(target=t2_f)
+	done=0
+	t2.start()
+	readchar.readchar()
+	print("will close")
+	done=1
