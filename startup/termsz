@@ -1,5 +1,4 @@
 
 xdotool windowmove ${window_pid} 0 0
-sleep 3
 xdotool windowsize --usehints ${window_pid} `cat ~/n/pat11`
 #resize -s `cat ~/n/pat11` #this is not ok when not active. reverse w h to h w in ~/..pat..
