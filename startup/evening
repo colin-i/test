@@ -41,7 +41,10 @@ else
 fi
 echo done
 python ~/on.py
-date
+
+if [ -e ~/rememberevening ]; then date | tee -a ~/rememberevening
+else date; fi
+
 echo Enter for off
 read
 python ~/off.py
