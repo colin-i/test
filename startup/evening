@@ -42,7 +42,9 @@ fi
 echo done
 python ~/on.py
 
-if [ -e ~/rememberevening ]; then date | tee -a ~/rememberevening
+if [ -e ~/rememberevening ]; then
+	tail -n 1 ~/rememberevening
+	date | tee -a ~/rememberevening
 else date; fi
 
 echo Enter for off
