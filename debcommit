@@ -3,7 +3,7 @@ name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 br=`git rev-parse --abbrev-ref HEAD`
 if [ -z "${is_parent}" ]; then
 	if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
-      	name=${name}-${br}
+		name=${name}-${br}
 	fi
 fi
 
