@@ -1,0 +1,19 @@
+
+ar -xf ${1} control.tar.zst && \
+mkdir tmp && \
+mv control.tar.zst tmp && \
+cd tmp && \
+tar -x --zstd -f control.tar.zst && \
+edor control && \
+mv control .. && \
+cd .. && \
+tar -cv --zstd -f control.tar.zst control && \
+ar -r ${1} control.tar.zst && \
+rm -r tmp control control.tar.zst && \
+#
+#mkdir tmpdir && \
+#dpkg-deb -x ${1} tmpdir && \
+#dpkg-deb --control ${1} tmpdir/DEBIAN && \
+#edor tmpdir/DEBIAN/control && \
+#dpkg -b tmpdir test.deb && \
+dpkg -f ${1}
