@@ -78,9 +78,10 @@ import threading
 import readchar
 
 if len(sys.argv)==7:
+	print('on='+sys.argv[1]+', min='+sys.argv[2]+', max='+sys.argv[3]+', sen2='+sys.argv[4]+', send='+sys.argv[5]+', base='+sys.argv[6])
 	on=bool(int(sys.argv[1]))
-	min=24+float(sys.argv[2])
-	max=27+float(sys.argv[3])
+	min=float(sys.argv[2])
+	max=float(sys.argv[3])
 	sen2=bool(int(sys.argv[4]))
 	send=bool(int(sys.argv[5]))
 	if sen2:
@@ -94,7 +95,6 @@ if len(sys.argv)==7:
 		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
 	else:
 		base=sys.argv[6]
-	print('on='+sys.argv[1]+', min='+sys.argv[2]+'|'+min.__str__()+', max='+sys.argv[3]+'|'+max.__str__()+', sen2='+sys.argv[4]+', send='+sys.argv[5]+', base='+sys.argv[6])
 	t2 = threading.Thread(target=t2_f)
 	done=0
 	t2.start()

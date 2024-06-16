@@ -28,21 +28,22 @@ on=${1}
 fi
 
 if [ -z "${2}" ]; then
-dif_min=0
+min=0
 else
-dif_min=${2}
+min=${2}
 fi
-
 if [ -z "${3}" ]; then
-if [ -n "${2}" ]; then
-	dif_max=${dif_min}
+	if [ -n "${2}" ]; then
+		max=$((min+1))
+	else
+		max=0
+	fi
 else
-	dif_max=0
+	max=${3}
 fi
-else
-dif_max=${3}
-fi
-
+inter=( `cat ~/tempminmax` )
+min+=${inter[0]}
+max+=${inter[1]}
 
 if [ -z "${4}" ]; then
 sen2=1
@@ -62,4 +63,4 @@ else
 base=${6}
 fi
 
-python ${dir}/temperature_sensor_code.py ${on} ${dif_min} ${dif_max} ${sen2} ${send} ${base}
+python ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}
