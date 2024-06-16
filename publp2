@@ -1,5 +1,5 @@
 
-#optional    1 dist  2 version  3 ppa
+#optional    1 dist  2 version
 
 #name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 name=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
@@ -14,10 +14,10 @@ if [ -z "${2}" ]; then
 else
 	version=${2}
 fi
-if [ -z "${3}" ]; then
+if [ -z "${ppa}" ]; then
 	ppa=ppa
 else
-	ppa=${3}
+	ppa=${ppa}
 fi
 echo ${dist} ${version} ${ppa}
 
