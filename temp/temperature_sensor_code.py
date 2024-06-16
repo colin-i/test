@@ -39,7 +39,9 @@ with open(iplocation,"rb") as f:
 
 def gree(a,b):
 	s='Pow='+a
+	print(s)
 	if send:
+		print('send')
 		#return is 0 at timeout later
 		r=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
 		if r!=0:
