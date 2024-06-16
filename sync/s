@@ -2,8 +2,10 @@
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 br=`git rev-parse --abbrev-ref HEAD`
 
-if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
-	name=${name}-${br}
+if [ -z "${is_parent}" ]; then
+	if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
+		name=${name}-${br}
+	fi
 fi
 
 base=`dirname ${0}`

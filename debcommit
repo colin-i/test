@@ -1,8 +1,10 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 br=`git rev-parse --abbrev-ref HEAD`
-if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
-      name=${name}-${br}
+if [ -z "${is_parent}" ]; then
+	if [ "${br}" != "master" ] && [ "${br}" != "main" ]; then
+      	name=${name}-${br}
+	fi
 fi
 
 #"patch: **** Can't rename file ... to .pc/... : Too many levels of symbolic links" for .pc,debian/patches symbolic links

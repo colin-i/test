@@ -7,6 +7,17 @@ else
 	zipfile=last${builds:0:1}.zip
 fi
 
+if [ -z "${ppa}" ]; then
+	ppa=ppa
+else
+	ppa=${ppa}
+fi
+#with ssh-ppa , in /etc/dput.cf there is ssh-ppa section , at login use colin-i instead of *
+#and ssh key at launchpad, and store ~/.ssh/id_rsa , id_rsa.pub
+dest=ssh-ppa
+target=${dest}:colin-i/${ppa}${1}
+echo ${target}
+
 if [ ! -e "../${zipfile}" ]; then
 	#gh cli is also on the hosted runner, can get artifact there too
 	id=$(gh run list --workflow=deb.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f7 | head -1)
@@ -61,8 +72,5 @@ else
 	get_prog_ver
 fi
 
-#with ssh-ppa , in /etc/dput.cf there is ssh-ppa section , at login use colin-i instead of *
-#and ssh key at launchpad, and store ~/.ssh/id_rsa , id_rsa.pub
-dest=ssh-ppa
-dput -f ${dest}:colin-i/ppa${1} ${prog_ver}_source.changes && \
+dput -f ${target} ${prog_ver}_source.changes && \
 rm ${files} && rm ../${zipfile} && rm ${prog_ver}_source.${dest}.upload
