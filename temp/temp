@@ -42,8 +42,8 @@ else
 	max=${3}
 fi
 inter=( `cat ~/tempminmax` )
-min+=${inter[0]}
-max+=${inter[1]}
+min=$((min+inter[0]))
+max=$((max+inter[1]))
 
 if [ -z "${4}" ]; then
 sen2=1
