@@ -92,7 +92,7 @@ if len(sys.argv)==7:
 		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
 	else:
 		base=sys.argv[6]
-	print(sys.argv[1]+' '+sys.argv[2]+' '+min.__str__()+' '+max.__str__()+' '+sys.argv[5]+' '+sys.argv[6])
+	print('on='+sys.argv[1]+', min='+sys.argv[2]+'|'+min.__str__()+', max='+sys.argv[3]+'|'+max.__str__()+', sen2='+sys.argv[4]+', send='+sys.argv[5]+', base='+sys.argv[6])
 	t2 = threading.Thread(target=t2_f)
 	done=0
 	t2.start()
