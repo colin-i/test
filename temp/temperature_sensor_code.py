@@ -55,7 +55,7 @@ def test(t):
 	print(t)
 	if math.isnan(t)==False:
 		if t>=max:
-			if t>=lasttemp:
+			if lasttemp<=t:
 				gree('1') #,True)
 		elif t<min:
 			if t<=lasttemp:
@@ -76,7 +76,7 @@ def t2_f():
 import threading
 import readchar
 
-if len(sys.argv)==7:
+if len(sys.argv)==6:
 	print('min='+sys.argv[1]+', max='+sys.argv[2]+', sen2='+sys.argv[3]+', send='+sys.argv[4]+', base='+sys.argv[5])
 	#on=bool(int(sys.argv[1]))
 	min=float(sys.argv[1])
