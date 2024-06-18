@@ -21,46 +21,46 @@ cd `dirname ${0}`
 dir=`pwd`
 cd ~/gree-remote/PythonCLI
 
-if [ -z "${1}" ]; then
-on=0
-else
-on=${1}
-fi
+#if [ -z "${1}" ]; then
+#on=0
+#else
+#on=${1}
+#fi
 
-if [ -z "${2}" ]; then
+if [ -z "${1}" ]; then
 min=0
 else
-min=${2}
+min=${1}
 fi
-if [ -z "${3}" ]; then
-	if [ -n "${2}" ]; then
+if [ -z "${2}" ]; then
+	if [ -n "${1}" ]; then
 		max=$((min+1))
 	else
 		max=0
 	fi
 else
-	max=${3}
+	max=${2}
 fi
 inter=( `cat ~/tempminmax` )
 min=$((min+inter[0]))
 max=$((max+inter[1]))
 
-if [ -z "${4}" ]; then
+if [ -z "${3}" ]; then
 sen2=1
 else
-sen2=${4}
+sen2=${3}
 fi
 
-if [ -z "${5}" ]; then
+if [ -z "${4}" ]; then
 send=1
 else
 send=0
 fi
 
-if [ -z "${6}" ]; then
+if [ -z "${5}" ]; then
 base=${dir}
 else
-base=${6}
+base=${5}
 fi
 
 python ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}

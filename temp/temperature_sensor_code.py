@@ -37,7 +37,7 @@ iplocation=os.path.expanduser('~')+"/gree_ip"
 with open(iplocation,"rb") as f:
 	greeip=f.read()
 
-def gree(a,b):
+def gree(a): #,b):
 	s='Pow='+a
 	print(s)
 	if send:
@@ -47,21 +47,20 @@ def gree(a,b):
 		if r!=0:
 			return
 	print(s)
-	global on
-	on=b
-
+	#global on
+	#on=b
+lasttemp=0
 def test(t):
+	global lasttemp
 	print(t)
 	if math.isnan(t)==False:
-		if on==False:
-			if t>=max:
-				gree('1',True)
-				#return True
-		else:
-			if t<min:
-				gree('0',False)
-				#return True
-	#return False
+		if t>=max:
+			if t>=lasttemp:
+				gree('1') #,True)
+		elif t<min:
+			if t<=lasttemp:
+				gree('0') #,False)
+		lasttemp=t
 
 def t2_f():
 	while True:
@@ -78,12 +77,12 @@ import threading
 import readchar
 
 if len(sys.argv)==7:
-	print('on='+sys.argv[1]+', min='+sys.argv[2]+', max='+sys.argv[3]+', sen2='+sys.argv[4]+', send='+sys.argv[5]+', base='+sys.argv[6])
-	on=bool(int(sys.argv[1]))
-	min=float(sys.argv[2])
-	max=float(sys.argv[3])
-	sen2=bool(int(sys.argv[4]))
-	send=bool(int(sys.argv[5]))
+	print('min='+sys.argv[1]+', max='+sys.argv[2]+', sen2='+sys.argv[3]+', send='+sys.argv[4]+', base='+sys.argv[5])
+	#on=bool(int(sys.argv[1]))
+	min=float(sys.argv[1])
+	max=float(sys.argv[2])
+	sen2=bool(int(sys.argv[3]))
+	send=bool(int(sys.argv[4]))
 	if sen2:
 		import glob
 		#import os
@@ -94,7 +93,7 @@ if len(sys.argv)==7:
 		device_file = device_folder + '/w1_slave'
 		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
 	else:
-		base=sys.argv[6]
+		base=sys.argv[5]
 	t2 = threading.Thread(target=t2_f)
 	done=0
 	t2.start()
