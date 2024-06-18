@@ -27,4 +27,4 @@ fi && \
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
 #adding new project:
-#	newpre proj count , 0 for new proj, n for a fork , will add to ./h (newpost here will later add them to y/m/h)
+#	~/test/stats/newpre proj count , 0 for new proj, n for a fork , will add to ./h (newpost here will later add them to y/m/h)
