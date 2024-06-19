@@ -16,17 +16,26 @@ build () {
 	#DEB_BUILD_OPTIONS=nocheck debuild -us -uc
 }
 
-if [ -z "${builds}" ]; then
+if [ -z "${dist}" ]; then
 	build
 else
-	b=${builds:0:1}
+	b=${dist:0:1}
 	p=`pwd` && \
-	build && \
-	cd ${p} && \
-	dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"` && \
-	sed -i "1s/${dist}/${builds}/" debian/changelog && \
+	distribution=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"` && \
+	sed -i "1s/${distribution}/${dist}/" debian/changelog && \
 	sed -i "1s/)/${b})/" debian/changelog && \
+	if [ -n "${arhs}" ]; then
+		astr="Architecture:"
+		architectures=`cat debian/control | grep -Poe "(?<=^Architecture: ).*" | head -1` && \
+		arhs=${arhs// /\\ }
+		architectures=${architectures// /\\ }
+		sed -i "0,/^${astr}/s/^${astr}\ ${architectures}/${astr}\ ${arhs}/" debian/control
+	fi && \
 	build ${b} && \
-	sed -i "1s/${builds}/${dist}/" debian/changelog && \
-	sed -i "1s/${b})/)/" debian/changelog
+	cd ${p} && \
+	sed -i "1s/${dist}/${distribution}/" debian/changelog && \
+	sed -i "1s/${b})/)/" debian/changelog && \
+	if [ -n "${arhs}" ]; then
+		sed -i "0,/^${astr}/s/^${astr}\ ${arhs}/${astr}\ ${architectures}/" debian/control
+	fi
 fi

@@ -1,10 +1,10 @@
 
 #optional:    1 ppa sufix
 
-if [ -z "${builds}" ]; then
+if [ -z "${dist}" ]; then
 	zipfile=last.zip
 else
-	zipfile=last${builds:0:1}.zip
+	zipfile=last${dist:0:1}.zip
 fi
 
 if [ -z "${ppa}" ]; then

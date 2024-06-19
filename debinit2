@@ -5,3 +5,11 @@
 ~/test/debuild && \
 ~/test/debinitpush "${1}" && \
 ~/test/sync/s
+
+#example for debinit3
+#  2 d1,a2;...;dn,an
+#IFS=';' read -a a <<< "${2}"
+#for aa in "${a[@]}"; do
+#	IFS=',' read -a b <<< "${aa}"
+#	dist=${b[0]} arhs="${b[1]}" ~/test/debuild
+#done && \
