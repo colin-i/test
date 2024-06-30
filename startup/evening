@@ -32,7 +32,7 @@ else
 	fi
 
 	while [ ${remaining} -ge 0 ]; do #on standby will not decrement
-		a=`php -f is_day.php`
+		a=`php -f ~/is_day.php`
 		remaining=${a%%_*}
 		remaining=$((remaining-dif))
 		echo ${remaining}
@@ -50,3 +50,9 @@ else date; fi
 echo Enter for off
 read
 python ~/off.py
+
+#in .config/lxsession/LXDE-pi/autostart
+
+#@lxpanel --profile LXDE-pi
+#@pcmanfm --desktop --profile LXDE-pi
+#@lxterminal -e /home/bc/evening
