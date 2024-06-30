@@ -1,4 +1,4 @@
-
+#!/bin/bash
 # is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
 if [ -e ~/fixedtime ]; then #example: 18:00
