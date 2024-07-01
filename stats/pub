@@ -22,7 +22,8 @@ if [ "${ans}" = "y" ]; then
 else
 	echo no
 fi && \
-~/test/stats/dif
+~/test/stats/dif && \
+~/test/stats/k
 
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
