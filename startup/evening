@@ -11,6 +11,17 @@ if [ -e ~/fixedtime ]; then #example: 18:00
 		remaining=$((remaining-60))
 	done
 else
+	#need to wait for the date sync, and date is writing in local but date -d don't understand except english
+	if [ -e ~/rememberevening ]; then
+		d=`tail -n 1 ~/rememberevening | cut -d' ' -f2`
+		while true; do
+			da=`date +%d`
+			echo ${d} ${da}
+			if [ ${d} -ne ${da} ]; then break; fi
+			sleep 10
+		done
+	fi
+
 	#month of year
 	month=`date +%m`
 
