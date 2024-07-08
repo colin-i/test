@@ -1,6 +1,6 @@
 
 set -m
-python a.py &
+python a.py ${1} &
 
 ./c
 

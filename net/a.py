@@ -5,24 +5,29 @@ address = ('localhost', 6000)     # family is deduced to be 'AF_INET'
 listener = Listener(address, authkey=b'secret password')
 
 import subprocess
-
-#total=0
+import sys
+import time
 
 def get_value():
-	t=subprocess.check_output(["/bin/bash","-c","ip -s link show wwan0 | tr -s ' '"])
+	t=subprocess.check_output(["/bin/bash","-c","ip -s link show "+sys.argv[1]+" | tr -s ' '"])
 	#.returncode
 	a=t.splitlines()
 	b=len(a)
 	tx=int(a[b-1].split()[0])
 	rx=int(a[b-3].split()[0])
 	current=rx+tx
-	#
-	#global total
-	#dif=current-total
-	#total=current
-	#return dif
-	return current
+	#return current
 
+	global total,tstamp
+	dif=current-total
+	total=current
+	t=time.time()
+	dif/=t-tstamp
+	tstamp=t
+	return dif
+
+total=0
+tstamp=time.time()
 get_value()
 
 while True:
