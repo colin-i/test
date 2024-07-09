@@ -11,7 +11,7 @@ import pyperclip
 
 if len(sys.argv)>2:
 	timeout=sys.argv[2]
-else
+else:
 	timeout="10"
 
 def stop():
