@@ -1,0 +1,7 @@
+
+a=( ${1} )
+
+for p in "${a[@]}"; do
+	cpulimit --pid ${p} --limit 1 &
+done
+ps aux|grep cpulimit|wc -l

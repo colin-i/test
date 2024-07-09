@@ -1,0 +1,7 @@
+
+python a.py ${1} &
+
+while :; do
+	sleep 5
+	python b.py
+done
