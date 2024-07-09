@@ -49,7 +49,7 @@ options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
 d=webdriver.Chrome(options=options)
 d.request_interceptor=t2_f
-d.get("https://www.tiktok.com/@"+sys.argv[1])
+d.get("https://www.tiktok.com/"+sys.argv[1])
 
 fd = sys.stdin.fileno()
 oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
