@@ -9,22 +9,21 @@ import subprocess
 import threading
 import pyperclip
 
-# sudo swapoff -a
-def t3_f():
-	popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
-	while True:
-		line=popen.stdout.readline()
-		if line[0]==ord('s'):
-			stop()
-		else:
-			cont()
-	#popen.stdout.close()
-	#popen.wait()
-
 timeout=os.environ.get("timeout")
 if timeout=='':
 	timeout="10"
 if os.environ.get("no_keys")=='':
+# sudo swapoff -a
+	def t3_f():
+		popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
+		while True:
+			line=popen.stdout.readline()
+			if line[0]==ord('s'):
+				stop()
+			else:
+				cont()
+		#popen.stdout.close()
+		#popen.wait()
 	t3 = threading.Thread(target=t3_f)
 	t3.start()
 match=os.environ.get("match")
