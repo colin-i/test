@@ -87,5 +87,3 @@ print("z")
 exit(1)
 
 # sudo swapoff -a
-# xclip -o
-# open = system file/url opener
