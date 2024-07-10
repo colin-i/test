@@ -14,7 +14,6 @@ if timeout==None:
 	timeout="10"
 no_keys=os.environ.get("no_keys")
 if no_keys==None:
-# sudo swapoff -a
 	def t3_f():
 		popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
 		while True:
@@ -33,7 +32,8 @@ if match==None:
 site=os.environ.get("site")
 if site==None:
 	site="https://www.tiktok.com/"
-print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site)
+on_link=os.environ.get("on_link")
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",on_link="+("" if on_link==None else on_link))
 
 def stop():
 	print("stop")
@@ -53,6 +53,8 @@ def t2_f(r):
 		print(r.url)
 		pyperclip.copy(r.url)
 		subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
+		if on_link!=None:
+			eval(on_link)
 
 options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
@@ -82,3 +84,8 @@ while True:
 		break
 	print("a")
 print("z")
+exit(1)
+
+# sudo swapoff -a
+# xclip -o
+# open = system file/url opener
