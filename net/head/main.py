@@ -75,6 +75,13 @@ p=psutil.Process(p)
 done=None
 while True:
 	time.sleep(10)
+	if done!=None:
+		try:
+			d.close()
+		except:
+			pass #is already closed (the window)
+		d.quit()
+		break
 	c = sys.stdin.read(1)
 	if c!='':
 		if c==' ':
@@ -87,10 +94,6 @@ while True:
 			continue
 		break
 	print("a")
-	if done!=None:
-		d.close()
-		d.quit()
-		break
 print("z")
 exit(0)
 
