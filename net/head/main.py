@@ -12,7 +12,8 @@ import pyperclip
 timeout=os.environ.get("timeout")
 if timeout==None:
 	timeout="10"
-if os.environ.get("no_keys")==None:
+no_keys=os.environ.get("no_keys")
+if no_keys==None:
 # sudo swapoff -a
 	def t3_f():
 		popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
@@ -32,7 +33,7 @@ if match==None:
 site=os.environ.get("site")
 if site==None:
 	site="https://www.tiktok.com/"
-print("timeout="+timeout+",no_keys="+no_keys+",match="+match+",site="+site)
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site)
 
 def stop():
 	print("stop")
