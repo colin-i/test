@@ -32,6 +32,7 @@ if match=='':
 site=os.environ.get("site")
 if site=='':
 	site="https://www.tiktok.com/"
+print("timeout="+timeout+",no_keys="+no_keys+",match="+match+",site="+site)
 
 def stop():
 	print("stop")
