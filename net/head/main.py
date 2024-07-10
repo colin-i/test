@@ -62,6 +62,7 @@ def t2_f(r):
 			subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
 		pyperclip.copy(r.url)
 
+done=None
 options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
 d=webdriver.Chrome(options=options)
@@ -75,7 +76,6 @@ fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 p=d.service.process.pid
 p=psutil.Process(p)
 
-done=None
 while True:
 	time.sleep(10)
 	if done!=None:
