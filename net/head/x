@@ -3,4 +3,4 @@ a="`dirname $0`"
 cd ${a}
 a=following
 if [ -n "${1}" ]; then a="${1}"; fi
-no_keys=x python main.py "${a}" && open "`xclip -o`"
+no_keys=x on_link="exit(0)" python main.py "${a}" && open "`xclip -o`"
