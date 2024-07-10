@@ -32,8 +32,8 @@ if match==None:
 site=os.environ.get("site")
 if site==None:
 	site="https://www.tiktok.com/"
-on_link=os.environ.get("on_link")
-print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",on_link="+("" if on_link==None else on_link))
+close_on_link=os.environ.get("close_on_link")
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link))
 
 def stop():
 	print("stop")
@@ -52,9 +52,12 @@ def t2_f(r):
 	if r.url[0:12]=="https://"+match:
 		print(r.url)
 		pyperclip.copy(r.url)
-		subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
-		if on_link!=None:
-			eval(on_link)
+		if close_on_link!=None:
+			global done
+			done=1
+			#exec(on_link)
+		else:
+			subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
 
 options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
@@ -69,6 +72,7 @@ fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 p=d.service.process.pid
 p=psutil.Process(p)
 
+done=None
 while True:
 	time.sleep(10)
 	c = sys.stdin.read(1)
@@ -83,7 +87,11 @@ while True:
 			continue
 		break
 	print("a")
+	if done!=None:
+		d.close()
+		d.quit()
+		break
 print("z")
-exit(1)
+exit(0)
 
 # sudo swapoff -a
