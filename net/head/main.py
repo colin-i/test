@@ -10,11 +10,29 @@ import threading
 import pyperclip
 
 # sudo swapoff -a
+def t3_f():
+	popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
+	while True:
+		line=popen.stdout.readline()
+		if line[0]==ord('s'):
+			stop()
+		else:
+			cont()
+	#popen.stdout.close()
+	#popen.wait()
 
-if len(sys.argv)>2:
-	timeout=sys.argv[2]
-else:
+timeout=os.environ.get("timeout")
+if timeout=='':
 	timeout="10"
+if os.environ.get("no_keys")=='':
+	t3 = threading.Thread(target=t3_f)
+	t3.start()
+match=os.environ.get("match")
+if match=='':
+	match="pull"
+site=os.environ.get("site")
+if site=='':
+	site="https://www.tiktok.com/"
 
 def stop():
 	print("stop")
@@ -30,26 +48,16 @@ def cont():
 def t2_f(r):
 	#f.write(r.url.encode())
 	#f.write(b'\n')
-	if r.url[0:12]=="https://pull":
+	if r.url[0:12]=="https://"+match:
 		print(r.url)
 		pyperclip.copy(r.url)
 		subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
-def t3_f():
-	popen = subprocess.Popen(["sudo","python","keys"], stdout=subprocess.PIPE)
-	while True:
-		line=popen.stdout.readline()
-		if line[0]==ord('s'):
-			stop()
-		else:
-			cont()
-	#popen.stdout.close()
-	#popen.wait()
 
 options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
 d=webdriver.Chrome(options=options)
 d.request_interceptor=t2_f
-d.get("https://www.tiktok.com/"+sys.argv[1])
+d.get(site+sys.argv[1])
 
 fd = sys.stdin.fileno()
 oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -57,9 +65,6 @@ fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
 p=d.service.process.pid
 p=psutil.Process(p)
-
-t3 = threading.Thread(target=t3_f)
-t3.start()
 
 while True:
 	time.sleep(10)
