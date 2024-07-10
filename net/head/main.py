@@ -51,13 +51,16 @@ def t2_f(r):
 	#f.write(b'\n')
 	if r.url[0:12]=="https://"+match:
 		print(r.url)
-		pyperclip.copy(r.url)
 		if close_on_link!=None:
-			global done
-			done=1
 			#exec(on_link)
+			global done
+			if done==None:
+				done=1
+			else:
+				return  #is closing in another thread, and can go some minutes there
 		else:
 			subprocess.Popen(["zenity","--info","--text=ok","--timeout="+timeout])
+		pyperclip.copy(r.url)
 
 options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
