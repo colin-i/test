@@ -2,7 +2,7 @@
 # left = (Navigation Menu), APIs & Services, Enabled APIs & services, Goolge Drive API, Manage, CREDENTIALS, Create Credentials, OAuth, type? ~ TV and limited devices
 # APIs & Services, OAuth consent screen, Test users, Add users, input the email
 
-#client_id and client_secret from credentials page if: rm q w 
+#client_id and client_secret from credentials page if: rm q w
 q=`cat q`
 w=`cat w`
 #curl -d "client_id=${q}&scope=https://www.googleapis.com/auth/drive.file" https://oauth2.googleapis.com/device/code
