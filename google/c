@@ -1,0 +1,31 @@
+
+# left = (Navigation Menu), APIs & Services, Enabled APIs & services, Goolge Drive API, Manage, CREDENTIALS, Create Credentials, OAuth, type? ~ TV and limited devices
+# APIs & Services, OAuth consent screen, Test users, Add users, input the email
+
+#client_id and client_secret from credentials page if: rm q w 
+q=`cat q`
+w=`cat w`
+#curl -d "client_id=${q}&scope=https://www.googleapis.com/auth/drive.file" https://oauth2.googleapis.com/device/code
+#follow verification_url and with user_code
+#review the connection here: https://myaccount.google.com/connections?filters=3,4&hl=en
+
+#curl -d client_id=${q} -d client_secret=${w} -d device_code=`cat e` -d grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code https://accounts.google.com/o/oauth2/token
+#expires? 3600? refresh_token?
+#curl -d "client_id=${q}&client_secret=${w}&refresh_token=`cat t`&grant_type=refresh_token" https://accounts.google.com/o/oauth2/token
+#then no more refreshes
+#need to verify from start again and will overwrite at connections page
+
+r=`cat r`
+
+#upload
+#curl -X POST -H "Authorization: Bearer ${r}" \
+#	-F "metadata={name :'test.txt'};type=application/json;charset=UTF-8" \
+#	-F "file=@test.txt;type=text/plain" \
+#	https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart
+
+#delete
+#curl -X DELETE -H "Authorization: Bearer ${r}" \
+#	https://www.googleapis.com/drive/v3/files/`cat y`
+
+#list
+curl -H "Authorization: Bearer ${r}" https://www.googleapis.com/drive/v3/files

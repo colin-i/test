@@ -6,8 +6,14 @@ import os
 if os.environ.get('mimeType'):
 	mim=os.environ['mimeType']
 else:
-	mim='application/vnd.oasis.opendocument.spreadsheet'
-# application/gzip application/pdf application/vnd.debian.binary-package application/vnd.google-apps.folder text/plain
+	mim=""
+# application/gzip
+# application/pdf
+# application/vnd.debian.binary-package
+# application/vnd.google-apps.folder
+# application/vnd.oasis.opendocument.spreadsheet
+# application/x-rpm
+# text/plain
 
 import sys
 
@@ -19,10 +25,10 @@ creds, _ = google.auth.default()
 service = build('drive', 'v3', credentials=creds)
 
 if os.environ.get('folder'):
-	response = service.files().list(q="mimeType='application/vnd.google-apps.folder'" "and name = '"+os.environ['folder']+"'"
+	response = service.files().list(q="name = '"+os.environ['folder']+"'"
 		,spaces='drive',fields='files(id)').execute()
 	folderid=response['files'][0]['id']
-	folder=" and '"+folderid+"' in parents"
+	folder="'"+folderid+"' in parents"
 else:
 	folder=""
 
@@ -71,7 +77,16 @@ def search_file(newid,download=False,all=False,delete=False):
 	page_token = None
 	while True:
 		# pylint: disable=maybe-no-member
-		response = service.files().list(q="mimeType='"+mim+"'"+folder,
+		if mim:
+			q="mimeType='"+mim+"'"
+			if folder:
+				q+=" and "+folder
+		else:
+			if folder:
+				q=folder
+			else:
+				q=""
+		response = service.files().list(q=q,
 			                    spaces='drive',
 			                    fields='nextPageToken, '
 			                    'files(id, name, createdTime, size, webContentLink)',

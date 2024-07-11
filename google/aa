@@ -1,0 +1,2 @@
+
+mimeType=application/vnd.oasis.opendocument.spreadsheet ./a $@
