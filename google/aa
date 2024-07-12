@@ -1,2 +1,2 @@
 
-mimeType=application/vnd.oasis.opendocument.spreadsheet ./a $@
+mimeType=application/vnd.oasis.opendocument.spreadsheet ~/test/google/a $@
