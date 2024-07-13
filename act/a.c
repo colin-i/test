@@ -9,6 +9,11 @@ void main(){
 	do{
 		a=system("PYTHONPYCACHEPREFIX=/home/bc/pycache python -m act");
 		if(WIFEXITED(a))if(WEXITSTATUS(a)==1)continue;
+		const char*f="/home/bc/restartactivity";
+		if(access(f,F_OK)==0){
+			unlink(f);
+			continue;
+		}
 		break;
 	}while(1);
 }
