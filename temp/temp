@@ -63,4 +63,9 @@ else
 base=${5}
 fi
 
+if [ -n "${dif}" ]; then
+	min=${min}+"."+${dif}
+	max=${max}+"."+${dif}
+fi
+
 python ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}

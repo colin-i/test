@@ -37,3 +37,5 @@ after that there is at nmcli c / nmcli d ;  the point is that ping command will 
 sudo nmcli c down preconfigured
 sudo nmcli modify preconfigured ipv4.never-default true
 sudo nmcli c up preconfigured
+
+if at .bashrc and ssh: if [ -z "${SSH_TTY}" ]; then
