@@ -3,11 +3,16 @@
 #no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config
 #       git branch --unset-upstream master
 
-if [ "${2}" = "1" ]; then
-	to=gist.github.com/colin-i/${1}
-elif [ "${2}" = "2" ]; then
-	to=${1}
-else
-	to=github.com/colin-i/${1}.git
+set_to () {
+	if [ "${2}" = "1" ]; then
+		to=gist.github.com/colin-i/${1}
+	elif [ "${2}" = "2" ]; then
+		to=${1}
+	else
+		to=github.com/colin-i/${1}.git
+	fi
+	to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
+}
+if [ -n "${1}" ]; then
+	set_to ${1} ${2}
 fi
-to=https://gitlab-ci-token:`cat ~/n/pat`@${to}

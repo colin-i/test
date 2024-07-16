@@ -1,7 +1,12 @@
 
 #1 to
 
-git ls-remote --refs -h $1 | grep `git rev-parse HEAD`
+if [ -z "${1}" ]; then
+	source ~/test/remote/pushbase
+	set_to ${p}
+fi
+
+git ls-remote --refs -h ${1} | grep `git rev-parse HEAD`
 if [ "$?" = "0" ]; then
 echo egal
 else
@@ -11,18 +16,18 @@ fi
 git rev-list --all --count
 
 
-#a=$(git ls-remote --refs -h $1 | head -1 | cut -f1)
+#a=$(git ls-remote --refs -h ${1} | head -1 | cut -f1)
 #b=$(git rev-parse HEAD)
 #if [ "$a" = "$b" ]
 #then
-#echo EGAL $(git ls-remote --refs -h $1 | head -1 | cut -f2)
+#echo EGAL $(git ls-remote --refs -h ${1} | head -1 | cut -f2)
 #echo $a
 #echo $b
 #else
-#a=$(git ls-remote --refs -h $1 | cut -f1 | sed -n 2p)
+#a=$(git ls-remote --refs -h ${1} | cut -f1 | sed -n 2p)
 #if [ "$a" = "$b" ]
 #then
-#echo EGAL branch 2 $(git ls-remote --refs -h $1 | cut -f2 | sed -n 2p)
+#echo EGAL branch 2 $(git ls-remote --refs -h ${1} | cut -f2 | sed -n 2p)
 #else
 #echo NU ESTE EGAL
 #fi
