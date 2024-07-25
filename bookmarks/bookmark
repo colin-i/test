@@ -13,7 +13,6 @@ if [ "${#a}" != 0 ]; then
 	cd bm || exit
 
 	. ~/test/misc/read_char
-	bb=0
 
 	#for var in "${a[@]}"
 	for var in ${a}       #assuming no space in files
@@ -28,20 +27,19 @@ if [ "${#a}" != 0 ]; then
 			read_char ans
 			if [ "${ans}" = "y" ]; then
 				mv ${var} ..
+				echo ${var}
 				#var=${var:0:-4}
 				var=$(expr substr ${var} 1 $(echo $(expr index ${var} txt)-2 | bc))  # index ... .txt will be 1, txt without dot is ~ 22
 				mv ${var} ..
-				bb=1
+				echo ${var}
+
+				cd .. || exit
+				#for var in "${b[@]}"
+				for var in ${b}      #assuming no space in files
+				do
+					rm -i ${var}  #will ask anyway since it is root owner
+				done
 			fi
 		fi
 	done
-
-	if [ "${bb}" = 1 ]; then
-		cd .. || exit
-		#for var in "${b[@]}"
-		for var in ${b}      #assuming no space in files
-		do
-			rm -i ${var}  #will ask anyway since it is root owner
-		done
-	fi
 fi
