@@ -1,9 +1,9 @@
 
-id=`ps -C activity -o pid,cmd | grep activity | tr -s ' ' | cut -d' ' -f2`
-if [ -n "${id}" ]; then
-	kill -9 ${id}
-	#-2 is not always working
-fi
+#id=`ps -C activity -o pid,cmd | grep activity | tr -s ' ' | cut -d' ' -f2`
+#if [ -n "${id}" ]; then
+#	kill -9 ${id}
+#	#-2 is not always working
+#fi
 id=`ps -C python -o pid,cmd | grep "python -m act" | tr -s ' ' | cut -d' ' -f2`
 if [ -n "${id}" ]; then
 	kill -9 ${id}
