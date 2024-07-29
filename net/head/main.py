@@ -76,6 +76,7 @@ fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 p=d.service.process.pid
 p=psutil.Process(p)
 
+from datetime import datetime
 while True:
 	time.sleep(10)
 	if done!=None:
@@ -96,7 +97,7 @@ while True:
 			sys.stdin.read(1)
 			continue
 		break
-	print("a")
+	print(datetime.now().minute)
 print("z")
 exit(0)
 
