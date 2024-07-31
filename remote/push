@@ -1,15 +1,15 @@
 
-#1 gist/git  optional  2 how to handle  3 diffs  4 push args  5 if mounting
+#1 gist/git  optional  2 how to handle  3 push args  4 if mounting
 
 source ~/test/remote/pushbase
 
 #pass "$@" (with quotes) to see blank ""
-git push ${4} ${to} || {
+git push ${3} ${to} || {
 ~/test/remote/waswrong ${to}
 exit 1
 }
-~/${5}test/remote/pushdiff ${3} && \
-~/${5}test/remote/pushinfo ${to} && \
+~/${4}test/remote/pushdiff ${nr_of_diffs} && \
+~/${4}test/remote/pushinfo ${to} && \
 if [ -z "${no_activity}" ]; then
 	sleep 5
 	echo -n > /dev/tcp/`cat ~/load_ip`/5000
