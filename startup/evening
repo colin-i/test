@@ -24,6 +24,9 @@ else
 
 	#month of year
 	month=`date +%m`
+	if [ ${month:0:1} = 0 ]; then
+		month=${month:1:1}
+	fi
 
 	#modulo against june
 	modulo=$((6-month))

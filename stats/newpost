@@ -22,9 +22,12 @@ h=0
 
 for (( l=k; l < ${j}; l++ )); do
 	IFS='=' read -a addr <<< "${reps[${l}]}"
+
+	#here ~/h is init+new_month and this is for reconcatenator, now is this_month, to be same init+this_month
 	addr[1]=$((addr[1]+b[${h}]))
+
 	h=$((h+1))
-	reps[${l}]=" ${addr[0]}=${addr[1]}"
+	reps[${l}]="${addr[0]}=${addr[1]}"
 done
 
 out=
