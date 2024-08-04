@@ -5,7 +5,8 @@
 <embed id='a'></embed>
 
 <?php
-if(array_key_exists('hosted',$_GET)){
+// ?0
+if(array_key_exists('hosted',$_GET)){ //&hosted
 ?>
 <script src="/dist/ruffle.js">
 </script>
