@@ -81,6 +81,8 @@ import psutil
 HOME=os.getenv('HOME')
 with open(HOME+'/crashlimit', 'r') as file:
 	min = int(file.read()) #in Bytes
+with open(HOME+'/crashsleep', 'r') as file:
+	sleep = int(file.read())
 def closing():
 	try:
 		d.close()
@@ -89,7 +91,7 @@ def closing():
 	d.quit()
 ex=0
 while True:
-	time.sleep(30)
+	time.sleep(sleep)
 	if done!=None:
 		closing()
 		break
