@@ -77,14 +77,21 @@ p=d.service.process.pid
 p=psutil.Process(p)
 
 from datetime import datetime
+import psutil
+HOME=os.getenv('HOME')
+with open(HOME+'/crashlimit', 'r') as file:
+	min = int(file.read()) #in Bytes
+def closing():
+	try:
+		d.close()
+	except:
+		pass #is already closed (the window)
+	d.quit()
+ex=0
 while True:
-	time.sleep(10)
+	time.sleep(30)
 	if done!=None:
-		try:
-			d.close()
-		except:
-			pass #is already closed (the window)
-		d.quit()
+		closing()
 		break
 	c = sys.stdin.read(1)
 	if c!='':
@@ -97,8 +104,14 @@ while True:
 			sys.stdin.read(1)
 			continue
 		break
-	print(datetime.now().minute)
+	m=psutil.virtual_memory().available
+	print(str(datetime.now().minute)+' '+str(m))
+	if m<min:
+		print("limita")
+		closing()
+		ex=1
+		break
 print("z")
-exit(0)
+exit(ex)
 
 # sudo swapoff -a
