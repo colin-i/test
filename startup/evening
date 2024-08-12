@@ -1,6 +1,16 @@
 #!/bin/bash
 # is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
+#month of year
+month=`date +%m`
+if [ ${month:0:1} = 0 ]; then
+	month=${month:1:1}
+fi
+
+t=( `cat ~/twitch` )
+tm=$((month-1))
+echo ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
+
 if [ -e ~/fixedtime ]; then #example: 18:00
 	then=$(date -d "$(cat ~/fixedtime)" +%s)
 	now=`date +%s`
@@ -20,12 +30,6 @@ else
 			if [ ${d} -ne ${da} ]; then break; fi
 			sleep 10
 		done
-	fi
-
-	#month of year
-	month=`date +%m`
-	if [ ${month:0:1} = 0 ]; then
-		month=${month:1:1}
 	fi
 
 	#modulo against june
