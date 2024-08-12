@@ -1,9 +1,11 @@
 
-# git switch master ; git pull orig master ; push
+# git switch master && git pull orig master ; push
 #enable the pull workflows for master
-# git switch test2 ; resolve in browser and git pull origin test2  or  git merge master , resolve, push; disable workflows
-# this file
-# git switch test ; git merge test2 ; push
+# git switch test2
+# resolve in browser and git pull origin test2  or  git merge master , resolve, push
+#disable workflows
+#this file
+# git switch test && git merge test2 ; push
 
 #if [ -z "${orig}" ]; then orig=orig; fi
 #if [ -z "${test}" ]; then test=test; fi
