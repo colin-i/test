@@ -9,7 +9,7 @@ fi
 
 t=( `cat ~/twitch` )
 tm=$((month-1))
-echo ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
+echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
 
 if [ -e ~/fixedtime ]; then #example: 18:00
 	then=$(date -d "$(cat ~/fixedtime)" +%s)
