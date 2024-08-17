@@ -63,15 +63,19 @@ else
 base=${5}
 fi
 
+fmin=0
+fmax=0
 if [ -n "${dif}" ]; then
-	min="${min}.${dif}"
-	max="${max}.${dif}"
+	fmin=${dif}
+	fmax=${dif}
 fi
 if [ -n "${difmin}" ]; then
-	min="${min}.${difmin}"
+	fmin=${difmin}
 fi
 if [ -n "${difmax}" ]; then
-	max="${max}.${difmax}"
+	fmax=${difmax}
 fi
+min="${min}.${fmin}"
+max="${max}.${fmax}"
 
 python ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}
