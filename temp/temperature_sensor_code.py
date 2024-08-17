@@ -55,10 +55,10 @@ def test(t):
 	global lasttemp
 	print(t)
 	if math.isnan(t)==False:
-		if t>=max:
+		if t>max:
 			if lasttemp<=t:
 				gree('1') #,True)
-		elif t<min:
+		elif t<=min:
 			if t<=lasttemp:
 				gree('0') #,False)
 		lasttemp=t
