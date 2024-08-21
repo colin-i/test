@@ -9,6 +9,8 @@ import subprocess
 import threading
 import pyperclip
 
+HOME=os.getenv('HOME')
+
 timeout=os.environ.get("timeout")
 if timeout==None:
 	timeout="10"
@@ -28,10 +30,12 @@ if no_keys==None:
 	t3.start()
 match=os.environ.get("match")
 if match==None:
-	match="pull"
+	with open(HOME+'/lessressmatch', 'r') as file:
+		match=file.read()
 site=os.environ.get("site")
 if site==None:
-	site="https://www.tiktok.com/"
+	with open(HOME+'/lessressite', 'r') as file:
+		site=file.read()
 close_on_link=os.environ.get("close_on_link")
 print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link))
 
