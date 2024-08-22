@@ -1,5 +1,5 @@
 
-#1 =0 list else file name  optional 2 =0 download 1=delete else list
+#1 =0 list else file name  optional 2 0=download 1=delete 2=deleteId else_list
 
 # https://console.cloud.google.com/iam-admin/serviceaccounts , select project , at the service account entry in the table the 3 dots at Actions, Manage Keys
 GOOGLE_APPLICATION_CREDENTIALS=~/n/pat8 python ~/test/google/google.py ${1} ${2} && \

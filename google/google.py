@@ -93,6 +93,12 @@ def search_file(newid,download=False,all=False,delete=False):
 			                    pageToken=page_token).execute() # fields='*' was ok, here files(*)?
 		for file in response.get('files', []):
 			if all==False:
+				if newid!=None:
+					if delete==True:
+						if newid==file['id']:
+							deletefile(newid) #delete only one id from same file
+							break
+						continue
 				if file.get("name")==fname:
 					print_file(file)
 					if newid!=None:
@@ -134,6 +140,9 @@ if len(sys.argv)>2:
 	elif flag=="1":
 	#delete
 		search_file(None,delete=True)
+	elif flag=="2":
+	#delete only one id
+		search_file(fname,delete=True)
 	else:
 	#list name
 		search_file(None)
