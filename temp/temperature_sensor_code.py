@@ -92,7 +92,7 @@ if len(sys.argv)==6:
 		base_dir = '/sys/bus/w1/devices/'
 		device_folder = glob.glob(base_dir + '28*')[0]
 		device_file = device_folder + '/w1_slave'
-		subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
+		#this is extra subprocess.run([sys.executable,'gree.py','-b','192.168.1.255','search'])
 	else:
 		base=sys.argv[5]
 	t2 = threading.Thread(target=t2_f)
