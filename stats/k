@@ -32,10 +32,10 @@ if [ $? = 0 ]; then
 	if [ "${ans}" = "y" ]; then
 		deleting
 		mv 5 kong
-		~/test/bots/stats  #will ask yes or no inside
 	else
 		echo no
 		deleting
 		rm 5
+		exit 1
 	fi
 fi

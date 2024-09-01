@@ -3,12 +3,13 @@
 
 ~/test/stats/prepare ${1} ${2} && \
 ~/test/stats/newpost ${1} ${2} && \
+~/test/stats/k && \
 echo -e "\n\npush? y?" && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
-~/test/stats/commit ${1} ${2}
+	~/test/stats/commit ${1} ${2}
 else
-echo no
+	echo no
 fi && \
 echo -e "\n\nwiki check? y?" && \
 read -n1 -t $((60*60*24)) ans && \
@@ -22,8 +23,7 @@ if [ "${ans}" = "y" ]; then
 else
 	echo no
 fi && \
-~/test/stats/dif && \
-~/test/stats/k
+~/test/stats/dif
 
 #for ./ files let stats to be the author. before was not, message was "${1}-${2}"
 
