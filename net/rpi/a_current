@@ -31,8 +31,10 @@ nmcli c up ethul
 
 at client, eth if is problematic, in rc.local like in the previous rc.local example, uuid is get from: nmcli c show
 nmcli c up 01de9e2f-635e-4a73-96bc-73e04d6a3c1b but now will error
-the real working solution: After=NetworkManager-dispatcher.service (no multiple After or After with spaces)
-the solution that is not working: systemctl status rc-local.service , Drop-In, open, at [Unit] (there is with after network-online.target) , add at After=... cloud-config.service NetworkManager-dispatcher.service
+the solution that is not working: systemctl status rc-local.service , Drop-In, open, at [Unit] (there is with after network-online.target)
+After=... NetworkManager-dispatcher.service cloud-config.service is for Started.. (Finished...?). is problematic here
+anyway, i=0;while [ $i -lt 20 ]; do echo $i; sleep 1; i=$((i+1)); done   and still waiting and problems
+put in begin keyring and there
 
 sudo nmcli d wifi connect netis_2.4G
 after that there is at nmcli c / nmcli d ;  the point is that ping command will not work in this current setup with eth used at sharing
