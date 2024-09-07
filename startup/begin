@@ -1,6 +1,7 @@
 
-sleep 9 # xdotool and act/a
-
+if [ -z "${nosleep}" ]; then
+	sleep 9 # xdotool and act/a
+fi
 window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
 if [ -f ~/desktops ]; then
 	echo move
@@ -10,13 +11,9 @@ if [ -f ~/desktops ]; then
 else
 	window_pid=${window_pid} ~/test/startup/termsz  #if window_pid was input ( window_pid= ./begin ) it was passed
 fi
-
 ~/test/act/a
-
 ~/test/bookmarks/bookmark
-
 ~/test/misc/storage
-
 if [ -z "${is_vnc}" ]; then
 	~/test/net/data/a
 
