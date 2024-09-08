@@ -122,6 +122,7 @@ for var in "${z[@]}"; do
 
 			echo push \? y \?
 			read -n1 -t $((60*60*24)) ans
+			rm ${tmp}
 			if [ "${ans}" = "y" ]; then
 				cd ${dst}
 				f=${var}.tar
@@ -135,10 +136,8 @@ for var in "${z[@]}"; do
 				fi
 			else
 				echo no
-				rm ${tmp}
 				exit 1
 			fi
-			rm ${tmp}
 		fi
 	elif [ "${1}" = 0 ]; then
 		cd ${src}
