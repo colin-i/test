@@ -135,6 +135,8 @@ for var in "${z[@]}"; do
 				fi
 			else
 				echo no
+				rm ${tmp}
+				exit 1
 			fi
 			rm ${tmp}
 		fi
