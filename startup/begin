@@ -1,6 +1,8 @@
 
 if [ -z "${nosleep}" ]; then
 	sleep 9 # xdotool and act/a
+else
+	echo no sleep
 fi
 window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
 if [ -f ~/desktops ]; then

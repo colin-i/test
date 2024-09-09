@@ -1,11 +1,12 @@
 
-if [ -z "${choose_term_profile}" ]; then
+if [ ! -e ~/choose_term_profile ]; then
 	if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 	#	${SSH_CONNECTION} , ${SSH_CLIENT}
 		~/test/startup/setcolors || exit
 	fi
 else
-	echo ${choose_term_profile} #[export] choose_term_profile= #or unset choose_term_profile #still new tab with same value
+	cat ~/choose_term_profile
+	rm ~/choose_term_profile
 fi
 
 if [ "${resizeterm}" != "" ]; then ~/test/startup/termsz; fi

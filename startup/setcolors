@@ -17,7 +17,8 @@ if [ "${nexttime:0:1}" = "-" ]; then
 	fi
 	if [ "${bg}" != "rgb:ffff/ffff/ffff" ]; then
 		#rgb:3030/0a0a/2424
-		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=alb && exit 1
+		echo ${nexttime} > ~/choose_term_profile
+		gnome-terminal --tab-with-profile=alb && exit 1
 	fi
 else
 	if [ "${legacy}" != "dark" ]; then
@@ -28,7 +29,8 @@ else
 		gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 	fi
 	if [ "${bg}" = "rgb:ffff/ffff/ffff" ]; then
-		choose_term_profile=${nexttime} gnome-terminal --tab-with-profile=negru && exit 1
+		echo ${nexttime} > ~/choose_term_profile
+		gnome-terminal --tab-with-profile=negru && exit 1
 	fi
 fi
 echo ${nexttime}
