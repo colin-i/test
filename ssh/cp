@@ -1,4 +1,12 @@
 
 #1 path
 
-sshpass -p `cat ~/n/pat3` sftp `cat ~/amd_user`@`cat ~/amd_ip`:${1} .
+a=`basename ${1}`
+b=/tmp/${a}.tmp
+sshpass -p `cat ~/n/pat3` sftp `cat ~/amd_user`@`cat ~/amd_ip`:${1} ${b} || exit 1
+diff ${a} ${b} > /dev/null
+if [ $? != 0 ]; then
+	mv ${b} ${a}
+else
+	rm ${b}
+fi
