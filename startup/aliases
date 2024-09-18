@@ -3,3 +3,4 @@ alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches} --exclude=\*.db
 alias mov='~/test/startup/mv'
 alias cop='~/test/startup/cp'
 alias gfind='echo "#include <gtk/gtk.h>" | cc `pkg-config --cflags gtk4` -E -dD - | grep'
+alias fnd='find -name'
