@@ -1,16 +1,6 @@
 #!/bin/bash
 # is_day.php(~/n/pat4) ~/maxmindif ~/on.py(broadlink,(python-cryptography))
 
-#month of year
-month=`date +%m`
-if [ ${month:0:1} = 0 ]; then
-	month=${month:1:1}
-fi
-
-t=( `cat ~/twitch` )
-tm=$((month-1))
-echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
-
 #need to wait for the date sync, and date is writing in local but date -d don't understand except english
 if [ -e ~/rememberevening ]; then
 	d=`tail -n 1 ~/rememberevening | cut -d' ' -f2`
@@ -21,6 +11,17 @@ if [ -e ~/rememberevening ]; then
 		sleep 10
 	done
 fi
+~/test/act/a #ntp yes sync for same day restarts
+
+#month of year
+month=`date +%m`
+if [ ${month:0:1} = 0 ]; then
+	month=${month:1:1}
+fi
+
+t=( `cat ~/twitch` )
+tm=$((month-1))
+echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
 
 if perl -e 'exit ((localtime)[8])'; then #[8] is referring to $isdst from perl localtime list. test with perl -e 'print ((localtime)[8])'
 	#winter time
