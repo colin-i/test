@@ -11,52 +11,62 @@ t=( `cat ~/twitch` )
 tm=$((month-1))
 echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
 
+#need to wait for the date sync, and date is writing in local but date -d don't understand except english
+if [ -e ~/rememberevening ]; then
+	d=`tail -n 1 ~/rememberevening | cut -d' ' -f2`
+	while true; do
+		da=`date +%d`
+		echo ${d} ${da}
+		if [ ${d} -ne ${da} ]; then break; fi
+		sleep 10
+	done
+fi
+
+if perl -e 'exit ((localtime)[8])'; then #[8] is referring to $isdst from perl localtime list. test with perl -e 'print ((localtime)[8])'
+	#winter time
+	dst=60
+else
+	dst=0
+fi
+
+#modulo against june
+modulo=$((6-month))
+modulo=${modulo#-}  #;echo ${modulo}
+
+maximum=`cat ~/maxmindif`
+part=30
+maxmonths=$((maximum/part))
+
+if [ ${maxmonths} -gt ${modulo} ]; then
+#cut from the day
+	dif=$(((maxmonths-modulo)*part))
+	echo dif=${dif}
+else
+	dif=0
+fi
+
+#from_sun () { #on android where on standby will not work in background
+a=`php -f ~/is_day.php`
+remaining1=${a%%_*}
+
 if [ -e ~/fixedtime ]; then #example: 18:00
 	then=$(date -d "$(cat ~/fixedtime)" +%s)
 	now=`date +%s`
-	remaining=$((then-now))
-	while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
-		echo $((remaining/60))
-		sleep 60
-		remaining=$((remaining-60))
-	done
+	remaining2=$((then-now))
+	remaining2=$((remaining2/60))
 else
-	#need to wait for the date sync, and date is writing in local but date -d don't understand except english
-	if [ -e ~/rememberevening ]; then
-		d=`tail -n 1 ~/rememberevening | cut -d' ' -f2`
-		while true; do
-			da=`date +%d`
-			echo ${d} ${da}
-			if [ ${d} -ne ${da} ]; then break; fi
-			sleep 10
-		done
-	fi
-
-	#modulo against june
-	modulo=$((6-month))
-	modulo=${modulo#-}  #;echo ${modulo}
-
-	maximum=`cat ~/maxmindif`
-	part=30
-	maxmonths=$((maximum/part))
-	remaining=1
-
-	if [ ${maxmonths} -gt ${modulo} ]; then
-	#cut from the day
-		dif=$(((maxmonths-modulo)*part))
-		echo dif=${dif}
-	else
-		dif=0
-	fi
-
-	while [ ${remaining} -ge 0 ]; do #on standby will not decrement
-		a=`php -f ~/is_day.php`
-		remaining=${a%%_*}
-		remaining=$((remaining-dif))
-		echo ${remaining}
-		sleep 1m
-	done
+	remaining2=0
 fi
+echo remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\) or fixedremaining\(${remaining2}\)
+remaining=$((remaining1-dif+dst))
+if [ ${remaining2} -gt ${remaining1} ]; then
+	remaining=${remaining2}
+fi
+while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
+	echo ${remaining}
+	sleep 1m
+	remaining=$((remaining-1))
+done
 echo done
 python ~/on.py
 
