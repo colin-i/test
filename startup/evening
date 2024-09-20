@@ -34,7 +34,7 @@ fi
 modulo=$((6-month))
 modulo=${modulo#-}  #;echo ${modulo}
 
-maximum=`cat ~/maxmindif`
+maximum=`cat ~/maxmindif` #99
 part=30
 maxmonths=$((maximum/part))
 

@@ -3,5 +3,5 @@ a="`dirname $0`"
 cd ${a}
 a=following
 if [ -n "${1}" ]; then a="${1}"; fi
-no_keys=x close_on_link=x python main.py "${a}" && open `xclip -o`
-# "`xclip -o -selection clipboard`" will download
+no_keys=x close_on_link=x python main.py "${a}" && open http://about:blank
+# "`xclip -o`" will download

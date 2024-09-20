@@ -30,11 +30,11 @@ if no_keys==None:
 	t3.start()
 match=os.environ.get("match")
 if match==None:
-	with open(HOME+'/lessressmatch', 'r') as file:
+	with open(HOME+'/lessressmatch', 'r') as file: #pull
 		match=file.read()
 site=os.environ.get("site")
 if site==None:
-	with open(HOME+'/lessressite', 'r') as file:
+	with open(HOME+'/lessressite', 'r') as file:   #https://www..com/
 		site=file.read()
 close_on_link=os.environ.get("close_on_link")
 print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link))
@@ -83,9 +83,9 @@ p=psutil.Process(p)
 from datetime import datetime
 import psutil
 HOME=os.getenv('HOME')
-with open(HOME+'/crashlimit', 'r') as file:
+with open(HOME+'/crashlimit', 'r') as file: #220000000
 	min = int(file.read()) #in Bytes
-with open(HOME+'/crashsleep', 'r') as file:
+with open(HOME+'/crashsleep', 'r') as file: #5
 	sleep = int(file.read())
 def closing():
 	try:
