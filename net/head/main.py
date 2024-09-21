@@ -1,6 +1,6 @@
 
-# in /etc/rc.local swapoff -a
-# python3-selenium python3-zstandard  pip install selenium-wire
+#if having mem: in /etc/rc.local swapoff -a
+# python3-selenium python3-zstandard  pip install selenium-wire  python3-pyperclip
 
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -86,7 +86,7 @@ p=psutil.Process(p)
 from datetime import datetime
 import psutil
 HOME=os.getenv('HOME')
-with open(HOME+'/crashlimit', 'r') as file: #220000000
+with open(HOME+'/crashlimit', 'r') as file: #200000000
 	min = int(file.read()) #in Bytes
 with open(HOME+'/crashsleep', 'r') as file: #5
 	sleep = int(file.read())

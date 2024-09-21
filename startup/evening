@@ -84,4 +84,4 @@ python ~/test/plug/off.py
 
 #@lxpanel --profile LXDE-pi
 #@pcmanfm --desktop --profile LXDE-pi
-#@lxterminal -e /home/bc/evening
+#@lxterminal -e /home/bc/test/startup/evening
