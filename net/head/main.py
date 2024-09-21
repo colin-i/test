@@ -1,4 +1,7 @@
 
+# in /etc/rc.local swapoff -a
+# python3-selenium python3-zstandard  pip install selenium-wire
+
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
@@ -119,5 +122,3 @@ while True:
 		break
 print("z")
 exit(ex)
-
-# sudo swapoff -a
