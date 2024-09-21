@@ -47,7 +47,7 @@ else
 fi
 
 #from_sun () { #on android where on standby will not work in background
-a=`php -f ~/is_day.php`
+a=`php -f ~/test/startup/is_day.php`
 remaining1=${a%%_*}
 
 if [ -e ~/fixedtime ]; then #example: 18:00
