@@ -4,5 +4,5 @@ mimeType=application/vnd.oasis.opendocument.spreadsheet ~/test/google/a $@ | tee
 {
 	q=`cat ${f} | head -1`
 	rm ${f}
-	query_result=${q} pdb ~/test/google/upd.py
+	query_result=${q} python ~/test/google/upd.py
 }
