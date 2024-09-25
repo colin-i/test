@@ -17,7 +17,7 @@ cd ~/arhiva && \
 echo ${arhname} && \
 #~/n/pat
 gh release download ${arhname} -p *.rpm && \
-file=`find -maxdepth 1 -name *rpm` && \
+file=`find -maxdepth 1 -name *rpm -printf '%P\n'` && \
 echo ${file} && \
 #if the file is too large, can move them at google in folder 2023 , 2024 , ...
 pname=${name} ~/test/google/b ${file} > ${list} && \

@@ -23,12 +23,28 @@ from googleapiclient.discovery import build # python3-googleapi
 creds, _ = google.auth.default()
 # create drive api client
 service = build('drive', 'v3', credentials=creds)
+permissionAnyone='anyoneWithLink'
 
-if os.environ.get('folder'):
-	response = service.files().list(q="name = '"+os.environ['folder']+"'"
-		,spaces='drive',fields='files(id)').execute()
+#file_metadata = { 'name': 'o', 'mimeType': 'application/vnd.google-apps.folder', 'parents': ['1Zuqq78fRM6fkxmIYmFBPPZkOpGEzkX4V'] }
+#service.files().create(body=file_metadata).execute()
+
+#service.permissions().delete(fileId=file['id'],permissionId=permissionAnyone).execute()
+
+dir=os.environ.get('folder')
+if dir:
+	folders=dir.split("/")
+	if len(folders)>1:
+		dir_root=folders[1]
+		response = service.files().list(q="name = '"+folders[0]+"'",spaces='drive',fields='files(id)').execute()
+		dir_q=" and '"+response['files'][0]['id']+"' in parents"
+	else:
+		dir_root=folders[0]
+		dir_q=''
+	response = service.files().list(q="name = '"+dir_root+"'"+dir_q,spaces='drive',fields='files(id)').execute()
 	folderid=response['files'][0]['id']
 	folder="'"+folderid+"' in parents"
+elif os.environ.get('folderid'):
+	folder="'"+os.environ.get('folderid')+"' in parents"
 else:
 	folder=""
 
@@ -41,7 +57,6 @@ def upload_basic():
 	# pylint: disable=maybe-no-member
 	file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 	fileid=file['id']
-	print('File ID: '+fileid)
 
 	#"You cannot share this item because it has been flagged as inappropriate."
 	#yourEmailOfGoogleAccount = '***@gamil.com'
@@ -62,12 +77,12 @@ def upload_basic():
 	return fileid
 
 def print_file(file): #,extra=''
-	print(F'<p>Found file: {file.get("name")}, {file.get("id")}, {file.get("createdTime")}, {file.get("size")}, {file.get("webContentLink")}')
+	print(F'{file.get("name")},{file.get("id")},{file.get("createdTime")},{file.get("size")},{file.get("webContentLink")},{file.get("parents")},',end='')
 	response=service.permissions().list(fileId=file.get("id")).execute()
-	if response['permissions'][0]['id']=="anyoneWithLink":
-		print("anyoneWithLink</p>")
+	if response['permissions'][0]['id']==permissionAnyone:
+		print(permissionAnyone)
 	else:
-		print("</p>")
+		print()
 	#+((' '+extra) if extra else '')
 def deletefile(id):
 	service.files().delete(fileId=id).execute()
@@ -89,7 +104,7 @@ def search_file(newid,download=False,all=False,delete=False):
 		response = service.files().list(q=q,
 			                    spaces='drive',
 			                    fields='nextPageToken, '
-			                    'files(id, name, createdTime, size, webContentLink)',
+			                    'files(id, name, createdTime, size, webContentLink, parents)',
 			                    pageToken=page_token).execute() # fields='*' was ok, here files(*)?
 		for file in response.get('files', []):
 			if all==False:
@@ -160,9 +175,3 @@ else:
 	else:
 	#list all
 		search_file(None,all=True)
-
-
-#file_metadata = { 'name': 'old/o', 'mimeType': 'application/vnd.google-apps.folder' }
-#service.files().create(body=file_metadata).execute()
-
-#service.permissions().delete(fileId=file['id'],permissionId='anyoneWithLink').execute()

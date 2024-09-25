@@ -1,2 +1,8 @@
 
-mimeType=application/vnd.oasis.opendocument.spreadsheet ~/test/google/a $@
+f=~/Desktop/1
+mimeType=application/vnd.oasis.opendocument.spreadsheet ~/test/google/a $@ | tee ${f} && \
+{
+	q=`cat ${f} | head -1`
+	rm ${f}
+	query_result=${q} pdb ~/test/google/upd.py
+}
