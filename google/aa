@@ -1,6 +1,6 @@
 
 f=~/Desktop/1
-mimeType=application/vnd.oasis.opendocument.spreadsheet ~/test/google/a $@ | tee ${f} && \
+mimeType=application/vnd.oasis.opendocument.spreadsheet folderid=`cat ~/n/pat15` ~/test/google/a $@ | tee ${f} && \
 {
 	q=`cat ${f} | head -1`
 	rm ${f}

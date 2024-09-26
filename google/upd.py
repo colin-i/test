@@ -12,6 +12,7 @@ with open(fn) as f:
 		if lines[i].split(',')[0]==fname:
 			print("updated")
 			lines[i]=qr
+			break
 with open(fn,"w") as f:
 	for r in lines:
 		print(r,end='\n',file=f)
