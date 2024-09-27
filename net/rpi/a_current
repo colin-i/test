@@ -23,6 +23,7 @@ and shared:
 
 nmcli c add con-name ethul type ethernet ifname eth0 ipv4.method shared ipv6.method ignore
 nmcli c up ethul
+#why problems? nmcli c down ethul;nmcli c up ethul ?
 
 #nmcli r
 #nmcli r wifi on
