@@ -21,7 +21,7 @@ if [ -z "${2}" ]; then
 		tars="noble"
 	#mantic 2024-07-11
 	else
-		exit 1
+		exit 0
 	fi
 else
 	tars=${2}
