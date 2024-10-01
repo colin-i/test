@@ -151,6 +151,6 @@ done
 
 if [ "${overall}" = 1 ]; then
 	f=~/arh/index.html
-	mimeType="${mim}" folder="${fold}" html=x ~/test/google/a 0 > ${f} && \
-	~/test/remote/ftp ${f}
+	folder="${fold}" html=x ~/test/google/a 0 > ${f} && \
+	~/test/remote/ftp ${f} depozit
 fi

@@ -1,0 +1,7 @@
+
+mimeType=image/jpeg folder=poze anyone=1 ~/test/google/a ${1} && \
+{
+	f=~/arh/index.html
+	folder=poze html=x ~/test/google/a 0 > ${f} && \
+	~/test/remote/ftp ${f} imagini
+}

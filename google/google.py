@@ -13,6 +13,7 @@ else:
 # application/vnd.google-apps.folder
 # application/vnd.oasis.opendocument.spreadsheet
 # application/x-rpm
+# image/jpeg
 # text/plain
 
 import sys
@@ -26,7 +27,7 @@ service = build('drive', 'v3', credentials=creds)
 permissionAnyone='anyoneWithLink'
 is_html=os.environ.get('html')
 
-#file_metadata = { 'name': 'o', 'mimeType': 'application/vnd.google-apps.folder', 'parents': ['1Zuqq78fRM6fkxmIYmFBPPZkOpGEzkX4V'] }
+#file_metadata = { 'name': sys.argv[1], 'mimeType': 'application/vnd.google-apps.folder', 'parents': [sys.argv[2]] }
 #service.files().create(body=file_metadata).execute()
 
 #service.permissions().delete(fileId=file['id'],permissionId=permissionAnyone).execute()

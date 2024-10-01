@@ -1,6 +1,6 @@
 
-s=depozit.atwebpages.com
+s=${2}.atwebpages.com
 p=http://${s}
-curl -T ${1} ftp://${s}/www/ --user `cat ~/n/pat12` && \
+curl -T ${1} ftp://${s}/${s}/ --user `cat ~/n/pat12` && \
 wget -O - ${p} && \
 echo ${p}
