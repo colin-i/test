@@ -1,3 +1,8 @@
 
 #in case of nfs pub when debian packs will see a temp file of pub and will error
-msg="${1}" eval "`cat ./arh/pub`"
+
+if [ -z "${file}" ]; then
+	msg="${1}" eval "`cat ./arh/pub`"
+else
+	msg="${1}" eval "`cat ${file}`"
+fi
