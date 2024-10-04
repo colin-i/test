@@ -6,7 +6,6 @@ if [ -z "${2}" ] ||  [ "${1}" = "0" ]; then
 		dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
 	fi
 fi
-
 if [ -z "${2}" ]; then
 	if [ "${dist}" = "xenial" ]; then
 	#2026-04-23
@@ -27,7 +26,7 @@ else
 	tars=${2}
 fi
 
-echo $tars
+echo ${tars}
 
 if [ -z "${1}" ] || [ "${1}" = "0" ]; then
 	p=`cat debian/changelog | head -1 | grep -o -e "^[^ ]*"`
@@ -52,9 +51,16 @@ if [ -z "${1}" ] || [ "${1}" = "0" ]; then
 #	#	i=$((i+1))
 #	#done
 
+	if [ -z "${ppa}" ]; then
+		ppa=ppa
+	else
+		ppa=${ppa}
+	fi
+	echo ${ppa}
+
 	for destin in ${tars}; do
 		# and with ubuntu-dev-tools
-		~/u/desktop/ubuntu-archive-tools/copy-package -y --include-binaries --from ppa:colin-i/ubuntu/ppa -s ${dist} --to-suite ${destin} ${p} || exit 1
+		~/u/desktop/ubuntu-archive-tools/copy-package -y --include-binaries --from ppa:colin-i/ubuntu/${ppa} -s ${dist} --to-suite ${destin} ${p} || exit 1
 	done
 else
 	#if [ "${1}" = "x" ]; then
