@@ -3,6 +3,7 @@ import os
 
 recs=[[1087,554,"A0_3"]]
 #bottom-left switch for watermark
+# action.pointer_action.move_to_location(,);action.pointer_action.click();action.perform()
 #with open(os.environ["HOME"]+"/measures/list","wb") as file:
 #	for r in recs:
 #		file.write(r[2])
@@ -45,5 +46,3 @@ for r in recs:
 		file.write(info.text.encode())
 	action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 exit(0)
-# action.pointer_action.move_to_location(,);action.pointer_action.click();action.perform()
-#info.text
