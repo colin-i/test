@@ -1,4 +1,5 @@
 
 if [ -z "${1}" ]; then p=python; else p=pdb; fi
 ${p} a.py && \
-./b
+./b && \
+${p} c.py
