@@ -1,0 +1,16 @@
+
+cd ~/measures/new || exit 1
+files=( `find -type f` )
+
+#verify same date
+d=`grep "Edited by cestrin" ${files[0]}`
+if [ -z "${d}" ]; then exit 1; fi
+n=`grep -r "${d}" | wc -l`
+if [ ${n} != ${#files[@]} ]; then exit 1; fi
+echo same date
+
+for f in "${files[@]}"; do
+	if [ -e ../ex/${f} ]; then a=`cat ../ex/${f}`
+	else a="stadiu_actual_fizic "; fi
+	echo -n `grep -Poe "(?<=^${a})[^ ]*" ${f}` > ../current/${f}
+done

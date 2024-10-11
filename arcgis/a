@@ -1,3 +1,4 @@
 
 if [ -z "${1}" ]; then p=python; else p=pdb; fi
-${p} a.py
+${p} a.py && \
+./b
