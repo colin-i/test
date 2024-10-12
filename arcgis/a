@@ -2,4 +2,4 @@
 python a.py && \
 ./b && \
 has_new=${has_new} python c.py && \
-./d
+has_new=${has_new} ./d
