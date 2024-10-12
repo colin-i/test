@@ -1,0 +1,16 @@
+
+if [ -z "${has_new}" ]; then
+	python c.py || exit 1
+	diff ~/measures/text ~/measures/text_last
+	if [ $? -eq 0 ]; then
+		echo no diff
+		exit 0
+	fi
+	cp ~/measures/text ~/measures/text_last
+else #has_new
+	has_new= python c.py && \
+	cp ~/measures/text ~/measures/text_last && \
+	python c.py
+fi && \
+sed -i "s/\./,/g" ~/measures/text && \
+cat ~/measures/text | xclip -selection clipboard

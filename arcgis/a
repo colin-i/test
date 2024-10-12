@@ -1,7 +1,4 @@
 
-# env: has_new for c.py/d
-
 python a.py && \
 ./b && \
-python c.py && \
-./d
+./c # env: has_new
