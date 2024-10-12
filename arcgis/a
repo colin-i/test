@@ -1,5 +1,7 @@
 
+# env: has_new for c.py/d
+
 python a.py && \
 ./b && \
-has_new=${has_new} python c.py && \
-has_new=${has_new} ./d
+python c.py && \
+./d
