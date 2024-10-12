@@ -7,4 +7,6 @@ with open(root+"recs","rb") as file:
 with open(root+"text","w") as out:
 	for r in recs:
 		with open(root+"current/"+r[2],"rb") as f:
-			print(f.read().decode(),file=out)
+			b=""
+			if os.environ.get("has_new"): b=" "+r[2]
+			print(f.read().decode()+b,file=out)

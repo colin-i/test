@@ -40,6 +40,11 @@ with open(root+"recs","rb") as file:
 # !q=[];action.pointer_action.move_to_location(q[0],q[1]);action.pointer_action.click();action.perform()
 # with open(root+"new/","wb") as file: file.write(info.text.encode())
 for r in recs:
+	if len(r)>3:
+		extra=root+"ex/"+r[2]
+		if not os.path.isfile(extra):
+			with open(extra,"w") as file:
+				file.write(r[3])
 	click(r[0],r[1]) #to load for write
 	with open(root+"new/"+r[2],"wb") as file: file.write(info.text.encode())
 	action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
