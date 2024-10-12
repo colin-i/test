@@ -1,5 +1,5 @@
 
-cp term.desktop ~/.local/share/applications
+cp ./term.desktop ~/.local/share/applications
 cd ~/.local/share/applications
 if [ ! -e "term.png" ]; then
 	wget https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/GNOME_Terminal_icon_2019.svg/128px-GNOME_Terminal_icon_2019.svg.png -O term.png

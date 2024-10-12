@@ -3,7 +3,7 @@ from gi.repository import GLib,Gtk,Gdk
 
 import time
 import os.path
-from subprocess import check_output
+import subprocess
 
 from . import query
 
@@ -30,6 +30,9 @@ def th_f(text):
 		#c.close() #Warning: Source ID 91 was not found when attempting to remove it
 	#print('closed')
 
+def termfn(dummy):
+	subprocess.run(["gtk-launch","term.desktop"])
+
 def init(loop,pointer):
 	text=Gtk.TextView(editable=False,vexpand=True) #,wrap_mode=Gtk.WrapMode.NONE
 
@@ -39,7 +42,7 @@ def init(loop,pointer):
 	show(text,form(query.yesterday()))
 	#
 	f=os.path.join(os.path.dirname(__file__),'x')
-	t=check_output(f)
+	t=subprocess.check_output(f)
 	total={};total["+"+t.decode()]=1
 	show(text,total)
 	#
@@ -65,6 +68,10 @@ def init(loop,pointer):
 		state=Gtk.Button.new_with_label("Move")
 		state.connect('clicked', move)
 		box.append(state)
+
+	te=Gtk.Button.new_with_label("Term")
+	te.connect('clicked', termfn)
+	box.append(te)
 
 	state=Gtk.Button.new_with_label("Start")
 	state.connect('clicked', toggle, text)
