@@ -1,7 +1,5 @@
 
-if [ -z "${1}" ]; then p=python; else p=pdb; fi
-${p} a.py && \
+python a.py && \
 ./b && \
-has_new=${has_new} ${p} c.py && \
-sed -i "s/\./,/g" ~/measures/text && \
-cat ~/measures/text | xclip -selection clipboard
+has_new=${has_new} python c.py && \
+./d

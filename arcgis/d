@@ -1,0 +1,13 @@
+
+diff ~/measures/text ~/measures/text_last
+if [ $? -ne 0 ]; then
+	sed -i "s/\./,/g" ~/measures/text && \
+	cat ~/measures/text | xclip -selection clipboard && \
+	if [ -n "${has_new}" ]; then #let for next diff without new part
+		python c.py && \
+		sed -i "s/\./,/g" ~/measures/text
+	fi && \
+	cp ~/measures/text ~/measures/text_last
+else
+	echo no diff
+fi
