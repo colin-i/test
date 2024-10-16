@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Term_geo
+Name=Term
 Icon=/home/bc/.local/share/applications/term.png
 Exec=env skip_profile=skip gnome-terminal --tab
 Terminal=false
