@@ -1,5 +1,6 @@
 
 alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'
+alias gr='gre --exclude=\*.c --exclude=\*.h --exclude=\*.x'
 alias mov='~/test/startup/mv'
 alias cop='~/test/startup/cp'
 alias gfind='echo "#include <gtk/gtk.h>" | cc `pkg-config --cflags gtk4` -E -dD - | grep'
