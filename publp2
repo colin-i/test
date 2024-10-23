@@ -24,20 +24,7 @@ echo ${dist} ${version} ${ppa}
 i=1
 for n in "${name[@]}"; do
 	echo ${n}
-	if [ -z "${arch}" ]; then
-		raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
-		arh=
-		for var in "${raw[@]}"
-		do
-			if [ "${var}" = "all" ]; then
-				var=amd64
-			fi
-			arh+=" ${var}"
-		done
-		arh=( ${arh} )
-	else
-		arh=( ${arch} )
-	fi
+	source ~/test/publparh
 	for var in "${arh[@]}"
 	do
 		echo ${var}

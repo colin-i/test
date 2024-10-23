@@ -3,40 +3,38 @@
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
-
 if [ -z "${1}" ]; then
 	ppa=ppa
 else
 	ppa=${1}
 fi
-if [ -z "${arh}" ]; then
-	arh=`cat debian/control | grep ^Architecture | head -1 | cut -d ' ' -f2`
-	if [ "${arh}" = "all" ]; then
-		arh=amd64
-	fi
-fi
-echo ${ppa} ${name} ${version} ${arh}
+echo ${ppa} ${name} ${version}
 
-slp=60
-
-while true
+i=1
+source ~/test/publparh
+for var in "${arh[@]}"
 do
-	OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${arh} x | head -1`
-	echo =${OUTPUT} ${slp}
-	if [ "${OUTPUT}" = 'Successfully built' ]; then
+	echo ${var}
+	slp=60
+	while true
+	do
+		OUTPUT=`python3 ~/test/lp2.py ${ppa} ${name} ${version} ${var} x | head -1`
+		echo =${OUTPUT} ${slp}
+		if [ "${OUTPUT}" = 'Successfully built' ]; then
+			if [ -e ~/stopwaitingflag ]; then
+				rm ~/stopwaitingflag
+			fi
+			break
+		fi
 		if [ -e ~/stopwaitingflag ]; then
 			rm ~/stopwaitingflag
+			echo stopped
+			notify-send "stopped"
+			exit 1
 		fi
-		break
-	fi
-	if [ -e ~/stopwaitingflag ]; then
-		rm ~/stopwaitingflag
-		echo stopped
-		notify-send "stopped"
-		exit 1
-	fi
-	sleep ${slp}
-	if [ $slp -lt 300 ]; then
-		slp=$((slp+15))
-	fi
+		sleep ${slp}
+		if [ $slp -lt 300 ]; then
+			slp=$((slp+15))
+		fi
+	done
 done
