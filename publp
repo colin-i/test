@@ -10,7 +10,7 @@ else
 fi
 echo ${ppa} ${name} ${version}
 
-i=1
+i=1  #at the moment it is an overall build, first in control takes make install files, second takes from .install file and makes the deb in dh_install with cp commands
 source ~/test/publparh
 for var in "${arh[@]}"
 do
