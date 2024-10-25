@@ -87,6 +87,10 @@ print(max.__str__())
 import time
 
 y=30
+sleeptime=HOME+'/plugsleep'
+if os.path.isfile(sleeptime):
+	with open(sleeptime, 'r') as file:
+		y=int(file.read())
 z=60
 x=z
 
