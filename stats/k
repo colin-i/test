@@ -2,12 +2,10 @@
 #this is not right but is the only way to show gameplays
 wget https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays -O 1
 wget "https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays&srid=17" -O 2
+#universe mahjong ... digger cubes ... ball-hit
 
 deleting () {
-	rm 1
-	rm 2
-	rm 3
-	rm 4
+	rm 1 2 4
 }
 
 ~/test/stats/k2
@@ -32,10 +30,11 @@ if [ $? = 0 ]; then
 	if [ "${ans}" = "y" ]; then
 		deleting
 		mv 5 kong
+		mv 3 kongfull
 	else
 		echo no
 		deleting
-		rm 5
+		rm 3 5
 		exit 1
 	fi
 fi
