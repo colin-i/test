@@ -60,7 +60,7 @@ else
 fi
 echo remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\) or fixedremaining\(${remaining2}\)
 remaining=$((remaining1-dif+dst))
-if [ ${remaining2} -gt ${remaining1} ]; then
+if [ ${remaining2} -gt ${remaining} ]; then
 	remaining=${remaining2}
 fi
 while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
