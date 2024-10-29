@@ -1,0 +1,23 @@
+
+IFS=$'\n' a=( `cat ${1}` )
+for var in "${a[@]}"; do
+	IFS=' ' b=( ${var} )
+	s=
+	n=0
+	for c in "${b[@]}"; do
+		if [[ "${c:0:1}" =~ [0-9-] ]]; then
+			if [ $[n] = 0 ]; then
+				s+=${c}
+				n=1
+			else
+				s+=,${c}
+			fi
+		else
+			s+=${c}
+			n=0
+		fi
+	done
+	echo \"${s}\" >> 1
+done
+cat 1 | xclip -selection clipboard
+rm 1
