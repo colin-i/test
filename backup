@@ -78,22 +78,26 @@ for var in "${z[@]}"; do
 		has_extra=`tail -n +2 ${tmp}`
 		if [ -n "${has_extra}" ]; then
 			echo
-			z=( );j=0;is_dif=0
+			z=( );j=0;is_ok=1
 			while read vr; do
 				if [ "${lang}" = "ro" ]; then
-					if [[ ( "${vr}" != "Doar în ${src}: .git" ) && ( "${vr}" != "Doar în ${src}/tests: .expected" || ( "${var}" != "o" && "${var}" != "actionswf" )) ]]; then
-						is_dif=1
+					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then  # .git .expected swf_backup localtest
+						is_ok=0
 					fi
 				else
-					if [[ ( "${vr}" != "Only in ${src}: .git" ) && ( "${vr}" != "Only in ${src}/tests: .expected" || ( "${var}" != "o" && "${var}" != "actionswf" )) ]]; then
-						is_dif=1
+					if [[ ( "${vr:0:7}" != "Only in" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then
+						is_ok=0
 					fi
 				fi
-				if [ ${is_dif} = 1 ]; then
+				if [ ${is_ok} = 0 ]; then
 					a=( ${vr} )
-					z[${j}]=${a[2]::-1}/${a[3]}
+					if [ ${#a[@]} = 4 ]; then #only in
+						z[${j}]=${a[2]::-1}/${a[3]}
+					else   #still in src but .gitignored there
+						z[${j}]=${a[2]}
+					fi
 					j=$((j+1))
-					is_dif=0
+					is_ok=1
 				fi
 			done < ${tmp}
 			if [ $j != 0 ]; then
