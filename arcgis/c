@@ -6,6 +6,7 @@ if [ -z "${has_new}" ]; then
 		echo no diff
 		exit 0
 	fi
+	./d || exit 1
 	cp ~/measures/text ~/measures/text_last
 else #has_new
 	has_new= python c.py && \

@@ -1,3 +1,4 @@
+#has_new when new segment ( no diff check. will add segment name to result )
 
 python a.py && \
 ./b && \
