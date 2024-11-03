@@ -1,7 +1,7 @@
 
 a=( `cat ~/measures/text_last` )
 b=( `cat ~/measures/text` )
-n=( `cat ~/measures/text | wc -l ` )
+n=( `cat ~/measures/text | wc -l` )
 x=0
 for ((i = 0; i < ${n}; i++ )); do
 	if [ ${a[${i}]} != ${b[${i}]} ]; then x=$((x+1)); fi

@@ -38,7 +38,7 @@ root=os.environ["HOME"]+"/measures/"
 def pack(type):
 	with open(root+"recs"+type,"rb") as file:
 		rd=file.read()
-		print(rd)
+		print(rd.decode())
 		recs=eval(rd)
 	#bottom-left switch for watermark
 	# !q=[];action.pointer_action.move_to_location(q[0],q[1]);action.pointer_action.click();action.perform()

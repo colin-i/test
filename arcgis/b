@@ -1,5 +1,7 @@
 
-cd ~/measures/new || exit 1
+#1 is added
+
+cd ~/measures/new${1} || exit 1
 files=( `find -type f` )
 
 #verify same date
@@ -10,7 +12,7 @@ if [ ${n} != ${#files[@]} ]; then exit 1; fi
 echo same date. ok.
 
 for f in "${files[@]}"; do
-	if [ -e ../ex/${f} ]; then a=`cat ../ex/${f}`
+	if [ -e ../ex${1}/${f} ]; then a=`cat ../ex${1}/${f}`
 	else a="stadiu_actual_fizic "; fi
-	echo -n `grep -Poe "(?<=^${a})[^ ]*" ${f}` > ../current/${f}
+	echo -n `grep -Poe "(?<=^${a})[^ ]*" ${f}` > ../current${1}/${f}
 done

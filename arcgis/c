@@ -1,16 +1,24 @@
+#1 is added
 
 if [ -z "${has_new}" ]; then
-	python c.py || exit 1
-	diff ~/measures/text ~/measures/text_last
+	python c.py ${1} || exit 1
+	diff ~/measures/text${1} ~/measures/text_last${1}
 	if [ $? -eq 0 ]; then
-		echo no diff
+		echo ${1} no diff
 		exit 0
+	fi
+	if [ -n "${1}" ]; then
+		echo plus at ${1}
+		exit 1
 	fi
 	./d || exit 1
 	cp ~/measures/text ~/measures/text_last
 else #has_new
-	has_new= python c.py && \
-	cp ~/measures/text ~/measures/text_last && \
+	has_new= python c.py ${1} && \
+	cp ~/measures/text${1} ~/measures/text_last${1} && \
+	if [ -n "${1}" ]; then
+		exit 0
+	fi
 	python c.py
 fi && \
 sed -i "s/\./,/g" ~/measures/text && \

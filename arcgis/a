@@ -1,5 +1,20 @@
 #has_new when new segment ( no diff check. will add segment name to result )
 
 python a.py && \
-./b && \
-./c # env: has_new
+echo no new \? y \? && \
+read -n1 -t $((60*60*24)) ans && \
+./b _new && ./b && \
+if [ "${ans}" = "y" ]; then
+	./c _new && \
+	./c
+else
+	echo for _new and normal \? y \? && \
+	read -n1 -t $((60*60*24)) ans && \
+	if [ "${ans}" = "y" ]; then    #default case from _new to normal
+		has_new=x ./c _new && \
+		has_new=x ./c
+	else                           #only at _new
+		has_new=x ./c _new && \
+		./c
+	fi
+fi
