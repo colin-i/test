@@ -58,8 +58,9 @@ if [ -e ~/fixedtime ]; then #example: 18:00
 else
 	remaining2=0
 fi
-echo remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\) or fixedremaining\(${remaining2}\)
+echo -n remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\)
 remaining=$((remaining1-dif+dst))
+echo =${remaining} or fixedremaining\(${remaining2}\)
 if [ ${remaining2} -gt ${remaining} ]; then
 	remaining=${remaining2}
 fi
