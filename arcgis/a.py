@@ -54,4 +54,5 @@ def pack(type):
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 pack("_new")
 pack("")
+readchar.readchar()  #to see if new changes are present
 exit(0)
