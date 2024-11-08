@@ -2,6 +2,7 @@
 <form method="POST" enctype="multipart/form-data">
 	<input type="text" name="text">
 	<input type="file" name="file">
+	<input type="submit">
 </form>
 
 <?php
@@ -19,7 +20,7 @@ if(array_key_exists('file',$_FILES)){
 	$file=$_FILES['file']['tmp_name'];
 	//if(is_uploaded_file($file))
 	echo($file);
-	move_uploaded_file($file,'file');
+	rename($file,'file'); //move_uploaded_file
 }
 
 ?>
