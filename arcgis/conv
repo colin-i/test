@@ -17,7 +17,7 @@ for var in "${a[@]}"; do
 			n=0
 		fi
 	done
-	echo \"${s}\" >> 1
+	echo ${s} >> 1
 done
 cat 1 | xclip -selection clipboard
 rm 1
