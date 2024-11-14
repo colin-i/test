@@ -1,6 +1,13 @@
 
 s=${2}.atwebpages.com
 p=http://${s}
+
+if [ `basename ${1}` = index.html ]; then
+	verif=${p}
+else
+	verif=${p}/`basename ${1}`
+fi
+
 curl -T ${1} ftp://${s}/${s}/ --user `cat ~/n/pat12` && \
-wget -O - ${p} && \
+wget -O - ${verif} && \
 echo ${p}
