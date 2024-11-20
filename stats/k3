@@ -1,0 +1,27 @@
+
+deleting () {
+	rm 1 2 3 4
+}
+sort -k1nr 6 > 3
+cat 3 | head -3
+paste -s -d+ 3 | bc > 5
+#echo $((`paste -s -d+ 3 | bc`+`paste -s -d+ 4 | bc`)) > 5
+
+stat -c %y kong
+a=`cat kong`
+b=`cat 5`
+c=$((b-a))
+echo ${b} - ${a} = ${c}
+
+echo -e "\n\nok? y ?" && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ]; then
+	deleting
+	mv 5 kong
+	mv 6 kongfull
+else
+	echo no
+	deleting
+	rm 5 6
+	exit 1
+fi

@@ -1,6 +1,7 @@
 
-knowngames=( "Ball Hit" Roulette "Naval War" "Card Flip" "Fruit Cocktail" Racecourse Lotto "Turret Defence" "Treasure Finder" Cubes \
-Universe Digger Driver Lander Expeditioner Balls Asteroids Watersport Jump Train Voyage "Space Adventure" Rooms Road Mahjong )
+#this is the favorites order
+knowngames=( Universe Mahjong Road Rooms "Space Adventure" Voyage Train Jump Watersport Asteroids Balls Expeditioner Lander Driver Digger \
+Cubes "Treasure Finder" "Turret Defence" Lotto Racecourse "Fruit Cocktail" "Card Flip" "Naval War" Roulette "Ball Hit" )
 #for var in "${knowngames[@]}";do echo ${var};done;echo
 
 xmllint --html --xpath '/html/body/div[@id="primarywrap"]/table/tr/td[@class="maincontent"]/div[@id="feature"]/div[@class="browser_outer"]/div[@class="category_listing"]/div[@class="category_games_listing hasLayout"]/div/div/div/a/img/@title' 1 2>/dev/null | cut -d'=' -f2 | cut -d"\"" -f2 > 3
@@ -10,22 +11,41 @@ readarray -t b < 4
 remotegames=( "${a[@]}" "${b[@]}" )
 #for var in "${remotegames[@]}";do echo ${var};done;echo
 
-a=${#knowngames[@]}
-b=${#remotegames[@]}
-if [ ${a} != ${b} ]; then
+c=${#knowngames[@]}
+d=${#remotegames[@]}
+if [ ${c} != ${d} ]; then
 	echo dif size; exit 1
 fi
 
-IFS=$'\n' c=($(sort <<<"${knowngames[*]}"))
+IFS=$'\n' e=($(sort <<<"${knowngames[*]}"))
 #; unset IFS
-IFS=$'\n' d=($(sort <<<"${remotegames[*]}"))
+IFS=$'\n' f=($(sort <<<"${remotegames[*]}"))
 #; unset IFS
 #printf "%s\n" "${sorted[@]}"
 #echo ${remotegames[@]} ${knowngames[@]} | tr ' ' '\n' | sort | uniq -u
 
-for (( i=0; i < ${a}; i++))
+for (( i=0; i < ${c}; i++))
 do
-	if [ "${c[${i}]}" != "${d[${i}]}" ]; then
+	if [ "${e[${i}]}" != "${f[${i}]}" ]; then
 		echo dif names; exit 1
 	fi
 done
+
+xmllint --html --xpath '/html/body/div[@id="primarywrap"]/table/tr/td[@class="maincontent"]/div[@id="feature"]/div[@class="browser_outer"]/div[@class="category_listing"]/div[@class="category_games_listing hasLayout"]/div/div/div/span/span[@class="gameplays"]/text()' 1 2>/dev/null 1>5
+xmllint --html --xpath '/html/body/div[@id="primarywrap"]/table/tr/td[@class="maincontent"]/div[@id="feature"]/div[@class="browser_outer"]/div[@class="category_listing"]/div[@class="category_games_listing hasLayout"]/div/div/div/span/span[@class="gameplays"]/text()' 2 2>/dev/null 1>>5
+
+readarray -t g < 5
+h=( )
+k=0
+for (( i=0; i < ${c}; i++))
+do
+	for (( j=0; j < ${c}; j++)); do
+		if [ "${knowngames[${i}]}" = "${remotegames[${j}]}" ]; then
+			h[${k}]=${g[${j}]}
+			k=$((k+1))
+			break
+		fi
+	done
+done
+echo ${h[@]} | tr ' ' '\n' > 6
+sed -i -e 's/,//g' 6
