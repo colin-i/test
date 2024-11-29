@@ -10,8 +10,8 @@ def parse():
 	global lines
 	with open(fn) as f:
 		text=f.read()
-	lines = text.splitlines()
-	n=len(lines)-1
+	lines = text.splitlines() #this is not getting the last blank line
+	n=len(lines)
 	for i in range(0,n):
 		if lines[i].split(',')[0]==fname:
 			print("updated")
