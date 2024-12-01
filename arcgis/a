@@ -8,9 +8,9 @@ if [ "${ans}" = "y" ]; then
 	./c _new && \
 	./c
 else
-	echo for _new and normal \? y \? && \
+	echo from _new to normal \? y \? && \
 	read -n1 -t $((60*60*24)) ans && \
-	if [ "${ans}" = "y" ]; then    #default case from _new to normal
+	if [ "${ans}" = "y" ]; then    #default case for _new and normal
 		has_new=x ./c _new && \
 		has_new=x ./c
 	else                           #only at _new
