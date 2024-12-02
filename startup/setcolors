@@ -1,5 +1,5 @@
 
-nexttime=`php -f /home/bc/test/startup/is_day.php`
+nexttime=${1}
 colorstyle=`gsettings get org.gnome.desktop.interface color-scheme`
 
 #1 app that use this is at ~/test/act

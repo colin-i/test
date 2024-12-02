@@ -3,7 +3,7 @@ if [ ! -e ~/choose_term_profile ]; then
 	if [ -z "${skip_profile}" ]; then
 		if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 		#	${SSH_CONNECTION} , ${SSH_CLIENT}
-			~/test/startup/setcolors || exit
+			~/test/startup/setcolors `php -f /home/bc/test/startup/is_day.php` || exit
 		fi
 	else
 		echo ${skip_profile}
