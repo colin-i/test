@@ -52,7 +52,14 @@ for n in "${name[@]}"; do
 				notify-send "stopped"
 				exit 1
 			fi
-			sleep $((((counter/10)+1)*100))
+			nr=${counter}
+			while :; do
+				sleep 100
+				echo ${nr}
+				if [ ${nr} -eq 0 ]; then break; fi
+				nr=$((nr-1))
+			done
+			#sleep $((((counter/10)+1)*100))
 		done
 	done
 	if [ -n "${terminator}" ]; then
