@@ -40,6 +40,7 @@ for n in "${name[@]}"; do
 			fi
 			counter=$((counter+1))
 			echo ${counter} ${OUTPUT}
+			if [ -n "${no_wait}" ]; then break; fi
 			if [ "${OUTPUT}" = 'Published' ]; then
 				if [ -e ~/stopwaitingflag ]; then
 					rm ~/stopwaitingflag
