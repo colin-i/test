@@ -1,7 +1,4 @@
 
-# convert a.png -crop 1720x1030+200+50 a.jpg
-# convert a.jpg -crop 1443x928+110+2 b.jpg
-
 #import numpy
 from PIL import Image
 

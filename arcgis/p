@@ -1,0 +1,9 @@
+
+if [ -z "${1}" ]; then echo error; exit 1; fi
+mv ${1} ~/Desktop/a.png
+cd ~/Desktop
+convert a.png -crop 1720x1030+200+50 b.jpg
+convert b.jpg -crop 1443x1007+110+2 a.jpg
+rm a.png
+rm b.jpg
+rm a.pdf
