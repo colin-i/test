@@ -1,0 +1,2 @@
+
+python ~/test/arcgis/up.py ${1} `cat ~/n/pat16|head -1`
