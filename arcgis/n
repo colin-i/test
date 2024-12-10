@@ -1,0 +1,10 @@
+
+echo from _new to normal
+python nlist.py > ~/Desktop/1
+IFS=$'\n' a=( `cat ~/Desktop/1` )
+rm ~/Desktop/1
+b=( `cat ~/measures/text_new` )
+c=( `cat ~/measures/text_last_new` )
+for (( i=0; i < ${#a[@]}; i++)); do
+	echo ${a[${i}]} ${b[${i}]} ${c[${i}]}
+done

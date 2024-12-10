@@ -8,7 +8,7 @@ if [ -z "${has_new}" ]; then
 		exit 0
 	fi
 	if [ -n "${1}" ]; then
-		echo plus at ${1}
+		./n
 		exit 1
 	fi
 	./d || exit 1
