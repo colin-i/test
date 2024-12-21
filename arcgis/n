@@ -1,6 +1,6 @@
 
 echo from _new to normal
-python nlist.py > ~/Desktop/1
+python nlist.py _new > ~/Desktop/1
 IFS=$'\n' a=( `cat ~/Desktop/1` )
 rm ~/Desktop/1
 b=( `cat ~/measures/text_new` )
