@@ -9,7 +9,7 @@ if [ -z "${has_new}" ]; then
 	fi
 	if [ -n "${1}" ]; then
 		./n
-		exit 1
+		exit 2
 	fi
 	./d || exit 1
 	cp ~/measures/text ~/measures/text_last

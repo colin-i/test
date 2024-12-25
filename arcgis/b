@@ -9,7 +9,7 @@ d=`grep "Edited by cestrin" ${files[0]}`
 if [ -z "${d}" ]; then exit 1; fi
 n=`grep -r "${d}" | wc -l`
 if [ ${n} != ${#files[@]} ]; then exit 1; fi
-echo same date. ok.
+echo ${d}. same date. ok.
 
 for f in "${files[@]}"; do
 	if [ -e ../ex${1}/${f} ]; then a=`cat ../ex${1}/${f}`

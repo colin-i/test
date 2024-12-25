@@ -1,20 +1,19 @@
 #has_new when new segment ( no diff check. will add segment name to result )
 
-python a.py && \
-echo no new \? y \? && \
-read -n1 -t $((60*60*24)) ans && \
+pdb a.py && \
 ./b _new && ./b && \
-if [ "${ans}" = "y" ]; then
-	./c _new && \
-	./c
+./c _new
+from_new_to_normal=$?
+if [ ${from_new_to_normal} -eq 1 ]; then exit 1; fi
+echo from_new_to_normal=${from_new_to_normal}. and added new at _new \? y \? && \
+read -n1 -t $((60*60*24)) ans && \
+if [ "${ans}" = "y" ] || [ ${from_new_to_normal} -eq 2 ]; then
+	has_new=x ./c _new
+fi && \
+if [ ${from_new_to_normal} -eq 2 ]; then
+	has_new=x ./c
 else
-	echo from _new to normal \? y \? && \
-	read -n1 -t $((60*60*24)) ans && \
-	if [ "${ans}" = "y" ]; then    #default case for _new and normal
-		has_new=x ./c _new && \
-		has_new=x ./c
-	else                           #only at _new
-		has_new=x ./c _new && \
-		./c
-	fi
+	./c
 fi
+
+#when from normal to out: use python nlist.py , remove from text text_last current new

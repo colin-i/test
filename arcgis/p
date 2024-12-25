@@ -1,9 +1,11 @@
 
+#take screenshot with selection and without
 if [ -z "${1}" ]; then echo error; exit 1; fi
-mv ${1} ~/Desktop/a.png
-cd ~/Desktop
-convert a.png -crop 1720x1030+200+50 b.jpg
-convert b.jpg -crop 1443x1007+110+2 a.jpg
-rm a.png
-rm b.jpg
-rm a.pdf
+a=~; mv "${a}/Pictures/Capturi de ecran/${1}" a.png
+convert a.png -crop 1650x950+150+50 a.jpg
+
+#python pixels.py > 1
+#example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
+# convert a.jpg -crop 1614x927+16+2 b.jpg
+# rm a.pdf a.png a.jpg 1
+# ~/test/arcgis/up b.jpg
