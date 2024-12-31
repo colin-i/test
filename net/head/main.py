@@ -42,6 +42,11 @@ if site==None:
 close_on_link=os.environ.get("close_on_link")
 print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link))
 
+with open(HOME+'/crashlimit', 'r') as file: #200000000
+	min = int(file.read()) #in Bytes
+with open(HOME+'/crashsleep', 'r') as file: #5
+	sleep = int(file.read())
+
 def stop():
 	print("stop")
 	ps=p.children(recursive=True)
@@ -74,28 +79,40 @@ options=webdriver.ChromeOptions()
 options.add_argument("user-data-dir=/home/bc/.config/chromium")
 d=webdriver.Chrome(options=options)
 d.request_interceptor=t2_f
+p=d.service.process.pid
+p=psutil.Process(p)
+from datetime import datetime
+after_load=0
+
+def t4_f():
+	while True:
+		time.sleep(sleep)
+		m=psutil.virtual_memory().available
+		print(str(datetime.now().minute)+' '+str(m))
+		if m<min:
+			print("limita")
+			with open(HOME+'/killstop', 'w') as file:
+				pass
+			break
+		if after_load==1:
+			break
+t4 = threading.Thread(target=t4_f)
+t4.start()
 d.get(site+sys.argv[1])
+after_load=1
+print("after load")
 
 fd = sys.stdin.fileno()
 oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
 fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
-p=d.service.process.pid
-p=psutil.Process(p)
-
-from datetime import datetime
-import psutil
-HOME=os.getenv('HOME')
-with open(HOME+'/crashlimit', 'r') as file: #200000000
-	min = int(file.read()) #in Bytes
-with open(HOME+'/crashsleep', 'r') as file: #5
-	sleep = int(file.read())
 def closing():
 	try:
 		d.close()
 	except:
 		pass #is already closed (the window)
 	d.quit()
+
 ex=0
 while True:
 	time.sleep(sleep)
