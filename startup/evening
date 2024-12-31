@@ -1,5 +1,5 @@
 #!/bin/bash
-# is_day.php(~/n/pat4) ~/maxmindif broadlink,(python-cryptography)
+# is_day.php(~/n/pat4) ~/maxmindif broadlink,(python3-cryptography)
 
 #need to wait for the date sync, and date is writing in local but date -d don't understand except english
 if [ -e ~/rememberevening ]; then
