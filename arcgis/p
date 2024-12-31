@@ -4,8 +4,33 @@ if [ -z "${1}" ]; then echo error; exit 1; fi
 a=~; mv "${a}/Pictures/Capturi de ecran/${1}" a.png
 convert a.png -crop 1650x950+150+50 a.jpg
 
-#python pixels.py > 1
+eog a.jpg
+echo pixels.py \? y \?
+read -n1 -t $((60*60*24)) q
+if [ "${q}" = "y" ]; then
+	python ~/test/arcgis/pixels.py > 1
+fi
+
 #example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
-# convert a.jpg -crop 1614x927+16+2 b.jpg
-# rm a.pdf a.png a.jpg 1
-# ~/test/arcgis/up b.jpg
+echo left top right bottom
+read -t $((60*60*24)) ans
+a=( ${ans} )
+IFS=',' read -a b <<< "${a[0]}"
+IFS=',' read -a c <<< "${a[1]}"
+IFS=',' read -a d <<< "${a[2]}"
+left=$(((b[1]-1)/9))
+top=$((b[0]-1))
+right=$(((c[1]-1)/9))
+bottom=$((d[0]-1))
+convert a.jpg -crop $((right-left))x$((bottom-top))+$((left))+$((top)) b.jpg
+
+eog b.jpg
+echo up \? y \?
+read -n1 -t $((60*60*24)) q
+if [ "${q}" = "y" ]; then
+	~/test/arcgis/up b.jpg | xclip -selection clipboard
+else
+	echo -n ${ans} | xclip -selection clipboard
+fi
+
+rm a.pdf a.png a.jpg 1 b.jpg

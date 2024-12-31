@@ -11,10 +11,10 @@ PATH = path.realpath(sys.argv[1])
 
 im = pyimgur.Imgur(CLIENT_ID)
 uploaded_image = im.upload_image(PATH, title="Auto")
-print(uploaded_image.title)
+#print(uploaded_image.title)
 print(uploaded_image.link)
-print(uploaded_image.size)
-print(uploaded_image.type)
+#print(uploaded_image.size)
+#print(uploaded_image.type)
 
 '''
 from os import path
