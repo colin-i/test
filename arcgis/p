@@ -2,9 +2,9 @@
 #take screenshot with selection and without
 if [ -z "${1}" ]; then echo error; exit 1; fi
 if [ -z "${2}" ]; then echo error; exit 1; fi
-a=~
+apath=~
 from_caps () {
-	mv "${a}/Pictures/Capturi de ecran/${1}" a.png
+	mv "${apath}/Pictures/Capturi de ecran/${1}" a.png
 	convert a.png -crop 1650x950+150+50 a.jpg
 }
 from_caps ${1}
