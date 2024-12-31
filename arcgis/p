@@ -1,15 +1,21 @@
 
 #take screenshot with selection and without
 if [ -z "${1}" ]; then echo error; exit 1; fi
-a=~; mv "${a}/Pictures/Capturi de ecran/${1}" a.png
-convert a.png -crop 1650x950+150+50 a.jpg
+if [ -z "${2}" ]; then echo error; exit 1; fi
+a=~
+from_caps () {
+	mv "${a}/Pictures/Capturi de ecran/${1}" a.png
+	convert a.png -crop 1650x950+150+50 a.jpg
+}
+from_caps ${1}
 
 eog a.jpg
-echo pixels.py \? y \?
+echo continue \? y \?
 read -n1 -t $((60*60*24)) q
-if [ "${q}" = "y" ]; then
-	python ~/test/arcgis/pixels.py > 1
+if [ "${q}" != "y" ]; then
+	exit 1
 fi
+python ~/test/arcgis/pixels.py > 1
 
 #example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 echo left top right bottom
@@ -22,15 +28,20 @@ left=$(((b[1]-1)/9))
 top=$((b[0]-1))
 right=$(((c[1]-1)/9))
 bottom=$((d[0]-1))
-convert a.jpg -crop $((right-left))x$((bottom-top))+$((left))+$((top)) b.jpg
+width=$((right-left))
+height=$((bottom-top))
+convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 
 eog b.jpg
-echo up \? y \?
+echo continue \? y \?
 read -n1 -t $((60*60*24)) q
-if [ "${q}" = "y" ]; then
-	~/test/arcgis/up b.jpg | xclip -selection clipboard
-else
-	echo -n ${ans} | xclip -selection clipboard
+if [ "${q}" != "y" ]; then
+	exit 1
 fi
+
+from_caps ${2}
+convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
+
+~/test/arcgis/up b.jpg | xclip -selection clipboard
 
 rm a.pdf a.png a.jpg 1 b.jpg
