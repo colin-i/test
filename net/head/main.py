@@ -49,7 +49,7 @@ with open(HOME+'/crashlimit', 'r') as file: #200000000
 	min = int(file.read()) #in Bytes
 with open(HOME+'/crashsleep', 'r') as file: #5
 	sleep = int(file.read())
-print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+min+",sleep="+sleep)
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+str(min)+",sleep="+str(sleep))
 
 def stop():
 	print("stop")
