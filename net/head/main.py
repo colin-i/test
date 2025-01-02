@@ -31,6 +31,11 @@ if no_keys==None:
 		#popen.wait()
 	t3 = threading.Thread(target=t3_f)
 	t3.start()
+no_cpulimit=os.environ.get("no_cpulimit")
+if no_cpulimit==None:
+	fd = sys.stdin.fileno()
+	oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+	fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 match=os.environ.get("match")
 if match==None:
 	with open(HOME+'/lessressmatch', 'r') as file: #pull
@@ -40,12 +45,11 @@ if site==None:
 	with open(HOME+'/lessressite', 'r') as file:   #https://www..com/
 		site=file.read()
 close_on_link=os.environ.get("close_on_link")
-print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link))
-
 with open(HOME+'/crashlimit', 'r') as file: #200000000
 	min = int(file.read()) #in Bytes
 with open(HOME+'/crashsleep', 'r') as file: #5
 	sleep = int(file.read())
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+min+",sleep="+sleep)
 
 def stop():
 	print("stop")
@@ -82,7 +86,7 @@ d.request_interceptor=t2_f
 p=d.service.process.pid
 p=psutil.Process(p)
 from datetime import datetime
-after_load=0
+#after_load=0
 
 def t4_f():
 	while True:
@@ -94,17 +98,13 @@ def t4_f():
 			with open(HOME+'/killstop', 'w') as file:
 				pass
 			break
-		if after_load==1:
-			break
+#		if after_load==1:
+#			break
 t4 = threading.Thread(target=t4_f)
 t4.start()
 d.get(site+sys.argv[1])
-after_load=1
+#after_load=1
 print("after load")
-
-fd = sys.stdin.fileno()
-oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
 def closing():
 	try:
@@ -113,29 +113,36 @@ def closing():
 		pass #is already closed (the window)
 	d.quit()
 
-ex=0
-while True:
-	time.sleep(sleep)
-	if done!=None:
-		closing()
-		break
-	c = sys.stdin.read(1)
-	if c!='':
-		if c==' ':
-			stop()
-			sys.stdin.read(1)
-			continue
-		elif c=='c':
-			cont()
-			sys.stdin.read(1)
-			continue
-		break
-	m=psutil.virtual_memory().available
-	print(str(datetime.now().minute)+' '+str(m))
-	if m<min:
-		print("limita")
-		closing()
-		ex=1
-		break
-print("z")
-exit(ex)
+#ex=0
+if no_cpulimit==None:
+	while True:
+		time.sleep(sleep)
+		if done!=None:
+			closing()
+			break
+		c = sys.stdin.read(1)
+		if c!='':
+			if c==' ':
+				stop()
+				sys.stdin.read(1)
+				continue
+			elif c=='c':
+				cont()
+				sys.stdin.read(1)
+				continue
+			break
+else:
+	while True:
+		time.sleep(sleep)
+		if done!=None:
+			closing()
+			break
+#	m=psutil.virtual_memory().available
+#	print(str(datetime.now().minute)+' '+str(m))
+#	if m<min:
+#		print("limita")
+#		closing()
+#		ex=1
+#		break
+print("end")
+#exit(ex)
