@@ -88,6 +88,7 @@ p=psutil.Process(p)
 from datetime import datetime
 #after_load=0
 
+end=0
 def t4_f():
 	while True:
 		time.sleep(sleep)
@@ -98,8 +99,8 @@ def t4_f():
 			with open(HOME+'/killstop', 'w') as file:
 				pass
 			break
-#		if after_load==1:
-#			break
+		if end==1:
+			break
 t4 = threading.Thread(target=t4_f)
 t4.start()
 d.get(site+sys.argv[1])
@@ -144,5 +145,6 @@ else:
 #		closing()
 #		ex=1
 #		break
+end=1
 print("end")
 #exit(ex)
