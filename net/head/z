@@ -1,6 +1,7 @@
 
+slp=`cat ~/crashsleep`
 while :; do
-	sleep 10
+	sleep ${slp}
 	if [ -e ~/killstop ]; then
 		id=`ps -C python -o pid,cmd | grep "python main.py" | tr -s ' ' | cut -d' ' -f2`
 		kill -9 ${id}
