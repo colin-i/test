@@ -1,4 +1,9 @@
 
+if [ `ps aux | grep "test/net/head/z" | wc -l` -lt 2 ]; then #that is the grep command that is always
+	echo "no external mem limit tester"
+	exit
+fi
+
 a="`dirname $0`"
 cd ${a}
 a=following
