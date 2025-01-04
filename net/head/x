@@ -2,7 +2,7 @@
 if [ `ps aux | grep "test/net/head/z" | wc -l` -lt 2 ]; then #that is the grep command that is always
 	lxterminal -e ~/test/net/head/z #not tab argument at lxterminal
 fi
-exit
+
 a="`dirname $0`"
 cd ${a}
 a=following
