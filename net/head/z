@@ -1,4 +1,4 @@
-#start with: bash test/net/head/z for test/net/head/x
+
 slp=`cat ~/crashsleep`
 while :; do
 	sleep ${slp}
