@@ -8,9 +8,9 @@ while :; do
 		id=`ps -C chromium -o pid,cmd | grep "/usr/lib/chromium/chromium" | tr -s ' ' | cut -d' ' -f2`
 		kill -9 ${id}
 		rm ~/killstop
-		echo again \? \y?
-		read -n1 -t $((60*60*24)) ans
-		if [ "${ans}" = "y" ]; then continue; fi
-		exit
+		echo ping #		echo again \? \y?
+#must /bin/bash start for this		read -n1 -t $((60*60*24)) ans
+#		if [ "${ans}" = "y" ]; then continue; fi
+#		exit
 	fi
 done
