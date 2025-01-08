@@ -1,0 +1,20 @@
+
+~/test/net/head/startz
+slp=`cat ~/crashsleep`
+limit=`cat ~/crashlimit`
+while :
+do
+	#not at termux #printf "%'d\n"
+	x=$(echo "`free | sed -n 2p | tr -s ' ' | cut -d' ' -f7`"000)
+	echo $(echo ${x} | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta') `date +%M:%S`
+	if [ ${x} -lt ${limit} ]; then
+		touch ~/killstop
+		while [ -e ~/killstop ]; do
+			echo stop
+			sleep ${slp}
+		done
+	fi
+	sleep ${slp}
+done
+
+#on termux use `whoami` and `passwd` and `ssh` with -p8022

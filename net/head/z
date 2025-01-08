@@ -4,7 +4,9 @@ while :; do
 	sleep ${slp}
 	if [ -e ~/killstop ]; then
 		id=`ps -C python -o pid,cmd | grep "python main.py" | tr -s ' ' | cut -d' ' -f2`
-		kill -9 ${id}
+		if [ -n "${id}" ]; then #also used at normal navigation
+			kill -9 ${id}
+		fi
 		id=`ps -C chromium -o pid,cmd | grep "/usr/lib/chromium/chromium" | tr -s ' ' | cut -d' ' -f2`
 		kill -9 ${id}
 		rm ~/killstop
