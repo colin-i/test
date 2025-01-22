@@ -13,16 +13,20 @@ jobs:
      run: |
       mkdir -p .cargo/bin
       cd docker/rufflebld
-      #../make
+      ../make
       pwd
       cd ../..
       pwd
       ls -la
       stat .cargo
-      #mv ./.cargo/bin/ruffle_desktop .  #hidden files are excluded by default, but was also a problem at one correct try
+      cd .cargo
+      stat bin
+      cd bin
+      stat ruffle_desktop
+      mv ruffle_desktop ../../
       echo "filepath=./ruffle_desktop" >> $GITHUB_ENV
-#   - name: artifact
-#     uses: actions/upload-artifact@v3
-#     with:
-#      name: release
-#      path: ${{ env.filepath }}
+   - name: artifact
+     uses: actions/upload-artifact@v3
+     with:
+      name: release
+      path: ${{ env.filepath }}
