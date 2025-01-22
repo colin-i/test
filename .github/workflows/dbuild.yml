@@ -1,0 +1,24 @@
+on:
+ workflow_dispatch:
+  inputs:
+   ppa:
+    description: "build artifact"
+
+jobs:
+ dbuild:
+  runs-on: ubuntu-24.04-arm
+  steps:
+   - uses: actions/checkout@v3
+   - name: Run a multi-line script
+     run: |
+      sudo apt update
+      sudo apt install -y docker
+      mkdir -p .cargo/bin
+      cd docker/rufflebld
+      ../make
+      echo "filepath=./.cargo/bin/ruffle_desktop" >> $GITHUB_ENV
+   - name: artifact
+     uses: actions/upload-artifact@v3
+     with:
+      name: release
+      path: ${{ env.filepath }}
