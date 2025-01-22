@@ -1,8 +1,5 @@
 on:
  workflow_dispatch:
-  inputs:
-   ppa:
-    description: "build artifact"
 
 jobs:
  dbuild:
