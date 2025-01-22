@@ -4,7 +4,7 @@ apt install -y curl git gcc pkgconf libssl-dev libudev-dev libasound2-dev openjd
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
 source "$HOME/.cargo/env" && \
 if [ ! -d ruffle ]; then
-	git clone https://github.com/colin-i/ruffle/ -b armbuild --depth 1 && \
+	git clone https://github.com/colin-i/ruffle/ -b build --depth 1 && \
 	cd ruffle
 else
 	cd ruffle && \
