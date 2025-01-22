@@ -18,7 +18,7 @@ jobs:
       mv ./.cargo/bin/ruffle_desktop .  #hidden files are excluded by default, but was also a problem at one correct try
       echo "filepath=./ruffle_desktop" >> $GITHUB_ENV
    - name: artifact
-     uses: actions/upload-artifact@v3
+     uses: actions/upload-artifact@v4
      with:
       name: release
       path: ${{ env.filepath }}
