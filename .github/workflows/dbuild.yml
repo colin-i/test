@@ -11,11 +11,10 @@ jobs:
    - uses: actions/checkout@v4
    - name: Run a multi-line script
      run: |
-      mkdir -p .cargo/bin
       cd docker/rufflebld
       ../make
       cd ../..
-      mv ./.cargo/bin/ruffle_desktop .  #hidden files are excluded by default, but was also a problem at one correct try
+      mv ~/.cargo/bin/ruffle_desktop .
       echo "filepath=./ruffle_desktop" >> $GITHUB_ENV
    - name: artifact
      uses: actions/upload-artifact@v4
