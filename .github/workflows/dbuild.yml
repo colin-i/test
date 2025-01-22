@@ -8,13 +8,15 @@ jobs:
  dbuild:
   runs-on: ubuntu-24.04-arm
   steps:
-   - uses: actions/checkout@v3
+   - uses: actions/checkout@v4
    - name: Run a multi-line script
      run: |
       mkdir -p .cargo/bin
       cd docker/rufflebld
       ../make
-      echo "filepath=./.cargo/bin/ruffle_desktop" >> $GITHUB_ENV
+      cd ../..
+      mv ./.cargo/bin/ruffle_desktop .  #hidden files are excluded by default, but was also a problem at one correct try
+      echo "filepath=./ruffle_desktop" >> $GITHUB_ENV
    - name: artifact
      uses: actions/upload-artifact@v3
      with:

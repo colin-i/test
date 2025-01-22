@@ -21,8 +21,12 @@ FROM \${ARCH}${s}
 
 COPY ./script /script
 EOF
-exit
-sudo docker buildx create --name=container --driver=docker-container --use --bootstrap container
-sudo docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ${d} .
-sudo docker buildx rm --keep-state container
+
+sudo docker buildx create --name=container --driver=docker-container --use --bootstrap && \
+# container
+sudo docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ${d} . && \
+# ./script need +r chmod if from user
+sudo docker buildx rm --keep-state container && \
 rm Dockerfile
+
+# sudo docker pull image0/rufflebld:latest
