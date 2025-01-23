@@ -20,10 +20,10 @@ sqlite3 ${db2} ".backup ${f}"
 #man anacron    cat /etc/anacrontab    sudo cp ./cron /etc/cron.monthly/    sudo cp ./cron /etc/cron.weekly/
 #Unlike cron(8), it does not assume that the machine is running continuously. Hence, it can be used on machines that aren't  running 24 hours a day, to control daily, weekly, and monthly jobs that are usually controlled by cron
 #see if will run
-#sudo run-parts --test /etc/cron.monthly
-#see how it runs
-#sudo run-parts --report /etc/cron.monthly
-#get the date when last weekly was run
+# sudo run-parts --test /etc/cron.monthly
+#see how it runs, is this working nowadays? if not, simply run the script
+# sudo run-parts --report /etc/cron.monthly
+#get the date when last was run
 # sudo cat /var/spool/anacron/cron.monthly
 
 python ${hm}/test/bookmarks/a.py ${db2} > ${f}.txt
