@@ -23,15 +23,18 @@ t=( `cat ~/twitch` )
 tm=$((month-1))
 echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
 
+amonth=6 #for northern hemisphere
+
+dst=0
 if perl -e 'exit ((localtime)[8])'; then #[8] is referring to $isdst from perl localtime list. test with perl -e 'print ((localtime)[8])'
 	#winter time
-	dst=60
-else
-	dst=0
+	if [ ${month} -gt ${amonth} ]; then #only when the sun goes down
+		dst=60
+	fi
 fi
 
-#modulo against june
-modulo=$((6-month))
+#modulo against amonth
+modulo=$((amonth-month))
 modulo=${modulo#-}  #;echo ${modulo}
 
 maximum=`cat ~/maxmindif` #99
@@ -60,10 +63,12 @@ else
 fi
 echo -n remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\)
 remaining=$((remaining1-dif+dst))
+
 echo =${remaining} or fixedremaining\(${remaining2}\)
 if [ ${remaining2} -gt ${remaining} ]; then
 	remaining=${remaining2}
 fi
+
 while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
 	echo ${remaining}
 	sleep 1m
