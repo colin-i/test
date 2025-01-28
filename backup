@@ -5,7 +5,7 @@
 #download with mime folder and .. 0
 
 #                                                                                                                     0 lines
-no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle jpexs-decompiler )
+no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle jpexs-decompiler wgpu egui )
 #                                  c75b874(and cpp_support/freetype_support)                                                   petcap/bitstorm +etcminer1/etcminer
 if [ ! -e ~/stats/h ]; then echo ~/stats/h; exit 1; fi
 yes=( `cat ~/stats/h` )
