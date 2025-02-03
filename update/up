@@ -1,11 +1,11 @@
 
 #optional  1 file
 
-if [ -z "${1}" ]; then file="colin-i-ubuntu-ppa.sources"
-else file="${1}"; fi  #is sources now but if set with list like in old examples, sudo apt update will fail
+if [ -z "${1}" ]; then files="-o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-exp.sources"
+else files="-o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${1}"; fi  #is sources now but if set with list like in old examples, sudo apt update will fail
 
-sudo apt update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-sudo apt upgrade -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/${file} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+sudo apt update ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 #/var/cache/apt
 
