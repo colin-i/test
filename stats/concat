@@ -64,7 +64,7 @@ done
 m=${#b2[@]}
 for (( i=${n}; i < ${m}; i++))
 do
-	out="${out} ${a2[${i}]}"
+	out="${out} $((a[${i}]+a2[${i}]))"  #at reconcatenate, a[i] is not defined but will be only a2[i]
 	out2="${out2} ${b2[${i}]}"
 	out3="${out3} ${c2[${i}]}"
 	out4="${out4} ${d2[${i}]}"
