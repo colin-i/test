@@ -3,8 +3,7 @@
 # python /data/data/com.termux/files/usr/lib/python3.12/pdb.py t.py
 
 print('py')
-import sys
-sys.stdout.flush()
+#sys.stdout.flush()
 
 # pip install broadlink / apt install python3-broadlink
 import broadlink
@@ -18,8 +17,16 @@ on=device.check_power()
 
 import subprocess
 import time
+import os
+import sys
+os.set_blocking(sys.stdin.fileno(), False)
 
 while True:
+	try: #Enter is enough
+		sys.stdin.read(1)[0]
+		break
+	except:
+		pass
 	a=subprocess.getoutput('termux-battery-status | jq .percentage')
 	print(a)
 	a=int(a)
@@ -31,5 +38,5 @@ while True:
 		if a<45:
 			device.set_power(True)
 			on=True
-	sys.stdout.flush()
+	#sys.stdout.flush()
 	time.sleep(100)
