@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/sh
+if [ "`ps aux|grep test/plug/t.py|wc -l`" = 1 ]; then
+	#f=/data/data/com.termux/files/home/log
+	echo sh #| tee ${f}
+	termux-wake-lock
+	python /data/data/com.termux/files/home/test/plug/t.py #| tee -a ${f}
+fi
+
+#Termux:Boot is not working, logcat is saying is executed and that's all
+##am start -n "com.termux/.HomeActivity"
+#AutoStart App Manager from The Sugar Apps. com.sugarapps.autostartmanager 6.2
