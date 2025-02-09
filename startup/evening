@@ -1,5 +1,6 @@
 #!/bin/bash
 # is_day.php(~/n/pat4) ~/maxmindif broadlink,(python3-cryptography)
+#switch x to python on/off
 
 #need to wait for the date sync, and date is writing in local but date -d don't understand except english
 if [ -e ~/rememberevening ]; then
@@ -75,16 +76,21 @@ while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on
 	remaining=$((remaining-1))
 done
 echo done
-python ~/test/plug/on.py
+
+if [ -n "${switch}" ]; then
+	python ~/test/plug/on.py
+fi
 
 if [ -e ~/rememberevening ]; then
 	tail -n 1 ~/rememberevening
 	date | tee -a ~/rememberevening
 else date; fi
 
-echo Enter for off
-read
-python ~/test/plug/off.py
+if [ -n "${switch}" ]; then
+	echo Enter for off
+	read
+	python ~/test/plug/off.py
+fi
 
 #in .config/lxsession/LXDE-pi/autostart
 

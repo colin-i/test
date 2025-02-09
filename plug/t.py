@@ -6,7 +6,7 @@ print('py')
 import sys
 sys.stdout.flush()
 
-# pip install broadlink
+# pip install broadlink / apt install python3-broadlink
 import broadlink
 
 devices = broadlink.discover(discover_ip_address='192.168.1.255')

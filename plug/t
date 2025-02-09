@@ -4,6 +4,7 @@ if [ "`ps aux|grep test/plug/t.py|wc -l`" = 1 ]; then
 	echo sh #| tee ${f}
 	termux-wake-lock
 	python /data/data/com.termux/files/home/test/plug/t.py #| tee -a ${f}
+	python /data/data/com.termux/files/home/test/plug/off.py
 fi
 
 #Termux:Boot is not working, logcat is saying is executed and that's all
