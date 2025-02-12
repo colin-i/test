@@ -90,6 +90,7 @@ if [ -n "${switch}" ]; then
 	echo Enter for off
 	read
 	python ~/test/plug/off.py
+else mpg123 ~/lr.mp3
 fi
 
 #in .config/lxsession/LXDE-pi/autostart
