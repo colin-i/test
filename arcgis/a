@@ -5,7 +5,7 @@ pdb a.py && \
 ./c _new
 from_new_to_normal=$?
 if [ ${from_new_to_normal} -eq 1 ]; then exit 1; fi
-echo from_new_to_normal=${from_new_to_normal}. and added new at _new \? y \? && \
+echo from_new_to_normal=${from_new_to_normal}. or added new at _new \? y \? && \
 read -n1 -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ] || [ ${from_new_to_normal} -eq 2 ]; then
 	has_new=x ./c _new

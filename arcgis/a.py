@@ -43,8 +43,8 @@ def click(x,y,pages):
 	action.pointer_action.move_to_location(x,y);action.pointer_action.click();action.perform()
 	bp() #async
 	if pages>0:
-		el=info.find_element(By.CLASS_NAME,"mainSection")
-		ActionChains(driver).move_to_element_with_offset(el,80,-240).perform()
+		el=info.find_element(By.CSS_SELECTOR,".titleButton.next")
+		ActionChains(driver).move_to_element(el).perform()
 		while pages>0:
 			action.pointer_action.click();action.perform()
 			bp()
