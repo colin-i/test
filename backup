@@ -3,6 +3,7 @@
 #stats/h,backup_paths,backup_is_pub,dbg
 #overall!=1 and not -z to skip overall
 #download with mime folder and .. 0
+#retest backup_paths with: a=( `~/a/cat backup_paths` ); for b in "${a[@]}"; do stat -L ${b} || { echo error; break; } done; echo done
 
 #                                                                                                                     0 lines
 no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle jpexs-decompiler wgpu egui )
