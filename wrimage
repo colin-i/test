@@ -1,8 +1,6 @@
 
 #1 input name
 
-#ok, if not using this and rpi-imager is too fast and errors, can use zstdcat .xz | sudo dd bs=5M status=progress of= of from fdisk -l
-
 if [ -z "${1}" ]; then
 	echo argument required
 	exit 1
@@ -61,9 +59,9 @@ if [ ${k} -gt 0 ]; then
 	read -n1 -t $((60*60*24)) ans
 	if [ "${ans}" = "y" ]; then
 		if [ "${extension}" = "xz" ]; then
-			xzcat ${1} | sudo dd of=${name} status=progress bs=134217728
+			xzcat ${1} | sudo dd of=${name} status=progress bs=134217728; sync
 		else
-			sudo dd if=${fullname} of=${name} status=progress bs=134217728
+			sudo dd if=${fullname} of=${name} status=progress bs=134217728; sync
 			#default bs is 512
 		fi
 	else
