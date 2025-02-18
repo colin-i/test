@@ -36,8 +36,10 @@ nmcli c up ethul
 
 sudo nmcli d wifi connect netis_5G
 #after that there is at nmcli c / nmcli d ;  the point is that ping command will not work in this current setup with eth used at sharing
+nmcli c show secondconnectionname
 sudo nmcli c down netis_5G
 sudo nmcli c modify netis_5G ipv4.never-default true
+nmcli c show secondconnectionname
 sudo nmcli c up netis_5G
 
 if at .bashrc and ssh: if [ -z "${SSH_TTY}" ]; then
