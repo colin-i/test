@@ -93,11 +93,19 @@ if [ -n "${switch}" ]; then
 else mpg123 ~/lr.mp3
 fi
 
-#in .config/lxsession/LXDE-pi/autostart
+##old in .config/lxsession/LXDE-pi/autostart
+##@lxpanel --profile LXDE-pi
+##@pcmanfm --desktop --profile LXDE-pi
+##@lxterminal -e /home/bc/evening
 
-#@lxpanel --profile LXDE-pi
-#@pcmanfm --desktop --profile LXDE-pi
-#@lxterminal -e /home/bc/evening
+#in .config/autostart
+#[Desktop Entry]
+#Type=Application
+#Name=even
+#Exec=lxterminal -e /home/bc/evening
+#Terminal=true
+
+#/home/bc/evening
 #sleep 10
 #sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
 #/home/bc/evening
