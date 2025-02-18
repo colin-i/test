@@ -99,5 +99,5 @@ fi
 #@pcmanfm --desktop --profile LXDE-pi
 #@lxterminal -e /home/bc/evening
 #sleep 10
-#sudo mount 192.168.1.12:/home/bc/a/a /home/bc/a
-#/home/bc/test/startup/evening
+#sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
+#/home/bc/evening
