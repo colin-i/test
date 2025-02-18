@@ -6,13 +6,15 @@
 nm=torra
 #fi
 
+if [ -z "${arhroot}" ]; then arhroot=/media/bc/sandisk; fi
+
 if [ -z "${1}" ]; then
 	echo home to media
 	a=config
-	b=/media/bc/sandisk/a/arh/config/${nm}/config
+	b=${arhroot}/a/arh/config/${nm}/config
 else
 	echo media to home
-	a=/media/bc/sandisk/a/arh/config/${nm}/config
+	a=${arhroot}/a/arh/config/${nm}/config
 	b=config
 fi
 
@@ -25,17 +27,17 @@ mv 1 config
 diff ${a} ${b}
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
-		echo "${p}config -> /media/bc/sandisk/a/arh/config/${nm}/config"
+		echo "${p}config -> ${arhroot}/a/arh/config/${nm}/config"
 	else
-		echo "/media/bc/sandisk/a/arh/config/${nm}/config -> ${p}config"
+		echo "${arhroot}/a/arh/config/${nm}/config -> ${p}config"
 	fi
 	echo sync \? y \? && \
 	read -n1 -t $((60*60*24)) ans && \
 	if [ "${ans}" = "y" ]; then
 		if [ -z "${1}" ]; then
-			rsync -av config /media/bc/sandisk/a/arh/config/${nm}/config
+			rsync -av config ${arhroot}/a/arh/config/${nm}/config
 		else
-			rsync -av /media/bc/sandisk/a/arh/config/${nm}/config config
+			rsync -av ${arhroot}/a/arh/config/${nm}/config config
 		fi
 	else
 		echo no
@@ -47,17 +49,17 @@ mv 1 configs
 diff ${a}s ${b}s
 if [ "$?" != 0 ]; then
 	if [ -z "${1}" ]; then
-		echo "${p}configs -> /media/bc/sandisk/a/arh/config/${nm}/configs"
+		echo "${p}configs -> ${arhroot}/a/arh/config/${nm}/configs"
 	else
-		echo "/media/bc/sandisk/a/arh/config/${nm}/configs -> ${p}configs"
+		echo "${arhroot}/a/arh/config/${nm}/configs -> ${p}configs"
 	fi
 	echo sync \? y \? && \
 	read -n1 -t $((60*60*24)) ans && \
 	if [ "${ans}" = "y" ]; then
 		if [ -z "${1}" ]; then
-			rsync -av configs /media/bc/sandisk/a/arh/config/${nm}/configs
+			rsync -av configs ${arhroot}/a/arh/config/${nm}/configs
 		else
-			rsync -av /media/bc/sandisk/a/arh/config/${nm}/configs configs
+			rsync -av ${arhroot}/a/arh/config/${nm}/configs configs
 		fi
 	else
 		echo no

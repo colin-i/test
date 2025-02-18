@@ -1,5 +1,8 @@
 
 #1 input name
+
+#ok, if not using this and rpi-imager is too fast and errors, can use zstdcat .xz | sudo dd bs=5M status=progress of= of from fdisk -l
+
 if [ -z "${1}" ]; then
 	echo argument required
 	exit 1
