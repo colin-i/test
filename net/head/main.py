@@ -1,6 +1,7 @@
 
 #if having mem: in /etc/rc.local swapoff -a
-# python3-selenium python3-zstandard  pip install selenium-wire  python3-pyperclip
+# python3-selenium python3-pyperclip python3-zstandard  pip install selenium-wire
+# crashsleep crashlimit lessressmatch lessressite
 
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.options import Options
