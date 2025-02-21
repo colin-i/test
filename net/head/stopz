@@ -1,5 +1,5 @@
 
-id=`ps -C sh -o pid,cmd | grep "test/net/head/z" | cut -d' ' -f1`
+id=`ps -C sh -o pid,cmd | grep "test/net/head/z" | cut -d' ' -f2`
 if [ -n "${id}" ]; then
 	kill -s 9 ${id}
 fi
