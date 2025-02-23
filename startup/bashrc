@@ -25,13 +25,12 @@ if [ $? = 1 ]; then
 fi
 unset a
 
-if [ "`uname -m`" != "x86_64" ]; then
+uname_m=`uname -m`
+if [ "${uname_m}" != "x86_64" ]; then
 	export PATH=${PATH}:~/x86_64
-	alias gd='gdb -ex start'
 else
 	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 	echo -n "PKG_CONFIG_PATH=${PKG_CONFIG_PATH} "
-	alias gd='gdb -ex ar -ex start'
 fi
 export PYTHONPATH=$PYTHONPATH: #for what? cd ~/t/torra-1; ./b : will do: ImportError: Error while finding module specification for 'torra.main' (ModuleNotFoundError: No module named 'torra')
 export PYTHONPYCACHEPREFIX=~/pycache

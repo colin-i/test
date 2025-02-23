@@ -6,3 +6,8 @@ alias cop='~/test/startup/cp'
 alias gfind='echo "#include <gtk/gtk.h>" | cc `pkg-config --cflags gtk4` -E -dD - | grep'
 alias fnd='find -name'
 alias xx='xxd -c 48 -g 4'
+if [ "${uname_m}" != "x86_64" ]; then
+	alias gd='gdb -ex start'
+else
+	alias gd='gdb -ex ar -ex start'
+fi
