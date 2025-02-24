@@ -1,5 +1,5 @@
 
-id=`ps -C sh -o pid,cmd | grep "test/net/head/z" | cut -d' ' -f2`
+id=`ps -C sh -o pid,cmd | grep "test/net/head/z" | grep -o "^ *[^ ]*" | grep -o "[^ ]*$"` #a few times with leading space, a few times without
 if [ -n "${id}" ]; then
 	kill -s 9 ${id}
 fi
