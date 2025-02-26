@@ -19,10 +19,13 @@ if not os.path.exists(path):
 #
 # The credentials requested are arbitrary, they are not of interest.
 def trigger_keyring_unlock_popup():
-    try:
-        get_credential("service", "login")
-    except:
-        print("Keyring unlock popup closed! (cancelled)")
+	try:
+		#if adding kwallet but still want gnome: in .config/python_keyring/keyringrc.cfg add:
+		#[backend]
+		#default-keyring=keyring.backends.SecretService.Keyring
+		get_credential("service", "login")
+	except:
+		print("Keyring unlock popup closed! (cancelled)")
 
 # Create a thread to trigger the keyring unlock popup.
 popup = Thread(target = trigger_keyring_unlock_popup)
