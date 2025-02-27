@@ -18,6 +18,7 @@ curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/p
 
 echo ${id}
 if [ "${id}" = "null" ]; then
+echo error at arhstore
 exit -1
 fi
 
@@ -25,4 +26,5 @@ cd ~/arhiva && \
 gh workflow run rel.yml -f name=${repo_at_gh} -f version=${1} -f id=${id} && \
 # -f release=
 ~/test/pub rel && \
-~/test/pub2 ${repo_at_gh}_${1}
+~/test/pub2 ${repo_at_gh}_${1} && \
+~/test/git/arhsize
