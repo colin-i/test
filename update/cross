@@ -1,14 +1,25 @@
 
 # sudo docker pull ubuntu
-# apt install gnupg ca-certificates
+# apt install gnupg ca-certificates         binutils xz-utils
 # apt-key ...
 # sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources /etc/apt/sources.list.d/
 # dpkg --add-architecture amd64
-# apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-# apt download ocompiler
-# ar -xf ${1}*
-# xz -d control.tar.xz
-# tar -xf control.tar
-# sudo docker cp ...:/root/usr/bin/... ~/x86_64_orig
-# o; ounused; otoc; stat -c %y x86_64_lib/libactionswf.so
-# sudo docker ps -a --size
+if [ -n "${1}" ]; then
+	apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+	rm ${1}*
+	apt download ${1}
+	ar -xf ${1}*
+	rm data.tar
+	xz -d data.tar.xz
+	tar -xf data.tar
+else
+	id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
+	sudo docker cp ${id}:/root/usr/bin/o ~/x86_64_orig
+	sudo docker cp ${id}:/root/usr/bin/otoc ~/x86_64_orig
+	sudo docker cp ${id}:/root/usr/bin/ounused ~/x86_64_orig
+	o
+	otoc
+	ounused
+	sudo docker ps -a --size
+	# stat -c %y x86_64_lib/libactionswf.so
+fi
