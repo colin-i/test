@@ -18,7 +18,7 @@ else #has_new
 	cp ~/measures/text${1} ~/measures/text_last${1} && \
 	if [ -n "${1}" ]; then
 		exit 0
-	fi
+	fi && \
 	python c.py
 fi && \
 sed -i "s/\./,/g" ~/measures/text && \

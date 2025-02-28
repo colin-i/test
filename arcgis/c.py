@@ -4,8 +4,10 @@ import sys
 
 if len(sys.argv)>1:
 	type=sys.argv[1]
+	extra_because_blank_is_bash_null="E"
 else:
 	type=""
+	extra_because_blank_is_bash_null=""
 
 root=os.environ["HOME"]+"/measures/"
 with open(root+"recs"+type,"rb") as file:
@@ -15,4 +17,4 @@ with open(root+"text"+type,"w") as out:
 		with open(root+"current"+type+"/"+r[2],"rb") as f:
 			b=""
 			if os.environ.get("has_new"): b=" "+r[2]
-			print(f.read().decode()+b,file=out)
+			print(extra_because_blank_is_bash_null+f.read().decode()+b,file=out)

@@ -12,7 +12,15 @@ if [ ${n} != ${#files[@]} ]; then exit 1; fi
 echo ${d}. same date. ok.
 
 for f in "${files[@]}"; do
-	if [ -e ../ex${1}/${f} ]; then a=`cat ../ex${1}/${f}`
-	else a="stadiu_actual_fizic "; fi
-	echo -n `grep -Poe "(?<=^${a})[^ ]*" ${f}` > ../current${1}/${f}
+	if [ -e ../ex${1}/${f} ]; then
+		a=`cat ../ex${1}/${f}`
+		z=`grep "${a}" -A 1 ${f} | sed -n 2p | grep -o "^[ ]*[^ ]*"`
+		if [ -e ../ex2${1}/${f} ]; then
+			z=$(python ~/test/arcgis/bb.py "$(cat ../ex2${1}/${f})" ${z})%
+		fi
+	else
+		a="stadiu_actual_fizic "
+		z=`grep -Poe "(?<=^${a})[^ ]*" ${f}`
+	fi
+	echo -n ${z} > ../current${1}/${f}
 done

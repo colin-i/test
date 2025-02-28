@@ -49,7 +49,7 @@ def click(x,y,pages):
 			action.pointer_action.click();action.perform()
 			bp()
 			pages=pages-1
-
+import time
 def pack(type):
 	with open(root+"recs"+type,"rb") as file:
 		rd=file.read()
@@ -67,6 +67,7 @@ def pack(type):
 		click(r[0],r[1],p) #to load for write
 		with open(root+"new"+type+"/"+r[2],"wb") as file: file.write(info.text.encode())
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
+		time.sleep(5) #sometimes next click seems to be on undestroyed previous
 pack("_new")
 pack("")
 

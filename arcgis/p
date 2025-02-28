@@ -1,13 +1,16 @@
 
-#take screenshot with selection and without
+#format, conditions, manage, edit, A2:R29, ok
+#select, print, print selected cells, print to file, Desktop/a
+#take screenshot, with left bar visible
+#in Desktop/a ~/test/arcgis/p paste
 if [ -z "${1}" ]; then echo error; exit 1; fi
-if [ -z "${2}" ]; then echo error; exit 1; fi
+#if [ -z "${2}" ]; then echo error; exit 1; fi
 apath=~
 from_caps () {
 	mv "${apath}/Pictures/Capturi de ecran/${1}" a.png
-	convert a.png -crop 1650x950+150+50 a.jpg
+	convert a.png -crop 1770x1030+150+50 a.jpg
 }
-from_caps ${1}
+from_caps "${1}"
 
 eog a.jpg
 echo continue \? y \?
@@ -15,19 +18,20 @@ read -n1 -t $((60*60*24)) q
 if [ "${q}" != "y" ]; then
 	exit 1
 fi
-python ~/test/arcgis/pixels.py > 1
+#python ~/test/arcgis/pixels.py > 1
+#here can use: kolourpaint ./a.jpg
 
-#example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
+#at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 echo left top right bottom
 read -t $((60*60*24)) ans
 a=( ${ans} )
-IFS=',' read -a b <<< "${a[0]}"
-IFS=',' read -a c <<< "${a[1]}"
-IFS=',' read -a d <<< "${a[2]}"
-left=$(((b[1]-1)/9))
-top=$((b[0]-1))
-right=$(((c[1]-1)/9))
-bottom=$((d[0]-1))
+#IFS=',' read -a b <<< "${a[0]}"
+#IFS=',' read -a c <<< "${a[1]}"
+#IFS=',' read -a d <<< "${a[2]}"
+left=${a[0]}   #at edor was $(((b[1]-1)/9))
+top=${a[1]}    #at edor was $((b[0]-1))
+right=${a[2]}  #at edor was $(((c[1]-1)/9))
+bottom=${a[3]} #at edor was $((d[0]-1))
 width=$((right-left))
 height=$((bottom-top))
 convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
@@ -39,9 +43,15 @@ if [ "${q}" != "y" ]; then
 	exit 1
 fi
 
-from_caps ${2}
-convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
+#from_caps ${2}
+#convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 
 ~/test/arcgis/up b.jpg | xclip -selection clipboard
+xclip -selection clipboard -o
+echo continue \? y \?
+read -n1 -t $((60*60*24)) q
+if [ "${q}" != "y" ]; then
+	exit 1
+fi
 
 rm a.pdf a.png a.jpg 1 b.jpg

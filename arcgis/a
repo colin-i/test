@@ -16,4 +16,7 @@ else
 	./c
 fi
 
-#when from normal to out: use python nlist.py , remove from text text_last current new
+#this at question
+#when from new to normal: move from: recs_new to recs, move from current_new to current, enter; after that also move from: new_new,ex_new,ex2_new
+
+#when from normal to out: use python nlist.py , remove from: recs text text_last current new ex ex2
