@@ -13,12 +13,29 @@ if [ -n "${1}" ]; then
 	xz -d data.tar.xz
 	tar -xf data.tar
 else
+	temp () {
+		sudo docker cp ${id}:${1} ${a} || exit 1
+		sudo chown bc:bc ${a}
+		b=`basename ${1}`
+		c=${2}/${b}
+		diff ${c} ${a}
+		if [ $? != 0 ]; then
+			echo ${b}
+			mv ${a} ${c}
+		else
+			rm ${a}
+		fi
+	}
 	id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
-	sudo docker cp ${id}:/root/usr/bin/o ~/x86_64_orig
-	sudo docker cp ${id}:/root/usr/bin/otoc ~/x86_64_orig
-	sudo docker cp ${id}:/root/usr/bin/ounused ~/x86_64_orig
-	sudo docker cp ${id}:/root/usr/lib/libactionswf.so ~/x86_64_lib
-	sudo docker ps -a --size
+	sudo docker container start ${id} || exit 1
+	sudo docker container attach ${id} || exit 1
+	# cd && ./cross ocompiler && exit
+	# cd && ./cross actionswf && exit
+	a=/tmp/cross_temp
+	temp /root/usr/bin/o ~/x86_64_orig
+	temp /root/usr/bin/otoc ~/x86_64_orig
+	temp /root/usr/bin/ounused ~/x86_64_orig
+	temo /root/usr/lib/libactionswf.so ~/x86_64_lib
 	o
 	otoc
 	ounused
