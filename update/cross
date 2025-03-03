@@ -13,6 +13,12 @@ if [ -n "${1}" ]; then
 	xz -d data.tar.xz
 	tar -xf data.tar
 else
+	id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
+	sudo docker container start ${id} || exit 1
+	sudo docker container attach ${id} || exit 1
+	# cd && ./cross ocompiler && exit
+	# cd && ./cross actionswf && exit
+	a=/tmp/cross_temp
 	temp () {
 		sudo docker cp ${id}:${1} ${a} || exit 1
 		sudo chown bc:bc ${a}
@@ -26,12 +32,6 @@ else
 			rm ${a}
 		fi
 	}
-	id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
-	sudo docker container start ${id} || exit 1
-	sudo docker container attach ${id} || exit 1
-	# cd && ./cross ocompiler && exit
-	# cd && ./cross actionswf && exit
-	a=/tmp/cross_temp
 	temp /root/usr/bin/o ~/x86_64_orig
 	temp /root/usr/bin/otoc ~/x86_64_orig
 	temp /root/usr/bin/ounused ~/x86_64_orig
