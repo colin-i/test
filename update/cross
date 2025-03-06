@@ -4,40 +4,10 @@
 # apt-key ...
 # sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources /etc/apt/sources.list.d/
 # dpkg --add-architecture amd64
-if [ -n "${1}" ]; then
-	apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-	rm ${1}*
-	apt download ${1}
-	ar -xf ${1}*
-	rm data.tar
-	xz -d data.tar.xz
-	tar -xf data.tar
-else
-	id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
-	sudo docker container start ${id} || exit 1
-	sudo docker container attach ${id} || exit 1
-	# cd && ./cross ocompiler && exit
-	# cd && ./cross actionswf && exit
-	a=/tmp/cross_temp
-	temp () {
-		sudo docker cp ${id}:${1} ${a} || exit 1
-		sudo chown bc:bc ${a}
-		b=`basename ${1}`
-		c=${2}/${b}
-		diff ${c} ${a}
-		if [ $? != 0 ]; then
-			echo ${b}
-			mv ${a} ${c}
-		else
-			rm ${a}
-		fi
-	}
-	temp /root/usr/bin/o ~/x86_64_orig
-	temp /root/usr/bin/ounused ~/x86_64_orig
-	temp /root/usr/bin/otoc ~/x86_64_orig
-	temp /root/usr/lib/libactionswf.so ~/x86_64_lib
-	o
-	otoc
-	ounused
-	stat -c %y ~/x86_64_lib/libactionswf.so
-fi
+apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+rm ${1}*
+apt download ${1}
+ar -xf ${1}*
+rm data.tar
+xz -d data.tar.xz
+tar -xf data.tar
