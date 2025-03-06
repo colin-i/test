@@ -33,9 +33,9 @@ else
 		fi
 	}
 	temp /root/usr/bin/o ~/x86_64_orig
-	temp /root/usr/bin/otoc ~/x86_64_orig
 	temp /root/usr/bin/ounused ~/x86_64_orig
-	temo /root/usr/lib/libactionswf.so ~/x86_64_lib
+	temp /root/usr/bin/otoc ~/x86_64_orig
+	temp /root/usr/lib/libactionswf.so ~/x86_64_lib
 	o
 	otoc
 	ounused
