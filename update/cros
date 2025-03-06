@@ -22,7 +22,7 @@ temp () {
 temp /root/usr/bin/o ~/x86_64_orig
 temp /root/usr/bin/ounused ~/x86_64_orig
 temp /root/usr/bin/otoc ~/x86_64_orig
-emp /root/usr/lib/libactionswf.so ~/x86_64_lib
+temp /root/usr/lib/libactionswf.so ~/x86_64_lib
 o
 otoc
 ounused
