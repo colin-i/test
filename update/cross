@@ -1,13 +1,16 @@
-
+#!/bin/bash
 # sudo docker pull ubuntu
 # apt install gnupg ca-certificates         binutils xz-utils
 # apt-key ...
-# sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources /etc/apt/sources.list.d/
+# id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
+# sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources ${id}:/etc/apt/sources.list.d/
 # dpkg --add-architecture amd64
-apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+cd
+apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || exit 1
 rm ${1}*
-apt download ${1}
+apt download ${1} || exit 1
 ar -xf ${1}*
 rm data.tar
 xz -d data.tar.xz
 tar -xf data.tar
+exit 0

@@ -1,10 +1,9 @@
 
-echo -n cd \&\& ./cross ${1} \&\& exit | xclip -selection clipboard
-echo paste: `xclip -selection clipboard -o`
-
 id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
 sudo docker container start ${id} || exit 1
-sudo docker container attach ${id} || exit 1
+sudo docker exec ${id} /root/cross ${1} || exit 1
+sudo docker container stop ${id} || exit 1
+
 a=/tmp/cross_temp
 temp () {
 	sudo docker cp ${id}:${1} ${a} || exit 1
