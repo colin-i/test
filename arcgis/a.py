@@ -68,6 +68,7 @@ def pack(type):
 		with open(root+"new"+type+"/"+r[2],"wb") as file: file.write(info.text.encode())
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 		time.sleep(5) #sometimes next click seems to be on undestroyed previous
+pack("0")
 pack("_new")
 pack("")
 
