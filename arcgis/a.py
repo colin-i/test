@@ -69,6 +69,7 @@ def pack(type):
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 		time.sleep(5) #sometimes next click seems to be on undestroyed previous
 pack("0")
+pack("1")
 pack("_new")
 pack("")
 
