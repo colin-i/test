@@ -28,31 +28,20 @@ if [ ! -e "./${file}" ]; then
 	rpm2cpio ${file} | cpio -idmv
 fi
 
-
 dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
-#sudo docker run -ti fedora
-#exit
-#sudo docker ps -a
-#sudo docker start ${contid}
-#sudo docker attach ${contid}
+# sudo docker pull fedora
+# sudo docker run -ti fedora
+# exit
+# sudo docker ps -a
+# sudo docker start ${contid}
+# sudo docker attach ${contid}
 #	yum install rpmrebuild
 contid=`sudo docker ps -a -f ancestor=fedora -q`
-
-#specific steps
-#if [ -e "${startdir}/arh/re" ]; then
-#${startdir}/arh/re
-#if [ "$?" != 0 ]; then
-#exit
-#fi
-#fi
-#echo edor text
-#echo -n rpmrebuild -s text ./${file} | xclip -selection clipboard
-#sudo docker container exec -it 5a2c45e95410 bash && \
 
 sudo docker container start ${contid} && \
 sudo docker container cp ./${file} ${contid}:/ && \
 \
-sudo docker exec ${contid} rpmrebuild -s text ./${file} && \
+sudo docker exec ${contid} rpmrebuild -s text -p ./${file} && \
 \
 sudo docker container cp ${contid}:/text text && \
 \
@@ -66,6 +55,7 @@ fi && \
 mkdir -p ${dir} && \
 mv usr ${dir}/ && \
 rpmbuild -bb --target ${arch} text && \
+#on arm this is: No compatible architectures found for build
 sudo docker exec ${contid} rm -rf /text && \
 sudo rm text && \
 rm arh.zip && \
