@@ -51,6 +51,7 @@ def click(x,y,pages):
 			pages=pages-1
 import time
 def pack(type):
+	bp()
 	with open(root+"recs"+type,"rb") as file:
 		rd=file.read()
 		print(rd.decode())
@@ -68,12 +69,13 @@ def pack(type):
 		with open(root+"new"+type+"/"+r[2],"wb") as file: file.write(info.text.encode())
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 		time.sleep(5) #sometimes next click seems to be on undestroyed previous
+pack("_")
 pack("0")
 pack("1")
 pack("_new")
 pack("")
+pack("_")
 
-bp()
 #bottom-left switch for watermark
 # !q=[];action.pointer_action.move_to_location(q[0],q[1]);action.pointer_action.click();action.perform()
 # with open(root+"new_new/"+"","wb") as file: file.write(info.text.encode())
