@@ -8,7 +8,7 @@ if [ -z "${has_new}" ]; then
 		exit 0
 	fi
 	if [ -n "${1}" ]; then
-		./n
+		./n _new
 		exit 2
 	fi
 	./d || exit 1

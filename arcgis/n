@@ -1,10 +1,9 @@
 
-echo from _new to normal
-python nlist.py _new > ~/Desktop/1
+python nlist.py ${1} > ~/Desktop/1
 IFS=$'\n' a=( `cat ~/Desktop/1` )
 rm ~/Desktop/1
-b=( `cat ~/measures/text_new` )
-c=( `cat ~/measures/text_last_new` )
+b=( `cat ~/measures/text${1}` )
+c=( `cat ~/measures/text_last${1}` )
 for (( i=0; i < ${#a[@]}; i++)); do
 	echo ${a[${i}]} ${b[${i}]} ${c[${i}]}
 done
