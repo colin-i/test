@@ -21,4 +21,4 @@ sudo docker container cp ${path} ${container}:`pwd -P`/ && \
 sudo gh act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/uprpm.yml && \
 rm ${path} && \
 sudo docker container stop ${container} && \
-sudo docker container rm ${container}
+sudo docker container rm ${container} && echo ok

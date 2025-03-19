@@ -44,27 +44,29 @@ dir=${HOME}/rpmbuild/BUILDROOT/`echo ${file} | grep -Poe ".*(?=\.)"`
 #	yum install rpmrebuild
 contid=`sudo docker ps -a -f ancestor=fedora -q`
 
-sudo docker container start ${contid} && \
-sudo docker container cp ./${file} ${contid}:/ && \
-\
-sudo docker exec ${contid} rpmrebuild -s text -p ./${file} && \
-\
-sudo docker container cp ${contid}:/text text && \
-\
-if [ -e "${startdir}/arh/re" ]; then
-	cp text text_cmp && \
-	${startdir}/arh/re ${startdir} && \
-	cat text && \
-	diff text text_cmp || \
-	rm text_cmp
-fi && \
-mkdir -p ${dir} && \
-mv usr ${dir}/ && \
-rpmbuild -bb --target ${arch} text && \
-#on arm this is: No compatible architectures found for build
-sudo docker exec ${contid} rm -rf /text && \
-sudo rm text && \
-rm arh.zip && \
-rm ${file}
-
-sudo docker container stop ${contid}
+sudo docker container start ${contid} && {
+	sudo docker container cp ./${file} ${contid}:/ && \
+	\
+	sudo docker exec ${contid} rpmrebuild -s text -p ./${file} && \
+	\
+	sudo docker container cp ${contid}:/text text && \
+	\
+	if [ -e "${startdir}/arh/re" ]; then
+		cp text text_cmp && \
+		${startdir}/arh/re ${startdir} && \
+		cat text && \
+		diff text text_cmp || \
+		rm text_cmp
+	fi && \
+	mkdir -p ${dir} && \
+	mv usr ${dir}/ && \
+	rpmbuild -bb --target ${arch} text && \
+	#on arm this is: No compatible architectures found for build
+	sudo docker exec ${contid} rm -rf /text && \
+	sudo rm text && \
+	rm arh.zip && \
+	rm ${file}
+	x=$?
+	sudo docker container stop ${contid}
+	exit ${x}
+}

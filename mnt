@@ -1,0 +1,9 @@
+
+if find ~/a -mindepth 1 -maxdepth 1 | read; then
+	exit 0
+else
+	sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
+	sudo mount 192.168.1.21:/home/bc/u /home/bc/u
+	#sudo mount 192.168.1.16:/media/bc/sandisk /home/bc/u
+	#sudo mount 192.168.1.16:/media/bc/3da161a7-a9dd-496b-aecf-434489e9d2da /home/bc/n
+fi
