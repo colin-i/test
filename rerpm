@@ -1,4 +1,10 @@
 
+if [ -e ~/rerpm_extern ]; then
+	echo rerpm ready\?
+	read -t $((60*60*24))
+	exit 0
+fi
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
 arch=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
