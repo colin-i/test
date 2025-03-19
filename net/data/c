@@ -1,18 +1,29 @@
 
 #1 post data  2 firefox folder  3 is debug
 
-cp /home/bc/.mozilla/firefox/`cat ~/n/pat${2}`.default-release/cookies.sqlite ./2
+dbfile=/home/bc/.mozilla/firefox/`cat ~/n/pat${2}`.default-release/cookies.sqlite
+#cp ${dbfile} ./2
 #Error: in prepare, database is locked (5)
 
 #dash does not have arrays
-k_v="`sqlite3 -separator ' ' ./2 "select name, value from moz_cookies where host='.digi.ro' and name not like '\_%' escape '\';" | head -1`"
+while :; do
+	k_v="`sqlite3 -separator ' ' ${dbfile} "select name, value from moz_cookies where host='.digi.ro' and name not like '\_%' escape '\';" 2>&1 | head -1`"
+	if [ "`expr substr "${k_v}" 1 6`" = "Error:" ]; then
+		echo ${k_v}
+		. ~/test/misc/read_char
+		wait_char
+	else
+		break
+	fi
+done
+
 k=`echo ${k_v} | grep -o "^[^ ]*"`
 v=`echo ${k_v} | grep -o "[^ ]*$"`
 if [ -n "${3}" ]; then
 	echo ${k};echo ${v}
 fi
 
-rm ./2
+#rm ./2
 
 curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -X POST \

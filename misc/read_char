@@ -4,3 +4,9 @@ read_char() {
   eval "$1=\$(dd bs=1 count=1 2>/dev/null)"
   stty icanon
 }
+
+wait_char() {
+  stty -icanon
+  eval "\$(dd bs=1 count=1 2>/dev/null)"
+  stty icanon
+}
