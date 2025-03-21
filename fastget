@@ -1,0 +1,24 @@
+
+name=( `cat debian/control | grep "^Package" | grep -o [^\ ]*$ | xargs` )
+version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+
+i=1;all_isnot_amd64=x
+for n in "${name[@]}"; do
+	source ~/test/publparh
+	for var in "${arh[@]}"
+	do
+		OUTPUT=`python3 ~/test/lp2.py ppa ${name} ${version} ${var}`
+		if [ "${lastvar}" = "all" ]; then v=${lastvar}
+		else v=${var}; fi
+		f=${n}_${version}_${v}.deb
+		file=${OUTPUT}/+files/${f}
+		echo ${n} ${var} ${version} ${file}
+		if [ "`dpkg --print-architecture`" = "${var}" ]; then
+			wget ${file} || exit 1
+			sudo dpkg -i ${f}
+			rm ${f}
+		fi
+		sleep 5
+	done
+	i=$((i+1))
+done

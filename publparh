@@ -1,9 +1,12 @@
 
 if [ -z "${arch}" ]; then
+#i is an input
+#arh lastvar are output
 	raw=( `cat debian/control | grep -Poe "(?<=^Architecture: ).*" | sed -n ${i}p` )
 	arh=
 	for var in "${raw[@]}"
 	do
+		lastvar=${var}
 		if [ "${var}" = "all" ]; then
 			var=amd64
 		fi
