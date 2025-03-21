@@ -13,12 +13,13 @@ for n in "${name[@]}"; do
 		f=${n}_${version}_${v}.deb
 		file=${OUTPUT}/+files/${f}
 		echo ${n} ${var} ${version} ${file}
+		sleep 5
 		if [ "`dpkg --print-architecture`" = "${var}" ]; then
 			wget ${file} || exit 1
 			sudo dpkg -i ${f}
 			rm ${f}
+			break
 		fi
-		sleep 5
 	done
 	i=$((i+1))
 done
