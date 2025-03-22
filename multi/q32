@@ -1,0 +1,1 @@
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/bc/Desktop/libc_i386/usr/lib/i386-linux-gnu qemu-i386 -g 1234 /home/bc/Desktop/libc_i386/usr/lib/i386-linux-gnu/ld-linux.so.2 "$@"

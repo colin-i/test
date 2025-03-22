@@ -1,0 +1,1 @@
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/bc/before/lib qemu-amd64 -g 1234 /home/bc/before/lib/ld-linux-x86-64.so.2 "$@"
