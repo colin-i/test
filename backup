@@ -6,7 +6,7 @@
 #retest backup_paths with: a=( `~/a/cat backup_paths` ); for b in "${a[@]}"; do stat -L ${b} || { echo error; break; } done; echo done
 
 #                                                                                                                     0 lines
-no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle jpexs-decompiler wgpu egui )
+no=( appimage.github.io LIEF box64 ming                                     pyaudio gnome-shell-system-monitor-applet tmp      bitstorm        etcminer           sync ruffle jpexs-decompiler wgpu egui bashdb )
 #                                  c75b874(and cpp_support/freetype_support)                                                   petcap/bitstorm +etcminer1/etcminer
 if [ ! -e ~/stats/h ]; then echo ~/stats/h; exit 1; fi
 yes=( `cat ~/stats/h` )
