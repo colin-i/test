@@ -1,0 +1,17 @@
+
+a=( "gre" "gr" "mov" "cop" "gd" "fnd" "xx" "gfind" )
+
+f=~/aliases
+echo -n > ${f}
+for var in "$@"; do
+	case $var in  #case. at this bash break is not required, will break the for
+	  gre) echo "alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'" >> ${f};;
+	  gr) echo "alias gr='gre --exclude=\*.c --exclude=\*.h --exclude=\*.x --exclude=\*.xx'" >> ${f};;
+	  mov) echo "alias mov='~/test/startup/mv'" >> ${f};;
+	  cop) echo "alias cop='~/test/startup/cp'" >> ${f};;
+	  gd) if [ "${uname_m}" != "x86_64" ]; then echo "alias gd='gdb -ex start'" >> ${f};else echo "alias gd='gdb -ex ar -ex start'" >> ${f};fi;;
+	  fnd) echo "alias fnd='find -name'" >> ${f};;
+	  xx) echo "alias xx='xxd -c 48 -g 4'" >> ${f};;
+	  gfind) echo "alias gfind='echo \"#include <gtk/gtk.h>\" | cc \$(pkg-config --cflags gtk4) -E -dD - | grep'" >> ${f};;
+	esac
+done

@@ -36,4 +36,4 @@ export PYTHONPATH=$PYTHONPATH: #for what? cd ~/t/torra-1; ./b : will do: ImportE
 export PYTHONPYCACHEPREFIX=~/pycache
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PATH=${PATH}
 
-source ~/test/startup/aliases
+source ~/aliases

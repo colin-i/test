@@ -13,5 +13,5 @@ if [ "${ans}" = "y" ]; then
 fi
 
 shopt -s expand_aliases
-source ~/test/startup/aliases
+source ~/aliases
 mov ~/aptlist2 ~/aptlist
