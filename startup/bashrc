@@ -28,6 +28,7 @@ unset a
 uname_m=`uname -m`
 if [ "${uname_m}" != "x86_64" ]; then
 	export PATH=${PATH}:~/x86_64
+	WINEPREFIX="/home/bc/a/wine"
 else
 	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 	echo -n "PKG_CONFIG_PATH=${PKG_CONFIG_PATH} "
