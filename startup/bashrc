@@ -3,7 +3,7 @@ if [ ! -e ~/choose_term_profile ]; then
 	if [ -z "${skip_profile}" ]; then
 		if [ -z "${SSH_TTY}" ]; then   #is not from ssh
 		#	${SSH_CONNECTION} , ${SSH_CLIENT}
-			~/test/startup/setcolors `php -f /home/bc/test/startup/is_day.php` || exit
+			~/test/startup/setcolors `php -f ${HOME}/test/startup/is_day.php` || exit
 		fi
 	else
 		echo ${skip_profile}
@@ -28,7 +28,7 @@ unset a
 uname_m=`uname -m`
 if [ "${uname_m}" != "x86_64" ]; then
 	export PATH=${PATH}:~/x86_64
-	export WINEPREFIX="/home/bc/a/wine"
+	export WINEPREFIX=~/a/wine
 else
 	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
 	echo -n "PKG_CONFIG_PATH=${PKG_CONFIG_PATH} "
