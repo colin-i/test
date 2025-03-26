@@ -8,7 +8,7 @@ git push ${3} ${to} || {
 ~/test/remote/waswrong ${to}
 exit 1
 }
-~/${4}test/remote/pushdiff ${nr_of_diffs} && \
+~/${4}test/remote/pushdiff ${nr} && \
 ~/${4}test/remote/pushinfo ${to} && \
 if [ -z "${no_activity}" ]; then
 	sleep 5
