@@ -22,6 +22,7 @@ done
 echo
 cat h
 echo
+git add h
 
 echo -n "${bb}" >> ./new
 git add ./new
