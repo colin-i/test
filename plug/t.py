@@ -11,9 +11,26 @@ import subprocess
 import threading
 exit=threading.Event()
 
+def set_off():
+	global on
+	try:
+		device.set_power(False)
+		on=False
+	except:
+		err()
+		pass
+def set_on():
+	global on
+	try:
+		device.set_power(True)
+		on=True
+	except:
+		err()
+		pass
 def err():
 	print("error")
 def t_f():
+	global device,on
 	devices = broadlink.discover(discover_ip_address='192.168.1.255')
 	device=devices[0]
 	device.auth()
@@ -25,22 +42,14 @@ def t_f():
 		a=int(a)
 		if on:
 			if a>55:
-				try:
-					device.set_power(False)
-					on=False
-				except:
-					err()
-					pass
+				set_off()
 		else:
 			if a<45:
-				try:
-					device.set_power(True)
-					on=True
-				except:
-					err()
-					pass
+				set_on()
 		exit.wait(100)
 	print('done')
+	if on:
+		set_off()
 
 t = threading.Thread(target=t_f)
 t.start()
