@@ -20,7 +20,7 @@ class picker(Gtk.Window):
         coordbox.pack_start(self.ycoor, True, False, 1)
         self.zoomwin=Gtk.Image()
         #Trying to draw on Gtk.Image with cairo for crosshairs... Not working
-        self.zoomwin.connect('draw', self.draw) 
+        self.zoomwin.connect('draw', self.draw)
         self.zoomwin.set_app_paintable(True)
         coordbox.pack_start(self.zoomwin,True,True,1)
         self.buttongo=Gtk.Button("Pick Color")
@@ -75,7 +75,7 @@ class picker(Gtk.Window):
     def grab_start(self):
         #Grab control of pointer outside of window
         self.grabbing = True
-        Gdk.pointer_grab(self.window, 
+        Gdk.pointer_grab(self.window,
                         True, #allow passage of pointer events to children
                         Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK,
                         None,
@@ -97,7 +97,7 @@ class picker(Gtk.Window):
     def grab_stop(self):
         #Stop Grabbing the pointer
         Gdk.pointer_ungrab(0)
-        self.grabbing=False     
+        self.grabbing=False
 
     def gobutton_activate(self, widget, data=None):
         #Button control
