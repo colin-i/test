@@ -1,5 +1,5 @@
 
-#example: nosleep=1 storage=/dev/mmcblk0p2,4,G firefox=13 no_temp=1 ~/test/startup/begin
+#example: nosleep=1 storage=/dev/mmcblk0p2,65 firefox=13 no_temp=1 ~/test/startup/begin
 #or storage=/dev/sda2,4,G is_vnc=1 ~/test/startup/begin
 
 if [ -z "${nosleep}" ]; then

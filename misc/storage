@@ -1,6 +1,29 @@
 #!/bin/bash
 
 IFS=',' read -a format <<< "${storage}"
-u=${format[2]}
-a=`df -B${u} | grep "^${format[0]} " |  tr -s ' ' | cut -d' ' -f4`
-echo free: ${a}. free-margin: `echo ${a:0:-1}-${format[1]} | bc`${u}
+
+#u=${format[2]}
+##a=`sudo fdisk -l | grep "^Disk ${format[0]}:" | tr -s ' ' | cut -d' ' -f5`
+#a=`df -B${u} | grep "^${format[0]} " |  tr -s ' ' | cut -d' ' -f4`
+#echo free: ${a}. free-margin: `echo ${a:0:-1}-${format[1]} | bc`${u}
+
+x=( `df | grep "^${format[0]} " |  tr -s ' '` )
+a=${x[1]}
+
+b=${x[4]}
+echo -n "using: ${b}"
+b=${b:0:-1}
+
+i=100
+while [ $a -gt 1000000 ]; do
+	a=$((a/2))
+	i=`echo "${i} * 0.${format[1]}" | bc -l`
+done
+c=`echo "100 - ${i}" | bc`
+echo -n ", max: ${c:0:5}%"
+
+if (( $(echo "${b} > ${c}" |bc -l) )); then
+	echo ", NOT OK"
+else
+	echo ", OK"
+fi
