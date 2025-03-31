@@ -2,7 +2,7 @@
 # optional 1 named  2 silent
 
 tmp=/tmp/dbgtmp
-git ls-files > ${tmp}
+eval "git ls-files ${dbgextra} > ${tmp}"
 
 b=~/dbg/
 if [ -n "${1}" ]; then
