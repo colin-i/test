@@ -22,4 +22,4 @@ patch --strip=1 --input=../${tof} && \
 cd .. && \
 sudo rm -r ${newname} && \
 cd .. && \
-makepkg --noextract --install
+~/test/pkg/re
