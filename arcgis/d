@@ -12,6 +12,10 @@ echo -n "changes: ${x} against ${n}. "
 if [ ${x} -ge ${y} ]; then
 	echo ${x} ge ${y}. ok.
 else
-	echo ${x} lt ${y}. more changes required.
-	exit 1
+	echo ${x} lt ${y}. too few changes. is ok? y?
+	read -n1 -t $((60*60*24)) ans
+	if [ "${ans}" != "y" ]; then
+		exit 1
+	fi
+	echo ok
 fi

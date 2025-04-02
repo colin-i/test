@@ -78,5 +78,4 @@ pack("_")
 
 #bottom-left switch for watermark
 # !q=[];action.pointer_action.move_to_location(q[0],q[1]);action.pointer_action.click();action.perform()
-# with open(root+"new_new/"+"","wb") as file: file.write(info.text.encode())
-#and don't add to recs_new now, it is after from new to normal check
+# !with open(root+"new_new/"+"","wb") as file: file.write(info.text.encode())

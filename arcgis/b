@@ -19,11 +19,15 @@ fi
 
 for f in "${files[@]}"; do
 	if [ -e ../ex${1}/${f} ]; then
-		a=`cat ../ex${1}/${f}`
+		IFS=$'\n' a=( `cat ../ex${1}/${f}` )
 		if [ -z "${1}" ]; then
-			z=`grep "${a}" -A 1 ${f} | sed -n 2p | grep -o "^[ ]*[^ ]*"`
+			if [ ${a[1]} = 0 ]; then
+				z=`grep -Po "(?<=${a[0]})[^ ]*" ${f}`
+			else
+				z=`grep "${a[0]}" -A 1 ${f} | sed -n 2p | grep -o "^[ ]*[^ ]*"`
+			fi
 		else
-			z=`grep "${a}" -A 1 ${f} | sed -n 2p`  #is not important to get the exact number at _new
+			z=`grep "${a[0]}" -A 1 ${f} | sed -n 2p`  #is not important to get the exact number at _new
 		fi
 		if [ -e ../ex2${1}/${f} ]; then
 			z=$(python ~/test/arcgis/bb.py "$(cat ../ex2${1}/${f})" ${z})%

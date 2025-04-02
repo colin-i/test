@@ -54,4 +54,4 @@ if [ "${q}" != "y" ]; then
 	exit 1
 fi
 
-rm a.pdf a.png a.jpg 1 b.jpg
+rm a.pdf a.png a.jpg b.jpg
