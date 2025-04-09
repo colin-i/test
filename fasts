@@ -1,0 +1,29 @@
+
+if [ -z "${1}" ]; then echo f1; fi
+if [ -z "${2}" ]; then echo f2; fi
+
+if [ -z "${3}" ]; then times=1; fi
+
+bench () {
+	start=`date "+%s.%N"`
+	${1}
+	time1=$(echo $(date "+%s.%N")-${start} | bc)
+	if [ `expr substr ${time1} 1 1` = "." ]; then time1=0${time1}; fi
+	x=$(eval echo $(echo \$\{time${2}\}))
+	time=$(echo ${x}+${time1} | bc)
+	if [ `expr substr ${time} 1 1` = "." ]; then time=0${time}; fi
+	eval time${2}="${time}"
+	x=$(eval echo $(echo \$\{time${2}\}))
+	echo "${1} ${time1} $x"
+}
+
+timea=0;timeb=0
+for ((i=0;i<times;i++)); do
+	bench ${1} a
+	bench ${2} b
+	bench ${2} b
+	bench ${1} a
+done
+x=$(echo "${timea}<${timeb}" | bc)
+echo -n "the winner is "
+if [ $x = 1 ]; then echo "$1"; else echo "$2"; fi
