@@ -1,25 +1,46 @@
+#!/bin/bash
+
 name=`cat PKGBUILD | grep -Po "(?<=^pkgname=).*"`
+rel=`cat PKGBUILD | grep -Po "(?<=^pkgrel=).*"`
+if [ ${rel} -ne 1 ]; then
+	echo this is a subrelease rel is not 1. Enter to continue
+	read -t $((60*60*24))
+fi
 cd src/${name} || exit 1
 
-tag=`git ls-remote --tags --sort='v:refname' | tail -n1 | sed 's/.*\///'`
+./clean || exit 1
+#this clean is only for safety
+git remote -v show origin | grep colin-i || exit 1
+#at first patch with this script after clone pkgbuilds, origin is pkgbuilds/edor
+
+tag=`git ls-remote --tags --sort='v:refname' origin | tail -n1 | sed 's/.*\///'`
 finaltag=`echo ${tag} | sed 's/\-/./'`
+if [ ${rel} -ne 1 ]; then
+	finaltag=${finaltag}.${rel}
+fi
 to=../patches/
 tof=${to}${finaltag}
 newname=${name}new
 
-./clean && \
 cd .. && \
-git clone https://github.com/colin-i/${name} --branch=${tag} --depth 1 ${newname} -n && \
-#without -n will be detached HEAD and will not be 0 return
-cd ${newname} && \
-git checkout && \
-cd .. && \
-#diff --exclude=".git" -ura edor edornew --color
-diff --exclude=".git" -ura edor edornew > ${tof} && exit 1 #must have some differences
+if [ ${rel} -eq 1 ]; then
+	git clone https://github.com/colin-i/${name} --branch=${tag} --depth 1 ${newname} -n && \
+	#without -n will be detached HEAD and will not be 0 return
+	cd ${newname} && \
+	git checkout && \
+	cd ..
+else
+	git clone https://github.com/colin-i/${name} --depth 1 ${newname}
+fi && \
+#diff --exclude=".git" -ura --new-file edor edornew --color
+diff --exclude=".git" -ura --new-file edor edornew > ${tof} && exit 1 #must have some differences
 echo ${finaltag} >> ${to}list && \
 cd ${name} && \
 patch --strip=1 --input=../${tof} && \
-cd .. && \
-sudo rm -r ${newname} && \
-cd .. && \
-~/test/pkg/re
+cd ../../ && \
+~/test/pkg/re && \
+cd src && \
+rm -rf ${name} && \
+#sudo rm has no perm
+mv ${newname} ${name}
+#to have .git sync'ed, using the clone

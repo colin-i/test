@@ -1,1 +1,3 @@
+
 makepkg --noextract --install
+#at try at x86_64 is   makepkg -si OPTIONS=-debug    if not wanting edor-debug
