@@ -10,10 +10,12 @@ cd src/${name} || exit 1
 
 ./clean || exit 1
 #this clean is only for safety
-git remote -v show origin | grep colin-i || exit 1
-#at first patch with this script after clone pkgbuilds, origin is pkgbuilds/edor
+if [ -z "`git remote show | grep tags`" ]; then
+	git remote add tags https://github.com/colin-i/edor
+fi
+#origin is at start at /pkgbuilds/edor/edor
 
-tag=`git ls-remote --tags --sort='v:refname' origin | tail -n1 | sed 's/.*\///'`
+tag=`git ls-remote --tags --sort='v:refname' tags | tail -n1 | sed 's/.*\///'`
 finaltag=`echo ${tag} | sed 's/\-/./'`
 if [ ${rel} -ne 1 ]; then
 	finaltag=${finaltag}.${rel}
@@ -40,7 +42,5 @@ patch --strip=1 --input=../${tof} && \
 cd ../../ && \
 ~/test/pkg/re && \
 cd src && \
-rm -rf ${name} && \
+rm -rf ${newname}
 #sudo rm has no perm
-mv ${newname} ${name}
-#to have .git sync'ed, using the clone
