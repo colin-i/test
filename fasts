@@ -4,9 +4,19 @@ if [ -z "${2}" ]; then echo f2; fi
 
 if [ -z "${3}" ]; then times=1; fi
 
+#must have a step function
+. ./bench || exit 1
+readarray -t b1 <<<"$(cat $1)"
+readarray -t b2 <<<"$(cat $2)"
+
 bench () {
 	start=`date "+%s.%N"`
-	${1}
+	c=\"\$\{b${1}[@]\}\"
+	c="for b in ${c}; do \
+		bb=\"step \${b}\"; \
+		eval \"\${bb}\"; \
+	done"
+	eval "$c"
 	time1=$(echo $(date "+%s.%N")-${start} | bc)
 	if [ `expr substr ${time1} 1 1` = "." ]; then time1=0${time1}; fi
 	x=$(eval echo $(echo \$\{time${2}\}))
@@ -19,10 +29,10 @@ bench () {
 
 timea=0;timeb=0
 for ((i=0;i<times;i++)); do
-	bench ${1} a
-	bench ${2} b
-	bench ${2} b
-	bench ${1} a
+	bench 1 a
+	bench 2 b
+	bench 2 b
+	bench 1 a
 done
 x=$(echo "${timea}<${timeb}" | bc)
 echo -n "the winner is "
