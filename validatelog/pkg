@@ -1,0 +1,18 @@
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+id=`gh run list --workflow=pkg.yml -b $(git rev-parse --abbrev-ref HEAD) | head -1 | cut -f7`
+
+#log is staying a few hours
+#jobl=`gh run view ${id} | grep JOBS -A 1 | tail -n1`
+#echo ${jobl}
+#job=`echo ${jobl} | grep -o "[^ ]*$" | grep -o "[^)]*"`
+#echo ${job}
+#gh run view --log --job=${job}
+gh run view ${id} --log | grep "catastrophic damage" -A 1 -B 1
+
+echo "y and Enter ?" && \
+read -t $((60*60*24)) ans && \
+if [ "${ans}" != "y" ]; then
+	echo not ok
+	exit 1
+fi

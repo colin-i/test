@@ -10,7 +10,7 @@ do
 	while true
 	do
 		#head will break tabs, and echo same
-		status=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f1 | head -1`
+		status=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | head -1 | cut -f1`
 		echo ${status}, ${var}
 		if [ "${status}" = "completed" ]; then
 			#&&
@@ -18,7 +18,7 @@ do
 			do
 				sleep 30
 				#~/test/slow was with: eval $@
-				conclusion=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | cut -f2 | head -1`
+				conclusion=`gh run list --workflow=${var}.yml -b $(git rev-parse --abbrev-ref HEAD) | head -1 | cut -f2`
 				if [ "${conclusion}" = "" ]; then
 					echo conclusion not ready
 					continue
@@ -35,4 +35,7 @@ do
 		sleep 60
 	done
 done
+if [ -n "${validatelog}" ]; then
+	~/test/validatelog/${1}
+fi
 exit 0
