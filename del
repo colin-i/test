@@ -25,9 +25,10 @@ else
 				name=${name}.${glb}
 			fi
 		fi
-		sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}- || exit 1
-		if [ -n "${extra_files}" ]; then
-			for fl in ${extra_files}; do
+		if [ -z "${from_env_files}" ]; then
+			sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}- || exit 1
+		else
+			for fl in ${from_env_files}; do
 				fl=${name}${fl};echo ${fl}
 				sudo gh act -j del --env file=${fl} --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}- || exit 1
 			done
