@@ -1,9 +1,10 @@
 
 if [ -e ~/rerpm_extern ]; then exit 0; fi
 
-sudo gh act -r -j urbuild --env init=1 workflow_dispatch -W .github/workflows/uprpm.yml
-container=`sudo docker ps -a | grep uprpm-yml | cut -d ' ' -f1`
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
+sudo gh act -r -j urbuild --env init=1 workflow_dispatch -W .github/workflows/uprpm${name}.yml
+container=`sudo docker ps -a | grep uprpm${name}-yml | cut -d ' ' -f1`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 
 arch=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
@@ -18,7 +19,7 @@ path=${HOME}/rpmbuild/RPMS/${arch}/${file}
 
 sudo docker container cp ${path} ${container}:`pwd -P`/ && \
 \
-sudo gh act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/uprpm.yml && \
+sudo gh act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/uprpm${name}.yml && \
 rm ${path} && \
 sudo docker container stop ${container} && \
 sudo docker container rm ${container} && echo ok

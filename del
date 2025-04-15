@@ -6,7 +6,11 @@ name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ -z "${1}" ]; then
 	echo test
 	cd ~/test
-	sudo gh act -j del --env file=${name} --env tag=1.5 -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml || ~/test/docker/rm act-del-
+	{ sudo gh act -j del --env file=${name} --env tag=1.5 -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml ; echo $? > ./test.status ; } | tee ~/Desktop/1test${name}
+	status=`cat ./test.status`; rm ./test.status
+	if [ ${status} != 0 ]; then
+		~/test/docker/rm2 ${name}
+	fi
 else
 	echo prev app delete
 	if [ ! -f "${HOME}/dontdeleteprevappimage" ]; then
@@ -21,7 +25,7 @@ else
 				name=${name}.${glb}
 			fi
 		fi
-		sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del.yml || ~/test/docker/rm act-del-
+		sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}-
 	else
 		echo no
 	fi

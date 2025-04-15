@@ -1,7 +1,8 @@
 
-sudo gh act -r -j udbuild --env init=1 workflow_dispatch -W .github/workflows/updeb.yml
-container=`sudo docker ps -a | grep updeb-yml | cut -d ' ' -f1`
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
+sudo gh act -r -j udbuild --env init=1 workflow_dispatch -W .github/workflows/updeb${name}.yml
+container=`sudo docker ps -a | grep updeb${name}-yml | cut -d ' ' -f1`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 
 arch=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
@@ -10,7 +11,7 @@ file=${name}_${version}_${arch}.deb
 path=../${file}
 
 sudo docker container cp ${path} ${container}:`pwd -P`/ && \
-sudo gh act -r -j udbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/updeb.yml && \
+sudo gh act -r -j udbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/updeb${name}.yml && \
 rm ${path} && \
 sudo docker container stop ${container} && \
 sudo docker container rm ${container}
