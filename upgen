@@ -1,0 +1,20 @@
+
+if [ -z "${1}" ]; then
+	echo 1 is short name
+	exit 1
+fi
+if [ -z "${2}" ]; then
+	echo 2 is long name
+	exit 1
+fi
+
+name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+
+sudo gh act -r -j ubuild$1 --env init=1 workflow_dispatch -W .github/workflows/up${1}${name}.yml
+container=`sudo docker ps -a | grep up${1}${name}-yml | cut -d ' ' -f1`
+sudo docker container cp $2 ${container}:`pwd`/$2 #what is this error returned? is ok, why to error, and if not will fail at next
+
+sudo gh act -r -j ubuild$1 --env proj=${name} --env fname=$2 -s PAT=`cat ~/n/pat` workflow_dispatch -W .github/workflows/up${1}${name}.yml && \
+rm $2 && \
+sudo docker container stop ${container} && \
+sudo docker container rm ${container}

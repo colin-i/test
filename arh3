@@ -1,0 +1,14 @@
+
+#same as arh
+
+echo delete ${1} \? y \?
+
+read -n1 -t $((60*60*24)) ans
+
+if [ "${ans}" = "y" ]; then
+	echo yes
+	~/test/del x ${1} && \
+	~/test/arhstore ${1}
+else
+	echo no
+fi
