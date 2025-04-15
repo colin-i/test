@@ -66,7 +66,8 @@ def day_core(tm,delta):
 	    }
 	  }
 	}""").substitute(**dict)
-	#for forks get like at stats and totalCount (can go further exactly as at stats with author compare)
+	#for forks: Commits made in a fork will not count toward your contributions.
+	#   workaround: get like at stats and totalCount (can go further exactly as at stats with author compare)
 
 	js=client.execute(query=q)
 
