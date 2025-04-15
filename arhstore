@@ -21,9 +21,10 @@ if [ "${id}" = "null" ]; then
 echo error at arhstore
 exit -1
 fi
+echo excluded files: ${arhstore_exclude_file}
 
 cd ~/arhiva && \
-gh workflow run rel.yml -f name=${repo_at_gh} -f version=${1} -f id=${id} && \
+gh workflow run rel.yml -f name=${repo_at_gh} -f version=${1} -f id=${id} -f exclude=${arhstore_exclude_file} && \
 # -f release=
 ~/test/pub rel && \
 ~/test/pub2 ${repo_at_gh}_${1} && \
