@@ -1,0 +1,6 @@
+FROM ljmf00/archlinux:latest
+RUN --mount=type=bind,source=./x,target=/var/cache/pacman/pkg <<EOF
+cd /var/cache/pacman/pkg
+pacman -U --noconfirm *
+cd /
+EOF
