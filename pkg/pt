@@ -41,6 +41,8 @@ cd ${name} && \
 patch --strip=1 --input=../${tof} && \
 cd ../../ && \
 makepkg -i && #-e to build without repatching\
+makepkg --printsrcinfo > .SRCINFO && \
+#at try at x86_64 is   makepkg -i OPTIONS=-debug    if not wanting edor-debug but want to mix them in same pkg
 cd src && \
 rm -rf ${newname}
 #sudo rm has no perm
