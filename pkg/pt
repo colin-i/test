@@ -40,7 +40,7 @@ echo ${finaltag} >> ${to}list && \
 cd ${name} && \
 patch --strip=1 --input=../${tof} && \
 cd ../../ && \
-~/test/pkg/re && \
+makepkg -i && #-e to build without repatching\
 cd src && \
 rm -rf ${newname}
 #sudo rm has no perm
