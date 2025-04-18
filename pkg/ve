@@ -1,6 +1,4 @@
 
-makepkg --verifysource #not the src folder
-
-makepkg -g
+makepkg -g  #about the files right after clone, before patching
 #and copy that at sha256sums
 ##or updpkgsums after installing pacman-contrib
