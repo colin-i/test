@@ -1,43 +1,63 @@
 #!/bin/bash
 
+# makepkg -o --skipinteg # to get
+
 name=`cat PKGBUILD | grep -Po "(?<=^pkgname=).*"`
 rel=`cat PKGBUILD | grep -Po "(?<=^pkgrel=).*"`
+
+#if [ -z "`git remote show | grep tags`" ]; then
+#	git remote add tags https://github.com/colin-i/edor
+#fi
+#origin is at start at /pkgbuilds/edor/edor
+#tag=`git ls-remote --tags --sort='v:refname' tags | tail -n1 | sed 's/.*\///'`
+#
+#cd ${name} || exit 1
+#tag=`git ls-remote --tags --sort='v:refname' origin | tail -n1 | sed 's/.*\///'`
+#origin here is https... . when version changed remote, was not updated local at src and also here? now if only at rel>1 when makepkg is updated also at src
+#how was pkgver:
+#pkgver() {
+#      cd "$pkgname"
+#      git ls-remote --tags --sort='v:refname' > version.txt 2>&1 #it is extra: From...
+#      cat version.txt | tail -n1 | sed 's/.*\///; s/\-/./'
+#      rm version.txt
+#}
+ptag=`cat PKGBUILD | grep -Po "(?<=^pkgver=).*"`
+finaltag=${ptag}
 if [ ${rel} -ne 1 ]; then
-	echo this is a subrelease rel is not 1. Enter to continue
-	read -t $((60*60*24))
+	finaltag=${finaltag}.${rel}
+else
+	echo rel
+	exit 1
 fi
-cd src/${name} || exit 1
+tag=`echo ${ptag} | sed 's/\./\-/'`
+
+echo name=${name} tag=${tag} ptag=${ptag} finaltag=${finaltag} rel=${rel}. Enter to continue
+read -t $((60*60*24))
+
+gname=${name}-${tag}
+cd ./src/${gname} || exit 1
 
 ./clean || exit 1
 #this clean is only for safety
-if [ -z "`git remote show | grep tags`" ]; then
-	git remote add tags https://github.com/colin-i/edor
-fi
-#origin is at start at /pkgbuilds/edor/edor
 
-tag=`git ls-remote --tags --sort='v:refname' tags | tail -n1 | sed 's/.*\///'`
-finaltag=`echo ${tag} | sed 's/\-/./'`
-if [ ${rel} -ne 1 ]; then
-	finaltag=${finaltag}.${rel}
-fi
 to=../patches/
 tof=${to}${finaltag}
 newname=${name}new
 
 cd .. && \
-if [ ${rel} -eq 1 ]; then
-	git clone https://github.com/colin-i/${name} --branch=${tag} --depth 1 ${newname} -n && \
-	#without -n will be detached HEAD and will not be 0 return
-	cd ${newname} && \
-	git checkout && \
-	cd ..
-else
-	git clone https://github.com/colin-i/${name} --depth 1 ${newname}
-fi && \
+#if [ ${rel} -eq 1 ]; then
+#	git clone https://github.com/colin-i/${name} --branch=${tag} --depth 1 ${newname} -n && \
+#	#without -n will be detached HEAD and will not be 0 return
+#	cd ${newname} && \
+#	git checkout && \
+#	cd ..
+#else
+git clone https://github.com/colin-i/${name} --depth 1 ${newname}
+#fi && \
 #diff --exclude=".git" -ura --new-file edor edornew --color
 diff --exclude=".git" -ura --new-file edor edornew > ${tof} && exit 1 #must have some differences
 echo ${finaltag} >> ${to}list && \
-cd ${name} && \
+cd ${gname} && \
 patch --strip=1 --input=../${tof} && \
 cd ../../ && \
 makepkg -i && #-e to build without repatching\

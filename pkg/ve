@@ -1,4 +1,11 @@
 
-makepkg -g  #about the files right after clone, before patching
+#no nano/vim at base or linux, must edit from host
+makepkg -o --skipinteg && \
+makepkg -g && #about the files right after download/clone, before patching\
 #and copy that at sha256sums
 ##or updpkgsums after installing pacman-contrib
+echo y and Enter to continue or exit and make a patch
+read -t $((60*60*24)) ans
+if [ "${ans}" = "y" ]; then
+	makepkg -i
+fi
