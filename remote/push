@@ -8,9 +8,11 @@ git push ${3} ${to} || {
 ~/test/remote/waswrong ${to}
 exit 1
 }
-~/${4}test/remote/pushdiff ${nr} && \
-~/${4}test/remote/pushinfo ${to} && \
-if [ -z "${no_activity}" ]; then
-	sleep 5
-	echo -n > /dev/tcp/`cat ~/load_ip`/5000
+if [ -z "${onlypush}" ]; then
+	~/${4}test/remote/pushdiff ${nr} && \
+	~/${4}test/remote/pushinfo ${to} && \
+	if [ -z "${no_activity}" ]; then
+		sleep 5
+		echo -n > /dev/tcp/`cat ~/load_ip`/5000
+	fi
 fi
