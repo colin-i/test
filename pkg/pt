@@ -40,7 +40,7 @@ cd ./src/${gname} || exit 1
 ./clean || exit 1
 #this clean is only for safety
 
-to=../patches/
+to=../
 tof=${to}${finaltag}
 newname=${name}new
 
