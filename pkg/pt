@@ -70,8 +70,4 @@ cd ${gname} && \
 patch --strip=1 --input=../${tof} && \
 cd ../../ && \
 git add ${finaltag} && \
-git add list && \
-makepkg --printsrcinfo > .SRCINFO && \
-git add .SRCINFO && \
-makepkg -i #-e to build without repatching
-#at try at x86_64 is   makepkg -i OPTIONS=-debug    if not wanting edor-debug but want to mix them in same pkg
+git add list
