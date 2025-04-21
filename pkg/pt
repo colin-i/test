@@ -70,4 +70,5 @@ cd ${gname} && \
 patch --strip=1 --input=../${tof} && \
 cd ../../ && \
 git add ${finaltag} && \
-git add list
+git add list && \
+~/test/pkg/pb
