@@ -28,4 +28,4 @@ gh workflow run rel.yml -f name=${repo_at_gh} -f version=${1} -f id=${id} -f exc
 # -f release=
 ~/test/pub rel && \
 ~/test/pub2 ${repo_at_gh}_${1} && \
-~/test/git/arhsize
+~/test/git/github/arhsize

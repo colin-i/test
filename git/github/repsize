@@ -1,0 +1,50 @@
+
+f=/tmp/1
+fp=/tmp/2
+fr=/tmp/3
+ff=/tmp/4
+
+xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple public"]' $f 2>/dev/null > $fp
+xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple private"]' $f 2>/dev/null > $fr
+xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple public fork"]' $f 2>/dev/null > $ff
+
+bb() {
+	a="`xmllint --html --xpath '//span[@class="text-small"]/text()' $1 2>/dev/null`"
+	aa="`xmllint --html --xpath '//a[@class="mr-1"]/text()' $1 2>/dev/null`"
+	i=0
+	x=0; b=( )
+	for v in ${a}; do
+		if [ $x -eq 0 ]; then
+			b[$i]=$v
+			x=1
+		else
+			if [ $v = MB ]; then
+				b[$i]=`echo ${b[$i]}*1024 | bc`
+			elif [ $v = GB ]; then
+				b[$i]=`echo ${b[$i]}*1024*1024 | bc`
+			fi
+			i=$((i+1))
+			x=0
+		fi
+	done
+	c=( )
+	j=0
+	for v in ${aa}; do
+		c[$j]=$v
+		j=$((j+1))
+	done
+	d=0
+	for((j=0;j<i;j++)); do
+		echo ${c[$j]} ${b[$j]}
+		d=`echo $d+${b[$j]} | bc`
+	done
+	echo $i $d
+}
+
+bb $ff
+bb $fp
+e=$d; f=$i
+bb $fr
+e=`echo $e+$d | bc`
+e=`echo $e/1024 | bc`
+echo $((f+i)) ${e}_MB

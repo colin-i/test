@@ -1,6 +1,7 @@
 
 # optional 1 limit
 
+if [ -z "${repo}" ]; then repo=arh; fi
 if [ -z "${arhsizelimit}" ]; then arhsizelimit=$((100*1000*1000)); fi
 
 #for tests main reason
@@ -18,8 +19,8 @@ QUERY='
 {"query": "
   query {
     viewer {
-      repository(name: \"arh\") {
-        releases (first:  '"${maximumlimit}"''"${cursor}"') {
+      repository(name: \"'"${repo}"'\") {
+        releases (first:  '"${maximumlimit} ${cursor}"') {
           edges {
             node {
               releaseAssets (first:100){
