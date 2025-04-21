@@ -18,10 +18,15 @@ bb() {
 			b[$i]=$v
 			x=1
 		else
-			if [ $v = MB ]; then
-				b[$i]=`echo ${b[$i]}*1024 | bc`
-			elif [ $v = GB ]; then
-				b[$i]=`echo ${b[$i]}*1024*1024 | bc`
+			if [ $v != KB ]; then
+				if [ $v = MB ]; then
+					b[$i]=`echo ${b[$i]}*1024 | bc`
+				elif [ $v = GB ]; then
+					b[$i]=`echo ${b[$i]}*1024*1024 | bc`
+				else
+					echo error
+					exit 1
+				fi
 			fi
 			i=$((i+1))
 			x=0
