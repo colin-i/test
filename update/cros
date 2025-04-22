@@ -1,7 +1,7 @@
 
 id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
 sudo docker container start ${id} || exit 1
-sudo docker exec ${id} /root/cross ${1} || exit 1
+sudo docker exec ${id} /root/cross ${1} ${2} || exit 1
 sudo docker container stop ${id} || exit 1
 
 move () {
