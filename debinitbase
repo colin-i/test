@@ -64,7 +64,7 @@ echo -n ${patchversion} | xclip -selection clipboard && \
 
 #gist
 #read:user (show private at contributionsCollection)
-#read:org (gh)
+#read:org admin:public_key (gh)
 #repo
 #workflow
 
