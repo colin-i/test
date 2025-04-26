@@ -4,6 +4,8 @@ fp=/tmp/2
 fr=/tmp/3
 ff=/tmp/4
 
+xclip -o -sel clipboard > $f
+
 xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple public"]' $f 2>/dev/null > $fp
 xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple private"]' $f 2>/dev/null > $fr
 xmllint --html --xpath '//div[@class="Box-row js-collab-repo simple public fork"]' $f 2>/dev/null > $ff
