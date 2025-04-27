@@ -1,10 +1,4 @@
 #!/bin/bash
-# sudo docker pull ubuntu
-# apt install gnupg ca-certificates         binutils xz-utils      wget zstd
-# apt-key ...
-# id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
-# sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources ${id}:/etc/apt/sources.list.d/
-# dpkg --add-architecture amd64
 cd
 if [ -z "$2" ]; then
 	apt update -o APT::Architecture="amd64" -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" || exit 1

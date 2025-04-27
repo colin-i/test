@@ -1,5 +1,17 @@
 
+# sudo docker pull ubuntu
+# apt install gnupg ca-certificates   /and/   binutils xz-utils  /or/  wget zstd
+# apt-key ...
+# dpkg --add-architecture amd64
+
 id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
+
+# sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources ${id}:/etc/apt/sources.list.d/
+# why not # echo "deb http://ppa.launchpad.net/colin-i/ppa/ubuntu noble main" >> /etc/apt/sources.list # was not working since all moved to sources.list.d
+#
+# sudo docker cp ./cross ${id}:/root/cross
+# apt update
+
 sudo docker container start ${id} || exit 1
 sudo docker exec ${id} /root/cross ${1} ${2} || exit 1
 sudo docker container stop ${id} || exit 1
