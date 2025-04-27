@@ -8,9 +8,9 @@ id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
 
 # sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources ${id}:/etc/apt/sources.list.d/
 # why not # echo "deb http://ppa.launchpad.net/colin-i/ppa/ubuntu noble main" >> /etc/apt/sources.list # was not working since all moved to sources.list.d
-#
-# sudo docker cp ./cross ${id}:/root/cross
 # apt update
+
+# sudo docker cp ./cross ${id}:/root/cross
 
 sudo docker container start ${id} || exit 1
 sudo docker exec ${id} /root/cross ${1} ${2} || exit 1
