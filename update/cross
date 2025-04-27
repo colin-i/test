@@ -7,15 +7,25 @@ if [ -z "$2" ]; then
 	xz -d data.tar.xz
 	rm ${1}* control.tar.xz debian-binary
 else
-	if [ -n "`echo $2 | grep deb$`" ]; then
-		wget $2 -O data.deb || exit 1
+	if [ ${2:0:4} != http ]; then
+		wget https://raw.githubusercontent.com/colin-i/${2}/refs/heads/master/debian/changelog -O a
+		v=`cat a | head -1 | grep -Po "(?<=\()[^)]*"`
+		rm a
+		wget https://launchpad.net/~colin-i/+archive/ubuntu/ppa/+files/${1}_${v}_amd64.deb -O data.deb || exit 1
 		ar -fx data.deb
 		rm data.deb control.tar.xz debian-binary
 		xz -d data.tar.xz
 	else
-		wget $2 -O data.tar.zst || exit 1
-		zstd -d data.tar.zst
-		rm data.tar.zst
+		if [ -n "`echo $2 | grep deb$`" ]; then
+			wget $2 -O data.deb || exit 1
+			ar -fx data.deb
+			rm data.deb control.tar.xz debian-binary
+			xz -d data.tar.xz
+		else
+			wget $2 -O data.tar.zst || exit 1
+			zstd -d data.tar.zst
+			rm data.tar.zst
+		fi
 	fi
 fi
 tar -xf data.tar
