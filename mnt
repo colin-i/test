@@ -1,4 +1,6 @@
 
+echo q | sudo -S -i
+
 #on /bin/sh, also on bash
 #this is not working on mounts: is_empty () ( cd "$1"; set -- .[!.]* ; test -f "$1" && return 1; set -- ..?* ; test -f "$1" && return 1; set -- * ; test -f "$1" && return 1; return 0 )
 #and this will only print the folder name
