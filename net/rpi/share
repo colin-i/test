@@ -4,7 +4,8 @@ samba/(mount -t cifs) is not keeping the permissions
 sudo apt install nfs-kernel-server
 
 /etc/exports:
-/home/bc           *(rw,sync,no_subtree_check)
+/home/bc           *(rw,sync,no_root_squash,no_subtree_check)
+#no_root_squash is important to let root permissions there, else sudo can do nothing there, example on sudo make install for ruby will fail
 
 sudo exportfs -a
 sudo systemctl restart nfs-kernel-server

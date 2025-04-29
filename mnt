@@ -4,6 +4,9 @@
 #and this will only print the folder name
 a=`find ~/a -type d -prune -empty`
 if [ -n "${a}" ]; then
+	#to not mount as ubuntu:lxd, userdel ubuntu, but bc is still 1002:1002
+	# log out, Ctrl-Alt-F1 Ctrl-Alt-F4 to switch from terminal to login
+	# at /etc/passwd /etc/group bc:x:1000:1000 , and put bc above lxd , and change from /home/bc to bc:bc
 	sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
 	sudo mount 192.168.1.21:/home/bc/u /home/bc/u
 	#sudo mount 192.168.1.16:/media/bc/sandisk /home/bc/u
