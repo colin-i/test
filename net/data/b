@@ -1,2 +1,2 @@
 
-./c `cat ~/n/pat9` ${firefox}
+./c `cat ~/n/pat9` `cat ~/firefox`

@@ -27,6 +27,11 @@ unset a
 
 uname_m=`uname -m`
 if [ "${uname_m}" != "x86_64" ]; then
+	#if `which ruby | grep local`
+	a=`ls ~/.local/share/gem/ruby`
+	if [ -n "${a}" ]; then
+		PATH=${PATH}:~/.local/share/gem/ruby/${a}/bin
+	fi
 	export PATH=${PATH}:~/x86_64
 	export WINEPREFIX=~/a/wine
 else

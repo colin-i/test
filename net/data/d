@@ -34,9 +34,9 @@ if [ "`readlink /proc/$$/exe`" = "/usr/bin/dash" ]; then
 
 	#ratio=`echo ${ratio} | sed 's/\./,/'` ?
 	#data=23.45 days=18 ./d: ..: printf: 1,30277777777777777777: not completely converted
-else
+#else #ok, is not ok this at this, upgrade LC_NUMERIC is -z, comment these at the moment
 	#/usr/bin/bash
-	ratio=${ratio/./,}
+#	ratio=${ratio/./,}
 	#/bin/sh , ./d: ..: Bad substitution
 fi
 
