@@ -1,5 +1,6 @@
 
-from selenium import webdriver
+from selenium import webdriver      # pip install selenium-wire , and not first python3-selenium because has snap chromium-browser dependency, but first install -selenium dependencies
+						#	and more dependencies from --dry-run, so only 2 will remain +selenium
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
