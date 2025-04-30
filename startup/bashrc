@@ -18,26 +18,8 @@ if [ "${resizeterm}" != "" ]; then ~/test/startup/termsz; fi
 uname -a
 if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
 
-a=~/.local/bin
-echo ${PATH} | grep -Fq "${a}"
-if [ $? = 1 ]; then
-	export PATH=${a}:$PATH
-fi
-unset a
+. ~/test/startup/exports
 
-uname_m=`uname -m`
-if [ "${uname_m}" != "x86_64" ]; then
-	#if `which ruby | grep local`
-	a=`ls ~/.local/share/gem/ruby`
-	if [ -n "${a}" ]; then
-		PATH=${PATH}:~/.local/share/gem/ruby/${a}/bin
-	fi
-	export PATH=${PATH}:~/x86_64
-	export WINEPREFIX=~/a/wine
-else
-	export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-	echo -n "PKG_CONFIG_PATH=${PKG_CONFIG_PATH} "
-fi
 export PYTHONPATH=$PYTHONPATH: #for what? cd ~/t/torra-1; ./b : will do: ImportError: Error while finding module specification for 'torra.main' (ModuleNotFoundError: No module named 'torra')
 export PYTHONPYCACHEPREFIX=~/pycache
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PATH=${PATH}

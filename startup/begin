@@ -22,6 +22,7 @@ fi
 if [ -z "${is_vnc}" ]; then
 	~/test/net/data/a
 
+	. ~/test/startup/exports
 	if [ -z "${no_temp}" ]; then
 		~/arh/activity &
 		sleep 10 #to not override text with temp
