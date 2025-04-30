@@ -29,3 +29,6 @@ sqlite3 ${db2} ".backup ${f}"
 python ${hm}/test/bookmarks/a.py ${db2} > ${f}.txt
 
 rm ${db2}
+
+#to recover sqlite3 files:
+#sqlite3 bookmarks.1745119546 "select '<a href=''' || url || '''>' || moz_bookmarks.title || '</a><br/>' as ahref from moz_bookmarks left join moz_places on fk=moz_places.id where url<>'' and moz_bookmarks.title<>''" > t1.html
