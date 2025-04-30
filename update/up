@@ -82,5 +82,5 @@ sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup
 # gsettings set com.ubuntu.update-notifier regular-auto-launch-interval 2147483647  #-1
 # gsettings list-recursively   # is com.ubuntu.update-notifier no-show-notifications true ? only for tray bar ?
 #and mv /etc/xdg/autostart/update-notifier.desktop from there
-#apt-config dump   and crons in /etc/cron.daily /etc/cron.weekly ? 
+#apt-config dump   and crons in /etc/cron.daily /etc/cron.weekly ?
 #or remove update-notifier
