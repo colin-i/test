@@ -1,6 +1,6 @@
 
 import os
-import readchar
+import readchar  # pip install readchar
 
 fn="/home/bc/this.csv"
 def parse():
