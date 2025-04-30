@@ -22,6 +22,8 @@ sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup
 #snap list , and remove ... , and apt purge snapd, then, this is not require:
 #dpkg --get-selections | grep "deinstall$" | cut -f1 | xargs sudo apt --yes purge
 
+## apt-cache policy for Pin, Pin-Priority, o=, n=
+
 #echo '
 #Package: *
 #Pin: release o=LP-PPA-mozillateam
@@ -29,7 +31,6 @@ sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup
 #' | sudo tee /etc/apt/preferences.d/mozilla-firefox
 
 #this is not true: "sudo apt update command again brings back the snap"; if is true, pin-prio.. -10 and pin .. a=* for pack.. snapd
-
 
 #chrome arm64 is not. chromium is snap. mint no arm64. debian arm64
 
@@ -41,7 +42,7 @@ sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup
 #Package: chromium
 #Pin: release n=bookworm
 #Pin-Priority: 501
-##even if chromium-browser is a snap
+##even if chromium-browser is a snap, apt will "Note, selecting 'chromium-browser' instead of 'chromium'"
 
 #Package: libjpeg62-turbo
 #Pin: release n=bookworm
@@ -61,7 +62,21 @@ sudo apt upgrade ${files} -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup
 #keys from:
 #https://packages.debian.org/bookworm/all/debian-archive-keyring/download
 
-## apt-cache policy for Pins
+#or sudo add-apt-repository ppa:xtradeb/apps
+#echo '
+#Package: *
+#Pin: release o=LP-PPA-xtradeb-apps
+#Pin-Priority: -1
+#Package: chromium
+#Pin: release n=noble
+#Pin-Priority: 500
+#Package: chromium-common
+#Pin: release n=noble
+#Pin-Priority: 500
+#Package: chromium-sandbox
+#Pin: release n=noble
+#Pin-Priority: 500
+#' | sudo tee /etc/apt/preferences.d/xtradeb
 
 #to  apt update  without the notifier to observe that: first in gui then:
 # gsettings set com.ubuntu.update-notifier regular-auto-launch-interval 2147483647  #-1    # gsettings list-recursively   # is com.ubuntu.update-notifier no-show-notifications true ?
