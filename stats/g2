@@ -69,7 +69,7 @@ while [ "${nr}" -gt 0 ]; do
 
 	sleep 1
 	raw=$(
-	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/pat`" --data "$(echo $QUERY)" | \
+	curl https://api.github.com/graphql -X POST -H "Authorization: bearer `cat ~/n/tmp/pat`" --data "$(echo $QUERY)" | \
 	  jq -r ".data.viewer.repository.defaultBranchRef.target.history.edges[] | .cursor, .node.author.date, .node.author.email, .node.author.user.id, .node.additions, .node.deletions"
 	)
 	#is with new lines not space for ( ), IFS was not helping at last tests

@@ -1,6 +1,6 @@
 
 #git remote add origin https://github.com/colin-i/.git
-#no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/pat`@github.com/colin-i/.git master    will expose pat in .git/config
+#no     git push --set-upstream https://gitlab-ci-token:`cat ~/n/tmp/pat`@github.com/colin-i/.git master    will expose pat in .git/config
 #       git branch --unset-upstream master
 
 set_to () {
@@ -11,7 +11,7 @@ set_to () {
 	else
 		to=github.com/colin-i/${1}.git
 	fi
-	to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
+	to=https://gitlab-ci-token:`cat ~/n/tmp/pat`@${to}
 }
 if [ -n "${1}" ]; then
 	set_to ${1} ${2}

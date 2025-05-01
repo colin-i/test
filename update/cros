@@ -1,6 +1,6 @@
 
 # sudo docker pull ubuntu
-# apt install gnupg ca-certificates   /and/   binutils xz-utils  /or/  wget zstd
+# apt install gnupg ca-certificates wget  /and/   binutils xz-utils  /or/  zstd
 # apt-key ...
 # dpkg --add-architecture amd64
 

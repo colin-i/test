@@ -22,7 +22,7 @@ class GraphqlClient:
 
         return result.json()
 
-with open("/home/bc/n/pat", "r") as file:
+with open("/home/bc/n/tmp/pat", "r") as file:
 	client = GraphqlClient(endpoint="https://api.github.com/graphql",headers={"Authorization": "Bearer {}".format(file.read())})
 	#must have read:user for private repos
 

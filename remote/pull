@@ -8,6 +8,6 @@ elif [ "${2}" = "2" ]; then
 else
 	to=github.com/colin-i/${1}.git
 fi
-to=https://gitlab-ci-token:`cat ~/n/pat`@${to}
+to=https://gitlab-ci-token:`cat ~/n/tmp/pat`@${to}
 
 git pull ${to}

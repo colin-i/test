@@ -2,7 +2,7 @@
 if [ -z "${mime}" ]; then mime=application/vnd.oasis.opendocument.spreadsheet; fi
 
 f=~/Desktop/1
-mimeType=${mime} folderid=`cat ~/n/pat15` ~/test/google/a $@ | tee ${f} && \
+mimeType=${mime} folderid=`cat ~/n/pat` ~/test/google/a $@ | tee ${f} && \
 {
 	q=`cat ${f} | head -1`
 	rm ${f}

@@ -2,7 +2,7 @@
 
 import time, os, sys
 from threading import Thread
-from keyring import get_credential
+from keyring import get_credential  # python3-keyring
 
 password = sys.argv[1]
 
