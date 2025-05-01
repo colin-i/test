@@ -10,7 +10,7 @@ from pdb import set_trace
 from readchar import readchar
 import os
 
-service = Service('/usr/bin/geckodriver')
+service = Service('/usr/bin/geckodriver') # sudo apt install firefox-geckodriver
 opts = Options()
 opts.add_argument("--width=1333")
 opts.add_argument("--height=777")

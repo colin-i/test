@@ -3,7 +3,8 @@
 
 pdb a.py && \
 ./b || exit 1
-echo from new to normal \? or from normal to out \? y \? && \
+echo from new to normal \? or from normal to out \? y \?
+read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = "y" ]; then
 	has_new=x ./c
 else
