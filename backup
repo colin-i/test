@@ -1,5 +1,5 @@
 
-# optional  1: 0=set init  else projName  2: continue after projName
+#optional  1: 0=set init  else projName  2: continue 0 from projName else after projName
 #stats/h,backup_paths,backup_is_pub,dbg
 #overall!=1 and not -z to skip overall
 #download with mime folder and .. 0
@@ -50,10 +50,13 @@ for var in "${z[@]}"; do
 	dest=${dst}/${var}
 	if [ -z "${1}" ] || [ "${1}" = "${var}" ]; then
 		if [ -n "${2}" ]; then
+			dtype=$2
 			shift
 			shift
-			i=$((i+1))
-			continue
+			if [ "${dtype}" != 0 ]; then
+				i=$((i+1))
+				continue
+			fi
 		fi
 		cd ${src} || exit 1
 		if [ ! -e ${dest} ]; then
@@ -84,7 +87,7 @@ for var in "${z[@]}"; do
 			echo
 			z=( );j=0;is_ok=1
 			while read vr; do
-				if [ "${lang}" = "ro" ]; then
+				if [ "${lang}" = "ro" ]; then  # for this to work , sudo apt install language-pack-ro
 					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then  # .git .expected swf_backup localtest
 						is_ok=0
 					fi
