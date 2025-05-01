@@ -1,9 +1,9 @@
 
 # git switch master && git pull orig master ; push
-#enable the pull workflows for master
+# gh workflow enable test_rust.yml; gh workflow enable test_web.yml
 # git switch test2
 # resolve in browser and git pull origin test2  or  git merge master , resolve, push
-#disable workflows
+# gh workflow disable test_rust.yml; gh workflow disable test_web.yml
 #this file
 # git switch test && git merge test2 ; push
 
