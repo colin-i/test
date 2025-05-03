@@ -45,4 +45,3 @@ for var in ${format[@]}; do
 		echo ", OK"
 	fi
 done
-	
