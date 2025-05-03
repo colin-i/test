@@ -13,7 +13,7 @@ else
 	ppa=${ppa}
 fi
 #with ssh-ppa , in /etc/dput.cf there is ssh-ppa section , at login use colin-i instead of *
-#and ssh key at launchpad, and store ~/.ssh/id_rsa , id_rsa.pub
+#and ssh key at launchpad, and store id_rsa, id_rsa.pub. also need to copy id_rsa to ~/.ssh/ or ssh-add key every reboot
 dest=ssh-ppa
 target=${dest}:colin-i/${ppa}${1}
 echo ${target}

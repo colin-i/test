@@ -7,23 +7,42 @@ IFS=',' read -a format <<< "${storage}"
 #a=`df -B${u} | grep "^${format[0]} " |  tr -s ' ' | cut -d' ' -f4`
 #echo free: ${a}. free-margin: `echo ${a:0:-1}-${format[1]} | bc`${u}
 
-x=( `df | grep "^${format[0]} " |  tr -s ' '` )
-a=${x[1]}
+last=${#format[@]}
+last=$((last-1))
+last=${format[${last}]}
+unset format[-1]
 
-b=${x[4]}
-echo -n "using: ${b}"
-b=${b:0:-1}
+for var in ${format[@]}; do
+	x=( `df | grep "^${var} " |  tr -s ' '` )
 
-i=100
-while [ $a -gt 1000000 ]; do
-	a=$((a/2))
-	i=`echo "${i} * 0.${format[1]}" | bc -l`
+	b=${x[4]}
+	echo -n "using: ${b}"
+
+	if [ -z "${teststorage}" ]; then
+		a=${x[1]}
+	else
+		a=${teststorage}
+		aa=1000000;echo
+	fi
+
+	i=100
+	while [ $a -gt 1000000 ]; do
+		a=$((a/2))
+		i=`echo "${i} * 0.${last}" | bc -l`
+
+		if [ -n "${teststorage}" ]; then
+			aa=$((2*aa))
+			echo ${aa} ${i} `echo "${aa} * ($i/100)" | bc -l`
+		fi
+	done
+	c=`echo "100 - ${i}" | bc`
+	echo -n ", max: ${c:0:5}%"
+
+	b=${b:0:-1}
+	if (( $(echo "${b} > ${c}" |bc -l) )); then
+		echo ", NOT OK"
+	else
+		echo ", OK"
+	fi
 done
-c=`echo "100 - ${i}" | bc`
-echo -n ", max: ${c:0:5}%"
-
-if (( $(echo "${b} > ${c}" |bc -l) )); then
-	echo ", NOT OK"
-else
-	echo ", OK"
-fi
+	
