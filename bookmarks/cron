@@ -2,7 +2,7 @@
 
 hm=/home/bc
 
-db=${hm}/.mozilla/firefox/`cat ${hm}/n/pat10`.default-release/places.sqlite
+db=${hm}/.mozilla/firefox/`cat ${hm}/firefox`.default-release/places.sqlite
 db2=${hm}/Desktop/places.sqlite
 #it is locked if using firefox
 cp ${db} ${db2}
