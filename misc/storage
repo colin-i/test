@@ -13,7 +13,7 @@ last=${format[${last}]}
 unset format[-1]
 
 for var in ${format[@]}; do
-	x=( `df | grep "^${var} " |  tr -s ' '` )
+	x=( `df | grep "^${var} " |  tr -s ' '` ) #df $var is not good at nfs mounts
 
 	b=${x[4]}
 	echo -n "using: ${b}"
@@ -36,12 +36,14 @@ for var in ${format[@]}; do
 		fi
 	done
 	c=`echo "100 - ${i}" | bc`
-	echo -n ", max: ${c:0:5}%"
+	c=${c:0:5}
+	echo -n ", max: ${c}%"
 
 	b=${b:0:-1}
+	echo -n ", "
 	if (( $(echo "${b} > ${c}" |bc -l) )); then
-		echo ", NOT OK"
+		echo "NOT OK"
 	else
-		echo ", OK"
+		echo "diff: "`echo ${c} - ${b} | bc`%
 	fi
 done
