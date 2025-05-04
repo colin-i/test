@@ -1,5 +1,7 @@
 
 lognam=~/Desktop/1test$1
-cont=`cat ${lognam} | grep -Po "(?<=Could not kill running container )[^,]*"`
+if [ $2 != 0 ]; then
+	cont=`cat ${lognam} | grep -Po "(?<=Could not kill running container )[^,]*"`
+	sudo docker rm ${cont}
+fi
 rm ${lognam}
-sudo docker rm ${cont}
