@@ -1,0 +1,15 @@
+
+name=`echo $1 | grep -o ^[^-]*`
+ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
+vers=`echo ${ver} | sed 's/\-/./'`
+
+gzip -d $1
+tar -xf `echo $1 | grep -Po ".*(?=\.)"`
+f=${name}-${vers}
+mv ${name}-${ver} $f
+rm -r ${f}/debian
+rm -r ${f}/.github
+rm -r ${f}/arh
+tar -cvf ${f}.tar $f
+gzip ${f}.tar
+mv ${f}.tar.gz ~/rpmbuilds/${name}/
