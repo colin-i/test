@@ -1,15 +1,31 @@
 
-name=`echo $1 | grep -o ^[^-]*`
-ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
+if [ -z "$2" ]; then
+	name=`echo $1 | grep -o ^[^-]*`
+	ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
+else
+	name=$1
+	ver=$2
+fi
 vers=`echo ${ver} | sed 's/\-/./'`
-
-gzip -d $1
-tar -xf `echo $1 | grep -Po ".*(?=\.)"`
 f=${name}-${vers}
-mv ${name}-${ver} $f
-rm -r ${f}/debian
-rm -r ${f}/.github
-rm -r ${f}/arh
-tar -cvf ${f}.tar $f
-gzip ${f}.tar
-mv ${f}.tar.gz ~/rpmbuilds/${name}/
+if [ -z "$2" ]; then
+	gzip -d $1 && \
+	tar -xf `echo $1 | grep -Po ".*(?=\.)"` && \
+	mv ${name}-${ver} $f
+	rm -r ${f}/debian && \
+	rm -r ${f}/.github && \
+	rm -r ${f}/arh
+else
+	mkdir $f
+	fr=${name}-1
+	files="`ls -a $fr`"
+	for fl in ${files}; do
+		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != debian ] && [ $fl != arh ]; then
+			cp -r ${fr}/${fl} ${f}/${fl} || exit 1
+		fi
+	done
+fi && \
+tar -cvf ${f}.tar $f && \
+gzip ${f}.tar && \
+mv ${f}.tar.gz ~/rpmbuilds/${name}/ && \
+rm -r $f
