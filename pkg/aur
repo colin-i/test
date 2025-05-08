@@ -1,9 +1,10 @@
 
-name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
-echo ${name}
 echo "aur ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
+
+name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
+echo ${name}
 
 cd ~/pkgbuilds/${name}
 verlocal="`cat ./PKGBUILD | grep ^pkgver | grep -o [^=]*$`"

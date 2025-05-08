@@ -10,13 +10,7 @@ fi
 if [ -z "${3}" ]; then
 b=--force
 else
-b="${4} --force"
+b="${3} --force"
 fi
 
-if [ -z "${4}" ]; then
-c=
-else
-c=${5}
-fi
-
-~/test/remote/push ${1} ${a} "${b}" "${c}"
+~/test/remote/push ${1} ${a} "${b}" "$4"
