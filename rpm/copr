@@ -5,8 +5,8 @@ if [ "${ans}" != "y" ]; then exit 1; fi
 
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 f=~/Desktop/1json${name}
-ve=`cat edor.spec | grep ^Version | grep -o "[^ ]*$"`
-re=`cat edor.spec | grep ^Release | grep -o "[^ ]*$"`
+ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
+re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
 
 while true; do
 	python ~/test/rpm/get.py $name > $f
