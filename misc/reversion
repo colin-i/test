@@ -12,20 +12,18 @@ if [ -z "$2" ]; then
 	gzip -d $1 && \
 	tar -xf `echo $1 | grep -Po ".*(?=\.)"` && \
 	mv ${name}-${ver} $f
-	rm -r ${f}/debian && \
-	rm -r ${f}/.github && \
-	rm -r ${f}/arh
+	rm -r ${f}/.github ${f}/.tito ${f}/arh ${f}/debian ${f}/${name}.spec
 else
 	mkdir $f
-	fr=${name}-1
+	fr=${mounted}${name}-1
 	files="`ls -a $fr`"
 	for fl in ${files}; do
-		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != debian ] && [ $fl != arh ]; then
+		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != .tito ] && [ $fl != arh ] && [ $fl != debian ] && [ $fl != ${name}.spec ]; then
 			cp -r ${fr}/${fl} ${f}/${fl} || exit 1
 		fi
 	done
 fi && \
 tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
-mv ${f}.tar.gz ~/rpmbuilds/${name}/ && \
+mv ${f}.tar.gz ~/rpmbuilds/${name}/${special} && \
 rm -r $f
