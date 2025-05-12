@@ -1,6 +1,6 @@
 
 Name: edor
-Version: 1.71
+Version: 1
 Release: 0
 License: GPLv3
 Summary: Console user interface text editor
