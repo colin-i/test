@@ -109,3 +109,21 @@ fi
 #sleep 10
 #sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
 #/home/bc/evening
+
+exit 0
+arecord -l
+~/.asoundrc
+pcm.!default {
+  type asym
+  capture.pcm "mic"
+}
+pcm.mic {
+  type plug
+  slave {
+    pcm "hw:[card 2],[device 0]"
+  }
+}
+arecord --format=S16_LE --rate=16000 --file-type=wav out.wav
+aplay out.wav
+https://chromewebstore.google.com/detail/speech-to-text-voice-reco/kcgloaobfaiejoiahlhnfaolfcifjjho
+on mobile is Google tastare vocală
