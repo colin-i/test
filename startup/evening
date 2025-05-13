@@ -112,17 +112,7 @@ fi
 
 exit 0
 arecord -l
-~/.asoundrc
-pcm.!default {
-  type asym
-  capture.pcm "mic"
-}
-pcm.mic {
-  type plug
-  slave {
-    pcm "hw:[card 2],[device 0]"
-  }
-}
+#https://pimylifeup.com/raspberrypi-microphone/  with something at .asoundrc ?
 arecord --format=S16_LE --rate=16000 --file-type=wav out.wav
 aplay out.wav
 https://chromewebstore.google.com/detail/speech-to-text-voice-reco/kcgloaobfaiejoiahlhnfaolfcifjjho
