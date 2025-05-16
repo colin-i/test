@@ -1,4 +1,6 @@
 
+# 1 2 dest mounted special
+
 if [ -z "$2" ]; then
 	name=`echo $1 | grep -o ^[^-]*`
 	ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
@@ -8,6 +10,8 @@ else
 fi
 vers=`echo ${ver} | sed 's/\-/./'`
 f=${name}-${vers}
+if [ -z "${dest}" ]; then dest=~/rpmbuilds/${name}; fi
+
 if [ -z "$2" ]; then
 	gzip -d $1 && \
 	tar -xf `echo $1 | grep -Po ".*(?=\.)"` && \
@@ -15,7 +19,7 @@ if [ -z "$2" ]; then
 	rm -r ${f}/.github ${f}/.tito ${f}/arh ${f}/debian ${f}/${name}.spec
 else
 	mkdir $f
-	fr=${mounted}${name}-1
+	fr=${mounted}${name}-${ver}
 	files="`ls -a $fr`"
 	for fl in ${files}; do
 		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != .tito ] && [ $fl != arh ] && [ $fl != debian ] && [ $fl != ${name}.spec ]; then
@@ -25,5 +29,5 @@ else
 fi && \
 tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
-mv ${f}.tar.gz ~/rpmbuilds/${name}/${special} && \
-rm -r $f
+rm -r $f && \
+mv ${f}.tar.gz ${dest}/${special}
