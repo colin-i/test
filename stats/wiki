@@ -1,0 +1,14 @@
+
+cd ~/wiki
+projs="`ls`"
+for p in ${projs[@]}; do
+	cd $p
+	~/test/remote/pushinfo
+	if [ $? != 0 ]; then
+		a=`git rev-parse HEAD`
+		git pull origin master
+		git diff $a `git rev-parse HEAD`
+		read
+	fi
+	cd ..
+done

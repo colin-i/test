@@ -11,6 +11,7 @@ if [ "$?" = "0" ]; then
 echo egal
 else
 echo NU ESTE EGAL
+exit 1
 fi
 
 git rev-list --all --count
