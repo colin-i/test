@@ -1,5 +1,5 @@
 .osc
 orig.tar.gz
-pc
+p*.patch.gz
 *.spec
 b

@@ -4,20 +4,19 @@ major=`pwd | grep -o "[^-]*$"`
 src="$(dirname $(pwd))"
 cd ~/pc
 uncompre=x dest=. mounted=${src}/ ~/test/misc/reversion ${name} ${major}
-pcs=~/test/rpm/home:costin/${name}/pc
-n=`ls ${pcs} | wc -l`
+pcs=~/test/rpm/home:costin/${name}
+n=`find ${pcs} -name "p*.patch.gz" | wc -l`
 diff -urN ${name}-${major}-orig ${name}-${major} > ${pcs}/p${n}.patch
 
 cd ${pcs}
 edor p${n}.patch || exit 1
 gzip p${n}.patch
-cd ..
 spec=${name}.spec
 
 #m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
-#sed -n -i "p;${m}a Patch${n}: pc/p${n}.patch" ${spec}
+#sed -n -i "p;${m}a Patch${n}: p${n}.patch.gz" ${spec}
 
-echo "Patch${n}: pc/p${n}.patch.gz" >> b
+echo "Patch${n}: p${n}.patch.gz" >> b
 cat a > ${spec}
 cat b >> ${spec}
 cat c >> ${spec}
