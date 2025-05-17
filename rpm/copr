@@ -1,18 +1,26 @@
 
+name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
+oldver=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
+oldrel=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
+
 echo "copr ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
-name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 f=~/Desktop/1json${name}
 ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
 re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
 
-while true; do
-	python ~/test/rpm/get.py $name > $f
+get_jq () {
+	python ~/test/rpm/get.py $name $1 $2 > $f
 	sed -i "s/'/\"/g" $f
 	sed -i "s/False/false/g" $f
 	sed -i "s/True/true/g" $f
+	sed -i "s/None/0/g" $f
+}
+
+while true; do
+	get_jq package_proxy get
 	v=`cat $f | jq .builds.latest_succeeded.source_package.version`
 	v=`echo $v | cut -d"\"" -f2`
 	IFS='-' read -a a <<< "$v"
@@ -32,4 +40,24 @@ while true; do
 	fi
 	sleep 60
 done
+
+get_jq build_proxy get_list
+tofind="\"${oldver}-${oldrel}\""
+n=`cat $f | jq ".items | length"`
+for (( i=0; i < ${n}; i++)); do
+	ver=`cat $f | jq .items[$i].source_package.version`
+	id=`cat $f | jq .items[$i].id`
+	if [ $tofind = $ver ]; then
+		echo $id is old
+		echo build_proxy.delete is not working, use:
+		echo copr-cli delete-build $id
+		echo and y
+		read -t $((60*60*24)) ans
+		if [ "${ans}" != "y" ]; then exit 1; fi
+		break
+	else
+		echo $id is ok
+	fi
+done
+
 rm $f

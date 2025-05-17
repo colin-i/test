@@ -1,7 +1,6 @@
 
 #1 msg               optional 2 distribution
 
-major=1
 if [ -z "${2}" ]; then
  if [ "$#" -lt "1" ]; then
   echo at least message argument
@@ -24,7 +23,7 @@ else
 	read
 fi || exit 1
 
-
+major=`pwd | grep -o "[^-]*$"`
 fullversion=${major}-${version}
 patchversion=${major}.${version}
 if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi
