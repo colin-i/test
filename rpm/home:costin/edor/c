@@ -7,7 +7,7 @@ Console user interface text editor using ncurses.
 
 #-- PREP, BUILD & INSTALL -----------------------------------------------------#
 %prep
-%autosetup
+%autosetup -p1
 
 %build
 autoreconf -i

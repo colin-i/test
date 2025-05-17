@@ -2,19 +2,22 @@
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
 src="$(dirname $(pwd))"
-cd ~/next
+cd ~/pc
 uncompre=x dest=. mounted=${src}/ ~/test/misc/reversion ${name} ${major}
-cd ~/test/rpm/home:costin/${name}/pc
-n=`ls | wc -l`
-diff -urN ~/now/${name}-${major} ~/next/${name}-${major} > p${n}.patch
+pcs=~/test/rpm/home:costin/${name}/pc
+n=`ls ${pcs} | wc -l`
+diff -urN ${name}-${major}-orig ${name}-${major} > ${pcs}/p${n}.patch
+
+cd ${pcs}
 edor p${n}.patch || exit 1
+gzip p${n}.patch
 cd ..
 spec=${name}.spec
 
 #m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
 #sed -n -i "p;${m}a Patch${n}: pc/p${n}.patch" ${spec}
 
-echo "Patch${n}: pc/p${n}.patch" >> b
+echo "Patch${n}: pc/p${n}.patch.gz" >> b
 cat a > ${spec}
 cat b >> ${spec}
 cat c >> ${spec}
