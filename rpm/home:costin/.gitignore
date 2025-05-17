@@ -1,2 +1,5 @@
 .osc
 orig.tar.gz
+pc
+*.spec
+b

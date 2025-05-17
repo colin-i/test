@@ -1,5 +1,5 @@
 
-# 1 2 dest mounted special
+# 1 2 dest mounted special uncompre
 
 if [ -z "$2" ]; then
 	name=`echo $1 | grep -o ^[^-]*`
@@ -18,15 +18,21 @@ if [ -z "$2" ]; then
 	mv ${name}-${ver} $f
 	rm -r ${f}/.github ${f}/.tito ${f}/arh ${f}/debian ${f}/${name}.spec
 else
-	mkdir $f
 	fr=${mounted}${name}-${ver}
 	files="`ls -a $fr`"
+	if [ -z "${uncompre}" ]; then mkdir $f; fi
 	for fl in ${files}; do
 		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != .tito ] && [ $fl != arh ] && [ $fl != debian ] && [ $fl != ${name}.spec ]; then
-			cp -r ${fr}/${fl} ${f}/${fl} || exit 1
+			if [ -z "${uncompre}" ]; then
+				cp -r ${fr}/${fl} ${f}/${fl} || exit 1
+			else
+				rsync -av --delete ${fr}/${fl} ${f}/ || exit 1
+			fi
 		fi
 	done
+	echo sync done
 fi && \
+if [ -n "${uncompre}" ]; then exit 0; fi && \
 tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
 rm -r $f && \
