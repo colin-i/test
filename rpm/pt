@@ -5,7 +5,7 @@ src="$(dirname $(pwd))"
 cd ~/pc
 uncompre=x dest=. mounted=${src}/ ~/test/misc/reversion ${name} ${major}
 pcs=~/test/rpm/home:costin/${name}
-n=`find ${pcs} -name "p*.patch.gz" | wc -l`
+n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 diff -urN ${name}-${major}-orig ${name}-${major} > ${pcs}/p${n}.patch
 
 cd ${pcs}
