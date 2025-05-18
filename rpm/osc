@@ -1,0 +1,31 @@
+
+#libxml2-tools for xmllint
+
+osc meta prj > 1
+proj=`xmllint --xpath 'string(/project/@name)' ./1`
+reps=`xmllint --xpath '/project/repository/@name' ./1`
+reps=`echo ${reps} | sed 's/\s*name="\([^"]*\)"/\1\n/g'`
+arh=`xmllint --xpath '/project/repository/arch/text()' ./1`
+arhs=( ${arh} )
+
+osc meta pkg > 2
+name=`xmllint --xpath 'string(/package/@name)' ./2`
+
+echo ${proj} ${name}
+i=0
+for rep in ${reps[@]}; do
+	#osc api /build/${proj}/${rep}/${arhs[$i]}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
+	echo ${rep} ${arhs[$i]}
+	while :; do
+		sleep 60
+		osc api /build/${proj}/${rep}/${arhs[$i]}/${name}/_status > 3
+		status=`xmllint --xpath 'string(/status/@code)' ./3`
+		echo ${status}
+		if [ "${status}" = "succeeded" ]; then
+			break
+		fi
+	done
+	i=$((i+1))
+done
+
+rm 1 2 3

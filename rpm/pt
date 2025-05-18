@@ -6,7 +6,9 @@ cd ~/pc
 uncompre=x dest=. mounted=${src}/ ~/test/misc/reversion ${name} ${major}
 pcs=~/test/rpm/home:costin/${name}
 n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
-diff -urN ${name}-${major}-orig ${name}-${major} > ${pcs}/p${n}.patch
+nmmaj0=${name}-${major}-orig
+nmmaj=${name}-${major}
+diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch
 
 cd ${pcs}
 edor p${n}.patch || exit 1
@@ -20,3 +22,7 @@ echo "Patch${n}: p${n}.patch.gz" >> b
 cat a > ${spec}
 cat b >> ${spec}
 cat c >> ${spec}
+
+edor ${spec} || exit 1
+cd ~/pc
+rsync -av --delete ${nmmaj}/ ${nmmaj0}/
