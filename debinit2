@@ -3,7 +3,7 @@
 
 ~/test/debinitbase "${1}" ${2} && \
 ~/test/debuild && \
-~/test/debinitpush "${1}" && \
+tito=x ~/test/debinitpush "${1}" && \
 ~/test/sync/s
 
 #example for debinit3

@@ -3,6 +3,6 @@
 
 #without quotes: ./debinit "a b" 2   is 1=a 2=b   not 1=a b  2=2
 ~/test/debinitbase "$@" && \
-~/test/debinitpush "${1}" && \
+tito=x ~/test/debinitpush "${1}" && \
 ~/test/sync/s && \
 gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`
