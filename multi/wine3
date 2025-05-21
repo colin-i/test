@@ -1,0 +1,1 @@
+winein=b ~/test/multi/_wine3 $@

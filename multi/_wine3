@@ -1,0 +1,1 @@
+PATH="/home/bc/a/Downloads/wine${winein}/opt/wine-stable/bin:${PATH}";WINEPREFIX=/home/bc/a/wine3 WINEARCH=win32 wine $@

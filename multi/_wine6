@@ -1,0 +1,1 @@
+PATH="/home/bc/a/Downloads/wine${winein}/opt/wine-stable/bin:${PATH}"; wine${winesfx} $@
