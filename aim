@@ -1,0 +1,8 @@
+
+{
+	sleep 10
+	a=`cat 1`
+	rm 1
+	cat ${a}/usr/share/metainfo/*
+} &
+./$1 --appimage-mount | tee 1
