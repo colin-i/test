@@ -1,0 +1,3 @@
+
+if [ -z "${1}" ]; then echo no version; exit 1; fi
+tito tag --use-version $1 --use-release 0
