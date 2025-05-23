@@ -1,0 +1,7 @@
+echo "force push if same month. y and enter"
+read -t $((60*60*24)) ans
+if [ "${ans}" != "y" ]; then ~/test/bots/tests; fi
+
+git reset HEAD^ && \
+git commit --author "tests <costin.b.84@gmail.com>" -m tests && \
+~/test/remote/pushforce tmp
