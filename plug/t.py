@@ -36,6 +36,8 @@ def t_f():
 	device.auth()
 	#Authentication failed ? Unlock the device from the mobile app
 	on=device.check_power()
+	b=0
+	min=45
 	while not exit.is_set():
 		a=subprocess.getoutput('termux-battery-status | jq .percentage')
 		print(a)
@@ -43,8 +45,13 @@ def t_f():
 		if on:
 			if a>55:
 				set_off()
+			else:
+				if a<min:  #can be a case when manual off and keep loosing
+					if a<b:
+						set_on()
+				b=a
 		else:
-			if a<45:
+			if a<min:
 				set_on()
 		exit.wait(100)
 	print('done')
