@@ -1,1 +1,1 @@
-gh run workflow msys.yml
+gh workflow run msys.yml

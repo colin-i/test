@@ -1,3 +1,15 @@
 
-if [ -z "${1}" ]; then echo no version; exit 1; fi
-tito tag --use-version $1 --use-release 0
+if [ -z "${1}" ]; then
+	echo no version
+	name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
+	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
+	echo ${ve} , modif, enter
+	read -t $((60*60*24)) ans
+	echo ${ans}
+	echo y and enter
+	read -t $((60*60*24)) a
+	if [ "${a}" != "y" ]; then exit 1; fi
+else
+	ans=$1
+fi
+tito tag --use-version ${ans} --use-release 0
