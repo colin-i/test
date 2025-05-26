@@ -1,6 +1,6 @@
 BuildArch: x86_64
-BuildRequires: make glibc(x86-32) gcc
-Requires: glibc(x86-32)
+BuildRequires: make gcc glibc-32bit bc
+Requires: glibc-32bit
 %description
 O Language compiler and dev files.
 
@@ -18,7 +18,7 @@ gzip -dc %{S:1} > src/obj.txt
 touch include_dev
 
 %build
-make
+linkerflagsextra="-Wl,-z,noexecstack" make #will not osc build with execstack
 make test
 
 %install
@@ -33,6 +33,7 @@ make test
 %attr(0755, root, root) "%{_bindir}/ounused"
 
 %files devel
+%dir %attr(0755, root, root) "%{_includedir}/%{name}"
 %attr(0644, root, root) "%{_includedir}/%{name}/logs.oh"
 %attr(0644, root, root) "%{_includedir}/%{name}/log.oh"
 %attr(0644, root, root) "%{_includedir}/%{name}/xfilecore.oh"

@@ -38,8 +38,8 @@ tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
 if [ -n "${dest}" ]; then
 	if [ -n "${mounted}" ]; then
-		mv $f ${dest}${f}-orig && \
-		mkdir ${dest}${f} && \
+		cp -r $f ${dest}${f}-orig && \
+		mv $f ${dest}${f} && \
 		mv ${f}.tar.gz orig.tar.gz
 		exit
 	fi
