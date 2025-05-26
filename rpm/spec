@@ -1,0 +1,5 @@
+spec=${1}.spec
+cat a > ${spec}
+cat b >> ${spec}
+cat c >> ${spec}
+edor ${spec} || exit 1

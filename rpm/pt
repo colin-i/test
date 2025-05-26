@@ -13,16 +13,13 @@ diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch
 cd ${pcs}
 edor p${n}.patch || exit 1
 gzip p${n}.patch
-spec=${name}.spec
 
 #m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
 #sed -n -i "p;${m}a Patch${n}: p${n}.patch.gz" ${spec}
 
 echo "Patch${n}: p${n}.patch.gz" >> b
-cat a > ${spec}
-cat b >> ${spec}
-cat c >> ${spec}
 
-edor ${spec} || exit 1
+~/test/rpm/spec ${name} || exit 1
+
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
