@@ -4,7 +4,9 @@ ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
 re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
 
 echo ${ve}-${re}
-echo copr-cli build-package --name ${name} colin/project  # --exclude-chroot fedora-42-aarch64
+text="copr-cli build-package --name ${name} colin/project" # --exclude-chroot fedora-42-aarch64
+echo ${text}
+echo ${text} | xclip -sel clip
 echo "copr ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
@@ -52,7 +54,9 @@ for (( i=0; i < ${n}; i++)); do
 	else
 		echo ${id} is old
 		#echo build_proxy.delete is not working, use:
-		echo copr-cli delete-build ${id}
+		text="copr-cli delete-build ${id}"
+		echo ${text}
+		echo ${text} | xclip -sel clip
 		echo and y and enter
 		read -t $((60*60*24)) ans
 		if [ "${ans}" != "y" ]; then exit 1; fi
