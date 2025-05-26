@@ -6,7 +6,9 @@ n=${1}
 a=`dirname ${0}`/
 f=${a}a.out
 
-em=costin.b.84@gmail.com
+if [ -z "${em}" ]; then
+	em=costin.b.84@gmail.com
+fi
 
 cc ${a}a.c -lyuarel -o ${f} && \
 if [ -z "${2}" ]; then args="-am \"${n}\""

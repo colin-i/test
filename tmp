@@ -1,7 +1,26 @@
-echo "force push if same month. y and enter"
-read -t $((60*60*24)) ans
-if [ "${ans}" != "y" ]; then ~/test/bots/tests; fi
 
-git reset HEAD^ && \
-git commit --author "tests <costin.b.84@gmail.com>" -m tests && \
-~/test/remote/pushforce tmp
+last=`git show --summary --format="%at" | head -1`
+m=`date -u -d @${last} +%m`
+thism=$(date -u -d @$(date +%s) +%m)
+
+if [ $m = ${thism} ]; then
+	echo "same month. force push. y and enter"
+else
+	echo "another month. normal push. y and enter"
+fi
+read -t $((60*60*24)) ans
+if [ "${ans}" != "y" ]; then exit 1; fi
+
+if [ $m = ${thism} ]; then
+	git reset HEAD^ && \
+	{
+		a="`git ls-files --others --exclude-standard`"
+		for x in ${a[@]}; do
+			git add $x
+		done
+	} && \
+	git commit --author "tests <costin.b.84@gmail.com>" -am tests && \
+	~/test/remote/pushforce tmp
+else
+	~/test/bots/tests
+fi

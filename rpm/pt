@@ -3,7 +3,7 @@ name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
 src="$(dirname $(pwd))"
 cd ~/pc
-uncompre=x dest=. mounted=${src}/ ~/test/misc/reversion ${name} ${major}
+uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
 pcs=~/test/rpm/home:costin/${name}
 n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 nmmaj0=${name}-${major}-orig

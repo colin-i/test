@@ -4,9 +4,11 @@
 if [ -z "${1}" ]; then
 	source ~/test/remote/pushbase
 	set_to ${p}
+else
+	to=$1
 fi
 
-git ls-remote --refs -h ${1} | grep `git rev-parse HEAD`
+git ls-remote --refs -h ${to} | grep `git rev-parse HEAD`
 if [ "$?" = "0" ]; then
 echo egal
 else

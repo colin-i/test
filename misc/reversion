@@ -1,16 +1,17 @@
 
-# 1 2 dest mounted special uncompre
+# 1 2 mounted uncompre dest
 
 if [ -z "$2" ]; then
+#in ./tmp from github to a lower .gz
 	name=`echo $1 | grep -o ^[^-]*`
 	ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
 else
+#in a/pc for pt   or in home:/name for .gz
 	name=$1
 	ver=$2
 fi
 vers=`echo ${ver} | sed 's/\-/./'`
 f=${name}-${vers}
-if [ -z "${dest}" ]; then dest=~/rpmbuilds/${name}; fi
 
 if [ -z "$2" ]; then
 	gzip -d $1 && \
@@ -35,5 +36,13 @@ fi && \
 if [ -n "${uncompre}" ]; then exit 0; fi && \
 tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
-rm -r $f && \
-mv ${f}.tar.gz ${dest}/${special}
+if [ -n "${dest}" ]; then
+	if [ -n "${mounted}" ]; then
+		mv $f ${dest}${f}-orig && \
+		mkdir ${dest}${f} && \
+		mv ${f}.tar.gz orig.tar.gz
+		exit
+	fi
+	mv ${f}.tar.gz ${dest}
+fi && \
+rm -r $f
