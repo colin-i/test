@@ -27,6 +27,7 @@ install_number=64 %make_install
 %attr(0755, root, root) "%{_bindir}/oaalternative.sh"
 
 %files devel
+%dir %attr(0755, root, root) "%{_includedir}/%{name}"
 %attr(0644, root, root) "%{_includedir}/%{name}/oadbgdatas.oh"
 %attr(0644, root, root) "%{_includedir}/%{name}/oadbgdata.oh"
 %attr(0644, root, root) "%{_includedir}/%{name}/oadbgdatas.h"
