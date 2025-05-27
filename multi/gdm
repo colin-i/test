@@ -1,1 +1,1 @@
-gdb-multiarch -ex "target remote :1234" -ex c
+gdb-multiarch -ex "target remote :1234" -ex "source ~/.gdbinit-gef.py" -ex c
