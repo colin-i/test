@@ -16,7 +16,7 @@ f=${name}-${vers}
 if [ -z "$2" ]; then
 	gzip -d $1 && \
 	tar -xf `echo $1 | grep -Po ".*(?=\.)"` && \
-	mv ${name}-${ver} $f
+	mv ${name}-${ver} $f && \
 	rm -r ${f}/.github ${f}/.tito ${f}/arh ${f}/debian ${f}/${name}.spec
 else
 	fr=${mounted}${name}-${ver}

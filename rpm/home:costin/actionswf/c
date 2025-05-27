@@ -1,0 +1,44 @@
+BuildRequires: ocompiler make gcc
+%description
+ActionSwf compiler and dev files.
+
+%package devel
+Summary: ActionSwf dev files
+BuildArch: noarch
+Requires: %{name} = %{version}-%{release}
+%description devel
+This package contains necessary header files for actionswf development.
+
+#-- PREP, BUILD & INSTALL -----------------------------------------------------#
+%prep
+%autosetup
+touch include_dev
+
+%build
+make
+
+%install
+install_number=64 %make_install
+
+#-- FILES ---------------------------------------------------------------------#
+%files
+%attr(0644, root, root) "%{_libdir}/libactionswf.so"
+%attr(0644, root, root) "%{_libdir}/liboadbgdata.so"
+%attr(0755, root, root) "%{_bindir}/oaalternative.sh"
+
+%files devel
+%attr(0644, root, root) "%{_includedir}/%{name}/oadbgdatas.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/oadbgdata.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/oadbgdatas.h"
+%attr(0644, root, root) "%{_includedir}/%{name}/oadbgdata.h"
+%attr(0644, root, root) "%{_includedir}/%{name}/flags.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/flagss.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/importf.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/import.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/flags.h"
+%attr(0644, root, root) "%{_includedir}/%{name}/flagss.h"
+%attr(0644, root, root) "%{_includedir}/%{name}/actionswf.oh"
+%attr(0644, root, root) "%{_includedir}/%{name}/actionswf.h"
+
+#-- CHANGELOG -----------------------------------------------------------------#
+%changelog

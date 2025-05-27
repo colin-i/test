@@ -4,6 +4,6 @@ Version: 2
 Release: 0
 License: GPLv3
 Summary: O Language compiler
-Url: https://github.com/colin-i/%{name}
+Url: https://github.com/colin-i/o
 Source0: orig.tar.gz
 Source1: obj.txt.gz

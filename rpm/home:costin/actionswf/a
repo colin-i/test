@@ -1,0 +1,8 @@
+
+Name: actionswf
+Version: 1
+Release: 0
+License: GPLv3
+Summary: ActionSwf compiler
+Url: https://github.com/colin-i/%{name}
+Source0: orig.tar.gz

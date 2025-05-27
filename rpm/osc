@@ -1,33 +1,47 @@
 
-#libxml2-tools for xmllint
+# libxml2-tools for xmllint
 
-osc meta prj > 1
-proj=`xmllint --xpath 'string(/project/@name)' ./1`
-reps=`xmllint --xpath '/project/repository/@name' ./1`
-reps=`echo ${reps} | sed 's/\s*name="\([^"]*\)"/\1\n/g'`
-arh=`xmllint --xpath '/project/repository/arch/text()' ./1`
+osc meta pkg > 1
+name=`xmllint --xpath 'string(/package/@name)' ./1`
+
+osc meta prj > 2
+proj=`xmllint --xpath 'string(/project/@name)' ./2`
+reps=`xmllint --xpath '/project/repository/@name' ./2`
+reps=( `echo ${reps} | sed 's/\s*name="\([^"]*\)"/\1\n/g'` )
+n=${#reps[@]}
+m=$((n-1))
+arh=`xmllint --xpath '/project/repository/arch/text()' ./2`
+i=${#arh}
+i=$((i-m))
+i=$((i/n))
+arh=${arh:0:i}
 arhs=( ${arh} )
 
-osc meta pkg > 2
-name=`xmllint --xpath 'string(/package/@name)' ./2`
+osc api /build/${proj}/${reps[0]}/${arhs[1]}/_repository > 3
+if [ -n "`cat 3 | grep ${name}-devel`" ]; then devel=-devel; fi
 
-echo ${proj} ${name}
+echo ${proj} ${name} devel=${devel}
 i=0
 for rep in ${reps[@]}; do
-	#osc api /build/${proj}/${rep}/${arhs[$i]}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
-	echo ${rep} ${arhs[$i]}
-	while :; do
-		sleep 60
-		osc api /build/${proj}/${rep}/${arhs[$i]}/${name}/_status > 3
-		status=`xmllint --xpath 'string(/status/@code)' ./3`
-		echo ${status}
-		if [ "${status}" = "succeeded" ]; then
-			break
+	echo ${rep}
+	for arh in ${arhs[@]}; do
+		osc api /build/${proj}/${rep}/${arh}/${name} > 3
+		if [ -n "`cat 3 | grep ${name}`" ]; then #else is disabled
+			#osc api /build/${proj}/${rep}/${arh}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
+			echo ${arh}
+			while :; do
+				sleep 60
+				osc api /build/${proj}/${rep}/${arh}/${name}/_status > 3
+				status=`xmllint --xpath 'string(/status/@code)' ./3`
+				echo ${status}
+				if [ "${status}" = "succeeded" ]; then
+					break
+				fi
+			done
 		fi
 	done
-	i=$((i+1))
 done
 
 rm 1 2 3
 
-sudo zypper ref && sudo zypper in ${name}
+sudo zypper ref && sudo zypper in ${name}${devel}

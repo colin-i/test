@@ -13,7 +13,7 @@ This package contains necessary header files for O Language development.
 
 #-- PREP, BUILD & INSTALL -----------------------------------------------------#
 %prep
-%autosetup
+%autosetup -p1
 gzip -dc %{S:1} > src/obj.txt
 touch include_dev
 

@@ -3,7 +3,7 @@ name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
 src="$(dirname $(pwd))"
 cd ~/pc
-uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
+uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major} || exit 1
 pcs=~/test/rpm/home:costin/${name}
 n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 nmmaj0=${name}-${major}-orig
@@ -17,9 +17,13 @@ gzip p${n}.patch
 #m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
 #sed -n -i "p;${m}a Patch${n}: p${n}.patch.gz" ${spec}
 
-echo "Patch${n}: p${n}.patch.gz" >> b
+outname=p${n}.patch.gz
+echo "Patch${n}: ${outname}" >> b
 
 ~/test/rpm/spec ${name} || exit 1
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
+
+echo osc add ${outname}
+echo osc add ${outname} | xclip -sel clip
