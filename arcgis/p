@@ -1,13 +1,13 @@
 
-#format, conditions, manage, edit, A2:R29, ok
+#format, conditional, manage, edit, A2:R29, ok
 #select, print, print selected cells, print to file, Desktop/a
-#take screenshot, with left bar visible
-#in Desktop/a ~/test/arcgis/p paste
+#take screenshot, left bar visible
+#in Desktop/a ~/test/arcgis/p 'paste file name'
 if [ -z "${1}" ]; then echo error; exit 1; fi
 #if [ -z "${2}" ]; then echo error; exit 1; fi
 apath=~
 from_caps () {
-	mv "${apath}/Pictures/Capturi de ecran/${1}" a.png
+	mv "${apath}/Pictures/Screenshots/${1}" a.png
 	convert a.png -crop 1770x1030+150+50 a.jpg
 }
 from_caps "${1}"
@@ -19,7 +19,8 @@ if [ "${q}" != "y" ]; then
 	exit 1
 fi
 #python ~/test/arcgis/pixels.py > 1
-#here can use: kolourpaint ./a.jpg
+#or
+#kolourpaint ./a.jpg
 
 #at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 echo left top right bottom

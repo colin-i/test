@@ -3,16 +3,13 @@
 r=$?
 if [ ${r} -ne 0 ]; then
 	if [ ${r} -eq 1 ]; then exit 1; fi
-	echo is from new to normal \? y \?
+	echo is from new to normal \ \  or is added new at _new \ \  or is ok to rewrite text_last_new \? y \?
 	read -n1 -t $((60*60*24)) ans
-else
-	echo is added new at _new \? y \?
-	read -n1 -t $((60*60*24)) ans
-fi
-if [ "${ans}" = "y" ]; then
-	has_new=x ./c _new
+	if [ "${ans}" = "y" ]; then
+		cp ~/measures/text_new ~/measures/text_last_new
+	fi
 fi
 
 #at questions:
-#when new at _new, ./b _new, has_new=x ./c _new . then an ./n to see it on flow. at a.py can also use skipdate=x at ./b
+#when new at _new, ./b _new, has_new=x ./c _new . then ./n to see it on flow. at a.py can also use skipdate=x at ./b
 #when from new to normal: move from: recs_new to recs, move from current_new to current, enter; after that also move from: new_new,ex_new,ex2_new

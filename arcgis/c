@@ -8,17 +8,14 @@ if [ -z "${has_new}" ]; then
 		exit 0
 	fi
 	if [ -n "${1}" ]; then
-		./n _new
+		./n ${1}
 		exit 2
 	fi
 	./d || exit 1
 	cp ~/measures/text ~/measures/text_last
-else #has_new
-	has_new= python c.py ${1} && \
-	cp ~/measures/text${1} ~/measures/text_last${1} && \
-	if [ -n "${1}" ]; then
-		exit 0
-	fi && \
+else #has_new here only at ./a
+	has_new= python c.py && \
+	cp ~/measures/text ~/measures/text_last && \
 	python c.py
 fi && \
 sed -i "s/\./,/g" ~/measures/text && \
