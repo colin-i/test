@@ -16,6 +16,7 @@ if [ $m = ${thism} ]; then
 	{
 		a="`git ls-files --others --exclude-standard`"
 		for x in ${a[@]}; do
+			echo $x
 			git add $x
 		done
 	} && \
