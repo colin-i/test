@@ -3,7 +3,11 @@
 
 if [ -z "${1}" ]; then
 	source ~/test/remote/pushbase
-	set_to ${p}
+	if [ -n "${p}" ]; then
+		set_to ${p}
+	else
+		set_to  `git config --get remote.origin.url | grep -o "[^/]*$" | grep -Po ".*(?=\.git)"`
+	fi
 else
 	to=$1
 fi

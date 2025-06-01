@@ -2,6 +2,7 @@
 cd ~/wiki
 projs="`ls`"
 for p in ${projs[@]}; do
+	echo $p
 	cd $p
 	~/test/remote/pushinfo
 	if [ $? != 0 ]; then
@@ -11,4 +12,5 @@ for p in ${projs[@]}; do
 		read
 	fi
 	cd ..
+	sleep 1
 done
