@@ -63,12 +63,12 @@ for var in "${z[@]}"; do
 			mkdir ${dest} || exit 1
 		fi
 
-		if [ "${var}" = "pkgbuilds" ]; then
-			dbgextra="-- . ':!:patches'"
-		fi
+		#if [ "${var}" = "pkgbuilds" ]; then
+		#	dbgextra="-- . ':!:patches'"
+		#fi
 		response=0
 		while :; do
-			dbgextra=${dbgextra} ~/test/dbg ${var}
+			~/test/dbg ${var} #dbgextra=${dbgextra}
 			case $? in
 			  0) break;;
 			  1) response=1;break;;
