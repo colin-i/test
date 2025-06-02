@@ -1,0 +1,29 @@
+
+#branch
+
+if [ -z "${branch}" ]; then branch=$(git rev-parse --abbrev-ref HEAD); fi
+id=$(gh run list --workflow=test.yml -b ${branch} | cut -f7 | head -1)
+repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+t=~/Desktop/
+tf=${t}1pic${repo_at_gh}
+gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/actions/runs/${id}/artifacts > ${tf} && {
+	n=`cat ${tf} | jq .total_count`
+	tf2=${tf}2
+	tf3=${t}screenshot.png
+	for ((i=0;i<n;i++)) do
+		cat ${tf} | jq ".artifacts[${i}].name"
+		url=`cat ${tf} | jq ".artifacts[${i}].archive_download_url"`
+		url=${url:1:-1}
+		curl -H "Authorization: token `cat ~/n/tmp/pat`" -L -o ${tf2} ${url} || {
+			rm ${tf}
+			exit 1
+		}
+		unzip -d $t ${tf2}
+		eog -n ${tf3} || {
+			rm ${tf} ${tf2} ${tf3}
+			exit 1
+		}
+		rm ${tf2} ${tf3}
+	done
+	rm ${tf}
+}
