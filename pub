@@ -31,7 +31,6 @@ do
 			fi
 			exit 1
 		fi
-		echo sleep
 		sleep 60
 	done
 done
