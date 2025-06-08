@@ -1,0 +1,7 @@
+
+#1 msg               optional 2 distribution
+#same as 2 but without tito
+~/test/debinitbase "${1}" ${2} && \
+~/test/debuild && \
+~/test/debinitpush "${1}" && \
+~/test/sync/s
