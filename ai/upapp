@@ -1,7 +1,7 @@
 
 proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ "${proj}" = "ovideo" ]; then
-	~/test/pic && \
+	~/test/ai/pic && \
 	gh workflow run upapp.yml
 else
 	gh workflow run upapp.yml --ref $(git rev-parse --abbrev-ref HEAD)

@@ -1,9 +1,11 @@
 
 if [ -e ~/rerpm_extern ]; then exit 0; fi
 
+# pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
-sudo gh act -r -j urbuild --env init=1 workflow_dispatch -W .github/workflows/uprpm${name}.yml
+sudo gh act -r -j urbuild --env init=1 workflow_dispatch -W .github/workflows/uprpm${name}.yml ${pull}
 container=`sudo docker ps -a | grep uprpm${name}-yml | cut -d ' ' -f1`
 version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 

@@ -6,10 +6,15 @@ fi
 #2 is mime name
 #3 is extra naming
 
+if [ -z "${pull}" ]; then
+	pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
+	#seems that it started to forget this
+fi
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
 # sudo gh extension install nektos/gh-act
-sudo gh act -r -j ubuildgen --env init=1 workflow_dispatch -W .github/workflows/upgen${name}.yml  #-P ubuntu-22.04=catthehacker/ubuntu:act-22.04
+sudo gh act -r -j ubuildgen --env init=1 workflow_dispatch -W .github/workflows/upgen${name}.yml ${pull}
 container=`sudo docker ps -a | grep upgen${name}-yml | cut -d ' ' -f1`
 
 sudo docker container cp $1 ${container}:`pwd -P`/$1 && \
