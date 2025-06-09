@@ -1,0 +1,83 @@
+BuildArch: i586
+BuildRequires: ocompiler make binutils libgtk2.0-devel libgstreamer-plugins-base1.0-devel libsoup2.4-devel libjpeg-devel libasound2-devel
+Requires: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libgtk2.0 libsoup2.4 libjpeg libasound2
+
+%description
+O Video is a program used to edit, capture, view, play, search and save media.
+
+#-- PREP, BUILD & INSTALL -----------------------------------------------------#
+%prep
+%autosetup
+
+%build
+make
+
+%install
+%make_install
+
+#-- FILES ---------------------------------------------------------------------#
+%files
+%attr(0755, root, root) "/usr/bin/ovideo"
+%dir %attr(0755, root, root) "/usr/share/ovideo"
+%dir %attr(0755, root, root) "/usr/share/ovideo/html"
+%attr(0644, root, root) "/usr/share/ovideo/html/use.html"
+%dir %attr(0755, root, root) "/usr/share/ovideo/img"
+%attr(0644, root, root) "/usr/share/ovideo/img/1616.jpg"
+%attr(0644, root, root) "/usr/share/ovideo/img/close.bmp"
+%dir %attr(0755, root, root) "/usr/share/ovideo/img/edit"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/add.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/addcenter.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/addfromfile.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/addmargins.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/bright.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/capture.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/center_cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/close.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/cover_effects.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/crop.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/curve_cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/diagonal_cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/diamond_cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/equalize.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/expand.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/fade.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/file.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/fileoptions.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/frame.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/framepanel.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/ftime.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/headline.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/img.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/move.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/new.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/newuri.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/open.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/overlay.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/pause.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/pencil.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/preview.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/rectangle_cover.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/remove.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/removeframes.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/resize.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/rotateleft.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/rotateright.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/scale.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/scale_effect.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/screenshot.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/sel.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/sound.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/edit/split.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/help.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/info.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/mix.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/play.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/preferences.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/prepare.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/save.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/img/search.bmp"
+%attr(0644, root, root) "/usr/share/ovideo/version.txt"
+
+#-- CHANGELOG -----------------------------------------------------------------#
+%changelog

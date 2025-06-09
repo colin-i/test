@@ -1,6 +1,9 @@
-BuildArch: x86_64
-BuildRequires: make gcc glibc-32bit bc
+BuildArch: x86_64 i586
+BuildRequires: make gcc bc
+%ifarch x86_64
+BuildRequires: glibc-32bit
 Requires: glibc-32bit
+%endif
 %description
 O Language compiler and dev files.
 
@@ -18,17 +21,27 @@ gzip -dc %{S:1} > src/obj.txt
 touch include_dev
 
 %build
-linkerflagsextra="-Wl,-z,noexecstack" make #will not osc build with execstack
+%ifarch i586
+conv_64=1 ldprefer=1 make #having trouble with gcc
+%else
+linkerflagsextra="-Wl,-z,noexecstack" make #will not osc build with -z,execstack
+%endif
 make test
 
 %install
+%ifarch i586
+conv_64=1 %make_install
+%else
 %make_install
+%endif
 
 #-- FILES ---------------------------------------------------------------------#
 %files
 %config(noreplace) %attr(0644, root, root) "%{_sysconfdir}/%{name}.conf"
 %attr(0755, root, root) "%{_bindir}/o"
+%ifarch x86_64
 %attr(0755, root, root) "%{_bindir}/ostrip"
+%endif
 %attr(0755, root, root) "%{_bindir}/otoc"
 %attr(0755, root, root) "%{_bindir}/ounused"
 

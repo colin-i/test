@@ -1,4 +1,4 @@
-BuildArch: x86_64 aarch64
+BuildArch: x86_64 aarch64 i586
 BuildRequires: autoconf automake make bc gcc-c++ ncurses-devel
 Requires: ncurses
 
