@@ -1,7 +1,9 @@
 
 if [ -e ~/rerpm_extern ]; then exit 0; fi
 
-# pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
+if [ -z "${pull}" ]; then
+	pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
+fi
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 

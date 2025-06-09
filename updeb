@@ -1,6 +1,10 @@
 
 # pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
 
+if [ -z "${pull}" ]; then
+	pull="-P ubuntu-22.04=catthehacker/ubuntu:act-22.04"
+fi
+
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
 sudo gh act -r -j udbuild --env init=1 workflow_dispatch -W .github/workflows/updeb${name}.yml ${pull}
