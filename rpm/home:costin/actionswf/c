@@ -11,14 +11,22 @@ This package contains necessary header files for actionswf development.
 
 #-- PREP, BUILD & INSTALL -----------------------------------------------------#
 %prep
-%autosetup
+%autosetup -p1
 touch include_dev
 
 %build
+%ifarch i586
+conv_64=1 linkerflagsextra="-Wl,-z,noexecstack" make #same badness with execstack
+%else
 make
+%endif
 
 %install
+%ifarch i586
+%make_install
+%else
 install_number=64 %make_install
+%endif
 
 #-- FILES ---------------------------------------------------------------------#
 %files
