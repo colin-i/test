@@ -1,6 +1,6 @@
 BuildArch: i586
-BuildRequires: ocompiler make binutils libgtk2.0-devel libgstreamer-plugins-base1.0-devel libsoup2.4-devel libjpeg-devel libasound2-devel
-Requires: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad libgtk2.0 libsoup2.4 libjpeg libasound2
+BuildRequires: ocompiler make binutils gtk2-devel gstreamer-plugins-base-devel libsoup2-devel libjpeg8-devel alsa-devel
+Requires: gstreamer-plugins-good gstreamer-plugins-bad libgtk-2_0-0 libsoup-2_4-1 libjpeg8 libasound2
 
 %description
 O Video is a program used to edit, capture, view, play, search and save media.

@@ -1,5 +1,5 @@
 
-# 1 2 mounted uncompre dest
+# 1 2 mounted uncompre dest moreexcludes dry
 
 if [ -z "$2" ]; then
 #in ./tmp from github to a lower .gz
@@ -21,16 +21,34 @@ if [ -z "$2" ]; then
 else
 	fr=${mounted}${name}-${ver}
 	files="`ls -a $fr`"
-	if [ -z "${uncompre}" ]; then mkdir $f; fi
+	if [ -z "${uncompre}" ]; then
+		if [ -z "${dry}" ]; then
+			mkdir $f
+		fi
+	fi
 	for fl in ${files}; do
-		if [ $fl != . ] && [ $fl != .. ] && [ $fl != .git ] && [ $fl != .github ] && [ $fl != .tito ] && [ $fl != arh ] && [ $fl != debian ] && [ $fl != ${name}.spec ]; then
-			if [ -z "${uncompre}" ]; then
-				cp -r ${fr}/${fl} ${f}/${fl} || exit 1
-			else
-				rsync -av --delete ${fr}/${fl} ${f}/ || exit 1
+		if [ ${fl} != . ] && [ ${fl} != .. ] && [ ${fl} != .git ] && [ ${fl} != .github ] && [ ${fl} != .tito ] && [ ${fl} != arh ] && [ ${fl} != debian ] && [ ${fl} != ${name}.spec ]; then
+			not=
+			for x in ${moreexcludes}; do
+				if [ ${fl} = ${x} ]; then
+					not=x
+					break
+				fi
+			done
+			if [ -z "${not}" ]; then
+				if [ -z "${dry}" ]; then
+					if [ -z "${uncompre}" ]; then
+						cp -r ${fr}/${fl} ${f}/${fl} || exit 1
+					else
+						rsync -av --delete ${fr}/${fl} ${f}/ || exit 1
+					fi
+				else
+					echo ${fr}/${fl} ${f}/${fl}
+				fi
 			fi
 		fi
 	done
+	if [ -n "${dry}" ]; then exit; fi
 	echo sync done
 fi && \
 if [ -n "${uncompre}" ]; then exit 0; fi && \
