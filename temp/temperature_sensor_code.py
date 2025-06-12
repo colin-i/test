@@ -44,12 +44,19 @@ def gree(a): #,b):
 		print('send')
 		#return is 0 at timeout later
 		#r=
-		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s]).returncode
+		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
+		#.returncode
 		#if r!=0:
 		#	return
 	#print(s)
 	#global on
 	#on=b
+def stop(t):
+	z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','get','Pow'],capture_output=True,text=True)
+	if z.stdout != 'Getting parameters: Pow\nPow = 0\n':
+		gree('0') #,False)
+	else:
+		print("is off")
 lasttemp=0
 def test(t):
 	global lasttemp
@@ -57,11 +64,17 @@ def test(t):
 	if math.isnan(t)==False:
 		if t>max:
 			if lasttemp<=t:
-				gree('1') #,True)
+				z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','get','Pow'],capture_output=True,text=True)
+				if z.stdout != 'Getting parameters: Pow\nPow = 1\n':
+					gree('1') #,True)
+				else:
+					print("is on")
 		elif t<=min:
 			if t<=lasttemp:
-				gree('0') #,False)
+				stop()
 		lasttemp=t
+	sys.stdout.flush()
+	#python -u is for | tee (or >~1),to see print() calls, but pdb -u is not ok
 
 def t2_f():
 	while True:
@@ -74,6 +87,7 @@ def t2_f():
 		time.sleep(30)
 		if done==1:
 			break
+	stop()
 import threading
 import readchar
 

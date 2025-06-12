@@ -79,5 +79,4 @@ fi
 min="${min}.${fmin}"
 max="${max}.${fmax}"
 
-python -u ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}
-#-u is for | tee (or >~1),to see print() calls, can use sys.stdout.flush() there
+python ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}
