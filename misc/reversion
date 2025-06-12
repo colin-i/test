@@ -1,5 +1,5 @@
 
-# 1 2 mounted uncompre dest moreexcludes dry
+# 1 2 mounted uncompre dest dry
 
 if [ -z "$2" ]; then
 #in ./tmp from github to a lower .gz
@@ -20,6 +20,10 @@ if [ -z "$2" ]; then
 	rm -r ${f}/.github ${f}/.tito ${f}/arh ${f}/debian ${f}/${name}.spec
 else
 	fr=${mounted}${name}-${ver}
+	excfile=${fr}/zipexcludes
+	if [ -e "${excfile}" ]; then
+		moreexcludes="`cat ${excfile}`"
+	fi
 	files="`ls -a $fr`"
 	if [ -z "${uncompre}" ]; then
 		if [ -z "${dry}" ]; then
@@ -56,8 +60,8 @@ tar -cvf ${f}.tar $f && \
 gzip ${f}.tar && \
 if [ -n "${dest}" ]; then
 	if [ -n "${mounted}" ]; then
-		cp -r $f ${dest}${f}-orig && \
 		mv $f ${dest}${f} && \
+		cp -r ${dest}${f} ${dest}${f}-orig && \
 		mv ${f}.tar.gz orig.tar.gz
 		exit
 	fi

@@ -1,4 +1,7 @@
 BuildRequires: ocompiler make gcc
+%ifarch i586
+BuildRequires: lld
+%endif
 %description
 ActionSwf compiler and dev files.
 
@@ -16,7 +19,7 @@ touch include_dev
 
 %build
 %ifarch i586
-conv_64=1 linkerflagsextra="-Wl,-z,noexecstack" make #same badness with execstack
+conv_64=1 LD=ld.lld Lc=-L/usr/lib make
 %else
 make
 %endif
