@@ -51,7 +51,7 @@ def gree(a): #,b):
 	#print(s)
 	#global on
 	#on=b
-def stop(t):
+def stop():
 	z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','get','Pow'],capture_output=True,text=True)
 	if z.stdout != 'Getting parameters: Pow\nPow = 0\n':
 		gree('0') #,False)
