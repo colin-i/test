@@ -1,0 +1,19 @@
+BuildArch: i586
+BuildRequires: libssl-dev, libgtk-3-dev
+Requires: libssl3 libgtk-3-0
+%description
+IRC client with ssl
+
+#-- PREP, BUILD & INSTALL -----------------------------------------------------#
+%prep
+%autosetup
+
+%build
+
+%install
+
+#-- FILES ---------------------------------------------------------------------#
+%files
+
+#-- CHANGELOG -----------------------------------------------------------------#
+%changelog

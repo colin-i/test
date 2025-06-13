@@ -1,0 +1,8 @@
+
+Name: sirc
+Version: 1
+Release: 0
+License: GPLv3
+Summary: IRC with SSL
+Url: https://github.com/colin-i/irc-ssl
+Source0: orig.tar.gz

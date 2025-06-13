@@ -3,5 +3,5 @@ sudo docker run -it -e DISPLAY=:1 -v /tmp/.X11-unix:/tmp/.X11-unix --network=hos
 	-v ./a/pkgbuilds:/home/bc/pkgbuilds -v ./test:/home/bc/test -v ./o:/home/bc/o -v ./s:/home/bc/s -v ./e:/home/bc/e -v ./a/rpmbuilds:/home/bc/rpmbuilds -v ./v:/home/bc/v \
 	$@
 # --platform=linux/386 --privileged
-# xorg-x11-server-extra
-# Xephyr :1 -ac -screen 1000x1000 -resizeable          Xephyr :1 &
+# xserver-xephyr / xorg-x11-server-extra
+# Xephyr :1 -ac -screen 1000x1000 -resizeable
