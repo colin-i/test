@@ -1,5 +1,5 @@
-BuildRequires: autoconf automake make libssl-dev libgtk-3-dev
-Requires: libssl3 libgtk-3-0
+BuildRequires: autoconf automake make libopenssl-3-devel gtk3-devel
+Requires: libopenssl3 libgtk-3-0
 %description
 IRC client with ssl
 
