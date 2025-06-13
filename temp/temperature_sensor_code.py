@@ -17,13 +17,16 @@ def read_temp_raw():
 
 def read_temp():
 	lines = read_temp_raw()
-	if lines[0].strip()[-3:] == 'YES':
-		equals_pos = lines[1].find('t=')
-		if equals_pos != -1:
-			temp_string = lines[1][equals_pos+2:]
-			temp_c = int(temp_string) / 1000
-			#temp_f = temp_c * 9.0 / 5.0 + 32.0
-			return temp_c #, temp_f
+	try:
+		if lines[0].strip()[-3:] == 'YES':
+			equals_pos = lines[1].find('t=')
+			if equals_pos != -1:
+				temp_string = lines[1][equals_pos+2:]
+				temp_c = int(temp_string) / 1000
+				#temp_f = temp_c * 9.0 / 5.0 + 32.0
+				return temp_c #, temp_f
+	except Exception as e:
+		print(e.__str__())
 	return float('nan')
 
 def read_gree_temp():
