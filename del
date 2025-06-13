@@ -13,6 +13,7 @@ else
 	echo prev app delete
 	if [ ! -f "${HOME}/dontdeleteprevappimage" ]; then
 		echo yes
+		nameappimg=${name}
 		if [ -z "${2}" ]; then
 			prev=`cat debian/changelog | grep ^${name} | sed -n 2p | grep -Poe "[^\(]*(?=\))"`
 		else
@@ -20,11 +21,11 @@ else
 			if [ -n "${3}" ]; then
 				glb=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s | grep -Poe "(?<=$(cat debian/changelog | head -1 | grep -o ^[^\ ]*)\.)[^.]*" | head -1)
 				#.assets[1].name can be random
-				name=${name}.${glb}
+				nameappimg=${name}.${glb}
 			fi
 		fi
 		if [ -z "${from_env_files}" ]; then
-			sudo gh act -j del --env file=${name}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}- || exit 1
+			sudo gh act -j del --env file=${nameappimg}.amd64.AppImage --env tag=${prev} -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/del${name}.yml || ~/test/docker/rm act-del${name}- || exit 1
 		else
 			for fl in ${from_env_files}; do
 				fl=${name}${fl};echo ${fl}

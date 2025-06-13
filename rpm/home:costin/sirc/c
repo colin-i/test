@@ -1,4 +1,4 @@
-BuildRequires: autoconf automake make libopenssl-3-devel gtk3-devel
+BuildRequires: autoconf automake make gcc-c++ libopenssl-3-devel gtk3-devel
 Requires: libopenssl3 libgtk-3-0
 %description
 IRC client with ssl
@@ -17,6 +17,7 @@ make
 
 #-- FILES ---------------------------------------------------------------------#
 %files
+%attr(0755, root, root) "%{_bindir}/%{name}"
 
 #-- CHANGELOG -----------------------------------------------------------------#
 %changelog

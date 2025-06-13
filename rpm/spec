@@ -1,5 +1,7 @@
 spec=${1}.spec
 cat a > ${spec}
-cat b >> ${spec}
+if [ -e b ]; then
+	cat b >> ${spec}
+fi
 cat c >> ${spec}
 edor ${spec} || exit 1
