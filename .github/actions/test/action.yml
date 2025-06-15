@@ -27,7 +27,8 @@ runs:
      curl -L -H "Authorization: token ${{ env.GITHUB_TOKEN }}" ${url} --output a.zip
      unzip ./a.zip
 
-     sudo apt-get install -y libfuse2`if [ ${{ matrix.os }} = "ubuntu-24.04" ]; then echo -n t64; fi` #xvfb is already
+     apt download libfuse2`if [ ${{ matrix.os }} = "ubuntu-24.04" ]; then echo -n t64; fi` #xvfb is already
+     dpkg -x ./*.deb q
      #export DISPLAY=:0
 
      #dependencies test, if screen was working here then no broadway
@@ -38,9 +39,13 @@ runs:
      { #don't know why but strace is "Killed" but is printing through the end when & with strace
       sleep 5 & { termid=`ps -o ppid= $!`; echo termid=${termid}; echo ${termid} > 1; }
       sleep 10
-      DISPLAY=:1 ${runname} &
-      sleep 5
-      ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
+      DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
+      sleep 15
+      if [ -z "${pattern}" ]; then
+       ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
+      else
+       ps aux | grep ${pattern} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
+      fi
       #pid of our prog is not related to AppImage pid ( is not a child of that ), and the parent is the terminal, not the appimage
       # -C ${name}.AppImage for appimage pid
       #id= is not working outside this {} process
@@ -50,9 +55,10 @@ runs:
       sudo kill -s 9 ${straceid}
      } &
      sleep 5
-     sudo strace -e trace=prlimit64 -f -p `cat 1` -o 3 || echo killed
+     se_term=munmap  #prlimit64 is not on 32 bit
+     sudo strace -e trace=${se_term} -f -p `cat 1` -o 3 || echo killed
+     cat 3 | grep "^`cat 2`  ${se_term}"
      sudo kill -s 9 ${xvfbid} #our program will exit without an X, and appimage at the same time
-     cat 3 | grep "^`cat 2`  prlimit64"
      #if [ $? != 0 ]; then exit 1; fi #is ok at !=0 is exiting
      #can use bpftrace or execsnoop but is not a hurry
      #import -window root -display :1 -screen screenshot.png #imagemagick is on noble
@@ -73,7 +79,7 @@ runs:
      #port 8080+DISPLAY at default
      DISPLAY=:0 broadwayd -p 8080 &
      sleep 10
-     GDK_BACKEND=broadway BROADWAY_DISPLAY=:0 ./${name}.AppImage -d 200x200 &
+     GDK_BACKEND=broadway BROADWAY_DISPLAY=:0 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ./${name}.AppImage -d 200x200 &
      sleep 10
      node capture.js
   - name: upload artifact
