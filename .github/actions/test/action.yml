@@ -2,6 +2,7 @@ name: 'test'
 inputs:
  branch:
   description: "another branch"
+#must have GITHUB_TOKEN for gh/upload
 runs:
  using: "composite"
  steps:
