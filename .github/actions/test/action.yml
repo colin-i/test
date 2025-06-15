@@ -2,6 +2,8 @@ name: 'test'
 inputs:
  branch:
   description: "another branch"
+ pattern:
+  description: "if name is not straight(a script has the name and the proc has another name)"
 #must have GITHUB_TOKEN for gh/upload
 runs:
  using: "composite"
@@ -31,8 +33,9 @@ runs:
      dpkg -x ./*.deb q
      #export DISPLAY=:0
 
-     #dependencies test, if screen was working here then no broadway
      runname=./${name}.AppImage
+     pattern=${{ inputs.pattern }}
+     #dependencies test, if screen was working here then no broadway
      sudo Xvfb :1 -screen 0 1920x1080x8 &
      xvfbid=$!
      sleep 5
