@@ -39,7 +39,15 @@ def init(loop,pointer):
 	th = threading.Thread(target=th_f,args=[text])
 	th.start()
 
-	show(text,form(query.yesterday()))
+	yday=form(query.yesterday())
+	show(text,yday)
+	#
+	yn=0
+	for val in yday: yn=yn+yday[val]
+	f=os.path.join(os.path.dirname(__file__),"y")
+	t=subprocess.check_output([f,str(yn)])
+	total={};total["&"+t.decode()]=1
+	show(text,total)
 	#
 	f=os.path.join(os.path.dirname(__file__),'x')
 	t=subprocess.check_output(f)
