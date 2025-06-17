@@ -1,4 +1,5 @@
 name: 'pkg'
+#must have GITHUB_TOKEN for upload
 runs:
  using: "composite"
  steps:
@@ -35,7 +36,6 @@ runs:
  - name: Upload Release Asset
    uses: svenstaro/upload-release-action@master
    with:
-    repo_token: ${{ secrets.PAT }}
     file: ./${{ env.file }}
     asset_name: ${{ env.file }}
     tag: ${{ env.tag }}
