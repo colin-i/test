@@ -7,14 +7,6 @@ import subprocess
 
 from . import query
 
-def form(js):
-	#json.dumps(js, indent=1)
-	d=js["data"]["viewer"]["contributionsCollection"]["commitContributionsByRepository"]
-	out={}
-	for x in d:
-		out[x["repository"]["name"]]=x["contributions"]["edges"][0]["node"]["commitCount"]
-	return out
-
 from multiprocessing.connection import Listener
 import threading
 
@@ -39,14 +31,11 @@ def init(loop,pointer):
 	th = threading.Thread(target=th_f,args=[text])
 	th.start()
 
-	yday=form(query.yesterday())
-	show(text,yday)
+	show(text,query.yesterday())
 	#
-	yn=0
-	for val in yday: yn=yn+yday[val]
 	f=os.path.join(os.path.dirname(__file__),"y")
-	t=subprocess.check_output([f,str(yn)])
-	total={};total["&"+t.decode()]=1
+	t=subprocess.check_output(f)
+	total={};total["#"+t.decode()]=1
 	show(text,total)
 	#
 	f=os.path.join(os.path.dirname(__file__),'x')
@@ -55,7 +44,7 @@ def init(loop,pointer):
 	show(text,total)
 	#
 	global storage
-	storage=form(query.today())
+	storage=query.today()
 	show(text,storage)
 
 	smallmark(text,time.time())
@@ -121,7 +110,7 @@ def callba(text):
 	t=time.time()
 
 	global storage
-	now=form(query.day_core(t,0))
+	now=query.day_core(t,0)
 
 	dif={}
 	for x in now:

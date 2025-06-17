@@ -1,5 +1,6 @@
 
 import requests
+import pathlib
 
 class GraphqlClient:
     """Class which represents the interface to make graphQL requests through."""
@@ -41,7 +42,8 @@ def day(delta):
 def day_core(tm,delta):
 	stamp=datetime.utcfromtimestamp(tm-delta)
 
-	dict = {'day': stamp.year.__str__()+"-"+shifted(stamp.month)+"-"+shifted(stamp.day)}
+	dayval=shifted(stamp.day)
+	dict = {'day': stamp.year.__str__()+"-"+shifted(stamp.month)+"-"+dayval}
 
 	#with .format there are too many {}
 	#"You must provide a `first` or `last`". it gets 1: yesterday one and today one
@@ -71,7 +73,16 @@ def day_core(tm,delta):
 
 	js=client.execute(query=q)
 
-	return js
+	d=js["data"]["viewer"]["contributionsCollection"]["commitContributionsByRepository"]
+	out={}
+	n=0
+	for x in d:
+		a=x["contributions"]["edges"][0]["node"]["commitCount"]
+		out[x["repository"]["name"]]=a
+		n=n+a
+	with open(pathlib.Path.home().__str__()+"/zile/"+dayval,"w") as f:
+		f.write(str(n))
+	return out
 
 def yesterday():
 	return day(24*3600)

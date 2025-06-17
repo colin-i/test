@@ -4,5 +4,3 @@ sudo docker run -it -e DISPLAY=:1 -v /tmp/.X11-unix:/tmp/.X11-unix --network=hos
 	-v ./i:/home/bc/i -v ./t:/home/bc/t -v ./d:/home/bc/d -v ./p:/home/bc/p -v ./old:/home/bc/old \
 	$@
 # --platform=linux/386 --privileged
-# xserver-xephyr / xorg-x11-server-extra
-# Xephyr :1 -ac -screen 1000x1000 -resizeable

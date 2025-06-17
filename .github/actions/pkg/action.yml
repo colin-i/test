@@ -1,0 +1,43 @@
+on:
+ workflow_dispatch:
+jobs:
+ archbuild:
+  runs-on: ubuntu-latest
+  container: archlinux:latest
+  steps:
+  - name: Checkout
+    uses: actions/checkout@master
+  - name: build
+    run: |
+     name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+     here=`pwd`
+
+     useradd bot
+     cd /home
+     mkdir bot
+     chown bot:bot bot
+     cd bot
+
+     pacman -Sy --noconfirm --needed git base-devel
+     su bot -c 'git clone -n --depth=1 --filter=tree:0 https://github.com/colin-i/pkgbuilds'
+     cd pkgbuilds
+     su bot -c "git sparse-checkout set --no-cone /${name}"
+     su bot -c 'git checkout'
+     cd ${name}
+
+     su bot -c makepkg -s --noconfirm
+     nm=`ls | grep ".*\.zst$" | grep -v debug`
+     nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
+     mv ${nm} ${here}/${nm2}
+     ls ${here}
+     echo "file=${nm2}" >> $GITHUB_ENV
+
+     tag=`echo ${nm} | grep -oP ".*(?=-)"`
+     echo "tag=${tag}" >> $GITHUB_ENV
+  - name: Upload Release Asset
+    uses: svenstaro/upload-release-action@master
+    with:
+     repo_token: ${{ secrets.PAT }}
+     file: ./${{ env.file }}
+     asset_name: ${{ env.file }}
+     tag: ${{ env.tag }}
