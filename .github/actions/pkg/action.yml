@@ -24,7 +24,7 @@ runs:
     su bot -c 'git checkout'
     cd ${name}
 
-    su bot -c makepkg -s --noconfirm
+    su bot -c 'makepkg -s --noconfirm'
     nm=`ls | grep ".*\.zst$" | grep -v debug`
     nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
     mv ${nm} ${here}/${nm2}
