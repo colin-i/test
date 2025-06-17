@@ -17,7 +17,9 @@ runs:
     chown bot:bot bot
     cd bot
 
-    pacman -Sy --noconfirm --needed git base-devel
+    pacman -Sy --noconfirm --needed sudo git base-devel
+    echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #this and sudo needed at makepkg -s dependencies
+
     su bot -c 'git clone -n --depth=1 --filter=tree:0 https://github.com/colin-i/pkgbuilds'
     cd pkgbuilds
     su bot -c "git sparse-checkout set --no-cone /${name}"
