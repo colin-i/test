@@ -5,6 +5,7 @@ runs:
  - name: Checkout
    uses: actions/checkout@master
  - name: build
+   shell: bash
    run: |
     name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
     here=`pwd`
