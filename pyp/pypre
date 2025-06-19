@@ -3,6 +3,9 @@ f=setup.py
 echo "ver=\"`cat v2`\"" > $f
 echo -n "README=\"\"\"" >> $f
 n=`cat info.md|wc -l`
+temp=~/Desktop/1$(basename $(pwd))pypre
+cp info.md ${temp}
+sed -i 's/\\_/\\\\_/g' ${temp}
 i=1
 while read -r line; do #last row is not read
 	echo -n ${line} >> $f
@@ -11,6 +14,7 @@ while read -r line; do #last row is not read
 	fi
 	echo >> $f
 	i=$((i+1))
-done < info.md
+done < ${temp}
 echo "\"\"\"" >> $f
 cat setup.pre.py >> $f
+rm ${temp}
