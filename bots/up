@@ -1,2 +1,2 @@
 
-act=x em=costin.botescu@gmail.com ~/test/bots/commit up
+act=`if [ -z "${no_activity}" ]; then echo -n x; fi` em=costin.botescu@gmail.com ~/test/bots/commit up
