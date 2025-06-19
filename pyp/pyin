@@ -8,9 +8,10 @@ rm -r  *.egg-info
 if [ -d "build" ]; then
 rm -r build
 fi
+rm setup.py
 
 ls -a
-git diff && echo git-diff=$?
+git diff --exit-code && echo git-diff=$?
 
 else
 

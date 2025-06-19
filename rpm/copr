@@ -1,7 +1,13 @@
 
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
-ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
-re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
+if [ -z "${py}" ]; then
+	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
+	re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
+else
+	name=python-${name}
+	ve=`cat v2`
+	re=1
+fi
 
 echo ${ve}-${re}
 text="copr-cli build-package --name ${name} colin/project" # --exclude-chroot fedora-42-aarch64
