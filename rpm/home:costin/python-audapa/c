@@ -1,0 +1,45 @@
+BuildRequires:  python-rpm-macros
+BuildRequires:  %{python_module pip}
+BuildRequires:  %{python_module setuptools}
+BuildRequires:  %{python_module wheel}
+# SECTION test requirements
+BuildRequires:  %{python_module appdirs >= 1.4.3}
+BuildRequires:  %{python_module PyAudio >= 0.2.11}
+BuildRequires:  %{python_module pycairo >= 1.20.0}
+BuildRequires:  %{python_module gobject >= 3.40}
+# /SECTION
+BuildRequires:  fdupes
+Requires:       python-appdirs >= 1.4.3
+Requires:       python-PyAudio >= 0.2.11
+Requires:       python-pycairo >= 1.20.0
+Requires:       python-gobject >= 3.40
+Requires:       libgtk-4-1
+BuildArch:      noarch
+%python_subpackages
+
+%description
+Audio wave file manipulator
+
+%prep
+%autosetup -p1 -n audapa-1
+
+%build
+%pyproject_wheel
+
+%install
+%pyproject_install
+%python_clone -a %{buildroot}%{_bindir}/audapa
+%python_expand %fdupes %{buildroot}%{$python_sitelib}
+
+%post
+%python_install_alternative audapa
+
+%postun
+%python_uninstall_alternative audapa
+
+%files %{python_files}
+%python_alternative %{_bindir}/audapa
+%{python_sitelib}/audapa
+%{python_sitelib}/audapa-%{version}.dist-info
+
+%changelog

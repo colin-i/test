@@ -7,6 +7,7 @@ if [ -z "${py}" ]; then
 	uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major} || exit 1
 else
 	#working with   py2pack generate name -f spec   spec file
+	#must have gnome-shell for introspections to work
 	~/test/pyp/reversion || exit 1
 fi
 pcs=~/test/rpm/home:costin/${name}

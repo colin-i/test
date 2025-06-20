@@ -1,0 +1,11 @@
+#
+# spec file for package python-audapa
+
+
+Name:           python-audapa
+Version:        1.0.15
+Release:        0
+Summary:        Audio wave file manipulator
+License:        MIT
+URL:            https://github.com/colin-i/audapa
+Source:         orig.tar.gz
