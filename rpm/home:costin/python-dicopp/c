@@ -45,3 +45,5 @@ Direct Connect ++ client
 %{python_sitelib}/dicopp-%{version}.dist-info
 
 %changelog
+* Fri Jun 20 2025 Costin Botescu <costin.botescu@gmail.com> 1.0.42-0
+- orig (costin.botescu@gmail.com)
