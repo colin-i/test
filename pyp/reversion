@@ -1,0 +1,12 @@
+
+ver=`cat v2`
+{
+name=`cat debian/control | grep ^Source: | grep -o "[^ ]*$"` && \
+cd ~/pc && \
+wget https://files.pythonhosted.org/packages/source/${name:0:1}/${name}/${name}-${ver}.tar.gz -O a.tar.gz
+} || exit 1
+
+tar -xf a.tar.gz
+rm -r ${name}-1
+mv ${name}-${ver} ${name}-1
+rm a.tar.gz

@@ -1,0 +1,12 @@
+#
+# spec file for package python-torra
+
+
+Name:           python-torra
+Version:        1.0.37
+Release:        0
+Summary:        Torrent client
+License:        MIT
+URL:            https://github.com/colin-i/tora
+#Source:         https://files.pythonhosted.org/packages/source/t/torra/torra-{version}.tar.gz
+Source:         orig.tar.gz

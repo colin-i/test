@@ -1,0 +1,41 @@
+BuildRequires:  python-rpm-macros
+BuildRequires:  %{python_module pip}
+BuildRequires:  %{python_module setuptools}
+BuildRequires:  %{python_module wheel}
+# SECTION test requirements
+BuildRequires:  %{python_module appdirs >= 1.4.3}
+# /SECTION
+BuildRequires:  fdupes
+Requires:       python-appdirs >= 1.4.3
+Requires:       python3-libtorrent-rasterbar
+Requires:       libgtk-4-1
+BuildArch:      noarch
+%python_subpackages
+
+%description
+Torrent client
+
+%prep
+%autosetup -p1 -n torra-1
+
+%build
+%pyproject_wheel
+
+%install
+%pyproject_install
+%python_clone -a %{buildroot}%{_bindir}/torra
+%python_expand %fdupes %{buildroot}%{$python_sitelib}
+
+%post
+%python_install_alternative torra
+
+%postun
+%python_uninstall_alternative torra
+
+%files %{python_files}
+%doc README.md
+%python_alternative %{_bindir}/torra
+%{python_sitelib}/torra
+%{python_sitelib}/torra-%{version}.dist-info
+
+%changelog

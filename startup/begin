@@ -17,9 +17,9 @@ else
 	window_pid=${window_pid} ~/test/startup/termsz  #if window_pid was input ( window_pid= ./begin ) it was passed
 fi
 ~/test/act/a
-~/test/bookmarks/bookmark
 ~/test/misc/storage
 if [ -z "${is_vnc}" ]; then
+	~/test/bookmarks/bookmark
 	~/test/net/data/a
 
 	. ~/test/startup/exports

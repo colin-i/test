@@ -4,23 +4,23 @@
 cd ~/u/b/bm || exit
 
 #a=( `find -name "*.txt" | xargs` )
-a=`find -name "*.txt" | xargs`
+a=`find -name "*.txt"`
 
 if [ "${#a}" != 0 ]; then
-	cd .. || exit
-	#b=( `find -maxdepth 1 -name "bookmarks*"` )
-	b=`find -maxdepth 1 -name "bookmarks*"`
-	cd bm || exit
-
+	echo bookmarks?
 	. ~/test/misc/read_char
+	#read -n1 -t $((3600*24)) ans
+	read_char ans
+	if [ "${ans}" = "y" ]; then
+		a=`find -name "*.txt" | xargs`
+		cd .. || exit
+		#b=( `find -maxdepth 1 -name "bookmarks*"` )
+		b=`find -maxdepth 1 -name "bookmarks*"`
+		cd bm || exit
 
-	#for var in "${a[@]}"
-	for var in ${a}       #assuming no space in files
-	do
-		echo bookmarks?
-		#read -n1 -t $((3600*24)) ans
-		read_char ans
-		if [ "${ans}" = "y" ]; then
+		#for var in "${a[@]}"
+		for var in ${a}       #assuming no space in files
+		do
 			cat ./${var}
 			echo is ok?
 			#read -n1 -t $((3600*24)) ans
@@ -40,6 +40,6 @@ if [ "${#a}" != 0 ]; then
 					rm -i ${var}  #will ask anyway since it is root owner
 				done
 			fi
-		fi
-	done
+		done
+	fi
 fi
