@@ -1,0 +1,11 @@
+#
+# spec file for package python-dicopp
+
+
+Name:           python-dicopp
+Version:        1.0.42
+Release:        0
+Summary:        Direct Connect ++ client
+License:        MIT
+URL:            https://github.com/colin-i/dico
+Source:         orig.tar.gz
