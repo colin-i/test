@@ -12,6 +12,7 @@ runs:
  steps:
   - name: prepacks
     if: ${{ inputs.prepack != '' }}
+    shell: bash
     run: sudo apt install -y ${{ inputs.prepack }}
   - uses: actions/checkout@master
   - name: Run a multi-line script
