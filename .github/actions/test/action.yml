@@ -13,7 +13,7 @@ runs:
   - name: prepacks
     shell: bash
     run: |
-     if [ "${inputs.prepack}" != "" ]; then 
+     if [ "${{ inputs.prepack }}" != "" ]; then 
       sudo apt install -y ${{ inputs.prepack }}
      fi
   - uses: actions/checkout@master
