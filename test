@@ -1,2 +1,2 @@
-gh workflow run test.yml && \
+gh workflow run test.yml `if [ -n "${p}" ]; then echo -n \-f prepack=\"${p}\"; fi` && \
 ~/test/pub test

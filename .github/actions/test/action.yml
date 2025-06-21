@@ -4,10 +4,15 @@ inputs:
   description: "another branch"
  pattern:
   description: "if name is not straight(a script has the name and the proc has another name)"
+ prepack:
+  description: "preinstalled packages"
 #must have GITHUB_TOKEN for gh/upload
 runs:
  using: "composite"
  steps:
+  - name: prepacks
+    if: ${{ inputs.prepack != '' }}
+    run: sudo apt install -y ${{ inputs.prepack }}
   - uses: actions/checkout@master
   - name: Run a multi-line script
     shell: bash
