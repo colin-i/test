@@ -3,7 +3,9 @@ f=setup.py
 echo "ver=\"`cat v2`\"" > $f
 echo -n "README=\"\"\"" >> $f
 n=`cat info.md|wc -l`
-temp=~/Desktop/1$(basename $(pwd))pypre
+if [ -z "${temp}" ]; then
+	temp=~/Desktop/1$(basename $(pwd))pypre
+fi
 cp info.md ${temp}
 sed -i 's/\\_/\\\\_/g' ${temp}
 i=1
