@@ -11,8 +11,11 @@ runs:
  using: "composite"
  steps:
   - name: prepacks
-    if: ${{ inputs.prepack != '' }}
-    run: sudo apt install -y ${{ inputs.prepack }}
+    shell: bash
+    run: |
+     if [ "${{ inputs.prepack }}" != "" ]; then
+      sudo apt install -y ${{ inputs.prepack }}
+     fi
   - uses: actions/checkout@master
   - name: Run a multi-line script
     shell: bash
@@ -51,8 +54,10 @@ runs:
       ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
       sleep 15
       if [ -z "${pattern}" ]; then
+       ps -C ${name} -o pid,cmd
        ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
       else
+       ps aux | grep ${pattern}
        ps aux | grep ${pattern} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
       fi
       #pid of our prog is not related to AppImage pid ( is not a child of that ), and the parent is the terminal, not the appimage
