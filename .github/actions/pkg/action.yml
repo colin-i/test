@@ -1,14 +1,33 @@
 name: 'pkg'
+inputs:
+ py:
+  description: "is python"
 #must have GITHUB_TOKEN for upload
 runs:
  using: "composite"
  steps:
+ - name: main deps
+   shell: bash
+   run: pacman -Sy --noconfirm --needed sudo git base-devel
+   #this here because even actions/checkout will not make .git if no git in PATH
  - name: Checkout
    uses: actions/checkout@master
  - name: build
    shell: bash
    run: |
     name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+    if [ -n "${{ inputs.py }}" ]; then
+     name=python-${name}
+    fi
+
+    remote=`cat debian/control | grep Homepage | grep -oP "(?<=:).*"`
+    echo ${remote}
+    git config --global --add safe.directory .
+    git remote add orig ${remote}
+    tag=`git ls-remote --tags --sort='v:refname' | tail -n1 | sed 's/.*\///' | grep -o "[^^]*" | head -1`
+    echo ${tag}
+    echo "tag=${tag}" >> $GITHUB_ENV
+
     here=`pwd`
 
     useradd bot
@@ -17,8 +36,7 @@ runs:
     chown bot:bot bot
     cd bot
 
-    pacman -Sy --noconfirm --needed sudo git base-devel
-    echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #this and sudo needed at makepkg -s dependencies
+    echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #sudo needed at su / makepkg -s dependencies
 
     su bot -c 'git clone -n --depth=1 --filter=tree:0 https://github.com/colin-i/pkgbuilds'
     cd pkgbuilds
@@ -28,13 +46,14 @@ runs:
 
     su bot -c 'makepkg -s --noconfirm'
     nm=`ls | grep ".*\.zst$" | grep -v debug`
-    nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
+    if [ -z "${{ inputs.py }}" ]; then
+     nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
+    else
+     nm2=`echo ${nm} | sed s/-any/-all/`
+    fi
     mv ${nm} ${here}/${nm2}
-    ls ${here}
-    echo "file=${nm2}" >> $GITHUB_ENV
 
-    tag=`echo ${nm} | grep -oP ".*(?=-)"`
-    echo "tag=${tag}" >> $GITHUB_ENV
+    echo "file=${nm2}" >> $GITHUB_ENV
  - name: Upload Release Asset
    uses: svenstaro/upload-release-action@master
    with:

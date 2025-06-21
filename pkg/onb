@@ -4,4 +4,4 @@ echo "pkgbuild ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
-gh workflow run pkg.yml
+gh workflow run pkg.yml --ref `git rev-parse --abbrev-ref HEAD`

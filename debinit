@@ -3,6 +3,7 @@
 
 #without quotes: ./debinit "a b" 2   is 1=a 2=b   not 1=a b  2=2
 ~/test/debinitbase "$@" && \
+if [ -n "${py}" ]; then rm setup.py; fi && \
 ~/test/debinitpush "${1}" && \
 ~/test/sync/s && \
 gh workflow run deb.yml --ref `git rev-parse --abbrev-ref HEAD`

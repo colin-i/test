@@ -4,6 +4,7 @@ read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
 name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
+if [ -n "${py}" ]; then name=python-${name}; fi
 echo ${name}
 
 cd ~/pkgbuilds/${name}
