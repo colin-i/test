@@ -1,6 +1,3 @@
 
-#if [ -z "${no_pic}" ]; then
-~/test/ai/pic && \
-#fi
 gh workflow run upapp.yml --ref $(git rev-parse --abbrev-ref HEAD)
 #--ref, example at audapa jammy

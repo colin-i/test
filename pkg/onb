@@ -1,5 +1,9 @@
 
-cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"
+if [ ! -e ./v2 ]; then
+	cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"
+else
+	cat v2
+fi
 echo "pkgbuild ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi

@@ -43,7 +43,7 @@ runs:
      { #don't know why but strace is "Killed" but is printing through the end when & with strace
       sleep 5 & { termid=`ps -o ppid= $!`; echo termid=${termid}; echo ${termid} > 1; }
       sleep 10
-      ENTRY_DEBUG= DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
+      ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
       sleep 15
       if [ -z "${pattern}" ]; then
        ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
@@ -61,7 +61,7 @@ runs:
      sleep 5
      se_term=write  #munmap at prev mmap is ok? prlimit64 is not on 32 bit and more .so. are coming.
      sudo strace -e trace=${se_term} -f -p `cat 1` -o 3 || echo killed
-     cat 3 | grep "^`cat 2`  ${se_term}(1, \"ENTRY_DEBUG marker\\\\n\""
+     cat 3 | grep "^`cat 2`[ ]*${se_term}(1, \"ENTRY_DEBUG marker\\\\n\""
      sudo kill -s 9 ${xvfbid} #our program will exit without an X, and appimage at the same time
      #if [ $? != 0 ]; then exit 1; fi #is ok at !=0 is exiting
      #can use bpftrace or execsnoop but is not a hurry
