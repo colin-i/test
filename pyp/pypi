@@ -10,5 +10,5 @@ if [ "${ans}" = "y" ]; then
 	~/test/pyp/pyqu
 	# && yank
 else
-	echo no
+	exit 1
 fi

@@ -1,16 +1,23 @@
 
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
-src="$(dirname $(pwd))"
-cd ~/pc
 if [ -z "${py}" ]; then
-	uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major} || exit 1
+	src="$(dirname $(pwd))"
+	{
+		cd ~/pc && \
+		uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
+	} || exit 1
+	fullname=${name}
 else
 	#working with   py2pack generate name -f spec   spec file
 	#must have gnome-shell for introspections to work
-	~/test/pyp/reversion || exit 1
+	{
+		#~/test/pyp/reversion && \
+		cd ~/pc
+	} || exit 1
+	fullname=python-${name}
 fi
-pcs=~/test/rpm/home:costin/${name}
+pcs=~/test/rpm/home:costin/${fullname}
 n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 nmmaj0=${name}-${major}-orig
 nmmaj=${name}-${major}
@@ -26,7 +33,7 @@ gzip p${n}.patch
 outname=p${n}.patch.gz
 echo "Patch${n}: ${outname}" >> b
 
-~/test/rpm/spec ${name} || exit 1
+~/test/rpm/spec ${fullname} || exit 1
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/

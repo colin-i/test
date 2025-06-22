@@ -1,7 +1,18 @@
 spec=${1}.spec
+if [ -n "${py}" ]; then
+	a=`pwd`
+	cd ~/pkgbuilds/$1 || exit 1
+	ver="`cat ./PKGBUILD | grep ^pkgver | grep -o [^=]*$`"
+	cd $a
+	oldver=`cat a | grep ^Version | grep -o "[^ ]*$"`
+	sed -i "s/${oldver}/${ver}/" a
+fi
 cat a > ${spec}
 if [ -e b ]; then
 	cat b >> ${spec}
 fi
 cat c >> ${spec}
 edor ${spec} || exit 1
+if [ -n "${py}" ]; then
+	git restore a #there are too many useless commits
+fi

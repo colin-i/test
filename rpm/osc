@@ -25,20 +25,27 @@ i=0
 for rep in ${reps[@]}; do
 	echo ${rep}
 	for arh in ${arhs[@]}; do
-		osc api /build/${proj}/${rep}/${arh}/${name} > 3
-		if [ -n "`cat 3 | grep ${name}`" ]; then #else is disabled
-			#osc api /build/${proj}/${rep}/${arh}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
-			echo ${arh}
-			while :; do
-				sleep 60
-				osc api /build/${proj}/${rep}/${arh}/${name}/_status > 3
-				status=`xmllint --xpath 'string(/status/@code)' ./3`
-				echo ${status}
-				if [ "${status}" = "succeeded" ]; then
+		#osc api /build/${proj}/${rep}/${arh}/${name} > 3
+		#if [ -n "`cat 3 | grep ${name}`" ]; then #else is !=succeeded
+		#osc api /build/${proj}/${rep}/${arh}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
+		echo ${arh}
+		while :; do
+			sleep 60
+			osc api /build/${proj}/${rep}/${arh}/${name}/_status > 3
+			status=`xmllint --xpath 'string(/status/@code)' ./3`
+			echo ${status}
+			if [ "${status}" = "succeeded" ] || [ "${status}" = "disabled" ]; then
+				break
+			fi
+			if [ "${status}" = "unresolvable" ] || [ "${status}" = "excluded" ]; then #to do automatic
+				echo "what now? y?"
+				read -n1 -t $((60*60*24)) ans
+				if [ "${ans}" = "y" ]; then
 					break
 				fi
-			done
-		fi
+			fi
+		done
+		#fi
 	done
 done
 

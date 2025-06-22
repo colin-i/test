@@ -1,3 +1,1 @@
-
-if [ -n "${1}" ]; then git add ${1}; fi
-~/test/bots/tests -m
+~/test/bots/botm tests $1
