@@ -2,6 +2,11 @@ name: 'test'
 inputs:
  branch:
   description: "another branch"
+ debug:
+  description: "more info"
+ gtk:
+  description: "gtk version"
+  required: true
  pattern:
   description: "if name is not straight(a script has the name and the proc has another name)"
  prepack:
@@ -51,13 +56,15 @@ runs:
      { #don't know why but strace is "Killed" but is printing through the end when & with strace
       sleep 5 & { termid=`ps -o ppid= $!`; echo termid=${termid}; echo ${termid} > 1; }
       sleep 10
-      ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
-      sleep 15
       if [ -z "${pattern}" ]; then
-       ps -C ${name} -o pid,cmd
+       echo name
+       ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
+       sleep 15
        ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
-      else
-       ps aux | grep ${pattern}
+      else #with --debug? is ok for tora/dico/audapa. must also flush python to work, else can write to a file $(pwd)/4
+       echo pattern
+       DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} --debug &
+       sleep 15
        ps aux | grep ${pattern} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
       fi
       #pid of our prog is not related to AppImage pid ( is not a child of that ), and the parent is the terminal, not the appimage
@@ -67,17 +74,37 @@ runs:
       # -C strace at cmd is also with args
       # cut -f1 is blank at start
       sudo kill -s 9 ${straceid}
+      echo strace done
      } &
      sleep 5
      se_term=write  #munmap at prev mmap is ok? prlimit64 is not on 32 bit and more .so. are coming.
      sudo strace -e trace=${se_term} -f -p `cat 1` -o 3 || echo killed
+     if [ -n "${{ inputs.debug }}" ]; then
+      #cat 4 ||
+      cat 3
+     fi
      cat 3 | grep "^`cat 2`[ ]*${se_term}(1, \"ENTRY_DEBUG marker\\\\n\""
+     # || cat 4
      sudo kill -s 9 ${xvfbid} #our program will exit without an X, and appimage at the same time
      #if [ $? != 0 ]; then exit 1; fi #is ok at !=0 is exiting
      #can use bpftrace or execsnoop but is not a hurry
      #import -window root -display :1 -screen screenshot.png #imagemagick is on noble
 
-     sudo apt install -y libgtk-3-bin npm libnss3
+     sudo apt install -y libgtk-${{ inputs.gtk }}-bin
+     if [ ${{ inputs.gtk }} = 4 ]; then
+      br=gtk4-broadwayd
+     else
+      br=broadwayd
+     fi
+     echo ${br}
+     which ${br} || {
+      #in jammy, gtk4-broadwayd is missing, make an exception
+      sudo apt install -y imagemagick #imagemagick is on noble
+      convert -size 32x32 xc:red screenshot.png
+      exit 0
+     }
+
+     sudo apt install -y npm libnss3 #was nss3 required at sirc? and after?
      npm install puppeteer
      cat > capture.js <<EOF
      const puppeteer = require('puppeteer');
@@ -91,7 +118,7 @@ runs:
      captureBroadwayScreenshot('http://localhost:8080', 'screenshot.png');
      EOF
      #port 8080+DISPLAY at default
-     DISPLAY=:0 broadwayd -p 8080 &
+     DISPLAY=:0 ${br} -p 8080 &
      sleep 10
      GDK_BACKEND=broadway BROADWAY_DISPLAY=:0 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ./${name}.AppImage &
      # -d 200x200  #this can be an extra arg
