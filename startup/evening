@@ -108,7 +108,7 @@ fi
 #/home/bc/evening
 #sleep 10
 #sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
-#/home/bc/evening
+#/home/bc/test/startup/evening
 
 exit 0
 arecord -l
