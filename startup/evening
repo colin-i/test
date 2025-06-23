@@ -1,6 +1,6 @@
 #!/bin/bash
-# is_day.php(~/n/pat4) ~/maxmindif broadlink,(python3-cryptography)
-#switch x to python on/off
+# is_day.php(~/n/pat4) ~/maxmindif  #mp3=: broadlink,(python3-cryptography)
+#                                   else mpg123 and an mp3
 
 #need to wait for the date sync, and date is writing in local but date -d don't understand except english
 if [ -e ~/rememberevening ]; then
@@ -77,7 +77,7 @@ while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on
 done
 echo done
 
-if [ -n "${switch}" ]; then
+if [ -z "${mp3}" ]; then
 	python ~/test/plug/on.py
 fi
 
@@ -86,11 +86,11 @@ if [ -e ~/rememberevening ]; then
 	date | tee -a ~/rememberevening
 else date; fi
 
-if [ -n "${switch}" ]; then
+if [ -z "${mp3}" ]; then
 	echo Enter for off
 	read
 	python ~/test/plug/off.py
-else mpg123 ~/lr.mp3
+else mpg123 ${mp3}
 fi
 
 ##old in .config/lxsession/LXDE-pi/autostart
@@ -108,7 +108,7 @@ fi
 #/home/bc/evening
 #sleep 10
 #sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
-#/home/bc/test/startup/evening
+#mp3=~/lr.mp3 /home/bc/test/startup/evening
 
 exit 0
 arecord -l

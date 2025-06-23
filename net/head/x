@@ -1,4 +1,6 @@
 
+#for browser is ./m
+
 ~/test/net/head/startz
 
 a="`dirname $0`"

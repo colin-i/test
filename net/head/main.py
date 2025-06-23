@@ -1,5 +1,6 @@
 
 #if having mem: in /etc/rc.local swapoff -a
+#1 /@x/live
 # python3-selenium python3-pyperclip python3-zstandard  pip install selenium-wire
 # crashsleep crashlimit lessressmatch lessressite
 
@@ -43,12 +44,12 @@ if match==None:
 		match=file.read()
 site=os.environ.get("site")
 if site==None:
-	with open(HOME+'/lessressite', 'r') as file:   #https://www..com/
+	with open(HOME+'/lessressite', 'r') as file:   #https://www..com
 		site=file.read()
 close_on_link=os.environ.get("close_on_link")
 with open(HOME+'/crashlimit', 'r') as file: #200000000
 	min = int(file.read()) #in Bytes
-with open(HOME+'/crashsleep', 'r') as file: #5
+with open(HOME+'/crashsleep', 'r') as file: #10
 	sleep = int(file.read())
 print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+str(min)+",sleep="+str(sleep))
 
