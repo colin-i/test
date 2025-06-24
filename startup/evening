@@ -99,7 +99,7 @@ fi
 ##@pcmanfm --desktop --profile LXDE-pi
 ##@lxterminal -e /home/bc/evening
 
-#in .config/autostart
+#in .config/autostart/even.desktop
 #[Desktop Entry]
 #Type=Application
 #Name=even
