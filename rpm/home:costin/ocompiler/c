@@ -54,3 +54,5 @@ conv_64=1 %make_install
 
 #-- CHANGELOG -----------------------------------------------------------------#
 %changelog
+* Tue May 27 2025 Costin Botescu <costin.botescu@gmail.com> 2-0
+- orig (costin.botescu@gmail.com)

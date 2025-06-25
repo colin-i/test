@@ -5,7 +5,7 @@ f=~/aliases
 echo -n > ${f}
 for var in "$@"; do
 	case $var in  #case. at this bash break is not required, will break the for
-	  gre) echo "alias gre='grep --color=auto -r --exclude-dir={.git,.pc,patches} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'" >> ${f};;
+	  gre) echo "alias gre='grep --color=auto -r --exclude-dir={.git,.osc,.pc,patches} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'" >> ${f};;
 	  gr) echo "alias gr='gre --exclude=\*.c --exclude=\*.h --exclude=\*.x --exclude=\*.xx'" >> ${f};;
 	  mov) echo "alias mov='~/test/startup/mv'" >> ${f};;
 	  cop) echo "alias cop='~/test/startup/cp'" >> ${f};;
