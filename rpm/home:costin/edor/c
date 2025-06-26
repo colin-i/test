@@ -23,3 +23,5 @@ make
 
 #-- CHANGELOG -----------------------------------------------------------------#
 %changelog
+* Mon May 12 2025 Costin Botescu <costin.botescu@gmail.com> 1-0
+- orig (costin.botescu@gmail.com)

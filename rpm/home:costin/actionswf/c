@@ -54,3 +54,5 @@ install_number=64 %make_install
 
 #-- CHANGELOG -----------------------------------------------------------------#
 %changelog
+* Tue May 27 2025 Costin Botescu <costin.botescu@gmail.com> 1-0
+- orig (costin.botescu@gmail.com)

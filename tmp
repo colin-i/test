@@ -21,7 +21,7 @@ if [ $m = ${thism} ]; then
 		done
 	} && \
 	git commit --author "tests <costin.b.84@gmail.com>" -am tests && \
-	~/test/remote/pushforce tmp
+	no_activity=x ~/test/remote/pushforce tmp
 else
 	~/test/bots/tests
 fi
