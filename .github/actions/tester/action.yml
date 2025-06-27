@@ -1,0 +1,44 @@
+name: 'tester'
+inputs:
+ name:
+  required: true
+ packs:
+  description: "packages"
+ deb:
+  description: "from deb"
+ is_32:
+  description: "32 bits"
+ prepack:
+  description: "preinstalled packages"
+#must have GITHUB_TOKEN for upload
+runs:
+ using: "composite"
+ steps:
+ - name: checkout
+   if: ${{ inputs.deb != '' }}
+   uses: actions/checkout@master
+ - name: prepacks
+   shell: bash
+   run: |
+    if [ "${{ inputs.prepack }}" != "" ]; then
+     sudo apt install -y ${{ inputs.prepack }}
+    fi
+ - name: Run a multi-line script
+   shell: bash
+   run: |
+    if [ -n "${is_32}" ]; then
+     dpkg --print-foreign-architectures
+     sudo dpkg --add-architecture i386
+     sudo apt update
+    fi
+    if [ "${{ inputs.deb }}" != "" ]; then
+     sudo apt install --no-upgrade --dry-run ./${{ inputs.name }}_*.deb   #--no-upgrade is useless is not counting at dependencies
+    else
+     if [ "${{ inputs.packs }}" = "" ]; then
+      sudo add-apt-repository ppa:colin-i/ppa -y
+      sudo apt install --no-upgrade --dry-run ${{ inputs.name }}
+      #then tester2.yml or grep additional packages
+     else
+      sudo apt install --no-upgrade --dry-run ${{ inputs.packs }}
+     fi
+    fi

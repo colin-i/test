@@ -1,0 +1,38 @@
+name: 'tester2'
+inputs:
+ name:
+  required: true
+ packs:
+  description: "packages"
+  required: true
+ is_32:
+  description: "32 bits"
+#must have GITHUB_TOKEN for upload
+#runs-on: ubuntu-22.04 #also replace at second grep, jammy
+runs:
+ using: "composite"
+ steps:
+ - name: Run a multi-line script
+   shell: bash
+   run: |
+    if [ -n "${is_32}" ]; then
+     sudo dpkg --add-architecture i386
+     sudo apt update
+     nm="${{ inputs.name }}:i386"
+    else
+     nm="${{ inputs.name }}"
+    fi
+    a=( ${{ inputs.packs }} )
+    for b in "${a[@]}"; do
+     if [ "${b}" != "${nm}" ]; then  #here from "new" not from "additional"
+      c=`apt-cache policy $b | grep "^[ ]*500" | head -1 | grep -Poe "(?<=jammy)[^ ]*"`
+      echo $b $c
+      echo "$c $b" >> file
+     fi
+    done
+    sort -k1nr file >> f
+ - name: artifact
+   uses: actions/upload-artifact@master
+   with:
+    name: file
+    path: ./f
