@@ -11,24 +11,4 @@ cd ~/pkgbuilds/${name}
 verlocal="`cat ./PKGBUILD | grep ^pkgver | grep -o [^=]*$`"
 rellocal="`cat ./PKGBUILD | grep ^pkgrel | grep -o [^=]*$`"
 
-while true; do
-	a="`curl -s "https://aur.archlinux.org/rpc/v5/info?arg[]=${name}"`"
-	b="`echo $a | jq .results[0].Version`"
-	b=$(echo $b | sed "s/\"//g")
-	IFS='-' read -a c <<<"$b"
-
-	ver=${c[0]}
-	rel=${c[1]}
-
-	echo -n "${ver} = ${verlocal} "
-	if [ ${ver} = ${verlocal} ]; then
-		echo ... ok
-		echo -n "${rel} = ${rellocal} "
-		if [ ${rel} = ${rellocal} ]; then
-			echo ... ok
-			exit 0
-		fi
-	fi
-	echo ... not ok
-	sleep 60
-done
+~/test/pkg/verquery ${name} ${verlocal} ${rellocal}

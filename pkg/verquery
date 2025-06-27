@@ -1,0 +1,36 @@
+
+#1=name 2=ver/ver-rel  optional if 2=ver: 3=rel
+#to_run
+
+while true; do
+	a="`curl -s "https://aur.archlinux.org/rpc/v5/info?arg[]=${1}"`"
+	b="`echo $a | jq .results[0].Version`"
+	b=$(echo $b | sed "s/\"//g")
+	if [ -n "$3" ]; then
+		IFS='-' read -a c <<<"$b"
+		ver=${c[0]}
+		rel=${c[1]}
+		echo -n "${ver} = ${2} "
+		if [ ${ver} = ${2} ]; then
+			echo ... ok
+			echo -n "${rel} = ${3} "
+			if [ ${rel} = ${3} ]; then
+				echo ... ok
+				exit 0
+			fi
+		fi
+		echo ... not ok
+		sleep 60
+	else
+		echo at aur is $b
+		if [ "$2" = "$b" ]; then
+			echo equal
+			~/test/pkg/onb "-f deps=x"
+		else
+			echo NEW version at aur
+			${to_run} && \
+			~/test/pkg/onb
+		fi
+		exit
+	fi
+done

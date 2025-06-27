@@ -1,0 +1,9 @@
+
+#1=name  2=name at aur  3=what to run if new version
+
+f=~/Desktop/1${1}relquery
+wget https://github.com/colin-i/${1}/releases/download/1/version -O $f
+vr=`cat $f`
+echo ${vr}
+rm $f
+to_run="$3" ~/test/pkg/verquery $2 ${vr}
