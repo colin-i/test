@@ -12,7 +12,7 @@ fi
 echo ${ve}-${re}
 text="copr-cli build-package --name ${name} colin/project" # --exclude-chroot fedora-42-aarch64
 echo ${text}
-echo ${text} | xclip -sel clip
+echo -n ${text} | xclip -sel clip
 echo "copr ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
@@ -62,7 +62,7 @@ for (( i=0; i < ${n}; i++)); do
 		#echo build_proxy.delete is not working, use:
 		text="copr-cli delete-build ${id}"
 		echo ${text}
-		echo ${text} | xclip -sel clip
+		echo -n ${text} | xclip -sel clip
 		echo and y and enter
 		read -t $((60*60*24)) ans
 		if [ "${ans}" != "y" ]; then exit 1; fi

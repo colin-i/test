@@ -25,7 +25,7 @@ while true; do
 		echo at aur is $b
 		if [ "$2" = "$b" ]; then
 			echo equal
-			~/test/pkg/onb "-f deps=x"
+			~/test/pkg/onb "-f no_deps=1"
 		else
 			echo NEW version at aur
 			${to_run} && \

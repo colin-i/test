@@ -12,7 +12,7 @@ else
 	#working with   py2pack generate name -f spec   spec file
 	#must have gnome-shell for introspections to work
 	{
-		#~/test/pyp/reversion && \
+		~/test/pyp/reversion && \
 		cd ~/pc
 	} || exit 1
 	fullname=python-${name}
@@ -39,4 +39,7 @@ cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
 
 echo osc add ${outname}
-echo osc add ${outname} | xclip -sel clip
+echo -n osc add ${outname} | xclip -sel clip
+echo y?
+read -n1 -t $((60*60*24)) ans
+if [ "${ans}" != "y" ]; then exit 1; fi
