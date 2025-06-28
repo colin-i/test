@@ -7,8 +7,9 @@ inputs:
   required: true
  is_32:
   description: "32 bits"
+ dist:
+  default: jammy
 #must have GITHUB_TOKEN for upload
-#runs-on: ubuntu-22.04 #also replace at second grep, jammy
 runs:
  using: "composite"
  steps:
@@ -25,7 +26,7 @@ runs:
     a=( ${{ inputs.packs }} )
     for b in "${a[@]}"; do
      if [ "${b}" != "${nm}" ]; then  #here from "new" not from "additional"
-      c=`apt-cache policy $b | grep "^[ ]*500" | head -1 | grep -Poe "(?<=jammy)[^ ]*"`
+      c=`apt-cache policy $b | grep "^[ ]*500" | head -1 | grep -Poe "(?<=${{ inputs.dist }})[^ ]*"`
       echo $b $c
       echo "$c $b" >> file
      fi
