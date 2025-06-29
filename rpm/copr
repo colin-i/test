@@ -10,7 +10,7 @@ else
 fi
 
 echo ${ve}-${re}
-text="copr-cli build-package --name ${name} colin/project" # --exclude-chroot fedora-42-aarch64
+text="copr-cli build-package --name ${name} colin/project `if [ -n "${exc}" ]; then echo -n --exclude-chroot fedora-42-${exc}; fi`"
 echo ${text}
 echo -n ${text} | xclip -sel clip
 echo "copr ready? y and enter"
