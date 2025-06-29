@@ -59,3 +59,5 @@ if [ "${ans}" = "y" ]; then
 	fi
 	sudo zypper ref && sudo zypper in ${name}${devel}
 fi
+
+#when building and realizing that is not the same arch as host, then: osc build openSUSE_Tumbleweed x86_64

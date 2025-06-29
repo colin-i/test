@@ -6,6 +6,7 @@ echo -e "\n"
 git diff --shortstat HEAD
 if [ -n "${tito}" ]; then
 	last=`git rev-parse HEAD`
+	cat debian/changelog | head -1
 	echo "tito tag ready? y and enter"
 	read -t $((60*60*24)) ans
 	if [ "${ans}" != "y" ]; then exit 1; fi

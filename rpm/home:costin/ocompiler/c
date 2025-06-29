@@ -34,11 +34,13 @@ conv_64=1 %make_install
 %else
 %make_install
 %endif
+ln -s o %{_buildrootdir}/BUILDROOT/%{_bindir}/ocompiler #this because at use interactive bash (not inside scripts) o is another alias
 
 #-- FILES ---------------------------------------------------------------------#
 %files
 %config(noreplace) %attr(0644, root, root) "%{_sysconfdir}/%{name}.conf"
 %attr(0755, root, root) "%{_bindir}/o"
+%attr(0755, root, root) "%{_bindir}/ocompiler"
 %ifarch x86_64
 %attr(0755, root, root) "%{_bindir}/ostrip"
 %endif
