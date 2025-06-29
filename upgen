@@ -13,12 +13,12 @@ fi
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
-# sudo gh extension install nektos/gh-act
-sudo gh act -r -j ubuildgen --env init=1 workflow_dispatch -W .github/workflows/upgen${name}.yml ${pull}
+# gh extension install nektos/gh-act  #and also add docker to run without sudo
+gh act -r -j ubuildgen --env init=1 workflow_dispatch -W .github/workflows/upgen${name}.yml ${pull}
 container=`sudo docker ps -a | grep upgen${name}-yml | cut -d ' ' -f1`
 
-sudo docker container cp $1 ${container}:`pwd -P`/$1 && \
-sudo gh act -r -j ubuildgen --env proj=${name} --env fname=$1 --env mime=$2 --env assetname=$3 -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/upgen${name}.yml && \
+docker container cp $1 ${container}:`pwd -P`/$1 && \
+gh act -r -j ubuildgen --env proj=${name} --env fname=$1 --env mime=$2 --env assetname=$3 -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/upgen${name}.yml && \
 rm $1 && \
-sudo docker container stop ${container} && \
-sudo docker container rm ${container}
+docker container stop ${container} && \
+docker container rm ${container}
