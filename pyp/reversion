@@ -2,7 +2,7 @@
 ver=`cat v2`
 {
 name=`cat debian/control | grep ^Source: | grep -o "[^ ]*$"` && \
-cd ../tmp && \
+cd ../tmp${name::1} && \
 wget https://files.pythonhosted.org/packages/source/${name:0:1}/${name}/${name}-${ver}.tar.gz -O a.tar.gz
 } || exit 1
 

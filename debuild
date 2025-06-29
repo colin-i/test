@@ -8,8 +8,9 @@ build () {
 	version=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"` && \
 	partname=${name}_${version} && \
 	cd .. && \
-	mv ${partname}* tmp && \
-	cd tmp && \
+	to=tmp${name::1} && \
+	mv ${partname}* ${to} && \
+	cd ${to} && \
 	zip ../last${1}.zip ./* && \
 	rm ./*
 	#at exit working dir will not remain in tmp

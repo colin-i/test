@@ -33,13 +33,12 @@ if [ ! -e "../${zipfile}" ]; then
 	#L is for redirects
 fi
 
-cd ../tmp
+name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
+cd ../tmp${name::1} || exit 1
 
 array=(`ls`)
 
 get_prog_ver () {
-	array=(`ls`)
-
 	#if was in runner:
 	#echo parola | gpg --batch --yes --passphrase-fd 0 --import gpg.gpg
 
@@ -62,9 +61,9 @@ get_prog_ver () {
 
 if [ -z "${array}" ]; then
 	unzip ../${zipfile}
+	array=(`ls`)
 
 	get_prog_ver
-
 	#the key not here, fresh reboot
 	cat ~/n/key/gpg | xclip -selection clipboard
 	debsign -k D51F0B6365EAB122 ${prog_ver}_source.changes
