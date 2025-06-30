@@ -1,10 +1,12 @@
 
-#no nano/vim at base or linux, must edit from host
-makepkg -g && #about the files right after download/clone, before patching
-#and copy that at sha256sums
-##or updpkgsums after installing pacman-contrib
-echo Enter to continue && \
-read -t $((60*60*24))
+{
+	edor PKGBUILD && \
+	#no nano/vim at base or linux, must edit from host
+	makepkg -g | xclip -sel clip && #about the files right after download/clone, before patching
+	#and copy that at sha256sums
+	##or updpkgsums after installing pacman-contrib
+	edor PKGBUILD
+} || exit 1
 
 a="`cat list`"
 for v in $a; do
