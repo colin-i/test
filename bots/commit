@@ -6,7 +6,14 @@ echo -e "\n"
 git diff --shortstat HEAD
 if [ -n "${tito}" ]; then
 	last=`git rev-parse HEAD`
-	cat debian/changelog | head -1
+	ve=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+	if [ -n "`echo ${ve} | grep -o +`" ]; then
+		ve=`echo ${ve} | grep -Po "(?<=-).*"`
+	else
+		ve=`echo ${ve} | sed s/-/./`
+	fi
+	echo ${ve}
+	echo -n ${ve} | xclip -sel clip
 	echo "tito tag ready? y and enter"
 	read -t $((60*60*24)) ans
 	if [ "${ans}" != "y" ]; then exit 1; fi
@@ -15,6 +22,7 @@ fi
 echo "$@ y?"
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = "y" ]; then
+	echo -n "${msg}" | xclip -selection clipboard
 	~/test/sync/commit $@ && \
 	if [ -n "${tito}" ]; then
 		#still need to rereference the tag, and of course, to push the tag

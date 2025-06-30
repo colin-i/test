@@ -47,9 +47,13 @@ runs:
     su bot -c 'makepkg -s --noconfirm'
     nm=`ls | grep ".*\.zst$" | grep -v debug`
     if [ -z "${{ inputs.py }}" ]; then
-     nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
+     if [ -z "${{ inputs.amd64 }}" ]; then
+      nm2=`echo ${nm} | sed s/-any/-arch-x86_64/`
+     else
+      nm2=`echo ${nm} | sed s/-x86_64/-arch-x86_64/`
+     fi
     else
-     nm2=`echo ${nm} | sed s/-any/-all/`
+     nm2=`echo ${nm} | sed s/-any/-arch-all/`
     fi
     mv ${nm} ${here}/${nm2}
 

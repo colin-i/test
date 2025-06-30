@@ -52,3 +52,4 @@ git rev-list --all --count
 #git fetch orig refs/tags/nightly-2024-03-09
 #git checkout FETCH_HEAD
 #git switch -c fetch
+#git rev-list --disk-usage=human --objects HEAD..ocompiler1
