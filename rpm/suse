@@ -1,9 +1,9 @@
 
 ~/test/rpm/pt || exit 1
 
-if [ -n "${py}" ]; then py=py=313; fi
-echo "${py} ~/test/rpm/osc"
-echo -n "${py} ~/test/rpm/osc" | xclip -sel clip
+if [ -n "${py}" ]; then py="py=313 "; fi
+echo "${py}~/test/rpm/osc"
+echo -n "${py}~/test/rpm/osc" | xclip -sel clip
 echo "ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi

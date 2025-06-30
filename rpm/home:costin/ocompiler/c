@@ -34,7 +34,7 @@ conv_64=1 %make_install
 %else
 %make_install
 %endif
-ln -s o %{_buildrootdir}/BUILDROOT/%{_bindir}/ocompiler #this because at use interactive bash (not inside scripts) o is another alias
+ln -s o %{_buildrootdir}/BUILDROOT%{_bindir}/ocompiler || ln -s o %{_buildrootdir}/%{name}-%{version}-%{release}.%{_arch}%{_bindir}/ocompiler #this because at use interactive bash (not inside scripts) o is another alias
 
 #-- FILES ---------------------------------------------------------------------#
 %files

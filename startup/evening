@@ -118,3 +118,6 @@ arecord --format=S16_LE --rate=16000 --file-type=wav out.wav
 aplay out.wav
 https://chromewebstore.google.com/detail/speech-to-text-voice-reco/kcgloaobfaiejoiahlhnfaolfcifjjho
 on mobile is Google tastare vocală
+
+#sudo raspi-config    advanced  Wayland/X11
+#xset q          for query        xset s 120        2 minutes screen blanking
