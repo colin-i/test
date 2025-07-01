@@ -83,4 +83,4 @@ if [ -n "${pdb}" ]; then
 	a=pdb
 else a=python
 fi
-$a ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}
+gree_key=`cat ~/gree_key` $a ${dir}/temperature_sensor_code.py ${on} ${min} ${max} ${sen2} ${send} ${base}

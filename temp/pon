@@ -1,4 +1,4 @@
 
 cd gree-remote/PythonCLI
 if [ -z "$1" ]; then a=python; else a=pdb; fi
-$a gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k 9Mn2Pq5St8VwYz4B set Pow=1
+$a gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` set Pow=1

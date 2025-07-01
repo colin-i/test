@@ -47,7 +47,7 @@ def gree(a): #,b):
 		print('send')
 		#return is 0 at timeout later
 		#r=
-		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','set',s])
+		subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k',key,'set',s])
 		#.returncode
 		#if r!=0:
 		#	return
@@ -55,7 +55,7 @@ def gree(a): #,b):
 	#global on
 	#on=b
 def stop():
-	z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','get','Pow'],capture_output=True,text=True)
+	z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k',key,'get','Pow'],capture_output=True,text=True)
 	if z.stdout != 'Getting parameters: Pow\nPow = 0\n':
 		gree('0') #,False)
 	else:
@@ -67,7 +67,7 @@ def test(t):
 	if math.isnan(t)==False:
 		if t>max:
 			if lasttemp<=t:
-				z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k','9Mn2Pq5St8VwYz4B','get','Pow'],capture_output=True,text=True)
+				z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k',key,'get','Pow'],capture_output=True,text=True)
 				if z.stdout != 'Getting parameters: Pow\nPow = 1\n':
 					gree('1') #,True)
 				else:
@@ -101,6 +101,7 @@ if len(sys.argv)==6:
 	max=float(sys.argv[2])
 	sen2=bool(int(sys.argv[3]))
 	send=bool(int(sys.argv[4]))
+	key=os.environ['gree_key']
 	if sen2:
 		import glob
 		#import os
