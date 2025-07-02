@@ -2,7 +2,7 @@
 # optional 1 named  2 silent
 
 tmp=/tmp/dbgtmp
-eval "git ls-files ${dbgextra} > ${tmp}"
+eval "git ls-files > ${tmp}" # ${dbgextra}
 
 b=~/dbg/
 if [ -n "${1}" ]; then
@@ -25,9 +25,11 @@ while read var; do
 			cp "${var}" "${b}${var}"
 		fi
 		if [ $? != 0 ]; then
-			c=`dirname "${b}${var}"`
-			mkdir -p "${c}"
-			response=2
+			if [ ! -d "${var}" ]; then #can be a submodule, a rare case, is file at ls-files and dir at folder
+				c=`dirname "${b}${var}"`
+				mkdir -p "${c}"
+				response=2
+			fi
 		elif [ ${response} = 0 ]; then response=1
 		fi
 	fi

@@ -4,25 +4,26 @@
 cd ~/measures/new${1} || exit 1
 files=( `find -type f` )
 
-#verify same date
-d=`grep "Edited by cestrin" ${files[0]}`
-if [ -z "${d}" ]; then exit 1; fi
-n=`grep -r "${d}" | wc -l`
-if [ ${n} != ${#files[@]} ]; then
-	echo ${n} ${#files[@]}
-	if [ -z "${skipdate}" ]; then
-		exit 1
+if [ -z "${skip_date}" ]; then #can be edited 18 hours ago 19 hours ago if doing easy
+	#verify same date
+	d=`grep "Edited by cestrin" ${files[0]}`
+	if [ -z "${d}" ]; then exit 1; fi
+	n=`grep -r "${d}" | wc -l`
+	if [ ${n} != ${#files[@]} ]; then
+		echo ${n} ${#files[@]}
+		if [ -z "${skipdate}" ]; then
+			exit 1
+		fi
+	else
+		echo ${d}. same date. ok.
 	fi
-else
-	echo ${d}. same date. ok.
 fi
-
 for f in "${files[@]}"; do
 	if [ -e ../ex${1}/${f} ]; then
 		IFS=$'\n' a=( `cat ../ex${1}/${f}` )
 		if [ ${a[1]} = 0 ]; then
 			if [ -z "${1}" ]; then
-				z=`grep -Po "(?<=${a[0]})[^ ]*" ${f}`
+				z=`grep -Po "(?<=${a[0]})[^ ]*" ${f} | head -1`
 			else
 				z=`grep -P "(?<=${a[0]})[^ ]*" ${f}` #is not important to get the exact number at _new
 			fi
