@@ -1,0 +1,1 @@
+gh api "repos/colin-i/${1}/branches/${2}/protection" -X DELETE

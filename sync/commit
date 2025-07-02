@@ -4,7 +4,7 @@
 n=${1}
 
 a=`dirname ${0}`/
-f=${a}a.out
+f=~/arh/yuarel.out
 
 if [ -z "${em}" ]; then
 	em=costin.b.84@gmail.com
@@ -12,8 +12,9 @@ fi
 if [ -z "${act}" ]; then
 	no_act=1
 fi
-
-cc ${a}a.c -lyuarel -o ${f} && \
+if [ ! -e ${f} ]; then
+	cc ${a}a.c -lyuarel -o ${f}
+fi && \
 if [ -z "${2}" ]; then args="-am \"${n}\""
 else
 	args=${2}
@@ -21,5 +22,4 @@ else
 	if [ -n "${z}" ]; then args+=" \"${n}\""; fi
 fi && \
 git commit --author="${n} <${em}>" ${args} && \
-no_activity=${no_act} ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2 && \
-rm ${f}
+no_activity=${no_act} ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2

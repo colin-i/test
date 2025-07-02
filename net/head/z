@@ -16,3 +16,5 @@ while :; do
 #		exit
 	fi
 done
+
+#pi3, for twitch, chromium ok,firefox/midori/streamlink can't, and for now chrome://settings/system and disable graphics acceleration to work
