@@ -1,4 +1,5 @@
-if [ -z "${browser}" ]; then browser=chromium; fi
+if [ -z "${browser}" ]; then browser=chromium
+else echo ${browser}; fi
 slp=`cat ~/crashsleep`
 while :; do
 	sleep ${slp}

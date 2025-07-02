@@ -1,4 +1,4 @@
 
 if [ `ps aux | grep "test/net/head/mem" | wc -l` -lt 2 ]; then #1 is grep
-	lxterminal -e ~/test/net/head/mem #no tab argument at lxterminal
+	lxterminal -e "browser=${browser} ~/test/net/head/mem" #no tab argument at lxterminal
 fi
