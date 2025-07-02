@@ -1,4 +1,4 @@
-
+if [ -z "${browser}" ]; then browser=chromium; fi
 slp=`cat ~/crashsleep`
 while :; do
 	sleep ${slp}
@@ -7,7 +7,7 @@ while :; do
 		if [ -n "${id}" ]; then #also used at normal navigation
 			kill -9 ${id}
 		fi
-		id=`ps -C chromium -o pid,cmd | grep "/usr/lib/chromium/chromium" | tr -s ' ' | cut -d' ' -f2`
+		id=`ps -C ${browser} -o pid,cmd | grep "/usr/lib/${browser}/${browser}" | tr -s ' ' | cut -d' ' -f2`
 		kill -9 ${id}
 		rm ~/killstop
 		echo ping #		echo again \? \y?
