@@ -43,10 +43,6 @@ runs:
      curl -L -H "Authorization: token ${{ env.GITHUB_TOKEN }}" ${url} --output a.zip
      unzip ./a.zip
 
-     apt download libfuse2`if [ ${{ matrix.os }} = "ubuntu-24.04" ]; then echo -n t64; fi` #xvfb is already
-     dpkg -x ./*.deb q
-     #export DISPLAY=:0
-
      runname=./${name}.AppImage
      pattern=${{ inputs.pattern }}
      #dependencies test, if screen was working here then no broadway
@@ -59,13 +55,13 @@ runs:
       if [ -z "${pattern}" ]; then
        #this is for sirc that has gtk help implementation
        echo name
-       ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} -q &
+       ENTRY_DEBUG=x DISPLAY=:1 ${runname} -q &
        sleep 15
        ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
       else #with --debug? is ok for tora/dico/audapa. must also flush python to work, else can write to a file $(pwd)/4
        #own help implementation, torra with --debug, rest with another arg, and pattern for grep
        echo pattern
-       DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} --debug &
+       DISPLAY=:1 ${runname} --debug &
        sleep 15
        ps aux | grep ${pattern} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
       fi
@@ -109,7 +105,7 @@ runs:
       exit 0
      }
 
-     sudo apt install -y npm libnss3 #was nss3 required at sirc? and after?
+     sudo apt install -y npm libnss3 #was nss3 required when at sirc? and after?
      npm install puppeteer
      cat > capture.js <<EOF
      const puppeteer = require('puppeteer');
@@ -125,7 +121,7 @@ runs:
      #port 8080+DISPLAY at default
      DISPLAY=:0 ${br} -p 8080 &
      sleep 10
-     GDK_BACKEND=broadway BROADWAY_DISPLAY=:0 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ./${name}.AppImage &
+     GDK_BACKEND=broadway BROADWAY_DISPLAY=:0 ./${name}.AppImage &
      # -d 200x200  #this can be an extra arg
      sleep 10
      node capture.js
