@@ -22,7 +22,7 @@ runs:
       sudo apt install -y ${{ inputs.prepack }}
      fi
   - uses: actions/checkout@master
-  - name: test dependencies
+  - name: run in main loop and take screenshot
     shell: bash
     run: |
      #proj
@@ -57,11 +57,13 @@ runs:
       sleep 5 & { termid=`ps -o ppid= $!`; echo termid=${termid}; echo ${termid} > 1; }
       sleep 10
       if [ -z "${pattern}" ]; then
+       #this is for sirc that has gtk help implementation
        echo name
-       ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} &
+       ENTRY_DEBUG=x DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} -q &
        sleep 15
        ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
       else #with --debug? is ok for tora/dico/audapa. must also flush python to work, else can write to a file $(pwd)/4
+       #own help implementation, torra with --debug, rest with another arg, and pattern for grep
        echo pattern
        DISPLAY=:1 LD_LIBRARY_PATH=`pwd`/q/lib/x86_64-linux-gnu ${runname} --debug &
        sleep 15
