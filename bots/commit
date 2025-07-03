@@ -10,7 +10,7 @@ if [ -n "${tito}" ]; then
 	if [ -n "`echo ${ve} | grep -o +`" ]; then
 		ve=`echo ${ve} | grep -Po "(?<=-).*"`
 	else
-		ve=`echo ${ve} | sed s/-/./`
+		ve=`echo ${ve} | sed 's/-v/./; s/-x/./; s/-/./'`
 	fi
 	echo ${ve}
 	echo -n ${ve} | xclip -sel clip

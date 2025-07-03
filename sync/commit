@@ -8,9 +8,9 @@ f=~/arh/yuarel.out
 
 if [ -z "${em}" ]; then
 	em=costin.b.84@gmail.com
-fi
-if [ -z "${act}" ]; then
 	no_act=1
+else
+	no_act=${no_activity}
 fi
 if [ ! -e ${f} ]; then
 	cc ${a}a.c -lyuarel -o ${f}

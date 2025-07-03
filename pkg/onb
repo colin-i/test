@@ -2,7 +2,8 @@
 # @ passed to gh
 
 if [ ! -e ./v2 ]; then
-	a=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
+	name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
+	a=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
 else
 	a=`cat v2`
 fi
