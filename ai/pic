@@ -1,8 +1,8 @@
 
-#branch dist
+#branch
 
 if [ -z "${branch}" ]; then branch=$(git rev-parse --abbrev-ref HEAD); fi
-id=$(gh run list --workflow=test${dist}.yml -b ${branch} | cut -f7 | head -1)
+id=$(gh run list --workflow=test.yml -b ${branch} | cut -f7 | head -1)
 repo_at_gh=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 t=~/Desktop/
 tf=${t}1pic${repo_at_gh}
