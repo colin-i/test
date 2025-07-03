@@ -22,11 +22,11 @@ runs:
       sudo apt install -y ${{ inputs.prepack }}
      fi
   - uses: actions/checkout@master
-  - name: Run a multi-line script
+  - name: test dependencies
     shell: bash
     run: |
      #proj
-     name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+     name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
      #get appimage artifact
      branch=${{ inputs.branch }}
      if [ -z "${branch}" ]; then
@@ -89,7 +89,9 @@ runs:
      #if [ $? != 0 ]; then exit 1; fi #is ok at !=0 is exiting
      #can use bpftrace or execsnoop but is not a hurry
      #import -window root -display :1 -screen screenshot.png #imagemagick is on noble
-
+  - name: take screenshot
+    shell: bash
+    run: |
      sudo apt install -y libgtk-${{ inputs.gtk }}-bin
      if [ ${{ inputs.gtk }} = 4 ]; then
       br=gtk4-broadwayd
@@ -99,11 +101,12 @@ runs:
      echo ${br}
      which ${br} || {
       #in jammy, gtk4-broadwayd is missing, make an exception
-      sudo apt install -y imagemagick #imagemagick is on noble
+      #sudo apt install -y imagemagick #imagemagick is on jammy, not on noble
       convert -size 32x32 xc:red screenshot.png
       exit 0
      }
 
+     name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
      sudo apt install -y npm libnss3 #was nss3 required at sirc? and after?
      npm install puppeteer
      cat > capture.js <<EOF
