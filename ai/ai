@@ -3,8 +3,7 @@
 
 proj=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 if [ "${proj}" = "ovideo" ]; then
-	gh workflow run appimage.yml -f ppa=${1} -f unpublished=0 -f artifact=1
+	gh workflow run appimage.yml -f ppa=${1} -f unpublished=0 -f artifact=1 --ref $(git rev-parse --abbrev-ref HEAD)
 else
 	gh workflow run appimage.yml -f ppa=${1} --ref $(git rev-parse --abbrev-ref HEAD)
-	#--ref, example at audapa jammy
 fi

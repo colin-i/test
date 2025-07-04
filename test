@@ -1,2 +1,2 @@
-gh workflow run test.yml `if [ -n "${p}" ]; then echo -n \-f prepack=\"${p}\"; fi` && \
+gh workflow run test.yml `if [ -n "${p}" ]; then echo -n \-f prepack=\"${p}\"; fi` --ref $(git rev-parse --abbrev-ref HEAD) && \
 ~/test/pub test

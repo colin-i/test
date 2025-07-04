@@ -57,7 +57,7 @@ runs:
        echo name
        ENTRY_DEBUG=x DISPLAY=:1 ${runname} -q &
        sleep 15
-       ps -C ${name} -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
+       ps -C AppRun -o pid,cmd | grep ${name} | tr -s ' ' | cut -d' ' -f2 > 2
       else #with --debug? is ok for tora/dico/audapa. must also flush python to work, else can write to a file $(pwd)/4
        #own help implementation, torra with --debug, rest with another arg, and pattern for grep
        echo pattern
