@@ -19,6 +19,7 @@ This package contains necessary header files for O Language development.
 %autosetup -p1
 gzip -dc %{S:1} > src/obj.txt
 touch include_dev
+touch ocompiler_is_o
 
 %build
 %ifarch i586
@@ -34,7 +35,6 @@ conv_64=1 %make_install
 %else
 %make_install
 %endif
-ln -s o %{_buildrootdir}/BUILDROOT%{_bindir}/ocompiler || ln -s o %{_buildrootdir}/%{name}-%{version}-%{release}.%{_arch}%{_bindir}/ocompiler #this because at use interactive bash (not inside scripts) o is another alias
 
 #-- FILES ---------------------------------------------------------------------#
 %files

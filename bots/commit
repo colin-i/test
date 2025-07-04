@@ -29,7 +29,7 @@ if [ "${ans}" = "y" ]; then
 		gh_name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
 		tag=`git tag --sort=-taggerdate | head -1`
 		git tag -fa ${tag} && \
-		~/test/remote/push ${gh_name} x --follow-tags
+		no_activity=x ~/test/remote/push ${gh_name} x --follow-tags
 	fi
 else
 	echo no

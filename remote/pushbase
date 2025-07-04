@@ -8,6 +8,8 @@ set_to () {
 		to=gist.github.com/colin-i/${1}
 	elif [ "${2}" = "2" ]; then
 		to=${1}
+	elif [ "${2}" = "3" ]; then
+		to=github.com/colin-i/${1}.wiki
 	else
 		to=github.com/colin-i/${1}.git
 	fi
