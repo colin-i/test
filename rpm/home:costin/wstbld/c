@@ -1,0 +1,27 @@
+
+BuildRequires: ocompiler make binutils
+%description
+command line web site packer with templates
+
+#-- PREP, BUILD & INSTALL -----------------------------------------------------#
+%prep
+%autosetup
+
+%build
+%ifarch i586
+m32=x make
+%else
+make
+%endif
+
+%install
+%make_install
+
+#-- FILES ---------------------------------------------------------------------#
+%files
+%attr(0755, root, root) "%{_bindir}/wstbld"
+
+#-- CHANGELOG -----------------------------------------------------------------#
+%changelog
+* Sun Jun 29 2025 Costin Botescu <costin.botescu@gmail.com> 1.1-0
+- new package built with tito

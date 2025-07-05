@@ -1,5 +1,7 @@
 
-# 1 2 mounted uncompre dest dry
+# 1           [dest]
+# 1 2 mounted uncompre   [dry]
+# 1 2 mounted [dest]     [dry]
 
 if [ -z "$2" ]; then
 #in ./tmp from github to a lower .gz
