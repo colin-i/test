@@ -4,6 +4,8 @@ inputs:
   description: "is python"
  amd64:
   description: "x86_64"
+ aur:
+  description: "from aur"
 #must have GITHUB_TOKEN for upload, and gh
 runs:
  using: "composite"
@@ -46,7 +48,14 @@ runs:
     chown bot:bot bot
     cd bot
 
-    echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #sudo needed at su / makepkg -s dependencies
+    echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #makepkg when installing/deps / yay
+
+    if [ -n "${{ inputs.aur }}" ]; then
+     su bot -c 'git clone --depth 1 https://aur.archlinux.org/yay-bin.git'
+     cd yay-bin
+     su bot -c 'makepkg -i --noconfirm'
+     su bot -c 'yay -Sy --noconfirm --needed ${{ inputs.aur }}'
+    fi
 
     su bot -c 'git clone -n --depth=1 --filter=tree:0 https://github.com/colin-i/pkgbuilds'
     cd pkgbuilds
