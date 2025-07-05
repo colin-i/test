@@ -2,6 +2,8 @@ name: 'pkg'
 inputs:
  py:
   description: "is python"
+ amd64:
+  description: "x86_64"
 #must have GITHUB_TOKEN for upload, and gh
 runs:
  using: "composite"

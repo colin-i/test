@@ -1,0 +1,17 @@
+name: 'rel'
+#must have GITHUB_TOKEN for create
+runs:
+ using: "composite"
+ steps:
+  - uses: actions/checkout@master
+  - name: Run a multi-line script
+    run: |
+     tag=`git ls-remote --tags --sort='v:refname' | tail -n1 | sed 's/.*\///' | grep -o "[^^]*" | head -1`
+     echo "tag=${tag}" >> $GITHUB_ENV
+  - name: Create Release
+    id: create_release
+    uses: actions/create-release@master
+    with:
+     tag_name: ${{ env.tag }}
+     draft: false
+     prerelease: false
