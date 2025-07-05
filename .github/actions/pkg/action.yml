@@ -83,3 +83,4 @@ runs:
     file: ./${{ env.file }}
     asset_name: ${{ env.file }}
     tag: ${{ env.tag }}
+ #Resource not accessible by integration ? go to https://github.com/OWNER/REPO/settings/actions and in Workflow Permissions section give actions Read and Write permissions.
