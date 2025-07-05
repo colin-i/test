@@ -44,7 +44,6 @@ runs:
      unzip ./a.zip
 
      runname=./${name}.AppImage
-     pattern=${{ inputs.pattern }}
      #dependencies test, if screen was working here then no broadway
      sudo Xvfb :1 -screen 0 1920x1080x8 &
      xvfbid=$!
@@ -52,7 +51,7 @@ runs:
      { #don't know why but strace is "Killed" but is printing through the end when & with strace
       sleep 5 & { termid=`ps -o ppid= $!`; echo termid=${termid}; echo ${termid} > 1; }
       sleep 10
-      if [ -z "${pattern}" ]; then
+      if [ -z "${{ inputs.pattern }}" ]; then
        #this is for sirc that has gtk help implementation
        echo name
        ENTRY_DEBUG=x DISPLAY=:1 ${runname} -q &
@@ -63,7 +62,7 @@ runs:
        echo pattern
        DISPLAY=:1 ${runname} --debug &
        sleep 15
-       ps aux | grep ${pattern} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
+       ps aux | grep python.*${name} | grep -v grep | tr -s ' '|cut -f2 -d' ' > 2
       fi
       #pid of our prog is not related to AppImage pid ( is not a child of that ), and the parent is the terminal, not the appimage
       # -C ${name}.AppImage for appimage pid
