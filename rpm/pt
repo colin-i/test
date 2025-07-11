@@ -35,8 +35,8 @@ echo "Patch${n}: ${outname}" >> b
 
 ~/test/rpm/spec ${fullname} || exit 1
 
-echo "osc add ${outname}      after that, osc commit"
-echo -n osc add ${outname} | xclip -sel clip
+echo "osc add ${outname} && osc commit"
+echo -n osc add ${outname} \&\& osc commit | xclip -sel clip
 echo y?
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
