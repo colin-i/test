@@ -11,3 +11,4 @@ done
 out=${out:1}
 echo -n ${out} > ${1}
 cat ${1}
+echo
