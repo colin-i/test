@@ -1,4 +1,5 @@
 set -e
+
 gh release list --order asc --limit 9999 > 1
 sort -k1,1 -s 1 > 2
 cp 2 3
@@ -31,19 +32,32 @@ done
 echo how many \?
 read -t $((60*60*24)) ans
 
-for (( j=0; j < $((i-1)); j++)) do
-	n=${b[$((j+1))]}
-	for (( k=j; k != -1; k--)) do
-		p=${b[$k]}
-		if [ $p != $n ]; then
-			echo -n .
-			b[$k]=$((b[$k]-1))
-			ans=$((ans-1))
-			if [ ${ans} = 0 ]; then
+rem_one_arh () {
+	row=`cat 1 | grep -n "^$1 " | head -1`
+	arh=( ${row} )
+	sz=${#arh[@]}
+	tag=${arh[$((sz-2))]}   #is more complex for tabs
+	nr=`echo ${row} | grep -o "^[^:]*"`
+	echo ${row} - knowing: ${nr} and ${tag}
+	gh release delete ${tag} --cleanup-tag  #has confirmation
+	sed -i ${nr}d 1
+}
+
+is_done=0
+for ((j=0; j < $((i-1)); j++)) do
+	n=${b[$((j+1))]} #down level
+	m=${b[$j]}       #prev level for all at left, there is at least a program that is staying at 1?
+	for ((l=n; l < m; l++)) do
+		for ((k=j; k != -1; k--)) do
+			if [ ${ans} = 0 ]; then #want to test how many = 0 ?
 				is_done=1
 				break
 			fi
-		fi
+			rem_one_arh ${a[$k]}
+			b[$k]=$((b[$k]-1))
+			ans=$((ans-1))
+		done
+		if [ ${is_done} = 1 ]; then break; fi
 	done
 	if [ ${is_done} = 1 ]; then break; fi
 done

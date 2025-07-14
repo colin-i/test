@@ -43,8 +43,10 @@ fi
 #need to sync now, but can't delete parent because need to put it back if local debuild and can't put it back if not commiting sync folder
 #the solution is to move parent to tmp and back
 
-a=../tmp/.pc
-b=../tmp/debian/patches
+tmp=`basename "${root}"`
+tmp=tmp${tmp:0:1}
+a=../${tmp}/.pc
+b=../${tmp}/debian/patches
 if [ "${parent}" != "" ]; then
 	mkdir ${a} || exit 1
 	cd .pc || exit 1
@@ -52,7 +54,7 @@ if [ "${parent}" != "" ]; then
 		mv ${var} ../${a} || exit 1
 	done
 	cd .. || exit 1
-	mkdir ../tmp/debian || exit 1
+	mkdir ../${tmp}/debian || exit 1
 	mkdir ${b} || exit 1
 	cd ./debian/patches || exit 1
 	for var in "${files[@]}"; do
@@ -82,5 +84,5 @@ if [ "${parent}" != "" ]; then
 	fi && \
 	rm -r ${a} && \
 	rm -r ${b} && \
-	rm -r ../tmp/debian
+	rm -r ../${tmp}/debian
 fi
