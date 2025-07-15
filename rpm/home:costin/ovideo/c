@@ -7,10 +7,10 @@ O Video is a program used to edit, capture, view, play, search and save media.
 
 #-- PREP, BUILD & INSTALL -----------------------------------------------------#
 %prep
-%autosetup
+%autosetup -p1
 
 %build
-LD=ld.lld Lc=-L/usr/lib make
+LD=ld.lld Lc=-L/lib Lg=-L/usr/lib make
 
 %install
 %make_install
