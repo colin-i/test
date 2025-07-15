@@ -58,10 +58,12 @@ if [ ${k} -gt 0 ]; then
 	echo "Is ok? y?"
 	read -n1 -t $((60*60*24)) ans
 	if [ "${ans}" = "y" ]; then
+		sync='oflag=sync conv=fsync'
+		buffersize=$((1000*1000*10))
 		if [ "${extension}" = "xz" ]; then
-			xzcat ${1} | sudo dd of=${name} status=progress bs=134217728; sync
+			xzcat ${1} | sudo dd ${sync} of=${name} status=progress bs=${buffersize}; sync
 		else
-			sudo dd if=${fullname} of=${name} status=progress bs=134217728; sync
+			sudo dd ${sync} if=${1} of=${name} status=progress bs=${buffersize}; sync
 			#default bs is 512
 		fi
 	else
