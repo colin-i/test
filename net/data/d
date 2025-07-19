@@ -19,13 +19,13 @@ if [ "${c}" = "M" ]; then
 else
 	data=`echo ${a}-${b} | bc`
 fi
-echo data=${data} | tee ~/net_data
+echo data=${data}
 
 this_day=`date +%e`
 last_day=$(date -d "$(date +%Y%m01) +1 month -1 day" +%e)
 last_day=`echo ${last_day}+1 | bc`
 days=`echo ${last_day} - ${this_day} | bc`
-echo days=${days} | tee -a ~/net_data
+echo days=${days}
 
 ratio=`echo "${data} / ${days}" | bc -l`
 
@@ -41,6 +41,8 @@ elif [ "${LC_NUMERIC}" = ro_RO.UTF-8 ]; then
 	#/bin/sh , ./d: ..: Bad substitution
 fi
 
-z=$(printf %.2f ${ratio})
+z=$(printf %.3f ${ratio})
 
-echo data/days=${z} | tee -a ~/net_data
+echo -n data/days=
+echo -n ${z} | tee ~/net_data # -a
+echo

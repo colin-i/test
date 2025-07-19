@@ -1,0 +1,1 @@
+~/test/ssh/com bc `cat ~/server_ip_last` "$1"

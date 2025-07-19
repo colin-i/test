@@ -1,0 +1,16 @@
+
+~/test/ssh/cm "/usr/sbin/ifconfig | grep ^wwan0 -A 6" > ~/tmp/1
+r=`cat ~/tmp/1 | head -4 | tail -1`
+t=`cat ~/tmp/1 | tail -2 | head -1`
+r=`echo $r | cut -d' ' -f5`
+t=`echo $t | cut -d' ' -f5`
+a=$((r+t))
+a=$((a/1000/1000))
+
+b=`cat ~/net_data | sed s/,//`
+if [ ${b::1} = 0 ]; then b=${b:1}; fi
+
+echo $b-$a=
+echo $((b-a))
+
+rm ~/tmp/1
