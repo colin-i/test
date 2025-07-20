@@ -26,9 +26,11 @@ if [ $1 = ocompiler ]; then
 	move /root/usr/bin/o ~/x86_64_orig
 	move /root/usr/bin/ounused ~/x86_64_orig
 	move /root/usr/bin/otoc ~/x86_64_orig
+	move /root/usr/bin/ostrip ~/x86_64_orig
 	o
 	otoc
 	ounused
+	ostrip
 else #if [ $1 = actionswf ]; then
 	move /root/usr/lib/libactionswf.so ~/x86_64_lib
 	stat -c %y ~/x86_64_lib/libactionswf.so
