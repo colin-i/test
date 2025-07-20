@@ -1,4 +1,6 @@
 
+#1 name   2 -z=published  gh_name = remote debian/changelog (still must be published to work)  http... straight
+
 # sudo docker pull ubuntu
 # apt install gnupg ca-certificates wget  /and/   binutils xz-utils  /or/  zstd
 # apt-key ...
