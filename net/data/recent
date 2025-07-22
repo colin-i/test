@@ -7,7 +7,7 @@ t=`echo $t | cut -d' ' -f5`
 a=$((r+t))
 a=$((a/1000/1000))
 
-b=`cat ~/net_data | sed s/,//`
+b=`cat ~/net_data | sed 's/,//; s/\.//'`
 if [ ${b::1} = 0 ]; then b=${b:1}; fi
 
 echo $b-$a=
