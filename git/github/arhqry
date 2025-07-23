@@ -1,0 +1,15 @@
+set -e
+gh release list --json tagName,publishedAt --limit 999 > 1
+cat 1 | jq -r '.[] | .tagName' > 2
+cat 1 | jq -r '.[] | .publishedAt' > 3
+a=( `cat 2` )
+b=( `cat 3` )
+i=0
+for x in ${a[@]}; do
+	y=`echo $x | cut -f1 -d_`
+	if [ $y = $1 ]; then
+		echo $i $x ${b[$i]}
+	fi
+	i=$((i+1))
+done
+rm 1 2 3
