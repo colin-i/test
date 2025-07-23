@@ -1,14 +1,13 @@
 
 # 1           [dest]
-# 1 2 mounted uncompre   [dry]
-# 1 2 mounted [dest]     [dry]
+# 1 2 mounted uncompre   [dry]        #in a/pc for pt
+# 1 2 mounted [dest]     [dry]        #in home:/name for .gz
 
 if [ -z "$2" ]; then
 #in ./tmp from github to a lower .gz
 	name=`echo $1 | grep -o ^[^-]*`
 	ver=`echo $1 | grep -Po "(?<=-)[^\.]*"`
 else
-#in a/pc for pt   or in home:/name for .gz
 	name=$1
 	ver=$2
 fi

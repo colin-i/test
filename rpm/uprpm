@@ -21,7 +21,7 @@ fi
 file=${name}-${version}.${arch}.rpm
 path=${HOME}/rpmbuild/RPMS/${arch}/${file}
 
-sudo docker container cp ${path} ${container}:`pwd -P`/ && \
+sudo docker container cp ${path} ${container}:`pwd`/ && \
 \
 sudo gh act -r -j urbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/uprpm${name}.yml && \
 rm ${path} && \

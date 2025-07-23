@@ -16,7 +16,7 @@ arch=`cat debian/control | grep ^Architecture | cut -d ' ' -f2`
 file=${name}_${version}_${arch}.deb
 path=../${file}
 
-docker container cp ${path} ${container}:`pwd -P`/ && \
+docker container cp ${path} ${container}:`pwd`/ && \
 gh act -r -j udbuild --env proj=${name} --env file=${file} -s PAT=`cat ~/n/tmp/pat` workflow_dispatch -W .github/workflows/updeb${name}.yml && \
 rm ${path} && \
 docker container stop ${container} && \
