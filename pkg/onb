@@ -9,7 +9,7 @@ else
 fi
 echo $a on clip
 echo -n $a | xclip -sel clip
-echo "pkgbuild ready? y and enter"
+echo pkg"${type}build ready?" y and enter
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 

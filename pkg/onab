@@ -1,9 +1,2 @@
 
-if [ -n "${ask}" ]; then
-	cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"
-	echo "pkgarmbuild ready? y and enter"
-	read -t $((60*60*24)) ans
-	if [ "${ans}" != "y" ]; then exit 1; fi
-fi
-
 gh workflow run pkgarm.yml

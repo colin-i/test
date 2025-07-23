@@ -12,4 +12,6 @@ cd .. && \
 if [ -n "${1}" ]; then
 	git add ${1}
 fi && \
-~/test/bots/sync
+if [ -z "${no_sync}" ]; then
+	~/test/bots/sync
+fi
