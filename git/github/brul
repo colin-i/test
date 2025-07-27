@@ -1,6 +1,10 @@
-
+set -e
 if [ -z "$1" ]; then echo branch required; exit 1; fi
-name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+if [ -z "$2" ]; then
+	name=`cat debian/control | grep "^Homepage" | grep -o [^/]*$`
+else
+	name=$2
+fi
 ~/test/git/github/bruldel ${name} $1
 echo enter
 read -t $((60*60*24))
