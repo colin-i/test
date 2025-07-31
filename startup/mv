@@ -1,5 +1,5 @@
-if [ -e "${2}" ]; then stat -c %y "${2}"; fi
+if [ -e "${2}" ]; then stat -c '%y %s' "${2}"; fi
 mv -i "$@"
 n=$?
-stat -c %y "${2}"
+stat -c '%y %s' "${2}"
 exit $n
