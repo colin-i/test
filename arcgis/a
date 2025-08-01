@@ -12,6 +12,5 @@ else
 fi
 
 #after new, inside ./aa
-
-#at question:
+#can also use skipdate=x at ./b
 #when from normal to out: use python nlist.py , remove from: recs text text_last current new ex ex2

@@ -10,6 +10,5 @@ if [ ${r} -ne 0 ]; then
 	fi
 fi
 
-#at questions:
-#when new at _new, ./b _new, has_new=x ./c _new . then ./n to see it on flow. at a.py can also use skipdate=x at ./b
+#when new at _new is ok
 #when from new to normal: move from: recs_new to recs, rm line at text_new, also to move ex_new,ex2_new, rm current_new,new_new

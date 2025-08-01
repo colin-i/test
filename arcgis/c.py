@@ -22,6 +22,7 @@ with open(root+"text"+type,"w") as out:
 			if len(rd)==0:
 				with open(root+"text_last"+type,"r") as prev:
 					prevtext=prev.read().split("\n")[i]
+					prevtext=prevtext[1:]
 					print(fnm+" is blank, use "+prevtext+" ? y?")
 					char=readchar.readchar()
 					if char=='y':
