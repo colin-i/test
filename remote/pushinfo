@@ -20,10 +20,12 @@ echo NU ESTE EGAL
 exit 1
 fi
 
-a=`date +%s.%N`
-git rev-list --all --count
-b=`date +%s.%N`
-echo count time = `echo $b - $a | bc`
+if [ ! -e ~/pushinfo_no_count ]; then
+	a=`date +%s.%N`
+	git rev-list --all --count
+	b=`date +%s.%N`
+	echo count time = `echo $b - $a | bc`
+fi
 
 #a=$(git ls-remote --refs -h ${1} | head -1 | cut -f1)
 #b=$(git rev-parse HEAD)
