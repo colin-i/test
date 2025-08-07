@@ -16,7 +16,7 @@ for var in ${format[@]}; do
 	x=( `df | grep "^${var} " |  tr -s ' '` ) #df $var is not good at nfs mounts
 
 	b=${x[4]}
-	echo -n "using: ${b}"
+	echo -n "${var} using: ${b}"
 
 	if [ -z "${teststorage}" ]; then
 		a=${x[1]}
