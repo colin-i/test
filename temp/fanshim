@@ -6,21 +6,21 @@ if [ -z "${1}" ]; then
 	sudo pip3 install fanshim  --break-system-packages
 else
 	#rpi4
-	#on=65
-	#high=61
-	#low=59
 	#off=55
+	#low=59
+	#high=61
+	#on=65
 
 	#rpi3
-	#on=45
-	#high=43
-	#low=42
-	#off=40
+	#off=39
+	#low=41
+	#high=42
+	#on=44
 
-	on=${1}
-	high=${2}
-	low=${3}
-	off=${4}
+	off=${1}
+	low=${2}
+	high=${3}
+	on=${4}
 
 	#automatic.py is at https://github.com/pimoroni/fanshim-python /examples (make install is not working from the first try now)
 	#long press the button(blue blinking) to switch from manual(same button short press) or auto (high red, green low)
