@@ -5,17 +5,12 @@ if [ -z "${1}" ]; then
 	sudo apt install python3-rpi.gpio && \
 	sudo pip3 install fanshim  --break-system-packages
 else
-	#rpi4
-	#off=55
-	#low=59
-	#high=61
-	#on=65
-
-	#rpi3
-	#off=39
-	#low=41
-	#high=42
-	#on=44
+	#rpi3       rpi4
+	#off=39=$1  50
+	#low=41=$2  54
+	#high=42=$3 56
+	#on=44=$4   60
+	#b=0-255=$5
 
 	off=${1}
 	low=${2}
@@ -27,8 +22,7 @@ else
 	cd ~/fanshim-python/examples
 
 	#sudo, else root warning
-	sudo ./install-service.sh --brightness 10    --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
-	#                                      0-255
+	sudo ./install-service.sh --brightness $5 --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
 
 	cat /sys/class/thermal/thermal_zone*/temp
 fi
