@@ -4,6 +4,9 @@ do
     convert "$szFile" -rotate 90 ./tmp/"$(basename "$szFile")" ;
 done
 
+#rotate 90 clock
+# pdftk input.pdf cat 1-endeast output output.pdf
+
 #convert a.jpg -crop 1200x1200+0+400 b.jpg
 #convert -brightness-contrast 5 c.jpg d.jpg
 # pdfimages better than convert to get from pdf, convert crop, convert img to pdf is ok. pdfunite better than convert for pdf join
