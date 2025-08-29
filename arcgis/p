@@ -5,23 +5,25 @@
 #in Desktop/a ~/test/arcgis/p 'Screenshot ...png'
 if [ -z "${1}" ]; then echo error; exit 1; fi
 #if [ -z "${2}" ]; then echo error; exit 1; fi
-apath=~
-from_caps () {
-	mv "${apath}/Pictures/Screenshots/${1}" a.png
-	convert a.png -crop 1770x1030+150+50 a.jpg
-}
-if [ -z "${skiptake}" ]; then from_caps "${1}"; fi
 
-eog a.jpg
-echo continue \? y \?
-read -n1 -t $((60*60*24)) q
-if [ "${q}" != "y" ]; then
-	exit 1
+if [ "$1" != 0 ]; then
+	apath=~
+	from_caps () {
+		mv "${apath}/Pictures/Screenshots/${1}" a.png
+		convert a.png -crop 1770x1030+150+50 a.jpg
+	}
+	if [ -z "${skiptake}" ]; then from_caps "${1}"; fi
+	
+	eog a.jpg
+	echo continue \? y \?
+	read -n1 -t $((60*60*24)) q
+	if [ "${q}" != "y" ]; then
+		exit 1
+	fi
+	#python ~/test/arcgis/pixels.py > 1
+	echo -n 'kolourpaint ./a.jpg' | xclip -sel clip
+	echo 'kolourpaint ./a.jpg'
 fi
-#python ~/test/arcgis/pixels.py > 1
-echo -n 'kolourpaint ./a.jpg' | xclip -sel clip
-echo 'kolourpaint ./a.jpg'
-
 #at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 echo left top right bottom
 read -t $((60*60*24)) ans

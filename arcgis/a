@@ -1,7 +1,7 @@
 
 #has_new when new segment ( no diff check. will add segment name to result )
 
-pdb a.py && \
+#pdb a.py
 ./b || exit 1
 echo from new to normal \? or from normal to out \? y \?
 read -n1 -t $((60*60*24)) ans
