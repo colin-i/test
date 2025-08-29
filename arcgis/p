@@ -13,7 +13,7 @@ if [ "$1" != 0 ]; then
 		convert a.png -crop 1770x1030+150+50 a.jpg
 	}
 	if [ -z "${skiptake}" ]; then from_caps "${1}"; fi
-	
+
 	eog a.jpg
 	echo continue \? y \?
 	read -n1 -t $((60*60*24)) q
