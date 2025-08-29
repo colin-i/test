@@ -1,1 +1,6 @@
-~/test/ssh/com $1 $2 "cat 1"
+
+if [ -z "$3" ]; then
+	~/test/ssh/com $1 $2 'cat 1'
+else
+	~/test/ssh/com $1 $2 'cat /sys/bus/w1/devices/28-*/w1_slave'
+fi
