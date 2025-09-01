@@ -1,5 +1,11 @@
-if [ -e "${2}" ]; then stat -c '%y %s' "${2}"; fi
-mv -i "$@"
-n=$?
-stat -c '%y %s' "${2}"
-exit $n
+
+if [ -e "${2}" ]; then
+	a1=`stat -c '%y %s' "${2}"`
+	echo ${a1}
+fi
+mv -i "$@" || exit 1
+a2=`stat -c '%y %s' "${2}"`
+echo ${a2}
+if [ "${a1}" = "${a2}" ]; then
+	exit 1 #games/d
+fi

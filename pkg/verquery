@@ -11,7 +11,7 @@ while true; do
 		ver=${c[0]}
 		rel=${c[1]}
 		echo -n "${ver} = ${2} "
-		if [ ${ver} = ${2} ]; then
+		if [ "${ver}" = ${2} ]; then
 			echo ... ok
 			echo -n "${rel} = ${3} "
 			if [ ${rel} = ${3} ]; then
