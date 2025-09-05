@@ -1,6 +1,9 @@
 
-id=`ps -C sh -o pid,cmd | grep "test/net/head/z" | grep -o "^ *[^ ]*" | grep -o "[^ ]*$"` #a few times with leading space, a few times without
+id=`ps -C bash -o pid,cmd | grep "test/net/head/z" | grep -o "^ *[^ ]*"`
+#in -C bash is ok like this
+#a few times with leading space, a few times without
 #with leading: when starting evening from autostart. without leading: after evening is done
+# | grep -o "[^ ]*$"
 if [ -n "${id}" ]; then
 	kill -s 9 ${id}
 fi
