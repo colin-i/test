@@ -1,7 +1,7 @@
 #!/bin/bash
 # is_day.php(~/n/pat4) ~/maxmindif  #mp3=: broadlink,(python3-cryptography)
 #                                   else mpg123 and an mp3
-# ~/fixedtime  ~/twitch from ods
+# ~/fixedtime
 
 #need to wait for the date sync, and date is writing in local but date -d don't understand except english
 if [ -e ~/rememberevening ]; then
@@ -21,9 +21,11 @@ if [ ${month:0:1} = 0 ]; then
 	month=${month:1:1}
 fi
 
-t=( `cat ~/twitch` )
-tm=$((month-1))
-echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
+if [ -e ~/twitch ]; then # from .ods
+	t=( `cat ~/twitch` )
+	tm=$((month-1))
+	echo $((t[${tm}]/10)) $((t[${tm}]/8)) $((t[${tm}]/4)) $((t[${tm}]/2)) ${t[${tm}]} $((2*t[${tm}])) $((3*t[${tm}]))
+fi
 
 amonth=6 #for northern hemisphere
 
@@ -71,6 +73,10 @@ if [ ${remaining2} -gt ${remaining} ]; then
 	remaining=${remaining2}
 fi
 
+if [ -n "${extratime}" ]; then
+	remaining=$((remaining-extratime))
+fi
+
 while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
 	echo ${remaining}
 	sleep 1m
@@ -109,7 +115,7 @@ fi
 #/home/bc/evening
 #sleep 10
 #sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
-#mp3=~/lr.mp3 /home/bc/test/startup/evening
+# mp3=~/lr.mp3 /home/bc/test/startup/evening        mp3=~/u/a/lr.mp3 extratime=120 /home/bc/test/startup/evening
 
 exit 0
 arecord -l
