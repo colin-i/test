@@ -22,4 +22,6 @@ else
 	if [ -n "${z}" ]; then args+=" \"${n}\""; fi
 fi && \
 git commit --author="${n} <${em}>" ${args} && \
-no_activity=${no_act} ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2
+if [ -z "${only_commit}" ]; then
+	no_activity=${no_act} ~/test/remote/push $(${f} $(git config --get remote.origin.url)) 2
+fi

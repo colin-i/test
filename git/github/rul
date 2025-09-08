@@ -1,0 +1,6 @@
+set -e
+cd $1
+only_commit=x ~/test/sync/commit sync
+~/test/git/github/bruldel $2 $3
+no_activity=x ~/test/remote/pushforce $2
+~/test/git/github/bruladd $2 $3
