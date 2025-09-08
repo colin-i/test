@@ -26,7 +26,7 @@ rel=`cat PKGBUILD | grep -Po "(?<=^pkgrel=).*"`
 #}
 ptag=`cat PKGBUILD | grep -Po "(?<=^pkgver=).*"`
 finaltag=${ptag}
-if [ ${rel} -ne 1 ]; then
+if [ ${rel} -ne 0 ]; then
 	finaltag=${finaltag}.${rel}
 else
 	echo rel
@@ -62,7 +62,8 @@ cd .. && \
 git clone https://github.com/colin-i/${name} --depth 1 ${newname}
 #fi && \
 #diff --exclude=".git" -ura --new-file edor edornew --color
-diff --exclude=".git" -ura --new-file ${gname} ${newname} > ${tof} && exit 1 #must have some differences
+read
+diff --exclude=".git" -ura --new-file ${newname} ${gname} > ${tof} && exit 1 #must have some differences
 echo ${finaltag} >> ${to}list && \
 rm -rf ${newname} && \
 #sudo rm has no perm
