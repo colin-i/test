@@ -42,6 +42,7 @@ match=os.environ.get("match")
 if match==None:
 	with open(HOME+'/lessressmatch', 'r') as file: #pull
 		match=file.read()
+match_len=len(match)
 site=os.environ.get("site")
 if site==None:
 	with open(HOME+'/lessressite', 'r') as file:   #https://www..com
@@ -51,7 +52,8 @@ with open(HOME+'/crashlimit', 'r') as file: #200000000
 	min = int(file.read()) #in Bytes
 with open(HOME+'/crashsleep', 'r') as file: #10
 	sleep = int(file.read())
-print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+str(min)+",sleep="+str(sleep))
+debug=os.environ.get("debug")
+print("timeout="+timeout+",no_keys="+("" if no_keys==None else no_keys)+",no_cpulimit="+("" if no_cpulimit==None else no_cpulimit)+",match="+match+",site="+site+",close_on_link="+("" if close_on_link==None else close_on_link)+",min="+str(min)+",sleep="+str(sleep)+",debug="+("" if debug==None else debug))
 
 def stop():
 	print("stop")
@@ -65,9 +67,9 @@ def cont():
 	subprocess.run(["pkill","-f","^cpulimit"])
 #f=open("test","wb")
 def t2_f(r):
-	#f.write(r.url.encode())
-	#f.write(b'\n')
-	if r.url[0:12]=="https://"+match:
+	if debug!=None:
+		print(r.url) #f.write(r.url.encode()) #f.write(b'\n')
+	if r.url[0:8+match_len]=="https://"+match:
 		print(r.url)
 		if close_on_link!=None:
 			#exec(on_link)
