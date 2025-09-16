@@ -1,0 +1,4 @@
+
+. ~/test/misc/read_char
+echo read
+wait_char
