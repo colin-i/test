@@ -10,7 +10,8 @@ fi && \
 git clean -idfx && \
 cd .. && \
 if [ -n "${1}" ]; then
-	git add ${1}
+	git add $1/$2
+	git add $1/list
 fi && \
 if [ -z "${no_sync}" ]; then
 	~/test/bots/sync

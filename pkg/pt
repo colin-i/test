@@ -1,11 +1,11 @@
 #!/bin/bash
-
+set -e
 # makepkg -do --skipinteg # to get
 
-name=`cat PKGBUILD | grep -Po "(?<=^pkgname_atsource=).*"`
-if [ -z "${name}" ]; then
+name=`cat PKGBUILD | grep -Po "(?<=^pkgname_atsource=).*"` || {
 	name=`cat PKGBUILD | grep -Po "(?<=^pkgname=).*"`
-fi
+}
+
 rel=`cat PKGBUILD | grep -Po "(?<=^pkgrel=).*"`
 
 #if [ -z "`git remote show | grep tags`" ]; then
@@ -37,8 +37,14 @@ tag=`echo ${ptag} | sed 's/\./\-/'`
 echo name=${name} tag=${tag} finaltag=${finaltag} rel=${rel}. Enter to continue
 read -t $((60*60*24))
 
-cd src || exit 1
-gname=`find -maxdepth 1 -name "${name}*" -type d` # ocompiler 1.5+225 goes to o-1-5-225, this is fastest
+cd src || {
+	#still not working: makepkg -oA
+	makepkg -g
+	cd src
+	tar -xf ../*tar*
+	#must apply all patches
+}
+gname=`find -maxdepth 1 -name "${name}*" -type d | grep \-` # ocompiler 1.5+225 goes to o-1-5-225, this is fastest
 
 cd ${gname} || exit 1
 if [ "${name}" = "o" ]; then
@@ -46,12 +52,12 @@ if [ "${name}" = "o" ]; then
 fi
 #./clean || exit 1
 #this clean is only for safety
+cd ..
 
 to=../
 tof=${to}${finaltag}
 newname=${name}new
 
-cd .. && \
 #if [ ${rel} -eq 1 ]; then
 #	git clone https://github.com/colin-i/${name} --branch=${tag} --depth 1 ${newname} -n && \
 #	#without -n will be detached HEAD and will not be 0 return
@@ -59,17 +65,19 @@ cd .. && \
 #	git checkout && \
 #	cd ..
 #else
-git clone https://github.com/colin-i/${name} --depth 1 ${newname}
-#fi && \
+if [ ! -e ${newname} ]; then
+	git clone https://github.com/colin-i/${name} --depth 1 ${newname}
+else echo is cloned
+fi
 #diff --exclude=".git" -ura --new-file edor edornew --color
 read
 diff --exclude=".git" -ura --new-file ${newname} ${gname} > ${tof} && exit 1 #must have some differences
-echo ${finaltag} >> ${to}list && \
-rm -rf ${newname} && \
+echo ${finaltag} >> ${to}list
+rm -rf ${newname}
 #sudo rm has no perm
-cd ${gname} && \
-patch --strip=1 --input=../${tof} && \
-cd ../../ && \
-git add ${finaltag} && \
-git add list && \
-~/test/pkg/pb ${name}/${finaltag}
+cd ${gname}
+#patch --strip=1 --input=../${tof}
+cd ../../
+git add ${finaltag}
+git add list
+~/test/pkg/pb ${name} ${finaltag}
