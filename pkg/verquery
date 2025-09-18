@@ -20,6 +20,10 @@ while true; do
 			fi
 		fi
 		echo ... not ok
+		if [ -e ~/stopwaitingflag ]; then
+			rm ~/stopwaitingflag
+			exit 1
+		fi
 		sleep 60
 	else
 		echo at aur is $b
