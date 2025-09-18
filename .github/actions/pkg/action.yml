@@ -53,7 +53,8 @@ runs:
     echo "ALL ALL=(ALL) NOPASSWD: /usr/bin/*" > /etc/sudoers.d/a  #makepkg when installing/deps / yay
 
     if [ -n "${{ inputs.aur }}" ]; then
-     su bot -c 'git clone --depth 1 https://aur.archlinux.org/yay-bin.git'
+     #su bot -c 'git clone --depth 1 https://aur.archlinux.org/yay-bin.git'
+     su bot -c 'git clone --depth 1 --branch yay-bin --single-branch https://github.com/archlinux/aur.git yay-bin'
      cd yay-bin
      su bot -c 'makepkg -i --noconfirm'
      su bot -c 'yay -Sy --noconfirm --needed ${{ inputs.aur }}'

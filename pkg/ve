@@ -1,17 +1,23 @@
+set -e
 
-{
-	edor PKGBUILD && \
-	#no nano/vim at base or linux, must edit from host
-	makepkg -g | xclip -sel clip && #about the files right after download/clone, before patching
-	#and copy that at sha256sums
-	##or updpkgsums after installing pacman-contrib
-	edor PKGBUILD
-} || exit 1
+edor PKGBUILD
+#no nano/vim at base or linux, must edit from host
+makepkg -g | xclip -sel clip #about the files right after download/clone, before patching
+#and copy that at sha256sums
+##or updpkgsums after installing pacman-contrib
+edor PKGBUILD
 
 a="`cat list`"
 for v in $a; do
-	git rm $v || exit 1
+	git rm $v
 done
-echo -n > list && \
-git add list && \
-~/test/pkg/pb
+echo -n > list
+git add list
+
+echo any ./pt ? y and Enter
+read -t $((60*60*24)) ans
+if [ "${ans}" = y ]; then
+	~/test/pkg/pt
+else
+	~/test/pkg/pb
+fi
