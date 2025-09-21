@@ -24,6 +24,8 @@ else
 	#sudo, else root warning
 	sudo ./install-service.sh --brightness $5 --delay 5 --on-threshold ${on} --off-threshold ${off} --low-temp ${low} --high-temp ${high}
 
+	service pimoroni-fanshim status
+
 	cat /sys/class/thermal/thermal_zone*/temp
 fi
 
