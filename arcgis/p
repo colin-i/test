@@ -1,5 +1,5 @@
 
-#format, conditional, manage, edit, A2:R29, ok
+#format, conditional, manage, edit, A2:..29, ok
 #select, print, print selected cells, print to file, Desktop/a/a
 #take screenshot, left bar visible
 #in Desktop/a ~/test/arcgis/p 'Screenshot ...png'
