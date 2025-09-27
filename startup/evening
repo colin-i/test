@@ -65,16 +65,18 @@ if [ -e ~/fixedtime ]; then #example: 18:00
 else
 	remaining2=0
 fi
-echo -n remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\)
-remaining=$((remaining1-dif+dst))
-
-echo =${remaining} or fixedremaining\(${remaining2}\)
-if [ ${remaining2} -gt ${remaining} ]; then
-	remaining=${remaining2}
-fi
 
 if [ -n "${extratime}" ]; then
-	remaining=$((remaining-extratime))
+	remaining1=$((remaining1-extratime))
+	remaining2=$((remaining2-extratime))
+fi
+
+echo -n remaining1\(${remaining1}\)-dif\(${dif}\)+dst\(${dst}\)
+remaining=$((remaining1-dif+dst))
+echo =${remaining} or fixedremaining\(${remaining2}\)
+
+if [ ${remaining2} -gt ${remaining} ]; then
+	remaining=${remaining2}
 fi
 
 while [ ${remaining} -ge 0 ]; do #on standby will not decrement, but that was on android tablet
