@@ -1,3 +1,4 @@
 
-#cd gree-remote/PythonCLI
+cd ~/gree-remote/PythonCLI
 python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` get TemSen
+#python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` set TemUn=0 SetTem=20 WdSpd=1 Mod=2 SwUpDn=6
