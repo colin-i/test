@@ -2,6 +2,7 @@ BuildRequires: ocompiler make gcc
 %ifarch i586
 BuildRequires: lld
 %endif
+Requires: python3
 %description
 ActionSwf compiler and dev files.
 
@@ -36,6 +37,7 @@ install_number=64 %make_install
 %attr(0644, root, root) "%{_libdir}/libactionswf.so"
 %attr(0644, root, root) "%{_libdir}/liboadbgdata.so"
 %attr(0755, root, root) "%{_bindir}/oaalternative.sh"
+%attr(0755, root, root) "%{_bindir}/oaalternative.py"
 
 %files devel
 %dir %attr(0755, root, root) "%{_includedir}/%{name}"

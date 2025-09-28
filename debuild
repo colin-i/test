@@ -15,6 +15,7 @@ build () {
 	rm ./*
 	#at exit working dir will not remain in tmp
 	#DEB_BUILD_OPTIONS=nocheck debuild -us -uc
+	#DEB_BUILD_OPTIONS=nocheck debuild -b --no-sign -d
 }
 
 if [ -z "${dist}" ]; then
