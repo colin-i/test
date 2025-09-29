@@ -8,6 +8,8 @@ inputs:
   description: "more initial packages straight from pacman"
  aur:
   description: "from aur"
+ extra:
+  description: "from local"
 #must have GITHUB_TOKEN for upload, and gh
 runs:
  using: "composite"
@@ -77,6 +79,13 @@ runs:
     cd pkgbuilds
     su bot -c "git sparse-checkout set --no-cone /${name}"
     su bot -c 'git checkout'
+    if [ -n "${{ inputs.extra }}" ]; then
+     su bot -c "git sparse-checkout set --no-cone /${{ inputs.extra }}"
+     su bot -c 'git checkout'
+     cd ${{ inputs.extra }}
+     su bot -c 'makepkg -si --noconfirm'
+     cd ..
+    fi
     cd ${name}
 
     su bot -c 'makepkg -s --noconfirm'
