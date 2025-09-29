@@ -2,6 +2,8 @@
 set -e
 # makepkg -do --skipinteg # to get
 
+edor PKGBUILD
+
 name=`cat PKGBUILD | grep -Po "(?<=^pkgname_atsource=).*"` || {
 	name=`cat PKGBUILD | grep -Po "(?<=^pkgname=).*"`
 }
@@ -37,22 +39,16 @@ tag=`echo ${ptag} | sed 's/\./\-/'`
 echo name=${name} tag=${tag} finaltag=${finaltag} rel=${rel}. Enter to continue
 read -t $((60*60*24))
 
-cd src || {
-	#still not working: makepkg -oA
-	makepkg -g
-	cd src
-	tar -xf ../*tar*
-	#must apply all patches
-}
-gname=`find -maxdepth 1 -name "${name}*" -type d | grep \-` # ocompiler 1.5+225 goes to o-1-5-225, this is fastest
+#must apply all patches
+_patches="`cat ./list`"
 
-cd ${gname} || exit 1
-if [ "${name}" = "o" ]; then
-	rm src/obj.txt
-fi
-#./clean || exit 1
-#this clean is only for safety
-cd ..
+#if [ -z "`ls src`" ]; then
+
+#still not working: makepkg -oA
+makepkg -g
+tar -xf ./*tar* -C src
+cd src
+gname=`find -maxdepth 1 -name "${name}*" -type d` # | grep \-` when more
 
 to=../
 tof=${to}${finaltag}
@@ -69,6 +65,22 @@ if [ ! -e ${newname} ]; then
 	git clone https://github.com/colin-i/${name} --depth 1 ${newname}
 else echo is cloned
 fi
+
+if [ -n "_patches" ]; then
+	cd ${gname}
+	for _var in ${_patches[@]}; do
+		echo ${_var}
+		patch --strip=1 --input=../../${_var}
+	done
+	cd ../${newname}
+	for _var in ${_patches[@]}; do
+		echo ${_var}
+		patch --strip=1 --input=../../${_var}
+	done
+	cd ..
+#else ./cln ?  if [ "${name}" = "o" ]; then rm src/obj.txt; fi
+fi
+
 #diff --exclude=".git" -ura --new-file edor edornew --color
 read
 diff --exclude=".git" -ura --new-file ${newname} ${gname} > ${tof} && exit 1 #must have some differences
@@ -78,6 +90,7 @@ rm -rf ${newname}
 cd ${gname}
 #patch --strip=1 --input=../${tof}
 cd ../../
+edor ${finaltag}
 git add ${finaltag}
 git add list
 ~/test/pkg/pb ${name} ${finaltag}
