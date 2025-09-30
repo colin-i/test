@@ -1,3 +1,4 @@
+set -e
 
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
@@ -6,7 +7,7 @@ if [ -z "${py}" ]; then
 	{
 		cd ~/pc && \
 		uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
-	} || exit 1
+	}
 	fullname=${name}
 else
 	#working with   py2pack generate name -f spec   spec file
@@ -14,7 +15,7 @@ else
 	{
 		~/test/pyp/reversion && \
 		cd ~/pc
-	} || exit 1
+	}
 	fullname=python-${name}
 fi
 pcs=~/test/rpm/home:costin/${fullname}
@@ -24,7 +25,7 @@ nmmaj=${name}-${major}
 diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch
 
 cd ${pcs}
-edor p${n}.patch || exit 1
+edor p${n}.patch
 gzip p${n}.patch
 
 #m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
@@ -33,13 +34,15 @@ gzip p${n}.patch
 outname=p${n}.patch.gz
 echo "Patch${n}: ${outname}" >> b
 
-~/test/rpm/spec ${fullname} || exit 1
+~/test/rpm/spec ${fullname}
 
 echo "osc add ${outname} && osc commit"
 echo -n osc add ${outname} \&\& osc commit | xclip -sel clip
-echo y?
+echo paste and back for message. y?
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
+
+~/test/de/msg
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
