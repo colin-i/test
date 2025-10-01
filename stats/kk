@@ -1,0 +1,5 @@
+
+#this is the favorites order
+knowngames=( Universe Mahjong Road Rooms "Space Adventure" Voyage Train Jump Watersport Asteroids Balls Expeditioner Lander Driver Digger \
+Cubes "Treasure Finder" "Turret Defence" Lotto Racecourse "Fruit Cocktail" "Card Flip" "Naval War" Roulette "Ball Hit" )
+#for var in "${knowngames[@]}";do echo ${var};done;echo

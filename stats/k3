@@ -3,7 +3,21 @@ deleting () {
 	rm 1 2 3 4
 }
 sort -k1nr 6 > 3
-cat 3 | head -3
+
+top=( `cat 3 | head -3` )
+. ~/test/stats/kk
+gms=( `cat 6` )
+for tp in ${top[@]}; do
+	i=0
+	for gm in ${gms[@]}; do
+		if [ ${gm} = ${tp} ]; then
+			echo ${knowngames[$i]} ${tp}
+			break
+		fi
+		i=$((i+1))
+	done
+done
+
 paste -s -d+ 3 | bc > 5
 #echo $((`paste -s -d+ 3 | bc`+`paste -s -d+ 4 | bc`)) > 5
 
