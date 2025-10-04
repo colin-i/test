@@ -1,5 +1,7 @@
 set -e
 
+startdir=`pwd`
+
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
 if [ -z "${py}" ]; then
@@ -22,7 +24,7 @@ pcs=~/test/rpm/home:costin/${fullname}
 n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 nmmaj0=${name}-${major}-orig
 nmmaj=${name}-${major}
-diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch
+diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch && exit 1
 
 cd ${pcs}
 edor p${n}.patch
@@ -42,7 +44,8 @@ echo paste and back for message. y?
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
-~/test/de/msg
+cd ${startdir}
+msg=suse ~/test/de/msg
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/

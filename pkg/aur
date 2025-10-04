@@ -1,6 +1,6 @@
 set -e
 
-~/test/de/msg
+msg=aur ~/test/de/msg
 
 name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
 if [ -n "${py}" ]; then name=python-${name}; fi

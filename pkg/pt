@@ -82,6 +82,7 @@ if [ -n "_patches" ]; then
 fi
 
 #diff --exclude=".git" -ura --new-file edor edornew --color
+echo modif at ${gname}
 read
 diff --exclude=".git" -ura --new-file ${newname} ${gname} > ${tof} && exit 1 #must have some differences
 echo ${finaltag} >> ${to}list
