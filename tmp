@@ -21,7 +21,7 @@ if [ $m = ${thism} ]; then
 			git add $x
 		done
 	} && \
-	git commit --author "tests <costin.b.84@gmail.com>" -am tests && \
+	git commit --author "tests <costin.b.84@gmail.com>" -am tests  #can be non-zero when going back at first commit
 	no_activity=x ~/test/remote/pushforce tmp
 else
 	~/test/bots/tests
