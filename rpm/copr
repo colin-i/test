@@ -69,7 +69,6 @@ for (( i=0; i < ${n}; i++)); do
 		echo and y and enter
 		read -t $((60*60*24)) ans
 		if [ "${ans}" != "y" ]; then exit 1; fi
-		break
 	fi
 done
 
