@@ -1,0 +1,14 @@
+
+a=`gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows --method org.gnome.Shell.Extensions.Windows.List`
+a=${a:2:-3}
+f=~/Desktop/1wland
+echo $a | jq .[].$1 > $f
+IFS=$'\n' b=( `cat $f` )
+for c in ${b[@]}; do
+	if [ $c = '"'$2'"' ]; then
+		echo $a | jq .[$i].id
+		break
+	fi
+	i=$((i+1))
+done
+rm $f

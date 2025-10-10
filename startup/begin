@@ -8,6 +8,7 @@ else
 	echo no sleep
 fi
 window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
+# window_pid=`~/test/wland/id wm_class org.gnome.Terminal
 if [ -f ~/desktops ]; then
 	echo move
 	xdotool windowmove ${window_pid} `cat ~/desktops` 0
