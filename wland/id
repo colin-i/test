@@ -1,10 +1,11 @@
 
 a=`gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows --method org.gnome.Shell.Extensions.Windows.List`
-a=${a:2:-3}
+#a=${a:2:-3}
+a="$(expr substr "$a" 3 $(echo $(echo -n $a | wc -m)-5 | bc))"
 i=0
-echo $a | jq .[].$1 | while read c; do
+echo "$a" | jq .[].$1 | while read c; do
 	if [ "$c" = '"'$2'"' ]; then
-		echo $a | jq .[$i].id
+		echo "$a" | jq .[$i].id
 		exit
 	fi
 	i=$((i+1))
