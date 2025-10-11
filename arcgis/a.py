@@ -14,6 +14,8 @@ service = Service('/usr/bin/geckodriver') # sudo apt install firefox-geckodriver
 opts = Options()
 opts.add_argument("--width=1333")
 opts.add_argument("--height=777")
+import sys
+opts.binary_location = '/usr/bin/firefox'+('' if len(sys.argv)<2 else sys.argv[1])
 
 driver = webdriver.Firefox(service=service,options=opts)
 action = ActionBuilder(driver)
