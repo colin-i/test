@@ -53,13 +53,13 @@ def init(loop,pointer):
 	box.append(text)
 
 	global monitors,monitor
-	m=Gdk.Display.get_default().get_primary_monitor()
+	#m=Gdk.Display.get_default().get_primary_monitor()
 	monitors=Gdk.Display.get_default().get_monitors()
 	monitor=0
-	for x in monitors:
-		if x==m:
-			break
-		monitor+=1
+	#for x in monitors:
+	#	if x==m:
+	#		break
+	#	monitor+=1
 	monitors=monitors.get_n_items()
 	if monitors>1:
 		state=Gtk.Button.new_with_label("Move")
@@ -172,7 +172,7 @@ def move(b):
 title="Activity"
 
 # python3-xlib
-import Xlib.display
+#import Xlib.display
 
 def position(mon):
 	#xid=win.get_surface().get_xid()
@@ -181,29 +181,44 @@ def position(mon):
 	#xwin = Xlib.display.drawable.Window(Xlib.display.Display(), id)
 	#xwin.configure will not work
 
-	rect=mon.get_geometry()
 	y=30
+	rect=mon.get_geometry()
+	global w,h
 	w=rect.width/16
-	h=rect.height-y-5 #-5? will not fit and will go in another monitor
 	x=rect.x+rect.width-w
 
-	d = Xlib.display.Display()
-	r = d.screen().root
-	window_ids = r.get_full_property(
-		d.intern_atom('_NET_CLIENT_LIST'), Xlib.X.AnyPropertyType
-	).value
-	for window_id in window_ids:
-		xwin = d.create_resource_object('window', window_id)
-		if title==xwin.get_wm_name():
-			xwin.configure(
-				x=x.__int__(),
-				y=y.__int__(),
-				width=w.__int__(),
-				height=h.__int__()
-				#border_width=10
-				#,stack_mode=Xlib.X.Above
-			)
-			d.sync()
+	subprocess.run(['/bin/bash','/home/bc/test/act/m',str(int(x)),str(y)])
 
-def screen():
+	h=rect.height-y-5 #-5? will not fit and will go in another monitor
+	win.set_default_size(w,h)
+
+	#d = Xlib.display.Display()
+	#r = d.screen().root
+	#window_ids = r.get_full_property(
+	#	d.intern_atom('_NET_CLIENT_LIST'), Xlib.X.AnyPropertyType
+	#).value
+	#for window_id in window_ids:
+	#	xwin = d.create_resource_object('window', window_id)
+	#	if title==xwin.get_wm_name():
+	#		xwin.configure(
+	#			x=x.__int__(),
+	#			y=y.__int__(),
+	#			width=w.__int__(),
+	#			height=h.__int__()
+	#			#border_width=10
+	#			#,stack_mode=Xlib.X.Above
+	#		)
+	#		d.sync()
+
+def when_size_forget(wn,param):
+	if param.name=='default-height':
+		if win.get_default_size().height!=h:
+			win.set_default_size(w,h)
+def after_realize():
 	position(Gdk.Display.get_default().get_monitors()[monitor])
+	win.connect_after('notify',when_size_forget)
+	return False
+def screen(w):
+	global win
+	win=w
+	GLib.timeout_add_seconds(2,after_realize)

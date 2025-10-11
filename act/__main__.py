@@ -14,7 +14,7 @@ win.set_decorated(False)
 win.set_child(Gtk.ScrolledWindow(child=datacode.init(loop,container)))
 win.show()
 
-datacode.screen()
+datacode.screen(win)
 
 loop.run()
 

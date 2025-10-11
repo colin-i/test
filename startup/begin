@@ -7,13 +7,15 @@ if [ -z "${nosleep}" ]; then
 else
 	echo no sleep
 fi
-window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
-# window_pid=`~/test/wland/id wm_class org.gnome.Terminal
+#window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
+window_pid=`~/test/wland/id wm_class org.gnome.Terminal`
 if [ -f ~/desktops ]; then
 	echo move
-	xdotool windowmove ${window_pid} `cat ~/desktops` 0
+	#xdotool windowmove ${window_pid} `cat ~/desktops` 0
+	~/test/wland/mv ${window_pid} `cat ~/desktops` 0
 	echo resize
-	wmctrl -i -r ${window_pid} -b toggle,maximized_vert,maximized_horz
+	#wmctrl -i -r ${window_pid} -b toggle,maximized_vert,maximized_horz
+	gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows --method org.gnome.Shell.Extensions.Windows.Maximize -- ${window_pid}
 else
 	window_pid=${window_pid} ~/test/startup/termsz  #if window_pid was input ( window_pid= ./begin ) it was passed
 fi
