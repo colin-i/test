@@ -9,7 +9,7 @@ echo ${t} ${a} ${b}
 if [ "${t}" = "x11" ]; then
 	if [ "${b}" = "Enter" ]; then b="Return"; fi
 	xdotool ${a} ${b} $@
-else
+else # + ydotoold
 	sudo ydotool ${a} ${b} $@
 	#without sudo "failed to open uinput device"
 fi

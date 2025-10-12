@@ -2,7 +2,14 @@
 echo n or continue in 10 seconds
 read -n1 -t 10 ans
 if [ "${ans}" != "n" ]; then
-	wmctrl -i -a `wmctrl -l | grep TigerVNC | cut -d' ' -f1`
+	{  # since wayland
+		~/test/keyring
+		sudo ydotoold
+	} &
+	sleep 10
+	#wmctrl -i -a `wmctrl -l | grep TigerVNC | cut -d' ' -f1`
+	id=`~/test/wland/id wm_class "TigerVNC Viewer"`
+	~/test/wland/ac ${id}
 	# -FullScreenSelectedMonitors=2 -FullscreenMode Selected -Fullscreen #is not working, is going to the second monitor but fast switching back, without -Fullscreen can manual do ok
 	# -geometry ...  -Fullscreen -> Fullscreen then geometry
 	~/test/dotool key ${k}; sleep 1; ~/test/dotool key Down; sleep 1; ~/test/dotool key Down; ~/test/dotool key Enter
