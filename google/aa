@@ -1,5 +1,7 @@
-
+set -e
 if [ -z "${mime}" ]; then mime=application/vnd.oasis.opendocument.spreadsheet; fi
+
+~/test/google/dif $1
 
 f=~/Desktop/1
 mimeType=${mime} folderid=`cat ~/n/pat` ~/test/google/a $@ | tee ${f} && \
