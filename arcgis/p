@@ -14,7 +14,7 @@ if [ "$1" != 0 ]; then
 	}
 	if [ -z "${skiptake}" ]; then from_caps "${1}"; fi
 
-	eog a.jpg
+	`cat ~/imgviewer` a.jpg
 	echo continue \? y \?
 	read -n1 -t $((60*60*24)) q
 	if [ "${q}" != "y" ]; then
@@ -39,7 +39,7 @@ width=$((right-left))
 height=$((bottom-top))
 convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 
-eog b.jpg
+`cat ~/imgviewer` b.jpg
 echo continue \? y \?
 read -n1 -t $((60*60*24)) q
 if [ "${q}" != "y" ]; then

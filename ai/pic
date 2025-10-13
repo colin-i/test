@@ -19,7 +19,7 @@ gh api -H "Accept: application/vnd.github.v3+json" /repos/colin-i/${repo_at_gh}/
 			exit 1
 		}
 		unzip -d $t ${tf2}
-		eog -n ${tf3} || {
+		`cat ~/imgviewer` -n ${tf3} || {
 			rm ${tf} ${tf2} ${tf3}
 			exit 1
 		}
