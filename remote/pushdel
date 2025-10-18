@@ -1,5 +1,5 @@
 
-if [ -z "${1}" ]; then echo first arg is branch name; fi
+if [ -z "${1}" ]; then echo first arg is branch name; exit 1; fi
 
 if [ -z "${onlyremote}" ]; then
 	# git branch --delete no_build
