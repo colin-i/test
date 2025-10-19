@@ -5,6 +5,9 @@ git commit --dry-run
 echo -e "\n"
 git diff --shortstat HEAD
 if [ -n "${tito}" ]; then
+	echo -n \~/test/rpm/tito | xclip -sel clip
+	echo `xclip -sel clip -o` paste and back for version. enter
+	read -t $((60*60*24))
 	last=`git rev-parse HEAD`
 	ve=`cat debian/changelog | head -1 | grep -Poe "[^\(]*(?=\))"`
 	if [ -n "`echo ${ve} | grep -o +`" ]; then

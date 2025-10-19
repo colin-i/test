@@ -1,6 +1,9 @@
 set -e
 
 msg=aur ~/test/de/msg
+cat ~/n/aur | tail -1 | xclip -sel clip
+echo aur on clip . enter
+read -t $((60*60*24))
 
 name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
 if [ -n "${py}" ]; then name=python-${name}; fi

@@ -2,7 +2,7 @@
 import sys
 p=sys.argv[1]
 
-from copr.v3 import Client
+from copr.v3 import Client #pip install copr
 client = Client.create_from_config_file()
 fn=eval("client."+sys.argv[2]+"."+sys.argv[3])
 

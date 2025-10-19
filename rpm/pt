@@ -45,6 +45,9 @@ read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
 cd ${startdir}
+cat ~/n/suse | tail -1 | xclip -sel clip
+echo suse on clip . enter
+read -t $((60*60*24))
 msg=suse ~/test/de/msg
 
 cd ~/pc
