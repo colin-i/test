@@ -66,9 +66,8 @@ for (( i=0; i < ${n}; i++)); do
 		text="copr-cli delete-build ${id}"
 		echo ${text}
 		echo -n ${text} | xclip -sel clip
-		echo and y and enter
-		read -t $((60*60*24)) ans
-		if [ "${ans}" != "y" ]; then exit 1; fi
+		echo enter
+		read -t $((60*60*24))
 	fi
 done
 
