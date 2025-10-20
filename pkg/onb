@@ -1,6 +1,8 @@
 
 # @ passed to gh
-
+echo -n \~/test/pkg/ve | xclip -sel clip
+echo `xclip -sel clip -o` on clip. enter
+read -t $((60*60*24))
 if [ ! -e ./v2 ]; then
 	name=`cat debian/control | grep "^Source" | grep -o [^\ ]*$`
 	a=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
