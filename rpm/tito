@@ -13,4 +13,4 @@ else
 	ans=$1
 fi
 tito tag --use-version ${ans} --use-release 0
-#when deleting a tag, a new tag will be with problems, replace with prev valid tag in .tito/packages/[name], and arrange the changelog. when asks to arrange prev tag in .spec file?
+#when deleting a tag, a new tag will be with problems, replace with prev valid tag in .tito/packages/[name], and arrange the changelog, and commit
