@@ -1,11 +1,11 @@
 
 #has_new when new segment ( no diff check. will add segment name to result )
 
-#pdb a.py [-esr]
+# pdb a.py [-esr]
 ./b || exit 1
 echo from new to normal \? or from normal to out \? y \?
 read -n1 -t $((60*60*24)) ans
-if [ "${ans}" = "y" ]; then
+if [ "${ans}" = y ]; then
 	has_new=x ./c
 else
 	./c
@@ -13,4 +13,4 @@ fi
 
 #after new, inside ./aa
 #can also use skipdate=x at ./b
-#when from normal to out: use python nlist.py , remove from: recs text text_last current new ex ex2
+#when from normal to out: use python nlist.py|edor , remove from: recs text text_last current new ex ex2
