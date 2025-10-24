@@ -1,0 +1,3 @@
+
+rsync -av --delete --exclude='.Trash-1000' --exclude='lost+found' `cat ~/n1` `cat ~/n2`
+rsync -av --delete `cat ~/n2` `cat ~/n3`
