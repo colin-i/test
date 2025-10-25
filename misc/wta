@@ -1,0 +1,11 @@
+
+cd ~/Desktop/arh
+pdf2text All_Career_Prize_Money.pdf
+cat All_Career_Prize_Money.txt | grep ^ROU$ -A 2 -B 2 > 3
+sed '/^$/d' 3 > 2
+diff -u 1 2
+echo y and enter
+read -n1 -t $((60*60*24)) ans
+if [ "${ans}" != y ]; then exit 1; fi
+mv 2 1
+rm 3
