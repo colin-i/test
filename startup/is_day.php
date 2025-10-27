@@ -1,7 +1,8 @@
 <?php
 $c=file_get_contents(getenv("HOME")."/n/pat4");
 $c=preg_split('/;/',$c);
-$t=time();
+if(getenv('time'))$t=getenv('time');
+else $t=time();
 $a=date_sun_info($t,$c[0],$c[1]);//is fatal if , instead of .
 if($argc==2){
 	foreach ($a as $key => $val) {
