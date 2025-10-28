@@ -6,7 +6,7 @@ if [ "${ans}" != "n" ]; then
 		~/test/keyring
 		sudo ydotoold
 	} &
-	sleep 10
+	sleep 12 #keyring is taking strange time in this case
 	#wmctrl -i -a `wmctrl -l | grep TigerVNC | cut -d' ' -f1`
 	id=`~/test/wland/id wm_class "TigerVNC Viewer"`
 	~/test/wland/ac ${id}
