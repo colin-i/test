@@ -129,3 +129,6 @@ on mobile is Google tastare vocală
 
 #sudo raspi-config    advanced  Wayland/X11
 #xset q          for query        xset s 120        2 minutes screen blanking
+
+amixer scontrols
+amixer sset 'Master' 50%
