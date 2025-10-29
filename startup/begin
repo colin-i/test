@@ -8,7 +8,11 @@ else
 	echo no sleep
 fi
 #window_pid=`xdotool search --class gnome-terminal | tail -1` #xdotool getactivewindow
-window_pid=`~/test/wland/id wm_class org.gnome.Terminal`
+#window_pid=`~/test/wland/id wm_class org.gnome.Terminal`
+window_pid=`~/test/wland/id wm_class org.gnome.Ptyxis`
+#also at .config/autostart/ , Cursor color at .local/share/org.gnome.Ptyxis/palettes
+#add --new-window at .config/autostart/
+
 if [ -f ~/desktops ]; then
 	echo move
 	#xdotool windowmove ${window_pid} `cat ~/desktops` 0

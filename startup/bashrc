@@ -1,16 +1,18 @@
 
-if [ ! -e ~/choose_term_profile ]; then
-	if [ -z "${skip_profile}" ]; then
-		if [ -z "${SSH_TTY}" ]; then   #is not from ssh
-		#	${SSH_CONNECTION} , ${SSH_CLIENT}
-			~/test/startup/setcolors `php -f ${HOME}/test/startup/is_day.php` || exit
+if [ ! -e ~/no_term_profile ]; then
+	if [ ! -e ~/choose_term_profile ]; then
+		if [ -z "${skip_profile}" ]; then
+			if [ -z "${SSH_TTY}" ]; then   #is not from ssh
+			#	${SSH_CONNECTION} , ${SSH_CLIENT}
+				~/test/startup/setcolors `php -f ${HOME}/test/startup/is_day.php` || exit
+			fi
+		else
+			echo ${skip_profile}
 		fi
 	else
-		echo ${skip_profile}
+		cat ~/choose_term_profile
+		rm ~/choose_term_profile
 	fi
-else
-	cat ~/choose_term_profile
-	rm ~/choose_term_profile
 fi
 
 if [ "${resizeterm}" != "" ]; then ~/test/startup/termsz; fi
