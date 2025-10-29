@@ -2,6 +2,6 @@
 Type=Application
 Name=Term_geo
 Icon=/home/bc/.local/share/applications/term.png
-Exec=env skip_profile=x /usr/bin/ptyxis --tab
+Exec=env /usr/bin/ptyxis --tab
 Terminal=false
 Categories=Development;
