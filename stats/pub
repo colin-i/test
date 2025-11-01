@@ -1,6 +1,7 @@
 
 #1 year  2 month
 
+if [ -e $1/$2 ]; then exit 1; fi
 ~/test/stats/prepare ${1} ${2} && \
 ~/test/stats/newpost ${1} ${2} && \
 ~/test/stats/k && \
