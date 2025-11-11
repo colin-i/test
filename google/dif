@@ -1,8 +1,14 @@
 
-t=~/tmp/ods
+t=~/tmp/fisier
+ext=${1##*.}
 
-ods2tsv $1 > $t
+if [ ${ext} = ods ]; then
+	ods2tsv $1 > $t
+else
+	ln -s `readlink -f $1` $t
+fi
 diff ~/tabs/$1 $t --color
+echo y
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = y ]; then
 	mv $t ~/tabs/$1
