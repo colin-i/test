@@ -1,0 +1,4 @@
+
+sleep 5 # is not working with custom keyboard
+sudo ydotool key ctrl+v
+echo -n | xclip -sel clip
