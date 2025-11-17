@@ -11,7 +11,11 @@ diff ~/tabs/$1 $t --color
 echo y
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = y ]; then
-	mv $t ~/tabs/$1
+	if [ ${ext} = ods ]; then
+		mv $t ~/tabs/$1
+	else
+		cp $1 ~/tabs/$1
+	fi
 	exit 0
 fi
 rm $t
