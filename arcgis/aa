@@ -10,5 +10,5 @@ if [ ${r} -ne 0 ]; then
 	fi
 fi
 
-#when new at _new is ok
+#when new at _new add the row at text_last_new
 #when from new to normal: move from: recs_new to recs, rm line at text_new, also to move ex_new,ex2_new, rm current_new,new_new

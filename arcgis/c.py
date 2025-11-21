@@ -23,7 +23,7 @@ with open(root+"text"+type,"w") as out:
 				with open(root+"text_last"+type,"r") as prev:
 					prevtext=prev.read().split("\n")[i]
 					prevtext=prevtext[1:]
-					print(fnm+" is blank, use "+prevtext+" ? y?")
+					print(fnm+" is blank, use '"+prevtext+"' ? y?")
 					char=readchar.readchar()
 					if char=='y':
 						print("yes")

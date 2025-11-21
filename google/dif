@@ -16,6 +16,7 @@ if [ "${ans}" = y ]; then
 	else
 		cp $1 ~/tabs/$1
 	fi
+	rm $t
 	exit 0
 fi
 rm $t
