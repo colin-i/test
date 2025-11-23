@@ -19,7 +19,10 @@ if [ -f /var/run/reboot-required ]; then echo 'reboot required'; fi
 
 . ~/test/startup/exports
 
-export PYTHONPATH=$PYTHONPATH: #for what? cd ~/t/torra-1; ./b : will do: ImportError: Error while finding module specification for 'torra.main' (ModuleNotFoundError: No module named 'torra')
+if [ -z "${PYTHONPATH}" ]; then
+	export PYTHONPATH=. #for what? cd ~/t/torra-1; ./b : will do: ImportError: Error while finding module specification for 'torra.main' (ModuleNotFoundError: No module named 'torra')
+#else PYTHONPATH=${PYTHONPATH}:.
+fi
 export PYTHONPYCACHEPREFIX=~/pycache
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PATH=${PATH}
 
