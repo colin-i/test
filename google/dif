@@ -15,8 +15,8 @@ if [ "${ans}" = y ]; then
 		mv $t ~/tabs/$1
 	else
 		cp $1 ~/tabs/$1
+		rm $t
 	fi
-	rm $t
 	exit 0
 fi
 rm $t
