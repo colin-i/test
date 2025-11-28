@@ -1,0 +1,5 @@
+find -type f | while read var; do
+	if [ ${var:0:3} = ./f ]; then
+		echo ${var:4}
+	fi
+done

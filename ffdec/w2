@@ -1,0 +1,2 @@
+cd a
+find -type f -exec /bin/bash ../w {} \;

@@ -1,0 +1,42 @@
+
+#1 file
+
+t=0
+while read val; do
+	IFS=$'\t' read -a a <<< "${val}"
+	n=${#a[@]}
+	if [ $n = 2 ]; then #poate fi 1 cand nu are sau 3 cand am tradus
+		b=( ${a[1]} )
+		m=${#b[@]}
+		t=$((t+m))
+	fi
+done < $1
+cd ../b
+echo $1 $t
+if [ -z "$x" ]; then
+	echo $t > $1
+	exit
+fi
+if [ $x -ge $t ]; then
+	echo mai rămân $((x-t))
+else
+	x=$((t-x))
+	cd ../a
+	t=0
+	z=1
+	while read val; do
+		IFS=$'\t' read -a a <<< "${val}"
+		n=${#a[@]}
+		if [ $n = 2 ]; then #poate fi 1 cand nu are sau 3 cand am tradus
+			b=( ${a[1]} )
+			m=${#b[@]}
+			t=$((t+m))
+			if [ $t -gt $x ]; then #la egal trebuie exact de la urmatoarea
+				echo $z ${a[0]}
+				echo -n ${a[0]} | xclip -sel clip
+				break
+			fi
+		fi
+		z=$((z+1))
+	done < $1
+fi

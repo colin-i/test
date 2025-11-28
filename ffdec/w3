@@ -1,0 +1,9 @@
+
+cd b
+a=( `find -type f` )
+t=0
+for v in ${a[@]}; do
+	n=`cat $v`
+	t=$((t+n))
+done
+echo $t

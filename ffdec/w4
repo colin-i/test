@@ -1,0 +1,4 @@
+
+if [ -z "$x" ]; then export x=40; fi
+cd a
+../w $1

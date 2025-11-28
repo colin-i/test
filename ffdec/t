@@ -1,0 +1,6 @@
+set -e
+./dif
+cd ~/a/tmp/ffdec
+git show master:./translation.jpt | wc -c
+cat ./translation.jpt | wc -c
+~/test/tmp

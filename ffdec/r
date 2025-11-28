@@ -1,0 +1,4 @@
+cd ~/ffdec/bin
+gsettings set org.gnome.desktop.interface gtk-theme Yaru
+./ffdec -translator
+gsettings set org.gnome.desktop.interface gtk-theme Yaru-dark
