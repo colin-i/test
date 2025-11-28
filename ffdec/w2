@@ -1,2 +1,3 @@
+d=`pwd`
 cd a
-find -type f -exec /bin/bash ../w {} \;
+find -type f -exec /bin/bash $d/w {} \;
