@@ -25,14 +25,19 @@ for a in ${files[@]}; do
 	aa=${aa}.properties
 	b=/home/bc/ffdec/jpexs-decompiler-1/${aa}
 
+	if [ $a = ./libsrc/jsyntaxpane/jsyntaxpane/src/main/resources/jsyntaxpane/actions/gui/Bundle_ro.properties ]; then
+		echo special
+		if [ -e $b ]; then
+			echo it is now
+			exit 1
+		fi
+		continue
+	fi
 	c=/home/bc/Desktop/ffdec/${aa}
 	echo diff $b $c
 	diff $b $c
 	if [ $? != 0 ]; then
-		if [ $a != ./libsrc/jsyntaxpane/jsyntaxpane/src/main/resources/jsyntaxpane/actions/gui/Bundle_ro.properties ]; then
-			exit 1
-		fi
-		echo special
+		exit 1
 	fi
 done
 echo ok
