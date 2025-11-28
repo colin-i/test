@@ -1,5 +1,5 @@
 set -e
-./dif
+./dif $1
 cd ~/a/tmp/ffdec
 git show master:./translation.jpt | wc -c
 cat ./translation.jpt | wc -c

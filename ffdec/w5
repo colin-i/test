@@ -3,7 +3,6 @@ set -e
 read -t $((60*60*24)) ans
 ./w4 ${ans}
 read
-d=`pwd`
 cd f
 edor ${ans}
 cd ..
@@ -11,5 +10,4 @@ edor q
 ~/arh/ffdec
 mv q a/${ans}
 read
-cd $d
-./t
+./t ${ans}
