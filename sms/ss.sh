@@ -6,7 +6,7 @@
 
 a=`sudo mmcli -m 0 --messaging-create-sms="text='${1}',number='+40${2}'"` && \
 echo ${a} && \
-b=`echo ${a} | cut -d' ' -f6 | cut -d'/' -f6` && \
+b=`echo ${a} | cut -d' ' -f5 | cut -d'/' -f6` && \
 a=`date '+%s'` && \
 f=/home/bc/Desktop/sms/$a.txt && \
 mmcli -m 0 -s ${b} > ${f} && \
