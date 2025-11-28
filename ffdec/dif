@@ -6,24 +6,33 @@ cd f
 files=( `find -type f` )
 for a in ${files[@]}; do
 	aa=${a:2: -14}
-	if [ -n "$n" ]; then
+	if [ -n "$n" ]; then # edit test
 		if [ $n != ${aa} ]; then
 			continue
 		fi
-	fi
-	aa=${aa}.properties
-	b=/home/bc/ffdec/jpexs-decompiler-1/${aa}
-	c=/home/bc/Desktop/ffdec/${aa}
-	diff $b $c
-	if [ $? != 0 ]; then
+		aa=${aa}.properties
+		b=/home/bc/ffdec/jpexs-decompiler-1/${aa}
+
 		x=`cat $a | wc -l`
 		y=`cat $b | wc -l`
+		echo $x lines
 		if [ $x != $y ]; then
-			echo dif linii
-			if [ $a != ./libsrc/jsyntaxpane/jsyntaxpane/src/main/resources/jsyntaxpane/actions/gui/Bundle_ro.properties ]; then
-				exit 1
-			fi
+			echo $y lines is not ok
 		fi
-		echo $x linii
+		exit
+	fi
+	# pull test
+	aa=${aa}.properties
+	b=/home/bc/ffdec/jpexs-decompiler-1/${aa}
+
+	c=/home/bc/Desktop/ffdec/${aa}
+	echo diff $b $c
+	diff $b $c
+	if [ $? != 0 ]; then
+		if [ $a != ./libsrc/jsyntaxpane/jsyntaxpane/src/main/resources/jsyntaxpane/actions/gui/Bundle_ro.properties ]; then
+			exit 1
+		fi
+		echo special
 	fi
 done
+echo ok
