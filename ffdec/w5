@@ -8,6 +8,7 @@ edor ${ans}
 cd ..
 edor q
 ~/arh/ffdec
+wc -l q
 mv q a/${ans}
 read
 ./t ${ans}

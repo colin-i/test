@@ -1,5 +1,5 @@
 
-if [ -z "$x" ]; then export x=40; fi
+if [ -z "$x" ]; then export x=30; fi
 d=`pwd`
 cd a
 $d/w $1
