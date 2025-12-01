@@ -1,0 +1,10 @@
+a=`date -u -d 1970-1-1 +%s`
+if [ $a != 0 ]; then
+	a=$((a*-1))
+	if [ ${a: -1} != 0 ]; then
+		a=$((a+1))
+	fi
+	z=$(echo `cat date`+$a | bc)
+	echo -n $z > date
+	cat date
+fi
