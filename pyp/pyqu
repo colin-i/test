@@ -1,5 +1,5 @@
 
 sleep 10
-name=`cat debian/control | grep ^Source: | grep -o "[^ ]*$"`
+name=`cat ${base}debian/control | grep ^Source: | grep -o "[^ ]*$"`
 version=`cat v2`
 python ~/test/pyp/pyqu.py ${name} ${version}
