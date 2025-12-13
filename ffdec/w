@@ -32,7 +32,9 @@ else
 			m=${#b[@]}
 			t=$((t+m))
 			if [ $t -gt ${xx} ]; then #la egal trebuie exact de la urmatoarea
-				echo $z ${a[0]} $((xx+x+m-t))
+				thispack=$((xx+x+m-t))
+				echo $z ${a[0]} ${thispack} $(echo `cat ~/last_translation` + ${thispack} | bc)
+				echo -n ${thispack} > ~/last_translation
 				echo -n ${a[0]} | xclip -sel clip
 				break
 			fi
