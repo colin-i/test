@@ -1,6 +1,14 @@
 
+#at .config/autostart a [Desktop Entry] at Exec ~/begin
 #example: nosleep=1 storage=/dev/mmcblk0p2,65 no_temp=1 ~/test/startup/begin
 #or storage=/dev/sda2,4,G is_vnc=1 ~/test/startup/begin
+
+if [ -e ~/wrong_startup ]; then
+	id=`ps -C bash -o pid | tail -1` #cannot kill ppid, will close also this window
+	kill -s 9 ${id}
+	window_pid=`~/test/wland/id wm_class org.gnome.Ptyxis 2`
+	~/test/wland/cl ${window_pid}
+fi
 
 if [ -z "${nosleep}" ]; then
 	sleep 9 # xdotool and act/a
