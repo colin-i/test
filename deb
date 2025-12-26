@@ -64,7 +64,7 @@ if [ -z "${array}" ]; then
 	array=(`ls`)
 
 	get_prog_ver
-	#the key not here, fresh reboot
+	#also, gpg --import gpg.gpg
 	cat ~/n/key/gpg | xclip -selection clipboard
 	debsign -k D51F0B6365EAB122 ${prog_ver}_source.changes
 else
