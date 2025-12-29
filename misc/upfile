@@ -7,4 +7,4 @@ while [ $i != 0 ]; do
 	sleep 1
 	i=$((i-1))
 done
-sudo ydotool key enter
+sudo ydotool key 28:1 28:0 # enter <- word not working anymore
