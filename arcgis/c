@@ -2,7 +2,7 @@
 
 if [ -z "${has_new}" ]; then
 	python c.py ${1} || exit 1
-	diff ~/measures/text${1} ~/measures/text_last${1}
+	diff ~/measures/text_last${1} ~/measures/text${1}
 	if [ $? -eq 0 ]; then
 		echo ${1} no diff
 		exit 0

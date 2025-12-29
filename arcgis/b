@@ -24,7 +24,7 @@ for f in "${files[@]}"; do
 		if [ ${a[1]} = 0 ]; then
 			if [ -z "${1}" ]; then
 				z=`grep -Po "(?<=${a[0]})[^ ]*" ${f} | head -1`
-				if [ ${a: -1} != % ]; then z=$z%; fi
+				if [ ${z: -1} != % ]; then z=$z%; fi
 			else
 				z=`grep -P "(?<=${a[0]})[^ ]*" ${f}` #is not important to get the exact number at _new
 			fi

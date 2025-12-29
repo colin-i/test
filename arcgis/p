@@ -21,7 +21,7 @@ if [ "$1" != 0 ]; then
 		exit 1
 	fi
 	#python ~/test/arcgis/pixels.py > 1
-	echo -n `cat ~/measures/kproblems`'kolourpaint ./a.jpg' | xclip -sel clip #when having icon problems, example: QT_QPA_PLATFORMTHEME=qt6ct qt6ct/kolourpaint
+	echo -n `cat ~/measures/kproblems`'kolourpaint ./a.jpg' | xclip -sel clip #when having icon problems, apt install qt6ct (test with: QT_QPA_PLATFORMTHEME=qt6ct qt6ct)
 	echo `xclip -o -sel clip`
 fi
 if [ "$2" != 0 ]; then
