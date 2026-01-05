@@ -1,9 +1,10 @@
 
 #1 year  2 month
-bc $(date -u -d $(if [ "${m}" = "12" ]; then echo -n $((y+1))-1;else echo -n ${y}-$((m+1));fi)-1 +%s)
 
 y=${1}
 m=${2}
+
+echo $(if [ "${m}" = "12" ]; then echo -n $((y+1))-1;else echo -n ${y}-$((m+1));fi)-1
 
 mkdir -p ${y}
 
