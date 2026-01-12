@@ -18,6 +18,7 @@ for a in ${files[@]}; do
 		echo $x lines
 		if [ $x != $y ]; then
 			echo $y lines is not ok
+			exit 1
 		fi
 		exit
 	fi
