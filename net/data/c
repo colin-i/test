@@ -16,11 +16,25 @@ while :; do
 		break
 	fi
 done
-
 k=`echo ${k_v} | grep -o "^[^ ]*"`
 v=`echo ${k_v} | grep -o "[^ ]*$"`
 if [ -n "${3}" ]; then
 	echo ${k};echo ${v}
+fi
+
+zz=DGROSESSV3PRI
+while :; do
+	d_s="`sqlite3 -separator ' ' ${dbfile} "select value from moz_cookies where name like '${zz}';" 2>&1`"
+	if [ "`expr substr "${k_v}" 1 6`" = "Error:" ]; then
+		echo ${d_s}
+		. ~/test/misc/read_char
+		wait_char
+	else
+		break
+	fi
+done
+if [ -n "${3}" ]; then
+	echo ${d_s}
 fi
 
 #rm ./2
@@ -29,20 +43,21 @@ curl https://www.digi.ro/my-account/my-services/digi-mobil-cost-control \
 -X POST \
 -d "${1}" \
 -H "Host: www.digi.ro" \
--H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0" \
+-H "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0" \
 -H "Accept: */*" \
--H "Accept-Language: ro-RO,ro;q=0.8,en-US;q=0.6,en-GB;q=0.4,en;q=0.2" \
--H "Accept-Encoding: gzip, deflate, br" \
+-H "Accept-Language: en-US,en;q=0.5" \
+-H "Accept-Encoding: gzip, deflate, br, zstd" \
 -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
 -H "X-Requested-With: XMLHttpRequest" \
 -H "Content-Length: 37" \
 -H "Origin: https://www.digi.ro" \
 -H "Connection: keep-alive" \
--H "Referer: https://www.digi.ro/my-account/my-services" \
--H "Cookie: ${k}=${v}; cmp_level=15; webpush=0" \
+-H "Referer: https://www.digi.ro/my-account" \
+-H "Cookie: ${k}=${v}; ${zz}=${d_s}" \
 -H "Sec-Fetch-Dest: empty" \
 -H "Sec-Fetch-Mode: cors" \
 -H "Sec-Fetch-Site: same-origin" \
+-H "Priority: u=0" \
 -H "TE: trailers" \
 --silent > 3
 #--output -
