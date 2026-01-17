@@ -1,1 +1,1 @@
-~/test/bots/botm tests $1
+only_commit=x ~/test/bots/botm tests $1
