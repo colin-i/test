@@ -26,7 +26,7 @@ sqlite3 ${db2} ".backup ${f}"
 #get the date when last was run
 # sudo cat /var/spool/anacron/cron.monthly
 
-python ${hm}/test/bookmarks/a.py ${db2} > ${f}.txt
+python ${hm}/test/bookmarks/a.py ${db2} ${f}.html
 
 rm ${db2}
 

@@ -1,72 +1,88 @@
+import sqlite3
+from html import escape
 
 import sys
-import pprint
-import sqlite3
-from collections import namedtuple
+DB_PATH = sys.argv[1] #"places.sqlite"
+OUTPUT = sys.argv[2]  #"bookmarks.html"
+counter=0
 
-
-# The `add_date` and `last_modified` fields are integer timestamps, which can be
-# converted to human-readable strings by the time.ctime standard library functions.
-# The `tags` field is a list of strings; all other fields are just strings.
-Bookmark = namedtuple(
-    "Bookmark", ["title", "url", "add_date", "last_modified", "tags", "parent"]
-)
-
-conn = sqlite3.connect(sys.argv[1])
-cursor = conn.cursor()
-cursor.execute("""
-    SELECT
-        moz_places.id,
-        moz_bookmarks.title,
-        moz_places.url,
-        moz_bookmarks.dateAdded,
-        moz_bookmarks.lastModified,
-        moz_bookmarks.parent
-    FROM
-        moz_bookmarks
-    LEFT JOIN
-        -- The actual URLs are stored in a separate moz_places table, which is pointed
-        -- at by the moz_bookmarks.fk field.
-        moz_places
-    ON
-        moz_bookmarks.fk = moz_places.id
-    WHERE
-        -- Type 1 is for bookmarks; type 2 is for folders and tags.
-        moz_bookmarks.type = 1
-    AND
-        moz_bookmarks.title IS NOT NULL
-    ;
-""")
-rows = cursor.fetchall()
-
-# A loop to get the tags for each bookmark.
-bookmarks = []
-for place_id, title, url, date_added, last_modified, parent_id in rows:
-    # A tag relationship is established by row in the moz_bookmarks table with NULL
-    # title where parent is the tag ID (in moz_bookmarks) and fk is the URL.
-    cursor.execute("""
+def load(cur):
+    cur.execute("""
         SELECT
-            A.title
-        FROM
-            moz_bookmarks A, moz_bookmarks B
-        WHERE
-            A.id <> B.id
-        AND
-            B.parent = A.id
-        AND
-            B.title IS NULL
-        AND
-            B.fk = ?;
-    """, (place_id,))
-    tag_names = [r[0] for r in cursor.fetchall()]
-    cursor.execute("SELECT title FROM moz_bookmarks WHERE id=?", (parent_id,))
-    parent = cursor.fetchone()[0]
-    bookmarks.append(Bookmark(title, url, date_added, last_modified, tag_names, parent))
+            b.id,
+            b.parent,
+            b.type,
+            b.position,
+            b.title,
+            b.dateAdded,
+            p.url
+        FROM moz_bookmarks b
+        LEFT JOIN moz_places p ON b.fk = p.id
+        WHERE b.type IN (1,2,3)
+    """)
 
-conn.close()
+    nodes = {}
+    children = {}
 
+    for r in cur.fetchall():
+        node = {
+            "id": r[0],
+            "parent": r[1],
+            "type": r[2],
+            "pos": r[3],
+            "title": r[4] or "",
+            "date": (r[5] or 0) // 1_000_000,
+            "url": r[6],
+        }
+        nodes[node["id"]] = node
+        children.setdefault(node["parent"], []).append(node)
 
-# Print out the bookmarks, or do whatever else you'd like with them.
-pprint.pprint(bookmarks)
-print()
-print(len(bookmarks), "bookmark(s) total.")
+    for lst in children.values():
+        lst.sort(key=lambda x: x["pos"])
+
+    return nodes, children
+
+def emit(f, node, children, indent):
+    if node["type"] == 2:  # folder
+        f.write(f'{indent}<DT><H3 ADD_DATE="{node["date"]}">{escape(node["title"])}</H3>\n')
+        f.write(f"{indent}<DL><p>\n")
+        for c in children.get(node["id"], []):
+            emit(f, c, children, indent + "    ")
+        f.write(f"{indent}</DL><p>\n")
+
+    elif node["type"] == 1 and node["url"]:
+        global counter
+        counter+=1
+        f.write(
+            f'{indent}<DT><A HREF="{escape(node["url"])}" '
+            f'ADD_DATE="{node["date"]}">{escape(node["title"])}</A>\n'
+        )
+
+    elif node["type"] == 3:
+        f.write(f"{indent}<DT><HR>\n")
+
+def main():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    nodes, children = load(cur)
+
+    with open(OUTPUT, "w", encoding="utf-8") as f:
+        f.write("""<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+""")
+
+        # 🔑 ONLY start from parent=1
+        for n in children.get(1, []):
+            emit(f, n, children, "    ")
+
+        f.write("</DL>\n")
+
+    conn.close()
+    print("Exported:", OUTPUT)
+    print(str(counter), "bookmarks")
+
+main()

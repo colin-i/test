@@ -3,8 +3,8 @@
 
 cd ~/u/b/bm || exit
 
-#a=( `find -name "*.txt" | xargs` )
-a=`find -name "*.txt"`
+#a=( `find -name "*.html" | xargs` )
+a=`find -name "*.html"`
 
 if [ "${#a}" != 0 ]; then
 	echo bookmarks?
@@ -12,7 +12,7 @@ if [ "${#a}" != 0 ]; then
 	#read -n1 -t $((3600*24)) ans
 	read_char ans
 	if [ "${ans}" = "y" ]; then
-		a=`find -name "*.txt" | xargs`
+		a=`find -name "*.html" | xargs`
 		cd .. || exit
 		#b=( `find -maxdepth 1 -name "bookmarks*"` )
 		b=`find -maxdepth 1 -name "bookmarks*"`
@@ -29,7 +29,7 @@ if [ "${#a}" != 0 ]; then
 				mv ${var} ..
 				echo ${var}
 				#var=${var:0:-4}
-				var=$(expr substr ${var} 1 $(echo $(expr index ${var} txt)-2 | bc))  # index ... .txt will be 1, txt without dot is ~ 22
+				var=$(expr substr ${var} 1 $(echo $(expr index ${var} html)-2 | bc))  # index ... .html will be 1, html without dot is ~ 22
 				mv ${var} ..
 				echo ${var}
 
