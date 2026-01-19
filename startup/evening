@@ -130,5 +130,15 @@ on mobile is Google tastare vocală
 #sudo raspi-config    advanced  Wayland/X11
 #xset q          for query        xset s 120        2 minutes screen blanking
 
+#and at wayland/labwc:
+# .config/labwc/autostart :
+swayidle -w \
+   timeout 60 'wlr-randr --output HDMI-A-1 --off' \
+   resume 'wlr-randr --output HDMI-A-1 --on'
+#then
+chmod +x autostart
+#test
+sudo systemctl restart display-manager
+
 amixer scontrols
 amixer sset 'Master' 50%

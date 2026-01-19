@@ -11,6 +11,7 @@ if [ -n "${a}" ]; then
 	# at /etc/passwd /etc/group bc:x:1000:1000 , and put bc above lxd , and change from /home/bc to bc:bc
 	sudo mount 192.168.1.21:/home/bc/a/a /home/bc/a
 	sudo mount 192.168.1.21:/home/bc/u /home/bc/u
+	sudo -k #invalidate sudo credentials
 	#sudo mount 192.168.1.16:/media/bc/sandisk /home/bc/u
 	#sudo mount 192.168.1.16:/media/bc/3da161a7-a9dd-496b-aecf-434489e9d2da /home/bc/n
 fi
