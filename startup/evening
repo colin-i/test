@@ -131,10 +131,8 @@ on mobile is Google tastare vocală
 #xset q          for query        xset s 120        2 minutes screen blanking
 
 #and at wayland/labwc:
-# .config/labwc/autostart :
-swayidle -w \
-   timeout 60 'wlr-randr --output HDMI-A-1 --off' \
-   resume 'wlr-randr --output HDMI-A-1 --on'
+# .config/labwc/autostart : blank.py from ~/test
+swayidle -w timeout 60 'python3 ~/blank.py'
 #then
 chmod +x autostart
 #test
