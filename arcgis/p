@@ -2,17 +2,25 @@
 #format, conditional, manage, edit, A2:..29, ok
 #select, print, print selected cells, print to file, Desktop/a/a
 #take screenshot, left bar visible
-#in Desktop/a ~/test/arcgis/p 'Screenshot ...png'
-if [ -z "${1}" ]; then echo error; exit 1; fi
-#if [ -z "${2}" ]; then echo error; exit 1; fi
 
-if [ "$1" != 0 ]; then
+cd ~/Desktop/a
+if [ -z "$1" ]; then
+	a=`pwd`
+	cd ~/Pictures/Screenshots
+	file=`ls`
+	cd $a
+else
+	file=$1
+fi
+echo ${file}
+
+if [ "${file}" != 0 ]; then
 	apath=~
 	from_caps () {
-		mv "${apath}/Pictures/Screenshots/${1}" a.png
+		mv "${apath}/Pictures/Screenshots/${file}" a.png
 		convert a.png -crop 1770x1030+250+50 a.jpg
 	}
-	if [ -z "${skiptake}" ]; then from_caps "${1}"; fi
+	if [ -z "${skiptake}" ]; then from_caps "${file}"; fi
 
 	`cat ~/imgviewer` a.jpg
 	echo continue \? y \?
@@ -26,16 +34,23 @@ if [ "$1" != 0 ]; then
 fi
 if [ "$2" != 0 ]; then
 	#at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
-	echo left top right bottom
+	echo left top right bottom , or enter for default
 	read -t $((60*60*24)) ans
-	a=( ${ans} )
-	#IFS=',' read -a b <<< "${a[0]}"
-	#IFS=',' read -a c <<< "${a[1]}"
-	#IFS=',' read -a d <<< "${a[2]}"
-	left=${a[0]}   #at edor was $(((b[1]-1)/9))
-	top=${a[1]}    #at edor was $((b[0]-1))
-	right=${a[2]}  #at edor was $(((c[1]-1)/9))
-	bottom=${a[3]} #at edor was $((d[0]-1))
+	if [ -n "${ans}" ]; then
+		a=( ${ans} )
+		#IFS=',' read -a b <<< "${a[0]}"
+		#IFS=',' read -a c <<< "${a[1]}"
+		#IFS=',' read -a d <<< "${a[2]}"
+		left=${a[0]}   #at edor was $(((b[1]-1)/9))
+		top=${a[1]}    #at edor was $((b[0]-1))
+		right=${a[2]}  #at edor was $(((c[1]-1)/9))
+		bottom=${a[3]} #at edor was $((d[0]-1))
+	else
+		left=240
+		top=139
+		right=1564
+		bottom=748
+	fi
 	width=$((right-left))
 	height=$((bottom-top))
 	convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
