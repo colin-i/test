@@ -1,0 +1,22 @@
+
+if [ -z "$a" ]; then
+	a=1
+fi # a=2 for right
+# 1 Decode input MP3 to stereo WAV
+ffmpeg -i $1 -ac 2 temp.wav && \
+# 2 Extract left/right channel as mono (SoX channels are 1-indexed)
+sox temp.wav chan.wav remix $a && \
+# 3 Generate silent mono track for left/right
+sox -n -r $(soxi -r temp.wav) -c 1 chan2.wav trim 0.0 $(soxi -D temp.wav) && \
+# 4 Merge silent left + right channel into stereo
+if [ $a = 1 ]; then 
+	sox -M chan.wav chan2.wav chan_and_silence${a}.wav
+else
+	sox -M chan2.wav chan.wav chan_and_silence${a}.wav
+fi && \
+# 5 Encode to MP3
+ffmpeg -i chan_and_silence${a}.wav -codec:a libmp3lame -q:a 2 chan_and_silence${a}.mp3 && \
+if [ -n "$2" ]; then
+	sox chan_and_silence${a}.wav chan_extracted.wav remix $a
+fi && \
+rm temp.wav chan.wav chan2.wav chan_and_silence${a}.wav
