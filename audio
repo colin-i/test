@@ -9,7 +9,7 @@ sox temp.wav chan.wav remix $a && \
 # 3 Generate silent mono track for left/right
 sox -n -r $(soxi -r temp.wav) -c 1 chan2.wav trim 0.0 $(soxi -D temp.wav) && \
 # 4 Merge silent left + right channel into stereo
-if [ $a = 1 ]; then 
+if [ $a = 1 ]; then
 	sox -M chan.wav chan2.wav chan_and_silence${a}.wav
 else
 	sox -M chan2.wav chan.wav chan_and_silence${a}.wav
