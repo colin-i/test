@@ -1,5 +1,6 @@
 
 if [ -z "${1}" ]; then exit 1; fi
-if [ -z "${2}" ]; then exit 1; fi
-git add ${2}
-~/test/bots/${1} -m
+if [ -n "${2}" ]; then
+	git add ${2}
+fi
+~/test/bots/${1} -m #-m is not -am so is not a 'git add' command
