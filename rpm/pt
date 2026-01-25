@@ -40,7 +40,7 @@ echo "Patch${n}: ${outname}" >> b
 
 echo "osc add ${outname} && osc commit"
 echo -n osc add ${outname} \&\& osc commit | xclip -sel clip
-echo paste and back for message. y?
+echo paste and back for message. y? # in suse if the group is wrong, modify the group number: sudo groupmod -g 1003 bc
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi
 
