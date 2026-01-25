@@ -1,0 +1,33 @@
+javascript:{
+	let overlay = document.createElement('div');
+	overlay.style.position = 'fixed';
+	overlay.style.top = '0';
+	overlay.style.right = '0';
+	let widthPx = localStorage.getItem('overlayWidth');
+	if(!widthPx)widthPx = Math.floor(window.innerWidth / 2);
+	else widthPx = parseInt(widthPx);
+	overlay.style.width = widthPx + 'px';
+	overlay.style.height = '100vh';
+	overlay.style.backgroundColor = 'black';
+	overlay.style.zIndex = '9999';
+	var a=false;
+	overlay.addEventListener('click', function () {
+		if(a){
+			localStorage.setItem('overlayWidth', widthPx);
+			alert(widthPx);
+		}
+		else this.parentNode.removeChild(this);
+	});
+	function keyHandler(e){
+		if(e.key === 'ArrowLeft'){
+			widthPx += 1;
+			overlay.style.width = widthPx + 'px';
+		}else if(e.key === 'ArrowRight'){
+			widthPx = Math.max(1, widthPx - 1);
+			overlay.style.width = widthPx + 'px';
+		}else if(e.key === 'ArrowUp')a=true;
+		else if(e.key === 'ArrowDown')a=false;
+	}
+	document.addEventListener('keydown', keyHandler);
+	document.body.appendChild(overlay);
+}
