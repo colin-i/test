@@ -7,7 +7,11 @@ if [ ${ext} = ods ]; then
 else
 	ln -s `readlink -f $1` $t
 fi
-diff ~/tabs/$1 $t --color
+if [ ! -e ~/tabs/$1 ]; then
+	cat $t
+else
+	diff ~/tabs/$1 $t --color
+fi
 echo y
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = y ]; then
