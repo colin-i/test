@@ -1,5 +1,5 @@
 set -e
-echo $(( ( $(date +%s) - $(stat -c %Y ~/a/tmp/ffdec/translation.jpt) ) / 86400 )) days
+echo $(( ( $(date +%s) - $(date -d $(date -d @$(stat -c %Y ~/a/tmp/ffdec/translation.jpt) +%F) +%s) ) / 86400 )) days
 ./s
 read -t $((60*60*24)) ans
 ./w4 ${ans}
