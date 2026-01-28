@@ -1,32 +1,84 @@
 javascript:{
 	let overlay = document.createElement('div');
+	let overlay2 = null;
+	let widthPx = parseInt(localStorage.getItem('overlayWidth')) || Math.floor(window.innerWidth / 2);
 	overlay.style.position = 'fixed';
 	overlay.style.top = '0';
 	overlay.style.right = '0';
-	let widthPx = localStorage.getItem('overlayWidth');
-	if(!widthPx)widthPx = Math.floor(window.innerWidth / 2);
-	else widthPx = parseInt(widthPx);
 	overlay.style.width = widthPx + 'px';
 	overlay.style.height = '100vh';
 	overlay.style.backgroundColor = 'black';
 	overlay.style.zIndex = '9999';
-	var a=false;
-	overlay.addEventListener('click', function () {
-		if(a){
-			localStorage.setItem('overlayWidth', widthPx);
-			alert(widthPx);
+	let activeOverlay = overlay;
+	let a = false;
+	function createOverlay2() {
+		overlay2 = document.createElement('div');
+		let heightPx = parseInt(localStorage.getItem('overlayHeight')) || Math.floor(window.innerHeight / 2);
+		overlay2.style.position = 'fixed';
+		overlay2.style.bottom = '0';
+		overlay2.style.left = '0';
+		overlay2.style.height = heightPx + 'px';
+		overlay2.style.width = '100vw';
+		overlay2.style.backgroundColor = 'black';
+		overlay2.style.zIndex = '9998';
+		overlay2.addEventListener('click', overlayClick);
+		overlay2._heightPx = heightPx;
+		document.body.appendChild(overlay2);
+	}
+	function overlayClick(e) {
+		if (a) {
+			if (activeOverlay === overlay) {
+				localStorage.setItem('overlayWidth', widthPx);
+				alert(widthPx);
+			} else {
+				localStorage.setItem('overlayHeight', activeOverlay._heightPx);
+				alert(activeOverlay._heightPx);
+			}
+		} else {
+			e.currentTarget.remove();
 		}
-		else this.parentNode.removeChild(this);
-	});
-	function keyHandler(e){
-		if(e.key === 'ArrowLeft'){
-			widthPx += 1;
+	}
+	overlay.addEventListener('click', overlayClick);
+	function keyHandler(e) {
+		if (e.key === 'ArrowLeft') {
+			widthPx++;
 			overlay.style.width = widthPx + 'px';
-		}else if(e.key === 'ArrowRight'){
+		}
+		else if (e.key === 'ArrowRight') {
 			widthPx = Math.max(1, widthPx - 1);
 			overlay.style.width = widthPx + 'px';
-		}else if(e.key === 'ArrowUp')a=true;
-		else if(e.key === 'ArrowDown')a=false;
+		}
+		else if (e.key === 'ArrowUp') {
+			if (overlay2) {
+				overlay2._heightPx++;
+				overlay2.style.height = overlay2._heightPx + 'px';
+			}
+		}
+		else if (e.key === 'ArrowDown') {
+			if (overlay2) {
+				overlay2._heightPx = Math.max(1, overlay2._heightPx - 1);
+				overlay2.style.height = overlay2._heightPx + 'px';
+			}
+		}else if (e.key === ' ') {
+			e.preventDefault();
+			if (!overlay2) {
+				createOverlay2();
+			}
+			activeOverlay = (activeOverlay === overlay) ? overlay2 : overlay;
+		}
+		else if (e.key === 'Alt') {
+			/*e.preventDefault();still seeing the menu*/
+			if (!document.body.contains(activeOverlay)) {
+				document.body.appendChild(activeOverlay);
+			}
+		}
+		else if (e.key === 'Shift'){
+			a = true;
+			alert('save mode');
+		}else if (e.key === 'Control'){
+			a = false;
+			alert('rem mode');
+		}
 	}
 	document.addEventListener('keydown', keyHandler);
 	document.body.appendChild(overlay);
