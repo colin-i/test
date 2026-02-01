@@ -1,5 +1,9 @@
 
-#this is the favorites order
-knowngames=( Universe Mahjong Road Rooms "Space Adventure" Voyage Train Jump Watersport Asteroids Balls Expeditioner Lander Driver Digger \
-Cubes "Treasure Finder" "Turret Defence" Lotto Racecourse "Fruit Cocktail" "Card Flip" "Naval War" Roulette "Ball Hit" )
-#for var in "${knowngames[@]}";do echo ${var};done;echo
+knowngames=( universe mahjong road rooms space-adventure voyage train jump watersport asteroids balls expeditioner lander driver digger \
+	cubes treasure-finder turret-defence lotto racecourse fruit-cocktail card-flip naval-war roulette ball-hit )
+
+##old layout
+##this is the favorites order
+#knowngames=( Universe Mahjong Road Rooms "Space Adventure" Voyage Train Jump Watersport Asteroids Balls Expeditioner Lander Driver Digger \
+#Cubes "Treasure Finder" "Turret Defence" Lotto Racecourse "Fruit Cocktail" "Card Flip" "Naval War" Roulette "Ball Hit" )
+##for var in "${knowngames[@]}";do echo ${var};done;echo

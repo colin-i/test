@@ -1,6 +1,7 @@
 
 deleting () {
-	rm 1 2 3 4
+	#rm 1 2 3 4 #old layout
+	rm 3
 }
 sort -k1nr 6 > 3
 

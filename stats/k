@@ -1,6 +1,8 @@
 
-#to show gameplay number, add sort=gameplays
-wget https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays -O 1 && \
-wget "https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays&srid=17" -O 2 && \
+##old layout
+##to show gameplay number, add sort=gameplays
+#wget https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays -O 1 && \
+#wget "https://www.kongregate.com/accounts/bitplayer/favorites?sort=gameplays&srid=17" -O 2 && \
+
 ~/test/stats/k2 && \
 ~/test/stats/k3
