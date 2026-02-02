@@ -1,0 +1,3 @@
+set -e
+~/test/misc/spell
+git commit -a

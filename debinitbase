@@ -28,7 +28,7 @@ fullversion=${major}-${version}
 patchversion=${major}.${version}
 if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi
 msg=${1}
-echo -n "${msg}" | xclip -selection clipboard && \
+~/test/misc/spell "${msg}" && \
 dch -v ${fullversion} --distribution=${dist} && \
 if [ -n "${afterversion}" ]; then
 	${afterversion}

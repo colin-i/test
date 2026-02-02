@@ -1,0 +1,9 @@
+set -e
+if [ -n "$1" ]; then
+	echo -n "$1" > ~/buffer
+else
+	edor ~/buffer
+fi
+aspell -c ~/buffer
+cat ~/buffer | xclip -sel clip
+rm ~/buffer
