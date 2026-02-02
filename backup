@@ -59,6 +59,8 @@ for var in "${z[@]}"; do
 			fi
 		fi
 		cd ${src} || exit 1
+		if [ -e ./cln ]; then ./cln; fi
+
 		if [ ! -e ${dest} ]; then
 			mkdir ${dest} || exit 1
 		fi
