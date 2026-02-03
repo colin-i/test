@@ -14,14 +14,15 @@ if [ "${ans}" != "y" ]; then exit 1; fi
 if [ $m = ${thism} ]; then
 	git reset HEAD^ && \
 	{
-		cd `git rev-parse --show-toplevel`
+		cd `git rev-parse --show-toplevel` || exit 1
 		a="`git ls-files --others --exclude-standard`"
 		for x in ${a[@]}; do
 			echo $x
 			git add $x
 		done
 	} && \
-	git commit --author "tests <costin.b.84@gmail.com>" -am tests  #can be non-zero when going back at first commit
+	git commit --author "tests <costin.b.84@gmail.com>" -am tests && \
+	#can be non-zero when going back at first commit
 	no_activity=x ~/test/remote/pushforce tmp
 else
 	~/test/bots/tests
