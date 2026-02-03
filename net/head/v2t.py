@@ -77,7 +77,7 @@ import readchar
 
 while True:
     print("\n SPACE = change recording time | q = exit | talk")
-    
+
     key = readchar.readchar()
 
     if key == "q":
