@@ -14,6 +14,10 @@ import torch
 import pyperclip
 from scipy.signal import resample_poly
 import os
+import json
+import queue
+import numpy as np
+import readchar
 
 # LOCAL PATH
 MODEL_PATH=os.environ.get("MODEL_PATH")
@@ -21,16 +25,11 @@ if MODEL_PATH==None:
 	#MODEL_PATH = "/home/bc/a/models/wav2vec2-large-xlsr-53-romanian"
 	#MODEL_PATH = "/home/bc/a/models/romanian-wav2vec2"
 	MODEL_PATH = "/home/bc/a/models/wav2vec2-base-100k-voxpopuli-romanian"
-RECORD_SECONDS = os.environ.get("RECORD_SECONDS")
-if RECORD_SECONDS==None:
-	RECORD_SECONDS=5
-	print(f"Recording time set to {RECORD_SECONDS} seconds")
 
 #from transformers import Wav2Vec2Processor
 #processor = Wav2Vec2Processor.from_pretrained(MODEL_PATH)  # MODEL_NAME = "facebook/wav2vec2-xls-r-300m" # error here
 #                                                           # and problems at gigant
 
-import json
 def sanitize_tokenizer_config(model_path):
     cfg_path = os.path.join(model_path, "tokenizer_config.json")
     if not os.path.exists(cfg_path):
@@ -55,49 +54,57 @@ model.eval()
 DEVICE_SAMPLE_RATE = int(sd.query_devices(sd.default.device[0])['default_samplerate'])
 MODEL_SAMPLE_RATE = 16000
 
-def record_audio():
-    print("Speak now...")
-    audio = sd.rec(
-        int(RECORD_SECONDS * DEVICE_SAMPLE_RATE),
+audio_queue = queue.Queue()
+
+def callback(indata, frames, time, status):
+    if status:
+        print(status, file=sys.stderr)
+    audio_queue.put(indata.copy())
+
+def record_audio_until_space():
+    print("Recording... press a key to stop")
+
+    audio_frames = []
+
+    with sd.InputStream(
         samplerate=DEVICE_SAMPLE_RATE,
         channels=1,
-        dtype='float32'
-    )
-    sd.wait()
-    print("done")
-    audio = audio.flatten()
-    # Resample to 16k for wav2vec2
+        dtype='float32',
+        callback=callback
+    ):
+        readchar.readchar()
+        print("Stopped")
+
+        # DRAIN QUEUE PROPERLY
+        while not audio_queue.empty():
+            audio_frames.append(audio_queue.get())
+
+    if len(audio_frames) == 0:
+        return np.array([], dtype=np.float32)
+
+    audio = np.concatenate(audio_frames, axis=0).flatten()
+
+    # Resample to 16k
     if DEVICE_SAMPLE_RATE != MODEL_SAMPLE_RATE:
         audio = resample_poly(audio, MODEL_SAMPLE_RATE, DEVICE_SAMPLE_RATE)
+
     return audio
 
 pyperclip.set_clipboard("wl-clipboard")
 
-import readchar
-
 while True:
-    print("\n SPACE = change recording time | q = exit | talk")
+    print("\n q = exit | key to start recording")
 
     key = readchar.readchar()
 
     if key == "q":
         break
 
-    # SPACE pressed   change recording time
-    if key == " ":
-        try:
-            new_time = input("New recording time (seconds): ")
-            new_time = float(new_time)
-            if new_time <= 0:
-                raise ValueError
-            RECORD_SECONDS = new_time
-            print(f"Recording time set to {RECORD_SECONDS} seconds")
-        except:
-            print("Invalid number. Keeping previous value:", RECORD_SECONDS)
-        continue
+    audio_data = record_audio_until_space()
 
-    # ENTER pressed   record
-    audio_data = record_audio()
+    if audio_data.shape[0] < 1600:   # 0.1 sec @ 16kHz
+        print("Audio too short, skipping")
+        continue
 
     with torch.no_grad():
         inputs = processor(audio_data, sampling_rate=MODEL_SAMPLE_RATE, return_tensors="pt", padding=True)
@@ -108,7 +115,7 @@ while True:
     if text:
         pyperclip.copy(text)
         print(f"{text}")
-        print("Copied to clipboard. Paste into Twitch chat (Ctrl+V + Enter)")
+        print("Copied to clipboard.")
     else:
         print("No speech detected")
 
