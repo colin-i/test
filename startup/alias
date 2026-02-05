@@ -1,5 +1,5 @@
 
-a=( "gre" "gr" "mov" "cop" "gd" "fnd" "xx" "gfind" )
+a=( gre gr mov cop gdb gd fnd xx gfind )
 
 f=~/aliases
 echo -n > ${f}
@@ -10,6 +10,7 @@ for var in "$@"; do
 	  mov) echo "alias mov='~/test/startup/mv'" >> ${f};;
 	  cop) echo "alias cop='~/test/startup/cp'" >> ${f};;
 	  gd) if [ "${uname_m}" != "x86_64" ]; then echo "alias gd='gdb -ex start'" >> ${f};else echo "alias gd='gdb -ex ar -ex start'" >> ${f};fi;;
+	  gdb) echo "alias gdb='gdb -x ~/.gdbinit'" >> ${f};;
 	  fnd) echo "alias fnd='find -name'" >> ${f};;
 	  xx) echo "alias xx='xxd -c 48 -g 4'" >> ${f};;
 	  gfind) echo "alias gfind='echo \"#include <gtk/gtk.h>\" | cc \$(pkg-config --cflags gtk4) -E -dD - | grep'" >> ${f};;

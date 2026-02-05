@@ -1,0 +1,1 @@
+sudo gdb -x /home/bc/test/gdb/gdbinit $@

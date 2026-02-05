@@ -1,0 +1,28 @@
+# source /home/bc/test/gdbinit
+# at sudo gdb use: sudo ln -s /home/bc/.gdbinit /root/.gdbinit
+
+echo ~/.gdbinit\n
+
+set debuginfod enabled off
+
+python
+import os
+if os.getenv("gef"):
+	gdb.execute("source /home/bc/.gdbinit-gef.py")
+#else: print("no gef. gef can come in at 'sudo env gef=x'")
+end
+
+define quitall
+	python
+import gdb, os, signal
+
+inferior = gdb.selected_inferior()
+if inferior and inferior.pid:
+	os.kill(inferior.pid, signal.SIGKILL)   # kill debugged process (pdb lives here)
+os.kill(os.getpid(), signal.SIGKILL)        # kill gdb itself
+	end
+end
+
+document quitall
+	Kill debug target process (pdb) + gdb itself.
+end
