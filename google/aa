@@ -1,5 +1,12 @@
 set -e
-if [ -z "${mime}" ]; then mime=application/vnd.oasis.opendocument.spreadsheet; fi
+if [ -z "${mime}" ]; then
+	ext="${1##*.}"
+	if [ ${ext} = txt ]; then
+		mime=text/plain
+	else
+		mime=application/vnd.oasis.opendocument.spreadsheet
+	fi
+fi
 
 ~/test/google/dif $1
 
