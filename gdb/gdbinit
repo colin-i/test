@@ -12,7 +12,7 @@ if os.getenv("gef"):
 #else: print("no gef. gef can come in at 'sudo env gef=x'")
 end
 
-define qq
+define qa
 	python
 import gdb, os, signal
 
@@ -22,7 +22,14 @@ if inferior and inferior.pid:
 os.kill(os.getpid(), signal.SIGKILL)        # kill gdb itself
 	end
 end
+define qq
+	set confirm off
+	quit 1
+end
 
+document qa
+	Kill debug target process (inferior) + gdb itself.
+end
 document qq
-	Kill debug target process (pdb) + gdb itself.
+	Quit without confirmation and returning non-zero.
 end
