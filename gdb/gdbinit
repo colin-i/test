@@ -26,10 +26,18 @@ define qq
 	set confirm off
 	quit 1
 end
+define ss
+	set confirm off
+	start
+	set confirm on
+end
 
 document qa
 	Kill debug target process (inferior) + gdb itself.
 end
 document qq
 	Quit without confirmation and returning non-zero.
+end
+document ss
+	Restart
 end
