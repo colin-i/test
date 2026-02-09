@@ -2,6 +2,6 @@
 echo -n at ${msg},' '
 a=`cat debian/changelog | head -3 | tail -n1 | grep -Po '(?<=\*).*'`
 echo -n $a | xclip -sel clip
-echo "`xclip -o -sel clip` .ready? y and enter"
+echo "'`xclip -o -sel clip`' .ready? y and enter"
 read -t $((60*60*24)) ans
 if [ "${ans}" != "y" ]; then exit 1; fi

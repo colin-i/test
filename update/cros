@@ -6,7 +6,7 @@
 # apt-key ...
 # dpkg --add-architecture amd64
 
-id=`sudo docker container ls -a -f ancestor=ubuntu:noble -q`
+id=`sudo docker container ls -a -f ancestor=ubuntu:latest -q`
 
 # sudo docker cp /etc/apt/sources.list.d/colin-i-ubuntu-ppa.sources ${id}:/etc/apt/sources.list.d/
 # why not # echo "deb http://ppa.launchpad.net/colin-i/ppa/ubuntu noble main" >> /etc/apt/sources.list # was not working since all moved to sources.list.d
