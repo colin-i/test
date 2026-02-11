@@ -1,4 +1,8 @@
 
+if [ ~/test/pyp/pyqu = 0 ]; then
+	echo same python build version 
+	exit 0
+fi
 echo pypi.org \? y enter && \
 read -t $((60*60*24)) ans && \
 if [ "${ans}" = "y" ]; then
