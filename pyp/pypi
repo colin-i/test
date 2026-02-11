@@ -1,6 +1,6 @@
 
 if [ ~/test/pyp/pyqu = 0 ]; then
-	echo same python build version 
+	echo same python build version
 	exit 0
 fi
 echo pypi.org \? y enter && \
