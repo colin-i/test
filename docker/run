@@ -1,6 +1,6 @@
 
 sudo docker run -it -e DISPLAY=:1 -v /tmp/.X11-unix:/tmp/.X11-unix --network=host --ipc=host --pid=host \
 	-v ./a/pkgbuilds:/home/bc/pkgbuilds -v ./test:/home/bc/test -v ./o:/home/bc/o -v ./s:/home/bc/s -v ./e:/home/bc/e -v ./a/rpmbuilds:/home/bc/rpmbuilds -v ./v:/home/bc/v \
-	-v ./i:/home/bc/i -v ./t:/home/bc/t -v ./d:/home/bc/d -v ./p:/home/bc/p -v ./old:/home/bc/old \
+	-v ./i:/home/bc/i -v ./t:/home/bc/t -v ./d:/home/bc/d -v ./p:/home/bc/p -v ./old:/home/bc/old -v ./ffdec:/home/bc/ffdec \
 	$@
 # --platform=linux/386 --privileged
