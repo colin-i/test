@@ -1,4 +1,6 @@
 set -e
+#1 is for w4: x=N where N is the required number of day words
+
 echo $(( ( $(date +%s) - $(date -d $(date -d @$(stat -c %Y ~/a/tmp/ffdec/translation.jpt) +%F) +%s) ) / 86400 )) days
 ./s
 read -t $((60*60*24)) ans
