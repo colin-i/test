@@ -8,4 +8,14 @@ fi
 
 #Termux:Boot is not working, logcat is saying is executed and that's all
 ##am start -n "com.termux/.HomeActivity"
+
+#AndrOpen Office
 #AutoStart App Manager from The Sugar Apps. com.sugarapps.autostartmanager 6.2
+#Exif Viewer
+#Floating Apps
+#Keep Screen On
+#Restart
+#ScreenSize
+#Tinycore
+
+#Button Mapper
