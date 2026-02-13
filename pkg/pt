@@ -62,16 +62,19 @@ newname=${name}new
 #	cd ..
 #else
 if [ ! -e ${newname} ]; then
-	git clone https://github.com/colin-i/${name} --depth 1 ${newname}
+	#git clone https://github.com/colin-i/${name} --depth 1 ${newname}
+	cp -r ${gname} ${newname}
 else echo is cloned
 fi
 
 if [ -n "_patches" ]; then
+	echo ${gname}
 	cd ${gname}
 	for _var in ${_patches[@]}; do
 		echo ${_var}
 		patch --strip=1 --input=../../${_var}
 	done
+	echo ${newname}
 	cd ../${newname}
 	for _var in ${_patches[@]}; do
 		echo ${_var}
