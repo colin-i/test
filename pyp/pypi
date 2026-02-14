@@ -11,8 +11,8 @@ if [ "${ans}" = "y" ]; then
 	~/test/pyp/pyin && \
 	~/test/pyp/pyout && \
 	~/test/pyp/pyin x && \
-	~/test/pyp/pyqu
-	# && yank
+	~/test/pyp/pyqu && \
+	echo and yank
 else
 	if [ -z "${exit}" ]; then
 		exit 1

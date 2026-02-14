@@ -52,3 +52,6 @@ msg=suse ~/test/de/msg
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
+
+#when only spec changed,go at home:.../fullname and : ~/test/rpm/spec fullname
+#                     then at suse: osc commit
