@@ -1,6 +1,20 @@
 
 #1 file
 
+increment_file_day () {
+	fl=~/a/tmp/ffdec/translation.jpt
+	touch -d "@$(( $(stat -c %Y ${fl}) + 86400 ))" ${fl}
+}
+
+def_t=`cat ~/default_trans`
+last_t=`cat ~/last_translation`
+if [ ${last_t} = 0 ]; then
+	echo last translation was big
+	echo -n ${def_t} > ~/last_translation
+	increment_file_day
+	exit 1
+fi
+
 t=0
 while read val; do
 	IFS=$'\t' read -a a <<< "${val}"
@@ -18,7 +32,7 @@ if [ -z "$x" ]; then
 	exit
 fi
 if [ $x -ge $t ]; then
-	echo mai rămân $((x-t))
+	echo remaining $((x-t))
 else
 	xx=$((t-x))
 	cd ../a
@@ -33,9 +47,9 @@ else
 			t=$((t+m))
 			if [ $t -gt ${xx} ]; then #la egal trebuie exact de la urmatoarea
 				thispack=$((xx+x+m-t))
-				twopack=$(echo `cat ~/last_translation` + ${thispack} | bc)
+				twopack=$(echo ${last_t} + ${thispack} | bc)
 				echo $z ${a[0]} ${thispack} ${twopack}
-				if [ ${twopack} -lt $((`cat ~/default_trans`*3)) ]; then
+				if [ ${twopack} -lt $((def_t*3)) ]; then
 					echo -n ${thispack} > ~/last_translation
 				else
 					echo the translation is too big
@@ -47,4 +61,5 @@ else
 		fi
 		z=$((z+1))
 	done < $1
+	increment_file_day
 fi
