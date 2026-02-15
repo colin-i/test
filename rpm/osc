@@ -21,6 +21,12 @@ osc api /build/${proj}/${reps[0]}/${arhs[1]}/_repository > 3
 if [ -n "`cat 3 | grep ${name}-devel`" ]; then devel=-devel; fi
 
 echo ${proj} ${name} devel=${devel}
+
+dates=( `cat 3 | grep ocompiler | grep -Po '(?<=mtime=")[^"]*'` )
+for d in ${dates[@]}; do
+	date -d @$d
+done
+
 i=0
 for rep in ${reps[@]}; do
 	echo ${rep}
