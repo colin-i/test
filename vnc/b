@@ -2,9 +2,9 @@
 echo n or continue in 10 seconds
 read -n1 -t 10 ans
 if [ "${ans}" != "n" ]; then
-	{  # since wayland
+	{  # since wayland # cannot use it now because is started by a no-one knows who started /usr/bin/ydotoold, can kill that for an option
 		~/test/keyring
-		sudo ydotoold
+		sudo ydotoold --socket-path /tmp/ydotoold_custom.sock
 	} &
 	sleep 12 #keyring is taking strange time in this case
 	#wmctrl -i -a `wmctrl -l | grep TigerVNC | cut -d' ' -f1`
@@ -12,6 +12,7 @@ if [ "${ans}" != "n" ]; then
 	~/test/wland/ac ${id}
 	# -FullScreenSelectedMonitors=2 -FullscreenMode Selected -Fullscreen #is not working, is going to the second monitor but fast switching back, without -Fullscreen can manual do ok
 	# -geometry ...  -Fullscreen -> Fullscreen then geometry
-	~/test/dotool key ${k}; sleep 1; ~/test/dotool key Down; sleep 1; ~/test/dotool key Down; ~/test/dotool key Enter
+	# sudo showkey --scancodes
+	sleep 1; ~/test/dotool key 68; sleep 1; ~/test/dotool key 108; sleep 1; ~/test/dotool key 108; ~/test/dotool key 28
 fi
 exit

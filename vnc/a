@@ -1,6 +1,5 @@
-k=F10
 {
 	sleep 3 #to wait the other window to get focus on this one
-	k=${k} gnome-terminal -- ~/test/vnc/b
+	`cat ~/terminal` -- ~/test/vnc/b
 } &
-VNC_PASSWORD=`cat ~/n/pat14` vncviewer -geometry 800x600+2000+0 -MenuKey ${k} `cat ~/amd_ip`   # tigervnc-viewer
+VNC_PASSWORD=`cat ~/n/pat14` vncviewer -geometry 800x600+2000+0 -MenuKey F10 `cat ~/amd_ip`   # tigervnc-viewer
