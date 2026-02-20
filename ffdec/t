@@ -1,6 +1,9 @@
 set -e
 ./dif $1
 cd ~/a/tmp/ffdec
-git show master:./translation.jpt | wc -c
-cat ./translation.jpt | wc -c
+a=`git show master:./translation.jpt | wc -c`
+b=`cat ./translation.jpt | wc -c`
+echo $a
+echo $b
+if [ $a = $b ]; then exit 1; fi
 ~/test/tmp
