@@ -1,0 +1,2 @@
+fl=~/a/tmp/ffdec/translation.jpt
+touch -d "@$(( $(stat -c %Y ${fl}) - 86400 ))" ${fl}
