@@ -13,5 +13,9 @@ edor q
 ~/arh/ffdec
 wc -l q
 mv q a/${ans}
+fl=~/a/tmp/ffdec/translation.jpt
+seconds=$(stat -c %Y ${fl})
+echo save translation
 read
+touch -d "@${seconds}" ${fl}
 ./t ${ans}
