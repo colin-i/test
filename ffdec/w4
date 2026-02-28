@@ -1,5 +1,6 @@
 
-if [ -z "$x" ]; then export x=`cat ~/default_trans`; fi
+if [ -z "$x" ]; then export x=`cat ~/default_trans`; y=0
+else y=$(( `cat ~/default_trans` - x )); fi
 d=`pwd`
 cd a
-$d/w $1
+y=$y $d/w $1

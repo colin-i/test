@@ -1,0 +1,6 @@
+fl=~/a/tmp/ffdec/translation.jpt
+if [ -z "$1" ]; then
+	touch -d "@$(( $(stat -c %Y ${fl}) - 86400 ))" ${fl}
+else
+	touch -d "@$(( $(stat -c %Y ${fl}) + 86400 ))" ${fl}
+fi

@@ -50,7 +50,7 @@ else
 				twopack=$(echo ${last_t} + ${thispack} | bc)
 				echo $z ${a[0]} ${thispack} ${twopack}
 				if [ ${twopack} -lt $((def_t*3)) ]; then
-					echo -n ${thispack} > ~/last_translation
+					echo -n $(( thispack + y )) > ~/last_translation
 				else
 					echo the translation is too big
 					echo -n 0 > ~/last_translation
