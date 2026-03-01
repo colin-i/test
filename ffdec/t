@@ -1,7 +1,7 @@
 set -e
 ./dif $1
 cd ~/a/tmp/ffdec
-fl=./translation.jpt
+fl=./translation.jpt # cp ~/a/tmp/ffdec/translation.jpt ~/.config/FFDec/translated.zip # save timestamp will differ
 a=`git show master:${fl} | wc -c`
 b=`cat ${fl} | wc -c`
 echo $a
