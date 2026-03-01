@@ -38,9 +38,12 @@ def init(loop,pointer):
 	total={};total["#"+t.decode()]=1
 	show(text,total)
 	#
-	f=os.path.join(os.path.dirname(__file__),'x')
-	t=subprocess.check_output(f)
-	total={};total["+"+t.decode()]=1
+	if not os.path.exists(os.getenv('HOME')+'/no_act_twitter'):
+		f=os.path.join(os.path.dirname(__file__),'x')
+		t=subprocess.check_output(f).decode()
+	else:
+		t='?'
+	total={};total["+"+t]=1
 	show(text,total)
 	#
 	global storage

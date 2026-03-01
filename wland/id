@@ -1,7 +1,8 @@
 
 a=`gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows --method org.gnome.Shell.Extensions.Windows.List`
-#a=${a:2:-3}
-a="$(expr substr "$a" 3 $(echo $(echo -n $a | wc -m)-5 | bc))"
+#a="$(expr substr "$a" 3 $(echo $(echo -n $a | wc -m)-5 | bc))"
+# an utf-8 char: — wc -m counts 1, expr substr counts 3
+a=$(printf '%s\n' "$a" | awk '{print substr($0,3,length($0)-5)}')
 a=`echo $a | sed 's/\\\\"/\"/g'` # this will help when having a title with ' and the string from gdbus will come with " to \" and will break jq
 i=0
 j=$3
