@@ -39,7 +39,7 @@ else
 	t=0
 	z=1
 	while read val || [ -n "$val" ]; do
-		IFS=$'\t' read -a a <<< "${val}\n"
+		IFS=$'\t' read -a a <<< "${val}"
 		n=${#a[@]}
 		if [ $n = 2 ]; then #poate fi 1 cand nu are sau 3 cand am tradus
 			b=( ${a[1]} )
