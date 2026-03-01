@@ -1,5 +1,6 @@
 
 #1 file
+# is in ./a
 
 increment_file_day () {
 	fl=~/a/tmp/ffdec/translation.jpt
@@ -25,9 +26,9 @@ while read val; do
 		t=$((t+m))
 	fi
 done < $1
-cd ../b
 echo $1 $t
-if [ -z "$x" ]; then
+if [ -z "$x" ]; then # used at w2
+	cd ../b
 	echo $t > $1
 	exit
 fi
@@ -35,7 +36,6 @@ if [ $x -ge $t ]; then
 	echo remaining $((x-t))
 else
 	xx=$((t-x))
-	cd ../a
 	t=0
 	z=1
 	while read val; do

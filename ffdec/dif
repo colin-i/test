@@ -36,8 +36,8 @@ for a in ${files[@]}; do
 	#fi
 
 	c=/home/bc/Desktop/ffdec/${aa}
-	echo diff $b $c
-	diff $b $c
+	echo diff $c $b
+	diff $c $b
 	if [ $? != 0 ]; then
 		exit 1
 	fi

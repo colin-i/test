@@ -1,3 +1,6 @@
+
+# copy a to b first. after this use w3
+
 d=`pwd`
 cd a
 find -type f -exec /bin/bash $d/w {} \;
