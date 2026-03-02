@@ -1,0 +1,1 @@
+echo $(( ( $(date +%s) - $(date -d $(date -d @$(stat -c %Y ~/a/tmp/ffdec/translation.jpt) +%F) +%s) ) / 86400 )) days
