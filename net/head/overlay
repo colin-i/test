@@ -1,5 +1,5 @@
 javascript:{
-	let overlay1=null;
+	let overlay1; /* will be initialized later */
 	let overlay2=null; /* placeholder for bottom overlay */
 
 	let widthPx=parseInt(localStorage.getItem('overlayWidth'))||Math.floor(window.innerWidth/2); /* overlay width */
