@@ -1,5 +1,5 @@
-javascript:{
-	let overlay1; /* will be initialized later */
+javascript:(function(){
+	/* "use strict"; debugger; let overlay1; */
 	let overlay2=null; /* placeholder for bottom overlay */
 
 	let widthPx=parseInt(localStorage.getItem('overlayWidth'))||Math.floor(window.innerWidth/2); /* overlay width */
@@ -14,7 +14,7 @@ javascript:{
 
 	let a=false; /* save mode toggle */
 
-	overlay1a=document.createElement('div');
+	let overlay1a=document.createElement('div');
 	overlay1a.style.position='fixed';
 	overlay1a.style.top=overlayTop+'px';
 	overlay1a.style.bottom=overlayBottom+'px';
@@ -24,7 +24,7 @@ javascript:{
 	overlay1a.style.zIndex='9999';
 	overlay1a.addEventListener('click',overlayClick);
 
-	overlay2b=document.createElement('div'); /* create bottom overlay */
+	let overlay2b=document.createElement('div'); /* create bottom overlay */
 	overlay2b.style.position='fixed';
 	overlay2b.style.bottom='0';
 	overlay2b.style.left=overlay2Left+'px';
@@ -67,7 +67,7 @@ javascript:{
 	}
 
 	function keyHandler(e){
-		e.preventDefault();
+		/*e.preventDefault();*/
 
 		let soloOverlay=overlay1 && !overlay2; /* right overlay solo */
 		let soloOverlay2=overlay2 && !overlay1; /* bottom overlay solo */
@@ -157,4 +157,4 @@ javascript:{
 
 	document.addEventListener('keydown',keyHandler);
 	add1();
-}
+})();
