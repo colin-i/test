@@ -42,7 +42,7 @@ javascript:{
 		overlay2=overlay2b;
 		document.body.appendChild(overlay2);
 	}
-	
+
 	function overlayClick(e){
 		if(a){
 			if(e.currentTarget==overlay1){
