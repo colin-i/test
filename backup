@@ -1,5 +1,5 @@
 
-#optional  1: 0=set init  else projName  2: continue 0 from projName else after projName
+#optional  1: 0=set init  else projName  2: 0 only this proj else continue 1 from projName else after projName
 #stats/h,backup_paths,backup_is_pub,dbg
 #overall!=1 and not -z to skip overall
 #download with mime folder and .. 0
@@ -54,8 +54,10 @@ for var in "${z[@]}"; do
 			shift
 			shift
 			if [ "${dtype}" != 0 ]; then
-				i=$((i+1))
-				continue
+				if [ "${dtype}" != 1 ]; then
+					i=$((i+1))
+					continue
+				fi
 			fi
 		fi
 		cd ${src} || exit 1
@@ -100,7 +102,7 @@ for var in "${z[@]}"; do
 				fi
 				if [ ${is_ok} = 0 ]; then
 					a=( ${vr} )
-					if [ ${#a[@]} = 4 ]; then #only in
+					if [ ${#a[@]} = 4 ]; then #only in , this is not doing good for 'Air and Ground' is a TO DO
 						z[${j}]=${a[2]::-1}/${a[3]}
 					else   #still in src but .gitignored there
 						z[${j}]=${a[2]}
@@ -151,6 +153,9 @@ for var in "${z[@]}"; do
 				echo no
 				exit 1
 			fi
+		fi
+		if [ "${dtype}" = 0 ]; then
+			break
 		fi
 	elif [ "${1}" = 0 ]; then
 		cd ${src}
