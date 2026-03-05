@@ -32,7 +32,7 @@ if [ -z "$x" ]; then # used at w2
 	echo $t > $1
 	exit
 fi
-if [ $x -ge $t ]; then
+if [ $x -gt $t ]; then
 	echo remaining $((x-t))
 else
 	xx=$((t-x))
