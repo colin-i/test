@@ -140,3 +140,6 @@ sudo systemctl restart display-manager
 
 amixer scontrols
 amixer sset 'Master' 50%
+
+#ubuntu
+streamlink twitch.tv/tedycristal07 worst --player vlc
