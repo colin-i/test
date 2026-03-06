@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+message Root {
+  repeated Item10 items10 = 10;
+}
+
+message Item10 {
+  repeated SubItem10 field10 = 10;
+}
+
+message SubItem10 {
+  optional string field1 = 1;
+  repeated string field2 = 2;
+}

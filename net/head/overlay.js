@@ -67,7 +67,7 @@ javascript:(function(){
 	}
 
 	function keyHandler(e){
-		e.preventDefault();/* here are some problems with Left */
+		e.preventDefault();
 
 		let soloOverlay=overlay1 && !overlay2; /* right overlay solo */
 		let soloOverlay2=overlay2 && !overlay1; /* bottom overlay solo */
@@ -83,7 +83,7 @@ javascript:(function(){
 				}
 			}else if(overlay1){
 				widthPx++;
-				overlay.style.width = widthPx + 'px';
+				overlay1.style.width = widthPx + 'px';
 			}
 		}
 
@@ -108,7 +108,7 @@ javascript:(function(){
 					overlayTop--;
 					overlay1.style.top=overlayTop+'px';
 				}else{ /* move bottom edge */
-					overlayBottom--;
+					overlayBottom++;
 					overlay1.style.bottom=overlayBottom+'px';
 				}
 			}else if(overlay2){
@@ -123,7 +123,7 @@ javascript:(function(){
 					overlayTop++;
 					overlay1.style.top=overlayTop+'px';
 				}else{ /* move bottom edge */
-					overlayBottom++;
+					overlayBottom--;
 					overlay1.style.bottom=overlayBottom+'px';
 				}
 			}else if(overlay2){
@@ -152,6 +152,23 @@ javascript:(function(){
 
 		else if(e.key=='Enter'){ /* toggle enter mode */
 			enterMode=!enterMode;
+		}
+
+		else if(e.key=='w'){
+			overlayTop=0;
+			overlay1.style.top='0px';
+		}
+		else if(e.key=='s'){
+			overlayBottom=0;
+			overlay1.style.bottom='0px';
+		}
+		else if(e.key=='a'){
+			overlay2Left=0;
+			overlay2.style.left='0px';
+		}
+		else if(e.key=='d'){
+			overlay2Right=0;
+			overlay2.style.right='0px';
 		}
 	}
 

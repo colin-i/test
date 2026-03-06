@@ -24,3 +24,10 @@ if(array_key_exists('file',$_FILES)){
 }
 
 ?>
+
+<!--
+<form>
+  <textarea rows="5" cols="40">
+  </textarea>
+</form>
+-->
