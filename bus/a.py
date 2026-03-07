@@ -4,11 +4,14 @@ if len(sys.argv)!=6: exit(1)
 
 # Define the dictionary
 lines = {
-    "48": 59
+	'5-40': 47,
+	'48': 59
 }
 stations = {
-	"Fantasio": 1187,
-	"Politia Rutiera": 1268
+	'Dragoslavele': 1090,
+	'Fantasio': 1187,
+	'Politia Rutiera': 1268,
+	'Parc Oleg Danovski': 1632
 }
 
 from selenium import webdriver
