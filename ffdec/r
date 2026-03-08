@@ -1,3 +1,5 @@
+
+cp ~/a/tmp/ffdec/translation.jpt ~/.config/FFDec/translated.zip # because it is autosaved on close. don't want that. save timestamp will differ
 cd ~/ffdec/bin
 gsettings set org.gnome.desktop.interface gtk-theme Yaru
 ./ffdec -translator

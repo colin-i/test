@@ -1,16 +1,20 @@
 
 import sys
-if len(sys.argv)!=6: exit(1)
+if len(sys.argv)!=6:
+	if len(sys.argv)!=3:
+		exit(1)
 
 # Define the dictionary
 lines = {
 	'5-40': 47,
-	'48': 59
+	'48': 59,
+	'14': 109
 }
 stations = {
 	'Dragoslavele': 1090,
 	'Fantasio': 1187,
 	'Politia Rutiera': 1268,
+	'Tabla Butii': 1580,
 	'Parc Oleg Danovski': 1632
 }
 
@@ -75,29 +79,6 @@ print("FINAL App-Id =", app_id_value)
 import requests
 import generic_pb2
 
-def previous_times(h, m, n=3):
-	res = {}
-	i=0
-	while i < n:
-		if h not in time_dict:
-			h -= 1
-			m = 60
-			continue
-		# Find all minutes smaller than current minute
-		candidates = [x for x in time_dict[h] if x < m]
-		while candidates and i < n:
-			m_prev = candidates.pop()  # take the largest smaller minute
-			if h not in res:
-				res[h] = []
-			res[h].append(m_prev)
-			i+=1
-		# Move to previous hour
-		h -= 1
-		if h < min(time_dict.keys()):
-			break  # reached beginning
-		m = 60  # reset minute to find previous
-	return res
-
 url = "https://info.ctbus.ro/api/web/v2-6/lines/stop"
 
 headers = {
@@ -114,7 +95,8 @@ headers = {
 }
 
 root = generic_pb2.Root()
-def get_times(st,result = []):
+
+def times_get(st):
 	global time_dict,root
 	time_dict = {}
 
@@ -160,44 +142,96 @@ def get_times(st,result = []):
 	for key, value in time_dict.items():
 		print(f"{key}: {value}")
 
-	if len(result)==0:
-		print('at late: '+sys.argv[3]+':'+sys.argv[4])
-		prev_dict = previous_times(int(sys.argv[3]), int(sys.argv[4]))
-		print(prev_dict)
+if len(sys.argv)==3: # the simple case, write next 3 times
+	times_get(sys.argv[2])
 
-		# build index map
-		index_map = {}
-		i = 0
-		for hour in time_dict:
-			for minute in time_dict[hour]:
-				index_map[(hour, minute)] = i
-				i += 1
+	from datetime import datetime
+	now = datetime.now()
+	current_hour = now.hour
+	current_minute = now.minute
+	print('h:'+str(current_hour)+' m:'+str(current_minute))
 
-		# get indices for subset
-		for hour, minutes in prev_dict.items():
-			for minute in minutes:
-				result.append(index_map[(hour, minute)])
-		result=sorted(result)
-		print(result)
-		return result
-	else:
-		min=result[0]
-		max=result[len(result)-1]
+	result = {}
+	count = 0
 
-		res={}
-		i=0
-		for hour in time_dict:
-			for minute in time_dict[hour]:
-				if i>=min:
-					if hour not in res:
-						res[hour]=[]
-					res[hour].append(minute)
-				if i==max:
-					break
-				i+=1
+	for h in list(time_dict.keys()):
+		if h<current_hour:
+			continue
+		for m in time_dict[h]:
+			if h==current_hour and m<=current_minute:
+				continue
+			result.setdefault(h, []).append(m)
+			count+=1
+			if count==3:
+				break
+		if count==3:
+			break
+	print(result)
+	exit()
+
+def previous_times(h, m, n=3):
+	res = {}
+	i=0
+	while i < n:
+		if h not in time_dict:
+			h -= 1
+			m = 60
+			continue
+		# Find all minutes smaller than current minute
+		candidates = [x for x in time_dict[h] if x < m]
+		while candidates and i < n:
+			m_prev = candidates.pop()  # take the largest smaller minute
+			if h not in res:
+				res[h] = []
+			res[h].append(m_prev)
+			i+=1
+		# Move to previous hour
+		h -= 1
+		if h < min(time_dict.keys()):
+			break  # reached beginning
+		m = 60  # reset minute to find previous
+	return res
+
+def get_times1(st):
+	times_get(st)
+	print('at late: '+sys.argv[3]+':'+sys.argv[4])
+	prev_dict = previous_times(int(sys.argv[3]), int(sys.argv[4]))
+	print(prev_dict)
+
+	# build index map
+	index_map = {}
+	i = 0
+	for hour in time_dict:
+		for minute in time_dict[hour]:
+			index_map[(hour, minute)] = i
+			i += 1
+
+	result = []
+	# get indices for subset
+	for hour, minutes in prev_dict.items():
+		for minute in minutes:
+			result.append(index_map[(hour, minute)])
+	result=sorted(result)
+	print(result)
+	return result
+def get_times2(st,result):
+	min=result[0]
+	max=result[len(result)-1]
+
+	res={}
+	i=0
+	for hour in time_dict:
+		for minute in time_dict[hour]:
+			if i>=min:
+				if hour not in res:
+					res[hour]=[]
+				res[hour].append(minute)
 			if i==max:
 				break
-		print(res)
+			i+=1
+		if i==max:
+			break
+	print(res)
 
-r=get_times(sys.argv[2])
-get_times(sys.argv[5],r)
+r=get_times1(sys.argv[2])
+get_times2(sys.argv[5],r)
