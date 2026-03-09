@@ -55,3 +55,7 @@ rsync -av --delete ${nmmaj}/ ${nmmaj0}/
 
 #when only spec changed,go at home:.../fullname and : ~/test/rpm/spec fullname
 #                     then at suse: osc commit
+
+#pt at fedora:
+# tito tag --use-version 1.161 --use-release 1
+# ~/test/remote/push actionswf x --follow-tags
