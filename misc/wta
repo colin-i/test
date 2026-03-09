@@ -1,6 +1,42 @@
+#!/bin/bash
+set -e
+
+url="https://wtafiles.wtatennis.com/pdf/rankings/All_Career_Prize_Money.pdf"
+
+# Get Last-Modified header
+last_modified=$(curl -sI "$url" | grep -i "^Last-Modified:" | cut -d' ' -f2-)
+
+# Convert to epoch
+last_modified_epoch=$(date -d "$last_modified" +%s)
+now_epoch=$(date +%s)
+
+diff=$((now_epoch - last_modified_epoch))
+timedif=$((7*24*60*60))
+if [ -n "$1" ]; then
+	timedif=$((timedif+$1))
+fi
+
+# Function to format seconds
+format_time () {
+    local T=$1
+    local D=$((T/86400))
+    local H=$(( (T%86400)/3600 ))
+    local M=$(( (T%3600)/60 ))
+    local S=$((T%60))
+    printf "%d days %d hours %d minutes %d seconds\n" $D $H $M $S
+}
+
+if (( diff >= timedif )); then
+	printf "unmodified (%s old)\n" "$(format_time $diff)"
+	exit 1
+fi
+echo "NEW DATA"
+
 
 cd ~/Desktop/arh
-pdftotext All_Career_Prize_Money.pdf
+f=All_Career_Prize_Money.pdf
+wget ${url} -O $f
+pdftotext $f
 cat All_Career_Prize_Money.txt | grep ^ROU$ -A 2 -B 2 > 3
 sed '/^$/d' 3 > 2
 diff -u 1 2
@@ -8,5 +44,5 @@ echo y
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" != y ]; then exit 1; fi
 mv 2 1
-rm 3
+rm 3 All_Career_Prize_Money.txt
 stat -c %y 1
