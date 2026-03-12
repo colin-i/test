@@ -1,0 +1,3 @@
+
+#Settings  System  Users  Automatic Login
+sudo systemctl restart gdm
