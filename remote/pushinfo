@@ -57,3 +57,5 @@ fi
 #git checkout FETCH_HEAD
 #git switch -c fetch
 #git rev-list --disk-usage=human --objects HEAD..ocompiler1
+
+#git log --since=2023-01-01 | grep costin
