@@ -170,8 +170,18 @@ javascript:(function(){
 			overlay2Right=0;
 			overlay2.style.right='0px';
 		}
-	}
 
+		else if (e.key == 'q'){
+			document.removeEventListener('keydown', keyHandler);
+			document.addEventListener('keydown', restoreHandler);
+		}
+	}
+	function restoreHandler(e){
+		if (e.key == 'w'){
+			document.removeEventListener('keydown', restoreHandler);
+			document.addEventListener('keydown', keyHandler);
+		}
+	}
 	document.addEventListener('keydown',keyHandler);
 	add1();
 })();
