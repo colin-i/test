@@ -177,7 +177,7 @@ javascript:(function(){
 		}
 	}
 	function restoreHandler(e){
-		if (e.key == 'w'){
+		if (e.key == 'e'){
 			document.removeEventListener('keydown', restoreHandler);
 			document.addEventListener('keydown', keyHandler);
 		}
