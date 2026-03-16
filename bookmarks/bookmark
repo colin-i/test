@@ -11,7 +11,7 @@ if [ "${#a}" != 0 ]; then
 	. ~/test/misc/read_char
 	#read -n1 -t $((3600*24)) ans
 	read_char ans
-	if [ "${ans}" = "y" ]; then
+	if [ "${ans}" = y ]; then
 		a=`find -name "*.html" | xargs`
 		cd .. || exit
 		#b=( `find -maxdepth 1 -name "bookmarks*"` )
@@ -25,11 +25,11 @@ if [ "${#a}" != 0 ]; then
 			echo is ok?
 			#read -n1 -t $((3600*24)) ans
 			read_char ans
-			if [ "${ans}" = "y" ]; then
+			if [ "${ans}" = y ]; then
 				mv ${var} ..
 				echo ${var}
 				#var=${var:0:-4}
-				var=$(expr substr ${var} 1 $(echo $(expr index ${var} html)-2 | bc))  # index ... .html will be 1, html without dot is ~ 22
+				var=$(expr substr ${var} 1 $(echo $(echo $var | wc -c)-6 | bc))
 				mv ${var} ..
 				echo ${var}
 
