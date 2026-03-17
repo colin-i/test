@@ -14,6 +14,11 @@ if [ ${last_t} = 0 ]; then
 	echo -n ${def_t} > ~/last_translation
 	increment_file_day
 	exit 1
+elif [ ${last_t} = 00 ]; then
+	echo last translation was very big
+	echo -n 0 > ~/last_translation
+	increment_file_day
+	exit 1
 fi
 
 t=0
@@ -52,8 +57,14 @@ else
 				if [ ${twopack} -lt $((def_t*3)) ]; then
 					echo -n ${thispack} > ~/last_translation
 				else
-					echo the translation is too big
-					echo -n 0 > ~/last_translation
+					echo the translations are too big
+					if [ ${twopack} -lt $((def_t*4)) ]; then
+						echo triple
+						echo -n 0 > ~/last_translation
+					else
+						echo quadruple
+						echo -n 00 > ~/last_translation
+					fi
 				fi
 				echo -n ${a[0]} | xclip -sel clip
 				break
