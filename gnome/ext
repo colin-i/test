@@ -1,0 +1,36 @@
+
+#1=system-monitor-next
+#2=paradoxxx.zero.gmail.com
+#3=install/publish
+#4=zip_file_name
+
+# sudo apt install gir1.2-gtop-2.0
+
+#only make is not working for system monitor
+make $3 && \
+\
+#at paradoxxx build is ok, do not remove, [and skip "install"?]
+rm -r /home/bc/.local/share/gnome-shell/extensions/$1@$2 && \
+#without at next, but on updates?
+\
+if [ -z "$4" ]; then
+	cd $1@$2 && \
+	zip -ru ../../z.zip ./* && \
+	cd ..
+else
+	mv $4 ../z.zip
+fi && \
+gnome-extensions install ../z.zip && \
+# --force    #is rm
+# Check if the Makefile has a 'clean' target
+if make -qp | awk -F':' '/^[a-zA-Z0-9][^$#\/\t=]*:/ {print $1}' | grep -qx "clean"; then
+    make clean
+else
+    echo "No 'clean' target found in Makefile"
+fi && \
+git status
+
+#alt+f2 r
+#seeing constant warnings at journalctl -f ? MaxLevelStore=err at /etc/systemd/journald.conf, then systemctl restart systemd-journald
+
+#for cinnamon, an untested cjs(gjs if at gnome) gist: https://gist.github.com/colin-i/48717cf3f8cebe4dcef654134f7c6873
