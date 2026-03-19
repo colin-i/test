@@ -1,0 +1,51 @@
+set -e
+
+FILE=~/pulls
+[ -r "$FILE" ] || {
+	echo "❌ File not found: $FILE"
+	exit 1
+}
+#example:
+#userA repo commit_hash
+#userB repo commit_hash
+#don't forget the final new line
+
+check_commit () {
+	OWNER=$1
+	REPO=$2
+	COMMIT=$3
+	BRANCH=$4
+
+	DATA=$(curl -sf \
+		-H "Accept: application/vnd.github+json" \
+		-H "Authorization: Bearer $(<~/n/tmp/pat)" \
+		"https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&head=colin-i:$BRANCH") ||\
+		{
+			echo "❌ curl failed for $OWNER/$REPO $COMMIT"
+			exit 1
+		}
+
+	if [ "$(echo "$DATA" | jq length)" -eq 0 ]; then
+		echo "⚪ $OWNER/$REPO ($BRANCH) $COMMIT -> no PR"
+		exit 1
+	fi
+
+	STATE=$(echo "$DATA" | jq -r '.[0].state')
+
+	if [ "$STATE" = "open" ]; then
+		echo "🟡 $OWNER/$REPO ($BRANCH) $COMMIT -> OPEN"
+	else
+		MERGED=$(echo "$DATA" | jq -r '.[0].merged_at')
+
+		if [ "$MERGED" != "null" ]; then
+			echo "🟢 $OWNER/$REPO ($BRANCH) $COMMIT -> MERGED"
+		else
+			echo "🔴 $OWNER/$REPO ($BRANCH) $COMMIT -> CLOSED (not merged)"
+		fi
+		exit 1
+	fi
+}
+
+while read -r OWNER REPO COMMIT BRANCH; do
+	check_commit "$OWNER" "$REPO" "$BRANCH" "$COMMIT"
+done < "$FILE"
