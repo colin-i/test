@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #1 is extra time dif
-
 set -e
+
 
 url="https://wtafiles.wtatennis.com/pdf/rankings/All_Career_Prize_Money.pdf"
 
@@ -29,7 +29,7 @@ format_time () {
     printf "%d days %d hours %d minutes %d seconds\n" $D $H $M $S
 }
 
-if (( diff >= timedif )); then
+if [ ${diff} -ge ${timedif} ]; then
 	printf "unmodified (%s old)\n" "$(format_time $diff)"
 	exit 1
 fi
@@ -42,10 +42,11 @@ wget ${url} -O $f
 pdftotext $f
 cat All_Career_Prize_Money.txt | grep ^ROU$ -A 2 -B 2 > 3
 sed '/^$/d' 3 > 2
-diff -u 1 2
-echo y
-read -n1 -t $((60*60*24)) ans
-if [ "${ans}" != y ]; then exit 1; fi
-mv 2 1
+(diff -u 1 2 && rm 2) || {
+	echo y
+	read -n1 -t $((60*60*24)) ans
+	if [ "${ans}" != y ]; then exit 1; fi
+	mv 2 1
+	stat -c %y 1
+}
 rm 3 All_Career_Prize_Money.txt
-stat -c %y 1
