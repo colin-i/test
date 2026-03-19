@@ -19,7 +19,7 @@ check_commit () {
 	DATA=$(curl -sf \
 		-H "Accept: application/vnd.github+json" \
 		-H "Authorization: Bearer $(<~/n/tmp/pat)" \
-		"https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&head=colin-i:$BRANCH") ||\
+		"https://api.github.com/repos/$OWNER/$REPO/pulls?head=colin-i:$BRANCH") ||\
 		{
 			echo "❌ curl failed for $OWNER/$REPO $COMMIT"
 			exit 1
@@ -34,7 +34,7 @@ check_commit () {
 
 	if [ "$STATE" = "open" ]; then
 		echo "🟡 $OWNER/$REPO ($BRANCH) $COMMIT -> OPEN"
-	else
+	else # "closed"
 		MERGED=$(echo "$DATA" | jq -r '.[0].merged_at')
 
 		if [ "$MERGED" != "null" ]; then
