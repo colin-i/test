@@ -1,0 +1,22 @@
+#!/bin/bash
+
+file="$1"
+
+if [ -z "$file" ] || [ ! -f "$file" ]; then
+  echo "Usage: $0 domains.txt"
+  exit 1
+fi
+
+while IFS= read -r d; do
+  if [[ "$d" == \#* ]]; then continue; fi
+
+  response=$(curl -s "https://rdap.verisign.com/com/v1/domain/${d}.com")
+
+  if [ -z "${response}" ]; then
+    echo "$d.com -> AVAILABLE"
+  else
+    echo "$d.com -> TAKEN"
+  fi
+
+  sleep 2
+done < "$file"
