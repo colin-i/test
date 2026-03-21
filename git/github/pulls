@@ -33,14 +33,14 @@ check_commit () {
 	STATE=$(echo "$DATA" | jq -r '.[0].state')
 
 	if [ "$STATE" = "open" ]; then
-		echo "🟡 $OWNER/$REPO ($BRANCH) $COMMIT -> OPEN"
+		echo "🟡 $OWNER $REPO ($BRANCH) $COMMIT -> OPEN" https://www.github.com/${OWNER}/${REPO}
 	else # "closed"
 		MERGED=$(echo "$DATA" | jq -r '.[0].merged_at')
 
 		if [ "$MERGED" != "null" ]; then
-			echo "🟢 $OWNER/$REPO ($BRANCH) $COMMIT -> MERGED"
+			echo "🟢 $OWNER $REPO ($BRANCH) $COMMIT -> MERGED"
 		else
-			echo "🔴 $OWNER/$REPO ($BRANCH) $COMMIT -> CLOSED (not merged)"
+			echo "🔴 $OWNER $REPO ($BRANCH) $COMMIT -> CLOSED (not merged)"
 		fi
 		exit 1
 	fi
