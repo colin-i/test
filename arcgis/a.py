@@ -1,6 +1,5 @@
 
-from selenium import webdriver      # pip install selenium(-wire is for inside prints like at net/head), and not first python3-selenium because has snap chromium-browser dependency, but first install -selenium dependencies
-						#	and more dependencies from --dry-run, so only 2 will remain +selenium
+from selenium import webdriver      # apt python3-selenium
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.actions.action_builder import ActionBuilder
@@ -54,6 +53,10 @@ def click(x,y,pages):
 			pages=pages-1
 import time
 def pack(type):
+	skp=os.environ["skip"]
+	if skp==type:
+		return
+	print('enter')
 	bp()
 	with open(root+"recs"+type,"rb") as file:
 		rd=file.read()
@@ -72,6 +75,7 @@ def pack(type):
 		with open(root+"new"+type+"/"+r[2],"wb") as file: file.write(info.text.encode())
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 		time.sleep(5) #sometimes next click seems to be on undestroyed previous
+
 pack("_")
 pack("0")
 pack("1")
