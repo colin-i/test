@@ -23,3 +23,5 @@ gh act -r -j ubuildgen --env proj=${name} --env fname=$1 --env mime=$2 --env ass
 rm $1 && \
 docker container stop ${container} && \
 docker container rm ${container}
+
+#gh api repos/nektos/gh-act/releases/latest
