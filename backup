@@ -168,7 +168,7 @@ for var in "${z[@]}"; do
 done
 
 if [ "${overall}" = 1 ]; then
-	f=~/arh/index.html
+	f=~/arh/index2.html
 	folder="${fold}" html=x ~/test/google/a 0 > ${f} && \
 	~/test/remote/ftp ${f} depozit
 fi
