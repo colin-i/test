@@ -1,18 +1,34 @@
 javascript:(function(){
 	/* "use strict"; debugger; let overlay1; */
 	let overlay2=null; /* placeholder for bottom overlay */
+	function getSuffix(v){
+		return v==1 ? '' : '_v'+v;
+	}
 
-	let widthPx=parseInt(localStorage.getItem('overlayWidth'))||Math.floor(window.innerWidth/2); /* overlay width */
-	let overlayTop=parseInt(localStorage.getItem('overlayTop'))||0; /* solo top */
-	let overlayBottom=parseInt(localStorage.getItem('overlayBottom'))||0; /* solo bottom */
+	let widthPx, overlayTop, overlayBottom;
+	function loadOverlay1(){
+		let suffix = getSuffix(overlay1Variant);
+		widthPx=parseInt(localStorage.getItem('overlayWidth'+suffix))||Math.floor(window.innerWidth/2); /* overlay width */
+		overlayTop=parseInt(localStorage.getItem('overlayTop'+suffix))||0; /* solo top */
+		overlayBottom=parseInt(localStorage.getItem('overlayBottom'+suffix))||0; /* solo bottom */
+	}
+	let overlay1Variant=parseInt(localStorage.getItem('overlay1Variant'))||1;
+	loadOverlay1();
 
-	let heightPx=parseInt(localStorage.getItem('overlayHeight'))||Math.floor(window.innerHeight/2); /* overlay2 height */
-	let overlay2Left=parseInt(localStorage.getItem('overlay2Left'))||0; /* solo left */
-	let overlay2Right=parseInt(localStorage.getItem('overlay2Right'))||0; /* solo right */
+	let heightPx, overlay2Left, overlay2Right;
+	function loadOverlay2(){
+		let suffix = getSuffix(overlay2Variant);
+		heightPx=parseInt(localStorage.getItem('overlayHeight'+suffix))||Math.floor(window.innerHeight/2); /* overlay2 height */
+		overlay2Left=parseInt(localStorage.getItem('overlay2Left'+suffix))||0; /* solo left */
+		overlay2Right=parseInt(localStorage.getItem('overlay2Right'+suffix))||0; /* solo right */
+	}
+	let overlay2Variant=parseInt(localStorage.getItem('overlay2Variant'))||1;
+	loadOverlay2();
 
 	let enterMode=false; /* toggle mode for solo edge adjustments */
 
 	let a=false; /* save mode toggle */
+	let saveVariant=1; /* 1,2,3 */
 
 	let overlay1a=document.createElement('div');
 	overlay1a.style.position='fixed';
@@ -45,16 +61,18 @@ javascript:(function(){
 
 	function overlayClick(e){
 		if(a){
+			let suffix = getSuffix(saveVariant);
+			let b=' ' + saveVariant;
 			if(e.currentTarget==overlay1){
-				localStorage.setItem('overlayWidth',widthPx); /* save width */
-				localStorage.setItem('overlayTop',overlayTop); /* save top */
-				localStorage.setItem('overlayBottom',overlayBottom); /* save bottom */
-				alert('saved overlay1');
+				localStorage.setItem('overlayWidth'+suffix,widthPx); /* save width */
+				localStorage.setItem('overlayTop'+suffix,overlayTop); /* save top */
+				localStorage.setItem('overlayBottom'+suffix,overlayBottom); /* save bottom */
+				alert('saved overlay1' + b);
 			}else{
-				localStorage.setItem('overlayHeight',heightPx); /* save height */
-				localStorage.setItem('overlay2Left',overlay2Left); /* save left */
-				localStorage.setItem('overlay2Right',overlay2Right); /* save right */
-				alert('saved overlay2');
+				localStorage.setItem('overlayHeight'+suffix,heightPx); /* save height */
+				localStorage.setItem('overlay2Left'+suffix,overlay2Left); /* save left */
+				localStorage.setItem('overlay2Right'+suffix,overlay2Right); /* save right */
+				alert('saved overlay2' + b);
 			}
 		}else{
 			if(e.currentTarget==overlay1){
@@ -174,6 +192,33 @@ javascript:(function(){
 		else if (e.key == 'q'){
 			document.removeEventListener('keydown', keyHandler);
 			document.addEventListener('keydown', restoreHandler);
+		}
+
+		else if(e.key=='z'){
+			saveVariant = saveVariant==3 ? 1 : saveVariant+1;
+			alert('save target: v'+saveVariant);
+		}
+		else if(e.key=='x'){
+			overlay1Variant = overlay1Variant==3 ? 1 : overlay1Variant+1;
+			localStorage.setItem('overlay1Variant',overlay1Variant);
+			loadOverlay1();
+
+			if(overlay1){
+				overlay1.style.width=widthPx+'px';
+				overlay1.style.top=overlayTop+'px';
+				overlay1.style.bottom=overlayBottom+'px';
+			}
+		}
+		else if(e.key=='c'){
+			overlay2Variant = overlay2Variant==3 ? 1 : overlay2Variant+1;
+			localStorage.setItem('overlay2Variant',overlay2Variant);
+			loadOverlay2();
+
+			if(overlay2){
+				overlay2.style.height=heightPx+'px';
+				overlay2.style.left=overlay2Left+'px';
+				overlay2.style.right=overlay2Right+'px';
+			}
 		}
 	}
 	function restoreHandler(e){

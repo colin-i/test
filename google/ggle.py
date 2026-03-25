@@ -93,7 +93,9 @@ def print_file(file):
 def deletefile(id): #attention at sub-folders(pass also the folder/folderid)
 	service.files().delete(fileId=id).execute()
 	print('deleted')
-def search_file(newid=None,download=False,delete=False,ignore_fname=False):
+import time
+def search_file(newid=None,download=False,delete=False,ignore_f_name=False):
+	seen_names = set() #for list all
 	#files = []
 	page_token = None
 	while True:
@@ -112,14 +114,14 @@ def search_file(newid=None,download=False,delete=False,ignore_fname=False):
 			                    fields='nextPageToken, '
 			                    'files(id, name, createdTime, size, webContentLink, parents)',
 			                    pageToken=page_token).execute() # fields='*' was ok, here files(*)?
-		if newid!=None and delete==True: #will also ignore_fname
+		if newid!=None and delete==True: #will also ignore_f_name
 			#delete one id
 			for file in response.get('files', []):
 				if newid==file['id']:
 					print_file(file)
 					deletefile(newid) #delete only one id from same file
 					break
-		elif ignore_fname==False: #4 cases here
+		elif ignore_f_name==False: #4 cases here
 			for file in response.get('files', []):
 				if file.get("name")==fname:
 					print_file(file)
@@ -144,33 +146,40 @@ def search_file(newid=None,download=False,delete=False,ignore_fname=False):
 			for file in response.get('files', []):
 				print_file(file)
 
+				aname = file.get('name')
+				if aname in seen_names:
+					print('this is duplicate')
+					exit(1)
+				seen_names.add(aname)
+
+				time.sleep(1) # response=service.permissions(). ... .execute()
+
 		#files.extend(response.get('files', []))
 		page_token = response.get('nextPageToken', None)
 		if page_token is None:
 			break
 def search_file_all():
-	search_file(ignore_fname=True)
+	search_file(ignore_f_name=True)
 
-fname=sys.argv[1]
-if len(sys.argv)>2:
-	flag=sys.argv[2]
-	if flag=="0":
-	#download
-		import io
-		from googleapiclient.http import MediaIoBaseDownload
-		search_file(download=True)
-	elif flag=="1":
-	#delete
-		search_file(delete=True)
-	elif flag=="2":
-	#delete one id
-		search_file(newid=fname,delete=True)
-	else:
-	#list name
-		search_file()
-else:
-	if fname!="0":
-	#upload
+if len(sys.argv)>1:
+	fname=sys.argv[1]
+	if len(sys.argv)>2:
+		flag=sys.argv[2]
+		if flag=="0":
+		#download
+			import io
+			from googleapiclient.http import MediaIoBaseDownload
+			search_file(download=True)
+		elif flag=="1":
+		#delete
+			search_file(delete=True)
+		elif flag=="2":
+		#delete one id
+			search_file(newid=fname,delete=True)
+		else:
+		#list name
+			search_file()
+	else: #upload
 		from googleapiclient.http import MediaFileUpload
 		file_id=upload_basic()
 		if not os.environ.get('keep_old'):
@@ -179,6 +188,5 @@ else:
 		else:
 		#list all, is for ~/arhpub
 			search_file_all()
-	else:
-	#list all
-		search_file_all()
+else: #list all
+	search_file_all()
