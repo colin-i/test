@@ -8,8 +8,18 @@
 // ?0
 if(array_key_exists('hosted',$_GET)){ //&hosted
 ?>
-<script src="/dist/ruffle.js">
-</script>
+<script src="/dist/ruffle.js"></script>
+<p>Hosted</p>
+<?php
+}elseif(isset($_GET['cdn'])){ //&cdn
+?>
+<script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle"></script> -->
+<p>CDN</p>
+<?php
+}else{ //extension
+?>
+<p>Extension</p>
 <?php
 }
 ?>
@@ -17,38 +27,41 @@ if(array_key_exists('hosted',$_GET)){ //&hosted
 <script>
 const queryString = self.location.search;
 const urlParams = new URLSearchParams(queryString);
-const game = urlParams.keys().next().value;
+let game = urlParams.keys().next().value;
 function g(a,b,c){
-return {g:a,w:b,h:c};
+	return {g:a,w:b,h:c};
 }
 const data={
-0:g('universe'),
-b:g('Ball_Hit',800,400),
-r:g('Roulette',800,670),
-n:g('Naval_War',800,470),
-cf:g('Card_Flip',650,680),
-f:g('Fruit_Cocktail',800,400),
-rc:g('Racecourse',800,440),
-l:g('Lotto',800,530),
-t:g('Turret_Defence',740,560),
-tf:g('Treasure_Finder',800,580),
-c:g('Cubes',550,500),
-1:g('Ores_for_Ship'),
-2:g('Driving_the_Ship'),
-3:g('Planet_Landing'),
-4:g('Rocks_Fall'),
-5:g('Balls_Play'),
-6:g('Asteroids'),
-8:g('Moving_Forward'),
-9:g('Jump'),
-10:g('On_the_Rail'),
-11:g('Space_Trip'),
-12:g('Space_Zones'),
-13:g('Rooms'),
-14:g('Road'),
-24:g('Mahjong')
+	0:g('universe'),
+	b:g('Ball_Hit',800,400),
+	r:g('Roulette',800,670),
+	n:g('Naval_War',800,470),
+	cf:g('Card_Flip',650,680),
+	f:g('Fruit_Cocktail',800,400),
+	rc:g('Racecourse',800,440),
+	l:g('Lotto',800,530),
+	t:g('Turret_Defence',740,560),
+	tf:g('Treasure_Finder',800,580),
+	c:g('Cubes',550,500),
+	1:g('Ores_for_Ship'),
+	2:g('Driving_the_Ship'),
+	3:g('Planet_Landing'),
+	4:g('Rocks_Fall'),
+	5:g('Balls_Play'),
+	6:g('Asteroids'),
+	8:g('Moving_Forward'),
+	9:g('Jump'),
+	10:g('On_the_Rail'),
+	11:g('Space_Trip'),
+	12:g('Space_Zones'),
+	13:g('Rooms'),
+	14:g('Road'),
+	24:g('Mahjong')
 }
-const ob=data[game];
+let ob=data[game];
+if(!ob){
+	game=0;ob=data[0];
+}
 if(!ob.w){
 	ob.w=800;ob.h=600;
 	if(game!=0)ob.g=ob.g+'/_'+ob.g;
