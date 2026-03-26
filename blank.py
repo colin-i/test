@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+import os
+h=os.environ["HOME"]+'/'
+f=h+"no_blank"
+if os.path.exists(f):
+	with open(f,'w'): #touch
+		pass
+	exit()
+f=h+'blank_debug'
+if os.path.exists(f):
+	with open(f,'w'):
+		pass
+
 import pygame
 import time
 
