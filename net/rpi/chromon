@@ -1,11 +1,22 @@
 
+a=0
+c=0
 while :; do
 	~/test/ssh/cm 'pgrep -x chromium' > /dev/null
 	if [ $? != 0 ]; then
 		break
 	fi
-	date
-	curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=25&offset=0" | jq '.users[] | select(.username=="'`cat ~/twitch_user`'") | .points'
+	b=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=25&offset=0" | jq '.users[] | select(.username=="'`cat ~/twitch_user`'") | .points')
+	if [ $a = $b ]; then
+		if [ $c = 1 ]; then
+			break
+		fi
+		c=1
+	else
+		c=0
+		a=$b
+	fi
+	echo $b `date`
 	sleep $((5*60))
 done
 notify-send "Chromium!"
