@@ -1,3 +1,14 @@
 
+#(
+a=0
+while [ -z "$WAYLAND_DISPLAY" ]; do
+	sleep 1
+	if [ $a = 9 ]; then
+		sleep 9
+		break
+	fi
+	a=$((a+1))
+done
 systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR
 systemctl --user restart swayidle
+#) & # at these in case it is not starting

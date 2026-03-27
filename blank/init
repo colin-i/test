@@ -18,3 +18,4 @@ systemctl --user reenable swayidle
 #xset q          for query        xset s 120        2 minutes screen blanking
 
 # systemctl --user restart swayidle
+#swayidle is not when twitch video is playing
