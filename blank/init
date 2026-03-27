@@ -1,0 +1,20 @@
+
+#wayland/labwc
+# mkdir -p ~/.config/systemd/user
+cp blank.py ~/
+cp autostart ~/.config/labwc/
+chmod +x ~/.config/labwc/autostart
+cp ~/test/blank/swayidle.service ~/.config/systemd/user/swayidle.service
+systemctl --user reenable swayidle
+
+# systemctl --user enable --now swayidle
+# systemctl --user daemon-reload # to test
+
+##this autostart was replaced with systemd for better restart
+#swayidle -w timeout 60 'python3 ~/blank.py'
+##sudo systemctl restart display-manager #test
+
+#sudo raspi-config    advanced  Wayland/X11
+#xset q          for query        xset s 120        2 minutes screen blanking
+
+# systemctl --user restart swayidle

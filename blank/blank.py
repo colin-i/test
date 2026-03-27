@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import os
 h=os.environ["HOME"]+'/'
 f=h+"no_blank"

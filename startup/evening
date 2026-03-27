@@ -127,17 +127,6 @@ aplay out.wav
 https://chromewebstore.google.com/detail/speech-to-text-voice-reco/kcgloaobfaiejoiahlhnfaolfcifjjho
 on mobile is Google tastare vocală
 
-#sudo raspi-config    advanced  Wayland/X11
-#xset q          for query        xset s 120        2 minutes screen blanking
-
-#and at wayland/labwc:
-# .config/labwc/autostart : blank.py from ~/test
-swayidle -w timeout 60 'python3 ~/blank.py'
-#then
-chmod +x autostart
-#test
-sudo systemctl restart display-manager
-
 amixer scontrols
 amixer sset 'Master' 50%
 

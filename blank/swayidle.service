@@ -1,0 +1,9 @@
+[Unit]
+Description=Swayidle for screen blank
+
+[Service]
+ExecStart=/usr/bin/swayidle -w timeout 60 'python3 /home/bc/blank.py'
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
