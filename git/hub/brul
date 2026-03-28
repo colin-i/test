@@ -5,7 +5,7 @@ if [ -z "$2" ]; then
 else
 	name=$2
 fi
-~/test/git/github/bruldel ${name} $1
+~/test/git/hub/bruldel ${name} $1
 echo enter
 read -t $((60*60*24))
-~/test/git/github/bruladd ${name} $1
+~/test/git/hub/bruladd ${name} $1
