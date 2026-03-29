@@ -1,5 +1,6 @@
 
 #(
+sleep 9
 a=0
 while [ -z "$WAYLAND_DISPLAY" ]; do
 	sleep 1
