@@ -169,6 +169,6 @@ done
 
 if [ "${overall}" = 1 ]; then
 	f=~/arh/index2.html
-	folder="${fold}" html=x ~/test/google/a 0 > ${f} && \
+	folder="${fold}" html=x ~/test/google/a > ${f} && \
 	~/test/remote/ftp ${f} depozit
 fi

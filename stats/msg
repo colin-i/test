@@ -65,7 +65,7 @@ if [ $((to-from)) -gt 31622400 ]; then  #greater than 366 days, this is all time
 	echo -n "${time} ">>${out}
 else
 	#month
-	echo -n "In $(LANG=en_us_88591; date -u -d @${from} '+%B %Y') ">>${out}
+	echo -n "In $(LC_TIME=en_US.utf8 date -u -d @${from} '+%B %Y') ">>${out}
 	more_data=1
 fi
 echo "I made $(echo -n ${commits}) commits.">>${out}
