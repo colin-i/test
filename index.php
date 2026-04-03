@@ -24,6 +24,9 @@ if(array_key_exists('hosted',$_GET)){ //&hosted
 }
 ?>
 
+<?php
+if(!array_key_exists('x',$_GET)){
+?>
 <script>
 const queryString = self.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -72,5 +75,8 @@ e.width=ob.w;
 e.height=ob.h;
 e.src='/a/'+ob.g+'.swf';
 </script>
+<?php
+}
+?>
 
 </body>
