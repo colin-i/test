@@ -8,7 +8,9 @@ if [ -z "${mime}" ]; then
 	fi
 fi
 
-~/test/google/dif $1
+if [ -z "${nodif}" ]; then
+	~/test/google/dif $1
+fi
 
 f=~/Desktop/1
 mimeType=${mime} folderid=`cat ~/n/pat` ~/test/google/a $@ | tee ${f} && \
