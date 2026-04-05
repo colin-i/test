@@ -5,30 +5,44 @@ javascript:(function(){
 		return v==1 ? '' : '_v'+v;
 	}
 
+	let label1 = document.createElement('div');
+	label1.style.position = 'absolute';
+	label1.style.top = '5px';
+	label1.style.left = '5px';
+	label1.style.color = 'white';
+	label1.style.fontSize = '14px';
+	label1.style.fontFamily = 'monospace';
 	let widthPx, overlayTop, overlayBottom;
 	function loadOverlay1(){
 		let suffix = getSuffix(overlay1Variant);
 		widthPx=parseInt(localStorage.getItem('overlayWidth'+suffix))||Math.floor(window.innerWidth/2); /* overlay width */
 		overlayTop=parseInt(localStorage.getItem('overlayTop'+suffix))||0; /* solo top */
 		overlayBottom=parseInt(localStorage.getItem('overlayBottom'+suffix))||0; /* solo bottom */
+		label1.textContent = 'A' + overlay1Variant;
 	}
 	let overlay1Variant=parseInt(localStorage.getItem('overlay1Variant'))||1;
 	loadOverlay1();
 
+	let label2 = document.createElement('div');
+	label2.style.position = 'absolute';
+	label2.style.top = '5px';
+	label2.style.left = '5px';
+	label2.style.color = 'white';
+	label2.style.fontSize = '14px';
+	label2.style.fontFamily = 'monospace';
 	let heightPx, overlay2Left, overlay2Right;
 	function loadOverlay2(){
 		let suffix = getSuffix(overlay2Variant);
 		heightPx=parseInt(localStorage.getItem('overlayHeight'+suffix))||Math.floor(window.innerHeight/2); /* overlay2 height */
 		overlay2Left=parseInt(localStorage.getItem('overlay2Left'+suffix))||0; /* solo left */
 		overlay2Right=parseInt(localStorage.getItem('overlay2Right'+suffix))||0; /* solo right */
+		label2.textContent = 'B' + overlay2Variant;
 	}
 	let overlay2Variant=parseInt(localStorage.getItem('overlay2Variant'))||1;
 	loadOverlay2();
 
 	let enterMode=false; /* toggle mode for solo edge adjustments */
-
 	let a=false; /* save mode toggle */
-	let saveVariant=1; /* 1,2,3 */
 
 	let overlay1a=document.createElement('div');
 	overlay1a.style.position='fixed';
@@ -39,6 +53,7 @@ javascript:(function(){
 	overlay1a.style.backgroundColor='black';
 	overlay1a.style.zIndex='9999';
 	overlay1a.addEventListener('click',overlayClick);
+	overlay1a.appendChild(label1);
 
 	let overlay2b=document.createElement('div'); /* create bottom overlay */
 	overlay2b.style.position='fixed';
@@ -49,6 +64,7 @@ javascript:(function(){
 	overlay2b.style.backgroundColor='black';
 	overlay2b.style.zIndex='9998';
 	overlay2b.addEventListener('click',overlayClick);
+	overlay2b.appendChild(label2);
 
 	function add1(){
 		overlay1=overlay1a;
@@ -61,18 +77,18 @@ javascript:(function(){
 
 	function overlayClick(e){
 		if(a){
-			let suffix = getSuffix(saveVariant);
-			let b=' ' + saveVariant;
 			if(e.currentTarget==overlay1){
+				let suffix = getSuffix(overlay1Variant);
 				localStorage.setItem('overlayWidth'+suffix,widthPx); /* save width */
 				localStorage.setItem('overlayTop'+suffix,overlayTop); /* save top */
 				localStorage.setItem('overlayBottom'+suffix,overlayBottom); /* save bottom */
-				alert('saved overlay1' + b);
+				alert('saved overlay1 ' + overlay1Variant);
 			}else{
+				let suffix = getSuffix(overlay2Variant);
 				localStorage.setItem('overlayHeight'+suffix,heightPx); /* save height */
 				localStorage.setItem('overlay2Left'+suffix,overlay2Left); /* save left */
 				localStorage.setItem('overlay2Right'+suffix,overlay2Right); /* save right */
-				alert('saved overlay2' + b);
+				alert('saved overlay2 ' + overlay2Variant);
 			}
 		}else{
 			if(e.currentTarget==overlay1){
@@ -195,10 +211,6 @@ javascript:(function(){
 		}
 
 		else if(e.key=='z'){
-			saveVariant = saveVariant==3 ? 1 : saveVariant+1;
-			alert('save target: v'+saveVariant);
-		}
-		else if(e.key=='x'){
 			overlay1Variant = overlay1Variant==3 ? 1 : overlay1Variant+1;
 			localStorage.setItem('overlay1Variant',overlay1Variant);
 			loadOverlay1();
@@ -209,7 +221,7 @@ javascript:(function(){
 				overlay1.style.bottom=overlayBottom+'px';
 			}
 		}
-		else if(e.key=='c'){
+		else if(e.key=='x'){
 			overlay2Variant = overlay2Variant==3 ? 1 : overlay2Variant+1;
 			localStorage.setItem('overlay2Variant',overlay2Variant);
 			loadOverlay2();
