@@ -13,6 +13,13 @@ else
 fi
 
 if [ -z "${use_version_txt}" ]; then
+	rows=$(wc -l < debian/changelog)
+	rowsset=$(pwd | tail -c 2 | head -c 1)
+	[ $((rows/1000+1)) -eq "$rowsset" ] || {
+		echo can change version
+		exit 1
+	}
+
 	version=`cat debian/changelog | head -1 | grep -Poe "[^-]*(?=\))"` && \
 	echo -n "${version}" | xclip -selection clipboard && \
 	echo dist=${dist} version=${version} - is on clipboard. paste, modify, enter && \

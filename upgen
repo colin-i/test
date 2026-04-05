@@ -13,7 +13,7 @@ fi
 
 name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
 
-# gh extension install nektos/gh-act  #and also add docker to run without sudo
+# gh extension install nektos/gh-act  #and also add docker to run without sudo # https://github.com/nektos/act gh-act
 gh act -r -j ubuildgen --env init=1 workflow_dispatch -W .github/workflows/upgen${name}.yml ${pull}
 container=`docker ps -a | grep upgen${name}-yml | cut -d ' ' -f1`
 
