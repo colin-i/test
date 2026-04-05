@@ -47,9 +47,14 @@ for n in "${name[@]}"; do
 				fi
 				break
 			elif [ -e ~/stopwaitingflag ]; then
-				rm ~/stopwaitingflag
 				echo stopped
 				notify-send "stopped"
+				if [ -s ~/stopwaitingflag ]; then
+					z=`cat ~/stopwaitingflag`
+					rm ~/stopwaitingflag
+					exit $z
+				fi
+				rm ~/stopwaitingflag
 				exit 1
 			fi
 			nr=$((counter/10))
