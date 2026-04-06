@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# --- NOTES ARRAY ---
+notes=(do re mi fa sol la si doh)
+
+# --- INFINITE LOOP ---
+while true; do
+    for i in "${!notes[@]}"; do
+        note="${notes[i]}"
+        printf "Segment %02d: %s → next\n" "$i" "$note"
+
+        # Play the note
+        play "./$note/b$note.wav"
+
+        # Check for break file after each note
+        if [[ -f ./break ]]; then
+            echo "Break file detected. Exiting..."
+            rm -f ./break
+            exit 0
+        fi
+    done
+done

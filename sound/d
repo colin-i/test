@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#optional 1 is dir_number
+
+name=$(basename `pwd`)
+dir="x$1"
+mkdir -p "$dir"
+
+CONTINUOUS=0
+
+while true; do
+	count=$(ls ${name}*.wav 2>/dev/null | wc -l)
+	echo -e "\tTotal files: $count"
+
+	for file in ${name}*.wav; do
+		[ -e "$file" ] || continue
+
+		while true; do
+			echo -e "\tPlaying: $file"
+			# ffplay quieter
+			ffplay -nodisp -autoexit -loglevel quiet "$file" >/dev/null 2>&1
+
+			# check for break flag if in continuous mode
+			if [ "$CONTINUOUS" -eq 1 ] && [ -f "./break" ]; then
+				CONTINUOUS=0
+				rm -f ./break
+				echo -e "\tBreak detected → returning to interactive mode"
+			fi
+
+			if [ "$CONTINUOUS" -eq 1 ]; then
+				# continuous mode: just go to next file
+				break
+			fi
+
+			read -n 1 -p $'\t[y] next / [n] replay / [x] move / [c] continuous / [q] quit: ' ans
+			echo
+
+			case "$ans" in
+				y|Y)
+					break
+					;;
+				n|N)
+					;;
+				x|X)
+					mv "$file" "$dir/"
+					echo -e "\tMoved $file → $dir/"
+					break
+					;;
+				c|C)
+					CONTINUOUS=1
+					echo -e "\tContinuous mode ON"
+					break
+					;;
+				q|Q)
+					exit 0
+					;;
+			esac
+		done
+	done
+
+	echo -e "\n\t---- restarting list ----\n"
+done

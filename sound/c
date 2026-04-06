@@ -1,0 +1,9 @@
+
+a=$(basename `pwd`)
+f=a$a.wav
+ffmpeg -f s16le -ar 44100 -ac 1 -i $a.pcm -c copy $f
+b=`pwd`/$f
+echo -n $b | xclip -sel clip
+echo $b on clip. enter when done
+read
+python ~/test/sound/c.py $a `cat ./a`

@@ -1,0 +1,6 @@
+
+#1 is number
+
+name=$(basename `pwd`)
+
+ffmpeg -i ${name}$1.wav -t 2 -c copy b${name}.wav
