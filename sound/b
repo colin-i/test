@@ -1,0 +1,4 @@
+
+#don't forget to run aslamixer, this is not using taskbar sound volume level
+aplay -f S16_LE -r 44100 -c 1 output.pcm
+mv output.pcm $1.pcm

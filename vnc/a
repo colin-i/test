@@ -2,4 +2,10 @@
 	sleep 3 #to wait the other window to get focus on this one
 	`cat ~/terminal` -- ~/test/vnc/b
 } &
-VNC_PASSWORD=`cat ~/n/pat14` vncviewer -geometry 800x600+2000+0 -MenuKey F10 `cat ~/amd_ip`   # tigervnc-viewer
+if [ -z "${ip}" ]; then
+	ip=`cat ~/amd_ip`
+fi
+if [ -z "${pass}" ]; then
+	pass=`cat ~/n/pat14` #only when following every tutorial to change the password and still is defaulting to system password
+fi
+VNC_USERNAME=bc VNC_PASSWORD=${pass} vncviewer -geometry 800x600+2000+0 -MenuKey F10 ${ip}   # tigervnc-viewer
