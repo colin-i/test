@@ -6,4 +6,4 @@ b=`pwd`/$f
 echo -n $b | xclip -sel clip
 echo $b on clip. enter when done
 read
-python ~/test/sound/c.py $a `cat ./a`
+python ~/test/sound/c.py $a `cat ./a` `cat ../b`

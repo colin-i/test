@@ -1,6 +1,6 @@
 
 name=$(basename `pwd`)
 
-#don't forget to run aslamixer, this is not using taskbar sound volume level
+#don't forget to run alsamixer, this is not using taskbar sound volume level
 aplay -f S16_LE -r 44100 -c 1 output.pcm
 mv output.pcm ${name}.pcm
