@@ -1,22 +1,38 @@
 #!/bin/bash
 
-# --- NOTES ARRAY ---
 notes=(do re mi fa sol la si doh)
+combined_wav="combined.wav"
+concat_list="concat_list.txt"
 
-# --- INFINITE LOOP ---
-while true; do
-    for i in "${!notes[@]}"; do
-        note="${notes[i]}"
-        printf "Segment %02d: %s → next\n" "$i" "$note"
-
-        # Play the note
-        play "./$note/b$note.wav"
-
-        # Check for break file after each note
-        if [[ -f ./break ]]; then
-            echo "Break file detected. Exiting..."
-            rm -f ./break
-            exit 0
-        fi
-    done
+# --- STEP 1: Build concat list and combine existing files ---
+> "$concat_list"
+for note in "${notes[@]}"; do
+    file="./$note/b$note.wav"
+    if [[ -f "$file" ]]; then
+        printf "file '%s'\n" "$file" >> "$concat_list"
+    else
+        echo "Skipping missing file: $file"
+    fi
 done
+
+# Check if we have anything to combine
+if [[ ! -s "$concat_list" ]]; then
+    echo "No existing files to combine. Exiting."
+    exit 1
+fi
+
+# Combine WAVs into one (copy codec for speed)
+ffmpeg -y -f concat -safe 0 -i "$concat_list" -c copy "$combined_wav"
+echo "Combined WAV created: $combined_wav"
+
+# --- STEP 2: Play combined.wav in an infinite loop ---
+# Clean up temporary files on Ctrl+C
+cleanup() {
+    echo "Stopping playback and cleaning up temporary files..."
+    rm -f "$combined_wav" "$concat_list"
+    exit 0
+}
+trap cleanup SIGINT #SIGTERM
+
+echo "Playing combined.wav in an infinite loop. Press Ctrl+C to stop."
+ffplay -nodisp -autoexit -loop 0 "$combined_wav"
