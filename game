@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_DIR="$HOME/games"
+
+CURRENT_DIR="$(pwd)"
+
+# Strip $HOME/
+REL="${CURRENT_DIR#$HOME/}"
+
+# Remove first directory after HOME
+REL="${REL#*/}"
+
+# Convert to a_b_c format
+NAME="$(echo "$REL" | tr '/' '_')"
+
+echo "Generated name: $NAME"
+
+# Move to repo so gh works
+cd "$REPO_DIR"
+
+## Get latest release tag
+#TAG="$(gh release view --json tagName -q .tagName)"
+# Get the latest pre-release tag
+TAG=$(gh release list --limit 1 --json tagName,isPrerelease \
+	-q '.[] | select(.isPrerelease) | .tagName' | head -n1)
+
+echo "Using release: $TAG"
+
+# Upload files
+for file in "$CURRENT_DIR"/*; do
+	# all are files [ -f "$file" ] || continue
+
+	sleep 1
+
+	filename="$(basename "$file")"
+	asset_name="${NAME}_${filename}"
+
+	echo "Uploading $filename as $asset_name"
+
+	inter="$HOME/tmp/home/bc/activity/$asset_name" # --name in gh 2.46 is not
+
+	# Copy or symlink with the desired name
+	cp "$file" "${inter}"
+
+	echo "Uploading $asset_name"
+	gh release upload "$TAG" "${inter}" --clobber
+
+	# Remove temp file
+	rm "${inter}"
+done

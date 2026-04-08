@@ -1,38 +1,66 @@
 #!/bin/bash
 
+# optional 1 move to destination
+
 notes=(do re mi fa sol la si doh)
+
+# --- COPY MODE (always local structure) ---
+if [[ -n "$1" ]] && [ -z "$test" ]; then
+	mkdir -p "$1"
+
+	for note in "${notes[@]}"; do
+		src="./$note/b$note.wav"
+		dst="$1/$note.wav"
+
+		if [[ -f "$src" ]]; then
+			cp "$src" "$dst"
+		else
+			echo "Skipping missing file: $src"
+		fi
+	done
+	exit
+fi
+
 combined_wav="combined.wav"
 concat_list="concat_list.txt"
 
-# --- STEP 1: Build concat list and combine existing files ---
+# --- STEP 1: Build concat list ---
 > "$concat_list"
+
 for note in "${notes[@]}"; do
-    file="./$note/b$note.wav"
-    if [[ -f "$file" ]]; then
-        printf "file '%s'\n" "$file" >> "$concat_list"
-    else
-        echo "Skipping missing file: $file"
-    fi
+	# --- Decide source ONLY for combination step ---
+	if [[ -n "$test" ]]; then
+		file="$1/$note.wav"
+	else
+		file="$note/b$note.wav"
+	fi
+
+	if [[ -f "$file" ]]; then
+		printf "file '%s'\n" "$file"
+		printf "file '%s'\n" "$file" >> "$concat_list"
+	else
+		echo "Skipping missing file: $file"
+	fi
 done
 
 # Check if we have anything to combine
 if [[ ! -s "$concat_list" ]]; then
-    echo "No existing files to combine. Exiting."
-    exit 1
+	echo "No existing files to combine. Exiting."
+	exit 1
 fi
 
-# Combine WAVs into one (copy codec for speed)
-ffmpeg -y -f concat -safe 0 -i "$concat_list" -c copy "$combined_wav"
+# --- STEP 2: Combine ---
+ffmpeg -loglevel error -y -f concat -safe 0 -i "$concat_list" -c copy "$combined_wav"
 echo "Combined WAV created: $combined_wav"
 
-# --- STEP 2: Play combined.wav in an infinite loop ---
-# Clean up temporary files on Ctrl+C
+# --- STEP 3: Cleanup on Ctrl+C ---
 cleanup() {
-    echo "Stopping playback and cleaning up temporary files..."
-    rm -f "$combined_wav" "$concat_list"
-    exit 0
+	echo "Stopping playback and cleaning up temporary files..."
+	rm -f "$combined_wav" "$concat_list"
+	exit 0
 }
-trap cleanup SIGINT #SIGTERM
+trap cleanup SIGINT
 
+# --- STEP 4: Play loop ---
 echo "Playing combined.wav in an infinite loop. Press Ctrl+C to stop."
 ffplay -nodisp -autoexit -loop 0 "$combined_wav"
