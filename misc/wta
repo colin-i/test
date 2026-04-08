@@ -3,15 +3,16 @@
 #1 is extra time dif
 set -e
 
+now_epoch=$(date +%s)
 
 url="https://wtafiles.wtatennis.com/pdf/rankings/All_Career_Prize_Money.pdf"
 
 # Get Last-Modified header
 last_modified=$(curl -sI "$url" | grep -i "^Last-Modified:" | cut -d' ' -f2-)
+echo ${last_modified}
 
 # Convert to epoch
 last_modified_epoch=$(date -d "$last_modified" +%s)
-now_epoch=$(date +%s)
 
 diff=$((now_epoch - last_modified_epoch))
 timedif=$((7*24*60*60))
@@ -19,28 +20,44 @@ if [ -n "$1" ]; then
 	timedif=$((timedif+$1))
 fi
 
-# Function to format seconds
-format_time () {
-    local T=$1
-    local D=$((T/86400))
-    local H=$(( (T%86400)/3600 ))
-    local M=$(( (T%3600)/60 ))
-    local S=$((T%60))
-    printf "%d days %d hours %d minutes %d seconds\n" $D $H $M $S
-}
-
 if [ ${diff} -ge ${timedif} ]; then
+	# Function to format seconds
+	format_time () {
+		local T=$1
+		local D=$((T/86400))
+		local H=$(( (T%86400)/3600 ))
+		local M=$(( (T%3600)/60 ))
+		local S=$((T%60))
+		printf "%d days %d hours %d minutes %d seconds\n" $D $H $M $S
+	}
 	printf "unmodified (%s old)\n" "$(format_time $diff)"
 	exit 1
 fi
 echo "NEW DATA"
 
-
 cd ~/Desktop/arh
+
 f=All_Career_Prize_Money.pdf
 wget ${url} -O $f
 pdftotext $f
+
+#another comparation to test if the date is valid
+
+file_date=$(grep -oP 'As of: \K.*' All_Career_Prize_Money.txt | head -1)
+echo "$file_date"
+file_epoch=$(date -d "$file_date" +%s)
+
+week_epoch_now=$(( (now_epoch - 3*86400) / (7*86400) ))
+week_epoch_file=$(( (file_epoch - 3*86400) / (7*86400) ))
+
+if [ "$week_epoch_now" -eq "$week_epoch_file" ]; then
+	echo "Same week"
+	rm All_Career_Prize_Money.txt
+	exit 1
+fi
+
 cat All_Career_Prize_Money.txt | grep ^ROU$ -A 2 -B 2 > 3
+
 sed '/^$/d' 3 > 2
 (diff -u 1 2 && rm 2) || {
 	echo y

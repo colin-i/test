@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #optional 1 is dir_number
+#add
 
-name=$(basename `pwd`)
+name=${add}$(basename `pwd`)
 dir="x$1"
 mkdir -p "$dir"
-
 CONTINUOUS=0
 
 while true; do
@@ -32,18 +32,24 @@ while true; do
 				break
 			fi
 
-			read -n 1 -p $'\t[y] next / [n] replay / [x] move / [c] continuous / [q] quit: ' ans
+			read -n 1 -p $'\t[y] next / [r] replay / [x] move / [c] continuous / [q] quit: ' ans
 			echo
 
 			case "$ans" in
 				y|Y)
 					break
 					;;
-				n|N)
+				r|R)
 					;;
 				x|X)
-					mv "$file" "$dir/"
-					echo -e "\tMoved $file → $dir/"
+					if [ -n "$add" ]; then
+						basefile="${file#$add}"   # remove prefix
+						rm $file
+					else
+						basefile="$file"
+					fi
+					mv "$basefile" "$dir/"
+					echo -e "\tMoved $basefile → $dir/"
 					break
 					;;
 				c|C)
