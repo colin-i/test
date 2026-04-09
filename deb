@@ -71,5 +71,6 @@ else
 	get_prog_ver
 fi
 
-dput -f ${target} ${prog_ver}_source.changes && \
-rm ${files} && rm ../${zipfile} && rm ${prog_ver}_source.${dest}.upload
+dput -f ${target} ${prog_ver}_source.changes && if [ -z "${no_clean}" ]; then
+	rm ${files} && rm ../${zipfile} && rm ${prog_ver}_source.${dest}.upload
+fi

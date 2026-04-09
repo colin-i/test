@@ -1,4 +1,10 @@
 
+if [ -e ./cln ]; then
+	echo cln. enter
+	read -t $((60*60*24))
+	./cln
+fi
+
 ~/test/rpm/pt || exit 1
 
 if [ -n "${py}" ]; then py="py=313 "; fi
