@@ -1,3 +1,0 @@
-
-mime='application/pdf' anyone=1 ~/test/google/aa ${1} && \
-~/test/remote/ftp ~/this.csv depozit

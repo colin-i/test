@@ -1,0 +1,5 @@
+
+#same as ./a
+
+#application/vnd.debian.binary-package
+mimeType='application/x-rpm' folder="old/${pname}" anyone=1 keep_old=1 html=x ~/test/google/a ${1} ${2}
