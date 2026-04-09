@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+#optional 1 file name
+
 set -euo pipefail
 
 REPO_DIR="$HOME/games"
@@ -28,9 +30,10 @@ TAG=$(gh release list --limit 1 --json tagName,isPrerelease \
 
 echo "Using release: $TAG"
 
-# Upload files
-for file in "$CURRENT_DIR"/*; do
-	# all are files [ -f "$file" ] || continue
+upload_file() {
+	file="$1"
+
+	# all are files # [ -f "$file" ] || return
 
 	sleep 1
 
@@ -41,12 +44,21 @@ for file in "$CURRENT_DIR"/*; do
 
 	inter="$HOME/tmp/home/bc/activity/$asset_name" # --name in gh 2.46 is not
 
-	# Copy or symlink with the desired name
-	cp "$file" "${inter}"
+	# Symlink with the desired name
+	cp -s "$file" "${inter}"
 
 	echo "Uploading $asset_name"
 	gh release upload "$TAG" "${inter}" --clobber
 
 	# Remove temp file
 	rm "${inter}"
-done
+}
+
+# Upload files
+if [ -n "${1:-}" ]; then
+	upload_file "$CURRENT_DIR/$1"
+else
+	for file in "$CURRENT_DIR"/*; do
+		upload_file "$file"
+	done
+fi
