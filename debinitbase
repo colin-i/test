@@ -47,6 +47,7 @@ if [ -n "${afterversion}" ]; then
 fi && \
 # "${msg}"
 # --create --package "pkgpkg" --newversion 0.0.0.0-0.test
+echo ${patchversion} && \
 echo -n ${patchversion} | xclip -selection clipboard && \
 ~/test/debcommit
 
