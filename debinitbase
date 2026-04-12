@@ -12,6 +12,10 @@ else
  dist=${2}
 fi
 
+if [ -e ./cln ]; then
+	./cln
+fi
+
 if [ -z "${use_version_txt}" ]; then
 	rows=$(wc -l < debian/changelog)
 	rowsset=$(pwd | tail -c 2 | head -c 1)
