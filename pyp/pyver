@@ -1,14 +1,12 @@
 
-echo pypi.org . enter && \
-read -t $((60*60*24)) && \
-#if [ "${ans}" = "y" ]; then
+set -e
+
 ~/test/xver ./v2
-#else
-#	if [ -z "${exit}" ]; then
-#		exit 1
-#	else
-#		exit ${exit}
-#	fi
-#fi
+
+#is only with a confirmation
+
+echo enter
+
+read -t $((60*60*24))
 
 # https://pypi.org/pypi/audapa/json
