@@ -38,19 +38,23 @@ echo "NEW DATA"
 cd ~/Desktop/arh
 
 f=All_Career_Prize_Money.pdf
-wget ${url} -O $f
 pdftotext $f
 
 #another comparation to test if the date is valid
+old_file_date=$(grep -oP 'As of: \K.*' All_Career_Prize_Money.txt | head -1)
 
+wget ${url} -O $f
+pdftotext $f
 file_date=$(grep -oP 'As of: \K.*' All_Career_Prize_Money.txt | head -1)
 echo "$file_date"
-file_epoch=$(date -d "$file_date" +%s)
 
-week_epoch_now=$(( (now_epoch - 3*86400) / (7*86400) ))
+file_epoch=$(date -d "$file_date" +%s)
+old_file_epoch=$(date -d "$old_file_date" +%s)
+
+week_epoch_old_file=$(( (old_file_epoch - 3*86400) / (7*86400) ))
 week_epoch_file=$(( (file_epoch - 3*86400) / (7*86400) ))
 
-if [ "$week_epoch_now" -eq "$week_epoch_file" ]; then
+if [ "$week_epoch_old_file" -eq "$week_epoch_file" ]; then
 	echo "Same week"
 	rm All_Career_Prize_Money.txt
 	exit 1
