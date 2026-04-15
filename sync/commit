@@ -7,7 +7,7 @@ a=`dirname ${0}`/
 f=~/arh/yuarel.out
 
 if [ -z "${em}" ]; then
-	em=costin.84@hotmail.com
+	em=mail@flashixy.com # costin.84@hotmail.com but will mess with contributions
 	no_act=1
 else
 	no_act=${no_activity}
