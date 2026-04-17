@@ -1,54 +1,58 @@
 set -e
 
-startdir=`pwd`
-
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 major=`pwd | grep -o "[^-]*$"`
-if [ -z "${py}" ]; then
-	src="$(dirname $(pwd))"
-	{
-		cd ~/pc && \
-		uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
-	}
-	fullname=${name}
-else
-	#working with   py2pack generate name -f spec   spec file
-	#must have gnome-shell for introspections to work
-	{
-		~/test/pyp/reversion && \
-		cd ~/pc
-	}
-	fullname=python-${name}
-fi
-pcs=~/test/rpm/home:costin/${fullname}
-n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 nmmaj0=${name}-${major}-orig
 nmmaj=${name}-${major}
-diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch && exit 1
 
-cd ${pcs}
-edor p${n}.patch
-gzip p${n}.patch
+if [ -z "${no_patch}" ]; then
+	startdir=`pwd`
 
-#m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
-#sed -n -i "p;${m}a Patch${n}: p${n}.patch.gz" ${spec}
+	if [ -z "${py}" ]; then
+		src="$(dirname $(pwd))"
+		{
+			cd ~/pc && \
+			uncompre=x mounted=${src}/ ~/test/misc/reversion ${name} ${major}
+		}
+		fullname=${name}
+	else
+		#working with   py2pack generate name -f spec   spec file
+		#must have gnome-shell for introspections to work
+		{
+			~/test/pyp/reversion && \
+			cd ~/pc
+		}
+		fullname=python-${name}
+	fi
+	pcs=~/test/rpm/home:costin/${fullname}
+	n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
 
-outname=p${n}.patch.gz
-echo "Patch${n}: ${outname}" >> b
+	diff -urN ${nmmaj0} ${nmmaj} > ${pcs}/p${n}.patch && exit 1
 
-~/test/rpm/spec ${fullname}
+	cd ${pcs}
+	edor p${n}.patch
+	gzip p${n}.patch
 
-echo "osc add ${outname} && osc commit"
-echo -n osc add ${outname} \&\& osc commit | xclip -sel clip
-echo paste and back for message. y? # in suse if the group is wrong, modify the group number: sudo groupmod -g 1003 bc
-read -n1 -t $((60*60*24)) ans
-if [ "${ans}" != "y" ]; then exit 1; fi
+	#m=`cat ${spec} | grep -n ^Patch | tail -1 | grep -o ^[^:]*`
+	#sed -n -i "p;${m}a Patch${n}: p${n}.patch.gz" ${spec}
 
-cd ${startdir}
-cat ~/n/suse | tail -1 | xclip -sel clip
-echo suse on clip . enter
-read -t $((60*60*24))
-msg=suse ~/test/de/msg
+	outname=p${n}.patch.gz
+	echo "Patch${n}: ${outname}" >> b
+
+	~/test/rpm/spec ${fullname}
+
+	echo "osc add ${outname} && osc commit"
+	echo -n osc add ${outname} \&\& osc commit | xclip -sel clip
+	echo paste and back for message. y? # in suse if the group is wrong, modify the group number: sudo groupmod -g 1003 bc
+	read -n1 -t $((60*60*24)) ans
+	if [ "${ans}" != "y" ]; then exit 1; fi
+
+	cd ${startdir}
+	cat ~/n/suse | tail -1 | xclip -sel clip
+	echo suse on clip . enter
+	read -t $((60*60*24))
+	msg=suse ~/test/de/msg
+fi
 
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/

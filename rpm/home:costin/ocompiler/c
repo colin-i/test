@@ -16,8 +16,34 @@ This package contains necessary header files for O Language development.
 
 #-- PREP, BUILD & INSTALL -----------------------------------------------------#
 %prep
-%autosetup -p1
+# autosetup -p1
+%autosetup -p1 -N
+# unpack extra input file
 gzip -dc %{S:1} > src/obj.txt
+# build ordered patch stream (POSIX-safe)
+patches=$(printf '%s\n' %{_sourcedir}/p*.patch.gz | sort -V)
+#
+pa1=$(printf '%s\n' ${patches} | head -n 14)
+pa2=$(printf '%s\n' ${patches} | tail -n +$((14+1)))
+for p in $pa1; do
+  zcat "$p" | patch -p1
+done
+cd src
+%ifarch i586
+make conv_64=1
+%else
+make
+%endif
+# generate artifact
+sh -c 'base64 obj.o > obj.txt'
+#
+make clean
+cd ..
+#patches 14+
+for p in $pa2; do
+  zcat "$p" | patch -p1
+done
+# final markers
 touch include_dev
 touch ocompiler_is_o
 
@@ -40,7 +66,7 @@ conv_64=1 %make_install
 %files
 %config(noreplace) %attr(0644, root, root) "%{_sysconfdir}/%{name}.conf"
 %attr(0755, root, root) "%{_bindir}/o"
-%attr(0755, root, root) "%{_bindir}/ocompiler"
+"%{_bindir}/ocompiler"
 %ifarch x86_64
 %attr(0755, root, root) "%{_bindir}/ostrip"
 %endif
