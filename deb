@@ -71,6 +71,24 @@ else
 	get_prog_ver
 fi
 
+# relies on legacy /etc/dput.cf , not /etc/dput.d/dput.cf
 dput -f ${target} ${prog_ver}_source.changes && if [ -z "${no_clean}" ]; then
 	rm ${files} && rm ../${zipfile} && rm ${prog_ver}_source.${dest}.upload
 fi
+
+exit #last error status
+
+cat > dummy.changes <<EOF
+Format: 1.8
+Date: Fri, 01 Jan 2021 00:00:00 +0000
+Source: dummy
+Binary: dummy
+Architecture: source
+Version: 1.0
+Distribution: unstable
+Maintainer: Test <test@example.com>
+Files:
+ 00000000000000000000000000000000 0 dummy.tar.gz
+EOF
+
+dput --debug --simulate ssh-ppa:colin-i/ppa dummy.changes
