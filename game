@@ -12,7 +12,11 @@ CURRENT_DIR="$(pwd)"
 REL="${CURRENT_DIR#$HOME/}"
 
 # Remove first directory after HOME
-REL="${REL#*/}"
+if [[ "$REL" == */* ]]; then
+  REL="${REL#*/}"
+else
+  REL=""
+fi
 
 # Convert to a_b_c format
 NAME="$(echo "$REL" | tr '/' '_')"
@@ -38,7 +42,11 @@ upload_file() {
 	sleep 1
 
 	filename="$(basename "$file")"
-	asset_name="${NAME}_${filename}"
+	if [ -n "${NAME}" ]; then
+		asset_name="${NAME}_${filename}"
+	else
+		asset_name="${filename}"
+	fi
 
 	echo "Uploading $filename as $asset_name"
 
