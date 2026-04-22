@@ -49,7 +49,7 @@ touch ocompiler_is_o
 
 %build
 %ifarch i586
-conv_64=1 ldprefer=1 make #having trouble with gcc
+ldprefer=1 make #having trouble with gcc
 %else
 linkerflagsextra="-Wl,-z,noexecstack" make #will not osc build with -z,execstack
 %endif
