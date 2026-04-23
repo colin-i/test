@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-# makepkg -do --skipinteg # to get
+# makepkg -do --skipinteg # to get , on arch , then back at arm
 
 edor PKGBUILD
 
@@ -46,9 +46,12 @@ _patches="`cat ./list`"
 
 #still not working: makepkg -oA
 makepkg -g
-tar -xf ./*tar* -C src
+if [ ! -e src ]; then
+	tar -xf ./*tar* -C src
+fi
 cd src
-gname=`find -maxdepth 1 -name "${name}*" -type d` # | grep \-` when more
+gname=`find -maxdepth 1 -name "${name}*" -type d | grep \-`
+#									this is good when coming twice
 
 to=../
 tof=${to}${finaltag}
