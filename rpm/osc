@@ -40,10 +40,10 @@ for rep in ${reps[@]}; do
 			osc api /build/${proj}/${rep}/${arh}/${name}/_status > 3
 			status=`xmllint --xpath 'string(/status/@code)' ./3`
 			echo ${status}
-			if [ "${status}" = "succeeded" ] || [ "${status}" = "disabled" ] || [ "${status}" = "excluded" ]; then
+			if [ "${status}" = succeeded ] || [ "${status}" = disabled ] || [ "${status}" = excluded ]; then
 				break
 			fi
-			if [ "${status}" = "unresolvable" ]; then #to do automatic
+			if [ "${status}" = unresolvable ] || [ "${status}" = blocked ] || [ `ps aux | grep "python3 -c input('Press any key to exit...')" | wc -l` = 2 ]; then #to do automatic
 				echo "what now? y?"
 				read -n1 -t $((60*60*24)) ans
 				if [ "${ans}" = "y" ]; then
