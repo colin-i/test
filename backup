@@ -92,7 +92,7 @@ for var in "${z[@]}"; do
 			z=( );j=0;is_ok=1
 			while read vr; do
 				if [ "${lang}" = "ro" ]; then  # for this to work , sudo apt install language-pack-ro
-					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then 
+					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then
 						is_ok=0
 					fi
 				else
