@@ -92,12 +92,25 @@ for var in "${z[@]}"; do
 			z=( );j=0;is_ok=1
 			while read vr; do
 				if [ "${lang}" = "ro" ]; then  # for this to work , sudo apt install language-pack-ro
-					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then  # .git .expected swf_backup localtest
+					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then 
 						is_ok=0
 					fi
 				else
 					if [[ ( "${vr:0:7}" != "Only in" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then
 						is_ok=0
+					else
+						if [ ${vr:8:${#src}} = ${src} ]; then
+							qtmp="${vr#Only in }"
+							dir="${qtmp%%:*}"
+							file="${qtmp##*: }"
+							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != tmp ]; then
+								full="${dir}/${file}"
+								rel="${full#$src/}"
+								mkdir -p "${dest}/$(dirname "${rel}")"
+								cp -r "${full}" "${dest}/$rel"
+								response=1
+							fi
+						fi
 					fi
 				fi
 				if [ ${is_ok} = 0 ]; then
@@ -116,7 +129,6 @@ for var in "${z[@]}"; do
 					echo ${vr}
 					rm -ri ${vr}
 				done
-
 				response=1
 			fi
 		fi

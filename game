@@ -4,27 +4,47 @@
 
 set -euo pipefail
 
-REPO_DIR="$HOME/games"
-
 CURRENT_DIR="$(pwd)"
 
 # Strip $HOME/
 REL="${CURRENT_DIR#$HOME/}"
 
-# Remove first directory after HOME
-if [[ "$REL" == */* ]]; then
-  REL="${REL#*/}"
-else
-  REL=""
+# Remove first two directories
+BASE=
+for i in 1 2; do
+  PART="${REL%%/*}"
+  BASE="$BASE/$PART"
+  if [[ "$REL" == */* ]]; then
+    REL="${REL#*/}"
+  else
+    REL=""
+  fi
+done
+
+# Check third directory (now first in REL)
+if [[ -n "$REL" ]]; then
+  FIRST_PART="${REL%%/*}"
+  if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then
+    #need to go to that project
+    cd "$HOME$BASE"
+    cd "$(readlink -f "$REL")"
+    CURRENT_DIR="$(pwd)"
+
+    # Remove it if it's a symlink
+    if [[ "$REL" == */* ]]; then
+      REL="${REL#*/}"
+    else
+      REL=""
+    fi
+  fi
+#else # we are already in the repo
+#  cd "$HOME$BASE"
 fi
 
 # Convert to a_b_c format
 NAME="$(echo "$REL" | tr '/' '_')"
 
-echo "Generated name: $NAME"
-
-# Move to repo so gh works
-cd "$REPO_DIR"
+echo "Generated base: $NAME"
 
 ## Get latest release tag
 #TAG="$(gh release view --json tagName -q .tagName)"
