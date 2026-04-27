@@ -24,13 +24,13 @@ done
 # Check third directory (now first in REL)
 if [[ -n "$REL" ]]; then
   FIRST_PART="${REL%%/*}"
-  if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then
+  if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then # it's a symlink
     #need to go to that project
     cd "$HOME$BASE"
     cd "$(readlink -f "$REL")"
     CURRENT_DIR="$(pwd)"
 
-    # Remove it if it's a symlink
+    # Remove it
     if [[ "$REL" == */* ]]; then
       REL="${REL#*/}"
     else
@@ -40,6 +40,16 @@ if [[ -n "$REL" ]]; then
 #else # we are already in the repo
 #  cd "$HOME$BASE"
 fi
+
+#sanity check
+IFS='/' read -ra parts <<< "$REL"
+active_found=false
+for p in "${parts[@]}"; do
+  if [[ "$p" == "active" ]]; then
+    echo sanity check failed regarding "'active'"
+    exit 1
+  fi
+done
 
 # Convert to a_b_c format
 NAME="$(echo "$REL" | tr '/' '_')"
@@ -76,12 +86,16 @@ upload_file() {
 	cp -s "$file" "${inter}"
 
 	echo "Uploading $asset_name"
-	gh release upload "$TAG" "${inter}" --clobber
+	gh release upload "$TAG" "${inter}" --clobber || {
+		rm "${inter}"
+		exit 1
+	}
 
 	# Remove temp file
 	rm "${inter}"
 }
 
+gh release view "$TAG" --json assets --jq '.assets | length'
 # Upload files
 if [ -n "${1:-}" ]; then
 	upload_file "$CURRENT_DIR/$1"
@@ -90,3 +104,4 @@ else
 		upload_file "$file"
 	done
 fi
+gh release view "$TAG" --json assets --jq '.assets | length'
