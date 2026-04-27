@@ -103,7 +103,7 @@ for var in "${z[@]}"; do
 							qtmp="${vr#Only in }"
 							dir="${qtmp%%:*}"
 							file="${qtmp##*: }"
-							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != tmp ]; then
+							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != temp ] && [ "${file}" != tmp ]; then
 								full="${dir}/${file}"
 								rel="${full#$src/}"
 								mkdir -p "${dest}/$(dirname "${rel}")"
