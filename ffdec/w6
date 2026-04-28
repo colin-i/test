@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#1 in folder  2 out folder
+
+export INDIR="$1"
+export OUTDIR="$2"
+export ONLYFILE="$3"
+
+python3 - <<'PY'
+import os
+from collections import Counter
+
+in_dir = os.environ["INDIR"]
+out_dir = os.environ["OUTDIR"]
+only_file = os.environ.get("ONLYFILE")
+
+counter = Counter()
+
+if only_file=="":
+	files_to_process = os.walk(in_dir)
+else:
+	files_to_process = [(in_dir, [], [only_file])]
+
+for root, dirs, files in files_to_process:
+    for name in files:
+        in_path = os.path.join(root, name)
+        rel_path = os.path.relpath(in_path, in_dir)
+        out_path = os.path.join(out_dir, rel_path)
+
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+        try:
+            with open(in_path, "r", encoding="utf-8", errors="ignore") as f:
+                text = f.read()
+        except:
+            continue
+
+        result = []
+        for ch in text:
+            if ord(ch) > 127:
+                counter[ch] += 1
+                result.append(f"\\u{ord(ch):04X}")
+            else:
+                result.append(ch)
+
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write("".join(result))
+
+# ---- print stats ----
+for ch, count in sorted(counter.items(), key=lambda x: x[0].encode("utf-8")):
+    code = f"{ord(ch):04X}"
+    print(f"{count:6} {ch} \\u{code}  =>  &#x{code};")
+PY
+
+#find $1 -type f -print0 | \
+#xargs -0 cat | \
+#grep -oP '[^\x00-\x7F]' | \
+#sort | uniq -c | sort -nr | \
+#python3 -c '
+#import sys
+#for line in sys.stdin:
