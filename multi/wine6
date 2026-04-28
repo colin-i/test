@@ -1,1 +1,1 @@
-winein=f ~/test/multi/_wine6 $@
+winein=f ~/test/multi/_wine6 wine${winesfx} $@
