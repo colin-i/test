@@ -39,7 +39,7 @@ for root, dirs, files in files_to_process:
         for ch in text:
             if ord(ch) > 127:
                 counter[ch] += 1
-                result.append(f"\\u{ord(ch):04X}")
+                result.append(f"\\u{ord(ch):04x}")
             else:
                 result.append(ch)
 
@@ -48,7 +48,7 @@ for root, dirs, files in files_to_process:
 
 # ---- print stats ----
 for ch, count in sorted(counter.items(), key=lambda x: x[0].encode("utf-8")):
-    code = f"{ord(ch):04X}"
+    code = f"{ord(ch):04x}"
     print(f"{count:6} {ch} \\u{code}  =>  &#x{code};")
 PY
 
