@@ -53,7 +53,7 @@ def click(x,y,pages):
 			pages=pages-1
 import time
 def pack(type):
-	skp=os.environ["skip"]
+	skp = os.environ.get("skip")
 	if skp==type:
 		return
 	print('enter')

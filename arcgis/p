@@ -32,7 +32,7 @@ if [ "${file}" != 0 ]; then
 	echo -n `cat ~/measures/kproblems`'kolourpaint ./a.jpg' | xclip -sel clip #when having icon problems, apt install qt6ct (test with: QT_QPA_PLATFORMTHEME=qt6ct qt6ct)
 	echo `xclip -o -sel clip`
 fi
-if [ "$2" != 0 ]; then
+if [ -z "$2" ]; then
 	#at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 	left=240
 	top=139
@@ -54,22 +54,24 @@ if [ "$2" != 0 ]; then
 	height=$((bottom-top))
 	convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 fi
-`cat ~/imgviewer` b.jpg
-echo continue \? y \?
-read -n1 -t $((60*60*24)) q
-if [ "${q}" != "y" ]; then
-	exit 1
-fi
+if [ -z "$3" ]; then
+	`cat ~/imgviewer` b.jpg
+	echo continue \? y \?
+	read -n1 -t $((60*60*24)) q
+	if [ "${q}" != "y" ]; then
+		exit 1
+	fi
 
-#from_caps ${2}
-#convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
+	#from_caps $2
+	#convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 
-~/test/arcgis/up b.jpg | xclip -selection clipboard
-xclip -selection clipboard -o
-echo continue \? y \?
-read -n1 -t $((60*60*24)) q
-if [ "${q}" != "y" ]; then
-	exit 1
+	~/test/arcgis/up b.jpg | xclip -selection clipboard
+	xclip -selection clipboard -o
+	echo continue \? y \?
+	read -n1 -t $((60*60*24)) q
+	if [ "${q}" != "y" ]; then
+		exit 1
+	fi
 fi
 
 rm a.pdf a.png a.jpg b.jpg
