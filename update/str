@@ -1,0 +1,14 @@
+set -e
+
+cd ~/s/actionswf-1
+gh release download --pattern '*ubuntu*' -O ~/Desktop/actionswf.tar.gz
+
+cd ~/Desktop/actionswf
+rm -r ./*
+mv ../actionswf.tar.gz .
+tar -xf actionswf.tar.gz
+mv usr/include .
+mv usr/bin/* .
+mv usr/lib/* .
+rm actionswf.tar.gz
+rm -r usr
