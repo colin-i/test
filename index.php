@@ -69,7 +69,7 @@ if(!ob.w){
 	ob.w=800;ob.h=600;
 	if(game!=0)ob.g=ob.g+'/_'+ob.g;
 	else ob.g=ob.g+'/'+ob.g;
-}
+}else ob.g=ob.g+'/'+ob.g;
 const e=document.getElementById("a");
 e.width=ob.w;
 e.height=ob.h;
