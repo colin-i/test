@@ -1,0 +1,2 @@
+. kk
+paste ~/stats/kongfull <(printf "%s\n" "${knowngames[@]}") | sort -nr
