@@ -1,0 +1,28 @@
+// ==UserScript==
+// @name         Kongregate preview debug_level fixer (robust)
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  Ensure debug_level=4 on any *_preview page
+// @match        https://www.kongregate.com/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const PARAM = 'debug_level';
+    const VALUE = '4';
+
+    function shouldRun(url) {
+        return /\/games\/[^/]+\/[^/]+_preview/.test(url);
+    }
+
+    const url = new URL(window.location.href);
+
+    if (!shouldRun(url.pathname)) return;
+
+    if (!url.searchParams.has(PARAM)) {
+        url.searchParams.set(PARAM, VALUE);
+        window.location.replace(url.toString());
+    }
+})();
