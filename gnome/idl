@@ -1,0 +1,5 @@
+OLD_IDLE=$(gsettings get org.gnome.desktop.session idle-delay)
+
+gsettings set org.gnome.desktop.session idle-delay 0
+read
+gsettings set org.gnome.desktop.session idle-delay "$OLD_IDLE"

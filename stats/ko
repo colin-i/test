@@ -1,2 +1,17 @@
 . kk
-paste ~/stats/kongfull <(printf "%s\n" "${knowngames[@]}") | sort -nr
+if [ -z "$1" ]; then
+	paste ~/stats/kongfull <(printf "%s\n" "${knowngames[@]}") | sort -nr
+else
+	if [ $1 != 0 ]; then
+		paste ~/stats/kongfull <(printf "%s\n" "${knowngames[@]}") | sort -nr | head -$1
+	else
+		i=0
+		paste ~/stats/kongfull <(printf "%s\n" "${knowngames[@]}") | sort -nr | while read -r line; do
+			x="$line $i"
+			echo $x
+			echo $x | cut -d' ' -f2 | tr -d '\n' | xclip -sel clip
+			read < /dev/tty
+			i=$((i+1))
+		done
+	fi
+fi
