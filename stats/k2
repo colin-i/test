@@ -1,11 +1,15 @@
 
 . ~/test/stats/kk
 
+if [ -z "${no_download}" ]; then
+	for var in "${knowngames[@]}";do
+		echo ${var}
+		curl -sL "https://www.kongregate.com/en/games/bitplayer/${var}/metrics.json" | jq > ./k/${var} # -o ./k/${var} #this is one string
+		sleep 2
+	done
+fi
 for var in "${knowngames[@]}";do
-	echo ${var}
-	curl -sL "https://www.kongregate.com/en/games/bitplayer/${var}/metrics.json" -o ./k/${var}
 	cat ./k/${var} | jq '.gameplays_count' >> 6
-	sleep 2
 done
 
 exit
