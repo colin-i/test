@@ -1,7 +1,13 @@
 
-cp ~/a/tmp/ffdec/translation.jpt ~/.config/FFDec/translated.zip # because it is autosaved on close. want diff 0 and timestamps inside file differs
-sync # because cp is in script and ffdec doing errors sometimes
-cd ~/ffdec/bin
+cd ~/ffdec/jpexs-decompiler-1
+b=`git branch --show-current`
 gsettings set org.gnome.desktop.interface gtk-theme Yaru
-./ffdec -translator
+if [ "$b" = dev ]; then
+	cp ~/a/tmp/ffdec/translation.jpt ~/.config/FFDec/translated.zip # because it is autosaved on close. want diff 0 and timestamps inside file differs
+	sync # because cp is in script and ffdec doing errors sometimes
+	cd ~/ffdec/bin
+	./ffdec -translator
+else
+	~/a/tmp/ffdec/r
+fi
 gsettings set org.gnome.desktop.interface gtk-theme Yaru-dark
