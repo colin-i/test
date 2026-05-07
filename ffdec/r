@@ -8,6 +8,6 @@ if [ "$b" = dev ]; then
 	cd ~/ffdec/bin
 	./ffdec -translator
 else
-	~/a/tmp/ffdec/r
+	~/a/tmp/ffdec/r -translator
 fi
 gsettings set org.gnome.desktop.interface gtk-theme Yaru-dark
