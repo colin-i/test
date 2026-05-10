@@ -17,6 +17,37 @@ if [ -e ./cln ]; then
 fi
 
 if [ -z "${use_version_txt}" ]; then
+# get line 5 from debian/changelog
+	line="$(sed -n '5p' debian/changelog)"
+	date_str="${line##*>  }"
+	echo ${date_str}
+	now_ts=$(date +%s)
+
+	pkg_day=$(date -d "$date_str" +%F) #2026-01-01
+	limit_day=$(date -d "$pkg_day +10 days" +%F)
+	today=$(date -d "@$now_ts" +%F)
+	if [[ "$today" < "$limit_day" ]]; then
+		pkg_ts=$(date -d "$date_str" +%s)
+		if (( now_ts - pkg_ts < 7*24*60*60 )); then
+			echo "week rule: FAIL"
+			time_rule=1
+		else
+			pkg_prefix=$(date -d "$date_str" +%d)
+			pkg_prefix="${pkg_prefix:0:1}"
+			now_prefix=$(date -d "@$now_ts" +%d)
+			now_prefix="${now_prefix:0:1}"
+			if [ ${pkg_prefix} = ${now_prefix} ]; then
+				echo "prefix rule: FAIL"
+				time_rule=1
+			fi
+		fi
+	fi
+	if [ -n "${time_rule}" ]; then
+		echo y and Enter
+		read -t $((60*60*24)) ans && \
+		if [ "${ans}" != "y" ]; then exit 1; fi
+	fi
+
 	rows=$(wc -l < debian/changelog)
 	rowsset=$(pwd | tail -c 2 | head -c 1)
 	[ $((rows/1000+1)) -eq "${rowsset}" ] || {
