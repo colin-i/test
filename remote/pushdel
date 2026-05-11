@@ -10,7 +10,7 @@ if [ -z "${onlyremote}" ]; then
 	fi
 fi
 
-name=`git remote -v show | grep origin | head -1 | grep -Poe "[^/]*$" | grep -o "^[^ ]*" | grep -o "^[^.]*"`
+name=`basename -s .git "$(git remote get-url origin)"`
 git push https://gitlab-ci-token:`cat ~/n/tmp/pat`@github.com/colin-i/${name}.git --delete ${1}
 
 #git branch -m archived

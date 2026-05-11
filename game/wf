@@ -1,0 +1,3 @@
+if [ -z "$1" ]; then b=main; else b=$1; fi
+if [ -z "$2" ]; then r=deploy; else r=$2; fi
+gh workflow run deploy.yml --ref $r -f branch=$b
