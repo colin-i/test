@@ -97,8 +97,11 @@ upload_file() {
 
 gh release view "$TAG" --json assets --jq '.assets | length'
 # Upload files
-if [ -n "${1:-}" ]; then
-	upload_file "$CURRENT_DIR/$1"
+#if [ -n "${1:-}" ]; then , - is to not fail from set -u
+if [ "$#" -gt 0 ]; then
+	for file in "$@"; do
+		upload_file "$CURRENT_DIR/${file}"
+	done
 else
 	for file in "$CURRENT_DIR"/*; do
 		upload_file "$file"
