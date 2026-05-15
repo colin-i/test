@@ -4,7 +4,7 @@ cd ~/s/actionswf-1
 gh release download --pattern '*ubuntu*' -O ~/Desktop/actionswf.tar.gz
 
 cd ~/Desktop/actionswf
-rm -r ./*
+rm -r ./* || echo nothing to remove
 mv ../actionswf.tar.gz .
 tar -xf actionswf.tar.gz
 mv usr/include .
