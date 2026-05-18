@@ -1,4 +1,6 @@
 
+git diff --quiet && exit 1
+
 last=`git show --summary --format="%at" | head -1`
 m=`date -u -d @${last} +%m`
 thism=$(date -u -d @$(date +%s) +%m)
