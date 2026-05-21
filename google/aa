@@ -9,7 +9,13 @@ if [ -z "${mime}" ]; then
 fi
 
 if [ -z "${nodif}" ]; then
-	~/test/google/dif $1
+	~/test/google/dif $1 || {
+		if [ ! -e ~/tabs/$1 ]; then
+			echo file is not yet in tabs
+		fi
+		echo \?
+		read
+	}
 fi
 
 f=~/Desktop/1
