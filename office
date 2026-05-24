@@ -1,0 +1,7 @@
+
+n=`ps -C soffice.bin | wc -l`
+libreoffice $1
+if [ $n -gt 1 ]; then
+	echo \?
+	read
+fi
