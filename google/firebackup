@@ -1,0 +1,4 @@
+cd ~/Desktop/npm
+node firebackup.js
+cd ~/Desktop/experimental
+~/test/bots/tests

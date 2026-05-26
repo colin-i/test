@@ -1,0 +1,2 @@
+~/test/pub deploy
+branch=main workflow_names=pages-build-deployment ~/test/pub
