@@ -8,9 +8,21 @@ if [ -z "${no_download}" ]; then
 		sleep 2
 	done
 fi
+python ~/games/list/share/get_firestore.py > f/chambers
+
+dif () {
+	c=$(($1-$2))
+	d=`if [ $c = 0 ]; then echo ..........; else echo $c; fi`
+	echo $1 - $2 = $d
+}
+
 for var in "${knowngames[@]}";do
-	cat ./k/${var} | jq '.gameplays_count' >> 6
+	a=`cat ./k/${var} | jq '.gameplays_count'`
+	echo $a >> 6
+	b=`git show master:./k/${var} | jq '.gameplays_count'`
+	dif $a $b
 done
+dif `cat ./f/chambers` `git show master:./f/chambers`
 
 exit
 
