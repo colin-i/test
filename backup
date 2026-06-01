@@ -101,7 +101,7 @@ for var in "${z[@]}"; do
 					else
 						if [ ${vr:8:${#src}} = ${src} ]; then
 							qtmp="${vr#Only in }"
-							dir="${qtmp%%:*}"
+							dir="${qtmp%: *}" #dir="${qtmp%%:*}" #this is after first, will break at home:costin
 							file="${qtmp##*: }"
 							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != temp ] && [ "${file}" != tmp ]; then
 								full="${dir}/${file}"
