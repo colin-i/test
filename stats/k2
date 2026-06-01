@@ -10,7 +10,7 @@ if [ -z "${no_download}" ]; then
 		sleep 2
 	done
 fi
-if [ -n "$1" ]; then
+if [ -z "$1" ]; then
 	exit
 fi
 python ~/games/list/share/get_firestore.py > f/chambers
