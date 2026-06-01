@@ -1,3 +1,5 @@
+set -e
+#1 is dif
 
 . ~/test/stats/kk
 
@@ -7,6 +9,9 @@ if [ -z "${no_download}" ]; then
 		curl -sL "https://www.kongregate.com/en/games/bitplayer/${var}/metrics.json" | jq > ./k/${var} # -o ./k/${var} #this is one string
 		sleep 2
 	done
+fi
+if [ -n "$1" ]; then
+	exit
 fi
 python ~/games/list/share/get_firestore.py > f/chambers
 
