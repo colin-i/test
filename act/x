@@ -4,10 +4,20 @@
 #twurl authorize --consumer-key `cat ~/n/pat6` \
 #                --consumer-secret `cat ~/n/pat7`
 
-text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".includes.tweets[0].text"`
+#or
+#npm
+#./xurl auth oauth1  --consumer-key `cat ~/n/pat6` --consumer-secret `cat ~/n/pat7` --access-token `cat ~/n/pat15` --token-secret `cat ~/n/pat16`
+#npm install @xdevplatform/xurl
+
+#text=`twurl /2/users/me?expansions=pinned_tweet_id | jq ".includes.tweets[0].text"`
 #\&tweet.fields=text        history,id and text are always
 #-t to see response headers
 #x-app-limit-24hour-reset
+id=$(/home/bc/Desktop/npm/node_modules/.bin/xurl "/2/users/me?user.fields=pinned_tweet_id" | jq -r '.data.pinned_tweet_id')
+
+text=$(curl -sL "https://x.com/flashixy/status/${id}" |
+grep -oP '"full_text":"\K([^"]|\\")*' |
+python3 -c 'import sys,codecs,html; print(html.unescape(codecs.decode(sys.stdin.read(),"unicode_escape")))')
 
 n=`echo ${text} | grep -Poe "[^ ]*(?:.(?! rows))+$" | grep -Poe "[^ ]*" | head -1`
 k=`echo ${n}/1000 | bc`
