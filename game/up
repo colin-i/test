@@ -23,22 +23,26 @@ done
 
 # Check third directory (now first in REL)
 if [[ -n "$REL" ]]; then
-  FIRST_PART="${REL%%/*}"
-  if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then # it's a symlink
-    #need to go to that project
-    cd "$HOME$BASE"
-    cd "$(readlink -f "$REL")"
-    CURRENT_DIR="$(pwd)"
+	FIRST_PART="${REL%%/*}"
+	if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then # it's a symlink
+	  #need to go to that project
+	  cd "$HOME$BASE"
+	  cd "$(readlink -f "$REL")"
+	  CURRENT_DIR="$(pwd)"
 
-    # Remove it
-    if [[ "$REL" == */* ]]; then
-      REL="${REL#*/}"
-    else
-      REL=""
-    fi
-  fi
-#else # we are already in the repo
-#  cd "$HOME$BASE"
+	  # Remove it
+	  if [[ "$REL" == */* ]]; then
+	    REL="${REL#*/}"
+	  else
+	    REL=""
+	  fi
+
+	  #set for the counter
+	  BASE=$BASE/$FIRST_PART
+	fi
+#else
+#	#  cd "$HOME$BASE"  # we are already in the repo
+#	FIRST_PART=""
 fi
 
 #sanity check
@@ -95,7 +99,7 @@ upload_file() {
 	rm "${inter}"
 }
 
-gh release view "$TAG" --json assets --jq '.assets | length'
+#gh release view "$TAG" --json assets --jq '.assets | length'
 # Upload files
 #if [ -n "${1:-}" ]; then , - is to not fail from set -u
 if [ "$#" -gt 0 ]; then
@@ -107,4 +111,8 @@ else
 		upload_file "$file"
 	done
 fi
-gh release view "$TAG" --json assets --jq '.assets | length'
+a=$(gh release view "$TAG" --json assets --jq '.assets | length')
+cd $HOME/$BASE
+b=$(find -type f | wc -l)
+echo $a $b
+if [ $a != $b ]; then echo NOT EQUAL; exit 1; fi
