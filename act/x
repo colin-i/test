@@ -15,9 +15,26 @@
 #x-app-limit-24hour-reset
 id=$(/home/bc/Desktop/npm/node_modules/.bin/xurl "/2/users/me?user.fields=pinned_tweet_id" | jq -r '.data.pinned_tweet_id')
 
-text=$(curl -sL "https://x.com/flashixy/status/${id}" |
-grep -oP '"full_text":"\K([^"]|\\")*' |
-python3 -c 'import sys,codecs,html; print(html.unescape(codecs.decode(sys.stdin.read(),"unicode_escape")))')
+if [ -n "${inter}" ]; then
+	echo ${id}
+	read
+fi
+
+text=$(curl -sL "https://x.com/flashixy/status/${id}" | tr -d '\0')
+
+if [ -n "${inter}" ]; then
+	echo ${text}
+	read
+fi
+
+text=$(printf '%s\n' "$text" | grep -oP 'full_text:"\K([^"]|\\")*')
+
+if [ -n "${inter}" ]; then
+	echo ${text}
+	read
+fi
+
+text=$(echo ${text} | python3 -c 'import sys,codecs,html; print(html.unescape(codecs.decode(sys.stdin.read(),"unicode_escape")))')
 
 n=`echo ${text} | grep -Poe "[^ ]*(?:.(?! rows))+$" | grep -Poe "[^ ]*" | head -1`
 k=`echo ${n}/1000 | bc`
