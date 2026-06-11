@@ -24,8 +24,9 @@ if [ -z "${use_version_txt}" ]; then
 	now_ts=$(date +%s)
 
 	pkg_day=$(date -d "$date_str" +%F) #2026-01-01
-	limit_day=$(date -d "$pkg_day +10 days" +%F)
 	today=$(date -d "@$now_ts" +%F)
+
+	limit_day=$(date -d "$pkg_day +10 days" +%F)
 	if [[ "$today" < "$limit_day" ]]; then
 		pkg_ts=$(date -d "$date_str" +%s)
 		if (( now_ts - pkg_ts < 7*24*60*60 )); then
@@ -37,9 +38,16 @@ if [ -z "${use_version_txt}" ]; then
 			now_prefix=$(date -d "@$now_ts" +%d)
 			now_prefix="${now_prefix:0:1}"
 			if [ ${pkg_prefix} = ${now_prefix} ]; then
-				echo "prefix rule: FAIL"
+				echo "10/20/30 rule: FAIL"
 				time_rule=1
 			fi
+		fi
+	fi
+	if [ -z "${time_rule}" ]; then #this was added later, can be coded better but for short size code is good
+		limit_day=$(date -d "$pkg_day +30 days" +%F)
+		if [[ "$today" < "$limit_day" ]]; then
+			echo "30 days rule: FAIL"
+			time_rule=1
 		fi
 	fi
 	if [ -n "${time_rule}" ]; then

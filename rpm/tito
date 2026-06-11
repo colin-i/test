@@ -11,5 +11,7 @@ else
 	ans=$1
 fi
 tito tag --use-version ${ans} --use-release 0
+
+# git ls-remote --tags origin
 #when deleting a tag (tag=x ~/test/remote/pushdel tagName), a new tag will be with problems
 #	replace with prev valid tag in .tito/packages/[name], and in .spec, and arrange the changelog in .spec
