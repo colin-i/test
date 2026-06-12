@@ -115,7 +115,7 @@ a=$(gh release view "$TAG" --json assets --jq '.assets | length')
 if [ -z "${no_active:-}" ]; then
 	cd $HOME/$BASE
 	b=$(find -type f | wc -l)
-	echo -n $b
+	echo -n "$b "
 fi
 echo $a
 if [ -z "${no_active:-}" ]; then
