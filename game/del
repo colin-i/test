@@ -1,0 +1,8 @@
+set -e
+if [ -z "$1" ]; then exit 1; fi
+
+. ~/test/game/base
+
+gh release delete-asset "$TAG" "${NAME}_$1"
+
+~/test/game/dif $TAG $HOME/$BASE

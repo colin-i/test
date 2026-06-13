@@ -1,0 +1,13 @@
+set -e
+if [ -z "$1" ]; then exit 1; fi
+
+a=$(gh release view "$1" --json assets --jq '.assets | length')
+if [ -z "${no_active:-}" ]; then
+	cd $2
+	b=$(find -type f | wc -l)
+	echo -n "$b "
+fi
+echo $a
+if [ -z "${no_active:-}" ]; then
+	if [ $b != $a ]; then echo NOT EQUAL; exit 1; fi
+fi

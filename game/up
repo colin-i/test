@@ -4,69 +4,7 @@
 
 set -euo pipefail
 
-CURRENT_DIR="$(pwd)"
-
-# Strip $HOME/
-REL="${CURRENT_DIR#$HOME/}"
-
-# Remove first two directories
-BASE=
-for i in 1 2; do
-  PART="${REL%%/*}"
-  BASE="$BASE/$PART"
-  if [[ "$REL" == */* ]]; then
-    REL="${REL#*/}"
-  else
-    REL=""
-  fi
-done
-
-# Check third directory (now first in REL)
-if [[ -n "$REL" ]]; then
-	FIRST_PART="${REL%%/*}"
-	if [[ -L "$HOME$BASE/$FIRST_PART" ]]; then # it's a symlink
-	  #need to go to that project
-	  cd "$HOME$BASE"
-	  cd "$(readlink -f "$REL")"
-	  CURRENT_DIR="$(pwd)"
-
-	  # Remove it
-	  if [[ "$REL" == */* ]]; then
-	    REL="${REL#*/}"
-	  else
-	    REL=""
-	  fi
-
-	  #set for the counter
-	  BASE=$BASE/$FIRST_PART
-	fi
-#else
-#	#  cd "$HOME$BASE"  # we are already in the repo
-#	FIRST_PART=""
-fi
-
-#sanity check
-IFS='/' read -ra parts <<< "$REL"
-active_found=false
-for p in "${parts[@]}"; do
-  if [[ "$p" == "active" ]]; then
-    echo sanity check failed regarding "'active'"
-    exit 1
-  fi
-done
-
-# Convert to a_b_c format
-NAME="$(echo "$REL" | tr '/' '_')"
-
-echo "Generated base: $NAME"
-
-## Get latest release tag
-#TAG="$(gh release view --json tagName -q .tagName)"
-# Get the latest pre-release tag
-TAG=$(gh release list --limit 1 --json tagName,isPrerelease \
-	-q '.[] | select(.isPrerelease) | .tagName' | head -n1)
-
-echo "Using release: $TAG"
+. ~/test/game/base
 
 upload_file() {
 	file="$1"
@@ -111,13 +49,4 @@ else
 		upload_file "$file"
 	done
 fi
-a=$(gh release view "$TAG" --json assets --jq '.assets | length')
-if [ -z "${no_active:-}" ]; then
-	cd $HOME/$BASE
-	b=$(find -type f | wc -l)
-	echo -n "$b "
-fi
-echo $a
-if [ -z "${no_active:-}" ]; then
-	if [ $b != $a ]; then echo NOT EQUAL; exit 1; fi
-fi
+~/test/game/dif $TAG $HOME/$BASE
