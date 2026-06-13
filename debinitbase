@@ -44,9 +44,9 @@ if [ -z "${use_version_txt}" ]; then
 		fi
 	fi
 	if [ -z "${time_rule}" ]; then #this was added later, can be coded better but for short size code is good
-		limit_day=$(date -d "$pkg_day +30 days" +%F)
+		limit_day=$(date -d "$pkg_day +1 month" +%F)
 		if [[ "$today" < "$limit_day" ]]; then
-			echo "30 days rule: FAIL"
+			echo "month rule: FAIL"
 			time_rule=1
 		fi
 	fi

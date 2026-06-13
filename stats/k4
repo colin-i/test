@@ -1,0 +1,25 @@
+
+#curl -s  | grep -o 'data-comment-id="[0-9]*"' | sed 's/[^0-9]//g' | awk '!seen[$0]++' > k/$1.comments.txt
+#https://www.kongregate.com/en/games/bitplayer/$1
+#first 5 are Top Rated, next 5 are Recent
+
+get_data () {
+	while :; do
+		f=k/$1.txt
+		curl -L --get --data-urlencode 'top_comment_ids=[]' "https:/www.kongregate.com/en/games/bitplayer/$1/comments.js" | grep -oP 'id="comment(_response_content)?_\K[0-9]+' > $f
+		git diff --exit-code $f && break
+		read
+	done
+}
+if [ -z "$1" ]; then
+	. ~/test/stats/kk
+
+	for var in "${knowngames[@]}";do
+		echo ${var}
+		get_data ${var}
+		sleep 2
+	done
+else
+	echo $1
+	get_data $1
+fi
