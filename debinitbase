@@ -46,6 +46,13 @@ if [ -z "${use_version_txt}" ]; then
 	if [ -z "${time_rule}" ]; then #this was added later, can be coded better but for short size code is good
 		limit_day=$(date -d "$pkg_day +1 month" +%F)
 		if [[ "$today" < "$limit_day" ]]; then
+			limit_ts=$(date -d "$pkg_day +1 month" +%s)
+			diff=$((limit_ts - now_ts))
+			days=$((diff / 86400))
+			hours=$(((diff % 86400) / 3600))
+			mins=$(((diff % 3600) / 60))
+			echo "remaining: ${days}d ${hours}h ${mins}m"
+
 			echo "month rule: FAIL"
 			time_rule=1
 		fi
