@@ -1,0 +1,6 @@
+{
+  "uuid": "focuswatch@local",
+  "name": "Focus Watch",
+  "description": "Event-driven focus watcher",
+  "shell-version": ["50"]
+}

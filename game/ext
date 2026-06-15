@@ -1,0 +1,10 @@
+
+#copy metadata and extension to ~/.local/share/gnome-shell/extensions/focuswatch@local
+
+printf '\033]0;%s\007' extensie
+pinta $1 &
+p=$!
+
+python ~/test/game/ext.py
+
+wait $p
