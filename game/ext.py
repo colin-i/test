@@ -17,7 +17,7 @@ proc = subprocess.Popen(
     cmd,
     stdout=subprocess.PIPE,
     text=True,
-    bufsize=1
+    bufsize=1 #The intent is that readline gets lines as soon as they're available.
 )
 
 pattern = re.compile(r"^\[FocusWatch\] extensie$")
@@ -36,8 +36,8 @@ while True:
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"Time: {now}")
 
-    if sys.stdin in ready:
-        sys.stdin.readline()  # consume Enter
+    if sys.stdin in ready: # both can be in ready
+        sys.stdin.readline()  # consume Enter, else i see two command prompts after
         print("Enter pressed, exiting.")
         proc.terminate()
         break
