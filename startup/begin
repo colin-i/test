@@ -46,7 +46,7 @@ if [ -z "${is_vnc}" ]; then
 		fi
 		~/test/plug/a ${a} ${1} ${2}
 	else
-		date +%s
+		~/games/arh/startup
 		~/arh/activity
 	fi
 else
