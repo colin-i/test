@@ -30,13 +30,23 @@ def main():
 	output_dir = sys.argv[3]
 
 	with open(json_file) as f:
-		data = json.load(f)
+		all_data = json.load(f)
+
+	if len(sys.argv) > 4:
+		data = {}
+		for name in sys.argv[4:]:
+			if name not in all_data:
+				print("ERROR: scene not found:", name)
+				sys.exit(1)
+			data[name] = all_data[name]
+	else:
+		data = all_data
 
 	def resolve(name):
-		if "base" not in data[name]:
-			return data[name]
+		if "base" not in all_data[name]:
+			return all_data[name]
 
-		base = resolve(data[name]["base"])
+		base = resolve(all_data[name]["base"])
 
 		merged = {
 			"layers": list(base.get("layers", [])),
@@ -44,7 +54,7 @@ def main():
 			"flatten": base.get("flatten", False)
 		}
 
-		cur = data[name]
+		cur = all_data[name]
 		minus = cur.get("layers_minus", [])
 		replacements = cur.get("layers_replace", {})
 		#plus = cur.get("layers_plus", [])
@@ -60,7 +70,7 @@ def main():
 				merged_layers[i] = new
 			else:
 				print("ERROR: layer not found for replace:", old)
-				exit(1)
+				sys.exit(1)
 
 		# append
 		#for l in plus:
@@ -71,7 +81,9 @@ def main():
 
 		if "offsets" in cur:
 			for k, v in cur["offsets"].items():
-				merged["offsets"][k] = merged["offsets"].get(k, 0) + v
+				k = int(k)
+				for l in v:
+					merged["offsets"][l] = merged["offsets"].get(l, 0) + k
 
 		if "flatten" in cur:
 			merged["flatten"] = cur["flatten"]

@@ -1,1 +1,3 @@
-python ~/test/game/exp.py $1 $2 $3
+
+if [ -z "$p" ]; then p=python; fi
+$p ~/test/game/exp.py $@
