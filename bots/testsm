@@ -1,1 +1,3 @@
-only_commit=x ~/test/bots/botm tests $1
+
+if [ -z "${no_only_commit}" ]; then only_commit=x; fi
+only_commit=${only_commit} ~/test/bots/botm tests $1

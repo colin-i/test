@@ -42,6 +42,12 @@ def main():
 	else:
 		data = all_data
 
+	def offsets_set(offs,merged):
+		for k, v in offs.items():
+			k = int(k)
+			for l in v:
+				merged["offsets"][l] = merged["offsets"].get(l, 0) + k
+
 	def resolve(name):
 		if "base" not in all_data[name]:
 			return all_data[name]
@@ -55,9 +61,17 @@ def main():
 		}
 
 		cur = all_data[name]
+
 		minus = cur.get("layers_minus", [])
+		if "layers_minus_copy" in cur:
+			minus.extend( all_data[cur["layers_minus_copy"]]["layers_minus"] )
+
 		replacements = cur.get("layers_replace", {})
+		if "layers_replace_copy" in cur:
+			replacements.update( all_data[cur["layers_replace_copy"]]["layers_replace"] )
+
 		#plus = cur.get("layers_plus", [])
+
 		merged_layers = merged["layers"]
 
 		# remove first
@@ -79,11 +93,12 @@ def main():
 
 		merged["layers"] = merged_layers
 
+		if "offsets_copy" in cur:
+			offsets_set(all_data[cur["offsets_copy"]]["offsets_reuse"],merged)
+		if "offsets_reuse" in cur:
+			offsets_set(cur["offsets_reuse"],merged)
 		if "offsets" in cur:
-			for k, v in cur["offsets"].items():
-				k = int(k)
-				for l in v:
-					merged["offsets"][l] = merged["offsets"].get(l, 0) + k
+			offsets_set(cur["offsets"],merged)
 
 		if "flatten" in cur:
 			merged["flatten"] = cur["flatten"]
