@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import zipfile
-import xml.etree.ElementTree as ET
-from PIL import Image
 import argparse
+import json
+from PIL import Image
+import xml.etree.ElementTree as ET
+import zipfile
 
 
 def parse_args():
@@ -17,6 +18,8 @@ def parse_args():
 
 	p.add_argument("--offset", action="append", default=[],
 		help="layer_name:y_offset like Eyes:3 or Hat:-10")
+
+	p.add_argument("--act")
 
 	p.add_argument("--flatten", action="store_true")
 
@@ -71,7 +74,9 @@ def canvas_size(zf, layers):
 
 def main():
 	args = parse_args()
+
 	offsets = parse_offsets(args.offset)
+	acts = json.loads(args.act) if args.act else {}
 
 	with zipfile.ZipFile(args.input) as zf:
 
@@ -106,7 +111,19 @@ def main():
 			y = l["y"] + offsets.get(l["name"], 0)
 
 			tmp = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-			tmp.paste(img, (x, y))
+			layer_acts = acts.get(l["name"], [])
+			if layer_acts:
+				for act in layer_acts:
+					op = act[0]
+					if op == "m":
+						dx, dy = act[1], act[2]
+						tp = Image.new("RGBA", canvas.size, (0,0,0,0))
+						tp.paste(img, (x + dx, y + dy))
+					elif op == "f":
+						tp = tmp.transpose(Image.FLIP_TOP_BOTTOM)
+					tmp = Image.alpha_composite(tmp, tp)
+			else:
+				tmp.paste(img, (x, y))
 
 			canvas = Image.alpha_composite(canvas, tmp)
 

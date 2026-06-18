@@ -18,6 +18,9 @@ def run_scene(scene, cfg, input_file, output_dir):
 	for k, v in cfg.get("offsets", {}).items():
 		cmd += ["--offset", f"{k}:{v}"]
 
+	if "act" in cfg:
+		cmd += ["--act", json.dumps(cfg["act"])]
+
 	if cfg.get("flatten"):
 		cmd.append("--flatten")
 
@@ -57,6 +60,7 @@ def main():
 		merged = {
 			"layers": list(base.get("layers", [])),
 			"offsets": dict(base.get("offsets", {})),
+			"act": dict(base.get("act", {})),
 			"flatten": base.get("flatten", False)
 		}
 
@@ -82,14 +86,16 @@ def main():
 			if old in merged_layers:
 				i = merged_layers.index(old)
 				merged_layers[i] = new
+				if "act" in merged:
+					if old in merged["act"]:
+						merged["act"][new] = merged["act"].pop(old)
 			else:
 				print("ERROR: layer not found for replace:", old)
 				sys.exit(1)
 
 		# append
 		#for l in plus:
-		#	if l not in merged_layers:
-		#		merged_layers.append(l)
+		#	merged_layers.append(l)
 
 		merged["layers"] = merged_layers
 
