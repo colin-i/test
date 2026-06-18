@@ -1,0 +1,1 @@
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/i686-linux-gnu/lib qemu-i386 -g 1234 "$@"
