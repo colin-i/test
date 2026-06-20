@@ -4,11 +4,12 @@ import subprocess
 import sys
 
 def run_scene(scene, cfg, input_file, output_dir):
+	out_file=f"{output_dir}/{scene}.png"
 	cmd = [
 		"python",
 		os.path.join(os.environ["HOME"],"test/game/expo.py"),
 		input_file,
-		f"{output_dir}/{scene}.png",
+		out_file,
 		"--layers"
 	]
 
@@ -25,12 +26,19 @@ def run_scene(scene, cfg, input_file, output_dir):
 		cmd.append("--flatten")
 
 	print("RUN:", " ".join(cmd))
-	subprocess.run(cmd)
+	if subprocess.run(cmd).returncode:
+		sys.exit(1)
+
+	subprocess.run([img_viewer,out_file])
 
 def main():
 	json_file = sys.argv[1]
 	input_ora = sys.argv[2]
 	output_dir = sys.argv[3]
+
+	global img_viewer
+	with open(os.path.expanduser("~/imgviewer"), "r") as f:
+		img_viewer = f.read()
 
 	with open(json_file) as f:
 		all_data = json.load(f)
