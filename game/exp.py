@@ -109,9 +109,6 @@ def main():
 		#for l in plus:
 		#	merged_layers.append(l)
 
-		if "act" in cur:
-			merged["act"].update(cur["act"])
-
 		merged["layers"] = merged_layers
 
 		if "offsets_copy" in cur:
@@ -120,6 +117,9 @@ def main():
 			offsets_set(cur["offsets_reuse"],merged)
 		if "offsets" in cur:
 			offsets_set(cur["offsets"],merged)
+
+		if "act" in cur:
+			merged["act"].update(cur["act"])
 
 		if "flatten" in cur:
 			merged["flatten"] = cur["flatten"]
