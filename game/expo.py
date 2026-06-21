@@ -110,17 +110,29 @@ def main():
 			x = l["x"]
 			y = l["y"] + offsets.get(l["name"], 0)
 
+			#dh
+			#vm
 			tmp = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
 			layer_acts = acts.get(l["name"], [])
 			if layer_acts:
 				for act in layer_acts:
-					op = act[0]
-					if op == "m":
-						dx, dy = act[1], act[2]
-						tp = Image.new("RGBA", canvas.size, (0,0,0,0))
-						tp.paste(img, (x + dx, y + dy))
-					elif op == "f":
-						tp = tmp.transpose(Image.FLIP_TOP_BOTTOM)
+					tp = Image.new("RGBA", canvas.size, (0,0,0,0))
+					for op in act[0]:
+						if op == "v":
+							tp = tp.transpose(Image.FLIP_TOP_BOTTOM)
+						elif op == "V":
+							tp = Image.alpha_composite(tp, tmp)
+							tp = tp.transpose(Image.FLIP_TOP_BOTTOM)
+						elif op == "h":
+							tp = tp.transpose(Image.FLIP_LEFT_RIGHT)
+						else:
+							if op == "m":
+								tp.paste(img, (x + act[1], y + act[2]))
+							elif op == "d":
+								tp.paste(img, (x, y))
+							else:
+								print("ERROR: unrecognized op:", op)
+								exit(1)
 					tmp = Image.alpha_composite(tmp, tp)
 			else:
 				tmp.paste(img, (x, y))

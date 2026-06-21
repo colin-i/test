@@ -6,7 +6,7 @@ import sys
 def run_scene(scene, cfg, input_file, output_dir):
 	out_file=f"{output_dir}/{scene}.png"
 	cmd = [
-		"python",
+		launcher,
 		os.path.join(os.environ["HOME"],"test/game/expo.py"),
 		input_file,
 		out_file,
@@ -39,6 +39,10 @@ def main():
 	global img_viewer
 	with open(os.path.expanduser("~/imgviewer"), "r") as f:
 		img_viewer = f.read()
+	global launcher
+	launcher=os.environ.get("p")
+	if not launcher:
+		launcher="python"
 
 	with open(json_file) as f:
 		all_data = json.load(f)
