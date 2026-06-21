@@ -110,34 +110,56 @@ def main():
 			x = l["x"]
 			y = l["y"] + offsets.get(l["name"], 0)
 
-			#dh
-			#vm
-			tmp = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-			layer_acts = acts.get(l["name"], [])
+			#P
+			#dH
+			#VM
+			tmps = []
+			tmps.append(Image.new("RGBA", canvas.size, (0, 0, 0, 0)))
+			ix=0
+			inx=0
+			layer_acts = acts.get(l["name"])
 			if layer_acts:
 				for act in layer_acts:
 					tp = Image.new("RGBA", canvas.size, (0,0,0,0))
 					for op in act[0]:
-						if op == "v":
-							tp = tp.transpose(Image.FLIP_TOP_BOTTOM)
-						elif op == "V":
-							tp = Image.alpha_composite(tp, tmp)
+						paint=True
+						if op == "m":
+							tp.paste(img, (x + act[1], y + act[2]))
+						elif op == "v":
 							tp = tp.transpose(Image.FLIP_TOP_BOTTOM)
 						elif op == "h":
 							tp = tp.transpose(Image.FLIP_LEFT_RIGHT)
+						elif op == "p":
+							tp.paste(tmps[ix], (x, y))
+							tmps.append(tp)
+							ix=ix+1
+							inx=inx+1
+							paint=False
+						elif op == "d":
+							tp.paste(img, (x, y))
+						elif op == "M":
+							tp.paste(tmps[ix], (x + act[1], y + act[2]))
+							tmps[ix] = tp
+							paint=False
+						elif op == "V":
+							tp = Image.alpha_composite(tp, tmps[ix])
+							tp = tp.transpose(Image.FLIP_TOP_BOTTOM)
+						elif op == "H":
+							tp = Image.alpha_composite(tp, tmps[ix])
+							tp = tp.transpose(Image.FLIP_LEFT_RIGHT)
+						elif op == "P":
+							ix=ix-1
+							paint=False
 						else:
-							if op == "m":
-								tp.paste(img, (x + act[1], y + act[2]))
-							elif op == "d":
-								tp.paste(img, (x, y))
-							else:
-								print("ERROR: unrecognized op:", op)
-								exit(1)
-					tmp = Image.alpha_composite(tmp, tp)
+							print("ERROR: unrecognized op ", op)
+							exit(1)
+					if paint:
+						tmps[ix] = Image.alpha_composite(tmps[ix], tp)
 			else:
-				tmp.paste(img, (x, y))
+				tmps[ix].paste(img, (x, y))
 
-			canvas = Image.alpha_composite(canvas, tmp)
+			for i in range(0,inx+1):
+				canvas = Image.alpha_composite(canvas, tmps[i])
 
 			print("layer", l["name"], "at", (x, y))
 

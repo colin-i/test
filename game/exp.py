@@ -13,6 +13,9 @@ def run_scene(scene, cfg, input_file, output_dir):
 		"--layers"
 	]
 
+	if "layers_reuse" in cfg:
+		for l in cfg["layers_reuse"]:
+			cmd.append(l)
 	for l in cfg["layers"]:
 		cmd.append(l)
 
@@ -64,10 +67,28 @@ def main():
 				merged["offsets"][l] = merged["offsets"].get(l, 0) + k
 
 	def resolve(name):
-		if "base" not in all_data[name]:
-			return all_data[name]
+		cur = all_data[name]
 
-		base = resolve(all_data[name]["base"])
+		if "base" not in cur:
+			if "layers_copy" in cur:
+				base=all_data[cur["layers_copy"]]
+				ext=base["layers_reuse"]
+				cur["layers"].extend(ext)
+				del cur["layers_copy"]
+				if "act_copy" in cur:
+					if not "act" in cur:
+						cur["act"]={}
+					for k,v in base["act"].items():
+						if k in cur["act_copy"]:
+							cur["act"].update({k:v})
+							cur["act_copy"].remove(k)
+					if cur["act_copy"]:
+						print("ERROR: act copy")
+						sys.exit(1)
+					del cur["act_copy"]
+			return cur
+
+		base = resolve(cur["base"])
 
 		merged = {
 			"layers": list(base.get("layers", [])),
@@ -76,19 +97,23 @@ def main():
 			"flatten": base.get("flatten", False)
 		}
 
-		cur = all_data[name]
-
 		minus = cur.get("layers_minus", [])
 		if "layers_minus_copy" in cur:
-			minus.extend( all_data[cur["layers_minus_copy"]]["layers_minus"] )
+			minus.extend( all_data[cur["layers_minus_copy"]]["layers_minus_reuse"] )
+		if "layers_minus_reuse" in cur:
+			minus.extend( cur["layers_minus_reuse"] )
 
 		replacements = cur.get("layers_replace", {})
 		if "layers_replace_copy" in cur:
-			replacements.update( all_data[cur["layers_replace_copy"]]["layers_replace"] )
+			replacements.update( all_data[cur["layers_replace_copy"]]["layers_replace_reuse"] )
+		if "layers_replace_reuse" in cur:
+			replacements.update( cur["layers_replace_reuse"] )
 
 		#plus = cur.get("layers_plus", [])
 
 		merged_layers = merged["layers"]
+
+		merged_layers.extend(base.get("layers_reuse", []))
 
 		# remove first
 		merged_layers = [l for l in merged_layers if l not in minus]
@@ -119,7 +144,15 @@ def main():
 			offsets_set(cur["offsets"],merged)
 
 		if "act" in cur:
-			merged["act"].update(cur["act"])
+			ke=[]
+			for key, value in cur["act"].items():
+				if key in merged["act"]:
+					merged["act"][key].extend(value)
+					ke.append(key)
+				else:
+					merged["act"][key] = value
+			for k in ke:
+				del cur["act"][k]
 
 		if "flatten" in cur:
 			merged["flatten"] = cur["flatten"]
