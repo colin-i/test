@@ -112,7 +112,7 @@ def main():
 
 			#P
 			#dH
-			#VM
+			#VbM
 			tmps = []
 			tmps.append(Image.new("RGBA", canvas.size, (0, 0, 0, 0)))
 			ix=0
@@ -137,6 +137,11 @@ def main():
 							paint=False
 						elif op == "d":
 							tp.paste(img, (x, y))
+						elif op == "b":
+							tmps.append(tp)
+							ix=ix+1
+							inx=inx+1
+							paint=False
 						elif op == "M":
 							tp.paste(tmps[ix], (x + act[1], y + act[2]))
 							tmps[ix] = tp

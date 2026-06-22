@@ -1,3 +1,5 @@
+
+import copy
 import json
 import os
 import subprocess
@@ -91,9 +93,9 @@ def resolve(name):
 	base = resolve(cur["base"])
 
 	merged = {
-		"layers": list(base.get("layers", [])),
-		"offsets": dict(base.get("offsets", {})),
-		"act": dict(base.get("act", {})),
+		"layers": copy.deepcopy(base.get("layers", [])),
+		"offsets": copy.deepcopy(base.get("offsets", {})),
+		"act": copy.deepcopy(base.get("act", {})),
 		"flatten": base.get("flatten", False)
 	}
 
@@ -144,15 +146,15 @@ def resolve(name):
 		offsets_set(cur["offsets"],merged)
 
 	if "act" in cur:
-		ke=[]
+		#ke=[]
 		for key, value in cur["act"].items():
 			if key in merged["act"]:
 				merged["act"][key].extend(value)
-				ke.append(key)
+				#ke.append(key)
 			else:
 				merged["act"][key] = value
-		for k in ke:
-			del cur["act"][k]
+		#for k in ke:
+		#	del cur["act"][k]
 
 	if "flatten" in cur:
 		merged["flatten"] = cur["flatten"]
