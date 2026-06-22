@@ -13,8 +13,7 @@ FILE=~/pull
 check_commit () {
 	OWNER=$1
 	REPO=$2
-	COMMIT=$3
-	BRANCH=$4
+	BRANCH=$3
 
 	DATA=$(curl -sf \
 		-H "Accept: application/vnd.github+json" \
@@ -30,6 +29,7 @@ check_commit () {
 		exit 1
 	fi
 
+	COMMIT=$(echo "$DATA" | jq -r '.[0].head.sha')
 	STATE=$(echo "$DATA" | jq -r '.[0].state')
 
 	if [ "$STATE" = "open" ]; then
@@ -46,6 +46,6 @@ check_commit () {
 	fi
 }
 
-while read -r OWNER REPO COMMIT BRANCH; do
-	check_commit "$OWNER" "$REPO" "$BRANCH" "$COMMIT"
+while read -r OWNER REPO BRANCH; do
+	check_commit "$OWNER" "$REPO" "$BRANCH"
 done < "$FILE"
