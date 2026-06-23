@@ -1,0 +1,4 @@
+
+f=f/=
+curl https://flashixy.goatcounter.com/counter/.json | jq .count > $f
+git diff $f

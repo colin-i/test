@@ -5,6 +5,7 @@ if [ -e $1/$2 ]; then exit 1; fi
 ~/test/git/hub/pulls && \
 ~/test/stats/prepare ${1} ${2} && \
 ~/test/stats/newpost ${1} ${2} && \
+~/test/stats/f && \
 ~/test/stats/k && \
 echo -e "\n\npush? y?" && \
 read -n1 -t $((60*60*24)) ans && \
