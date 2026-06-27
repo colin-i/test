@@ -9,6 +9,9 @@ while :; do
 		fi
 	fi
 	json=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=25&offset=0")
+	if [ -n "$v" ]; then
+		echo "$json" | jq
+	fi
 
 	# your user points
 	b=$(echo "$json" | jq '.users[] | select(.username=="'$(cat ~/twitch_user)'") | .points')
