@@ -93,8 +93,8 @@ def resolve(name):
 	base = resolve(cur["base"])
 
 	merged = {
-		"layers": copy.deepcopy(base.get("layers", [])),
-		"offsets": copy.deepcopy(base.get("offsets", {})),
+		"layers": list(base.get("layers", [])),
+		"offsets": dict(base.get("offsets", {})),
 		"act": copy.deepcopy(base.get("act", {})),
 		"flatten": base.get("flatten", False)
 	}
