@@ -1,7 +1,16 @@
+#!/usr/bin/python3
 
-# python3-torch python3-pyperclip git-lfs wl-clipboard # python3-torchaudio python3-protobuf
-# transformers
-# git lfs install
+# python3-torch python3-pyperclip wl-clipboard
+
+## transformers
+# sudo apt install -y python3-filelock python3-typing-extensions python3-anyio python3-httpx python3-httpcore python3-h11 python3-shellingham python3-typer python3-safetensors
+
+## sounddevice
+# sudo apt install -y python3-pycparser python3-cffi libportaudio2
+
+# pip install transformers sounddevice readchar
+
+## git-lfs # git lfs install
 
 # git clone https://huggingface.co/anton-l/wav2vec2-large-xlsr-53-romanian (clone from a system with ram, 8 gb is ok) # heavy
 # https://huggingface.co/gigant/romanian-wav2vec2 # balanced
