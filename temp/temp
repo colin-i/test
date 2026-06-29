@@ -1,6 +1,5 @@
 
 #temp, .py and min with ./temp 0 [[+val] or [+min +max]] , old: and local from ~/test/min/local
-#since w1 temperature, tget and tempget files are only to test
 # pip install pycrypto for gree-remote.py
 
 #w1 has 0.0625 steps.  github package with information: timofurrer/w1thermsensor
@@ -17,6 +16,9 @@
 #ls -l /sys/bus/w1/devices  #filename starting with "28-"
 #cat /sys/bus/w1/devices/28-*/w1_slave
 #or multi files #for i in /sys/bus/w1/devices/28-*; do cat $i/w1_slave; done
+
+#important: run the 'set' command from tempget to set the good mode
+#since w1 temperature, teget and tempget files are not used daily
 
 cd `dirname ${0}`
 dir=`pwd`

@@ -1,4 +1,47 @@
 
 cd ~/gree-remote/PythonCLI
-python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` get TemSen
-#python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` set TemUn=0 SetTem=20 WdSpd=1 Mod=2 SwUpDn=6
+if [ -z "$1" ]; then
+	python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` get TemSen
+else
+	python gree.py -c `cat ~/gree_ip` -i f4911e448ee8 -k `cat ~/gree_key` set TemUn=0 SetTem=16 WdSpd=1 Mod=1 SwUpDn=6
+fi
+
+exit
+
+get/set Pow
+
+TemSen
+If the device is equipped with a temperature sensor, you can read it via the TemSen key. The value is in celsius and has an offset of +40 to avoid using negative values. For example if you get 65 from the device it means the current temperature is 65 - 40 = 25.
+
+"SetTem" and "TemUn": set temperature and temperature unit
+    if TemUn = 0, SetTem is the set temperature in Celsius
+    if TemUn = 1, SetTem is the set temperature is Fahrenheit
+
+WdSpd: fan speed
+    0: auto
+    1: low
+    2: medium-low (not available on 3-speed units)
+    3: medium
+    4: medium-high (not available on 3-speed units)
+    5: high
+
+Mod: mode of operation
+    0: auto
+    1: cool
+    2: dry
+    3: fan
+    4: heat
+
+SwUpDn: controls the swing mode of the vertical air blades
+    0: default
+    1: swing in full range
+    2: fixed in the upmost position (1/5)
+    3: fixed in the middle-up position (2/5)
+    4: fixed in the middle position (3/5)
+    5: fixed in the middle-low position (4/5)
+    6: fixed in the lowest position (5/5)
+    7: swing in the downmost region (5/5)
+    8: swing in the middle-low region (4/5)
+    9: swing in the middle region (3/5)
+    10: swing in the middle-up region (2/5)
+    11: swing in the upmost region (1/5)
