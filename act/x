@@ -14,25 +14,26 @@
 #-t to see response headers
 #x-app-limit-24hour-reset
 id=$(/home/bc/Desktop/npm/node_modules/.bin/xurl "/2/users/me?user.fields=pinned_tweet_id" | jq -r '.data.pinned_tweet_id')
-
 if [ -n "${inter}" ]; then
 	echo ${id}
 	read
 fi
 
-text=$(curl -sL "https://x.com/flashixy/status/${id}" | tr -d '\0')
-
+#text=$(curl -sL "https://x.com/flashixy/status/${id}" | tr -d '\0')
+TOKEN=$(python3 -c "
+import math
+n = ${id} / 1e15 * math.pi
+s = format(n, '.20f').replace('.', '')
+print(s.lstrip('0')[:16])
+")
+text=$(curl -s "https://cdn.syndication.twimg.com/tweet-result?id=${id}&token=${TOKEN}" | jq .text)
 if [ -n "${inter}" ]; then
 	echo ${text}
 	read
 fi
 
-text=$(printf '%s\n' "$text" | grep -oP 'full_text:"\K([^"]|\\")*')
-
-if [ -n "${inter}" ]; then
-	echo ${text}
-	read
-fi
+#text=$(printf '%s\n' "$text" | grep -oP 'full_text:"\K([^"]|\\")*')
+#if [ -n "${inter}" ]; then echo ${text}; read; fi
 
 text=$(echo ${text} | python3 -c 'import sys,codecs,html; print(html.unescape(codecs.decode(sys.stdin.read(),"unicode_escape")))')
 
