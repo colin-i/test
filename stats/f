@@ -1,4 +1,8 @@
 
 f=f/=
 curl https://flashixy.goatcounter.com/counter/.json | jq .count > $f
-git diff --exit-code $f && echo counter no diff
+git diff --exit-code $f && {
+	echo counter no diff
+	read
+}
+echo ok

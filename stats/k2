@@ -13,7 +13,7 @@ fi
 if [ -z "$1" ]; then
 	exit
 fi
-python ~/games/list/share/get_firestore.py > f/chambers
+python ~/games/list/share/get_firestore.py plays > f/chambers
 
 dif () {
 	c=$(($1-$2))

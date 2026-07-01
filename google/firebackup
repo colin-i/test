@@ -1,4 +1,6 @@
 cd ~/Desktop/npm
 node firebackup.js
 cd ~/Desktop/experimental
+echo another test at experimental \?
+read
 ~/test/bots/tests

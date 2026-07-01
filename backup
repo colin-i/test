@@ -1,7 +1,7 @@
 
 #optional  1: 0=set init  else projName  2: 0 only this proj else continue 1 from projName else after projName
 #stats/h,backup_paths,backup_is_pub,dbg
-#overall!=1 and not -z to skip overall
+#overall!=1 and not -z to skip overall, like overall=0
 #download with mime folder and .. 0
 #retest backup_paths with: a=( `~/a/cat backup_paths` ); for b in "${a[@]}"; do stat -L ${b} || { echo error; break; } done; echo done
 
@@ -61,7 +61,7 @@ for var in "${z[@]}"; do
 			fi
 		fi
 		cd ${src} || exit 1
-		if [ -e ./cln ]; then ./cln; fi
+		if [ -e ./cln ]; then ./cln; fi # general=x 
 
 		if [ ! -e ${dest} ]; then
 			mkdir ${dest} || exit 1
@@ -82,7 +82,7 @@ for var in "${z[@]}"; do
 
 		#still can have old files only in dest
 		echo second diff at ${var}
-		diff -r ${dest} ${src} > ${tmp}
+		diff -rq ${dest} ${src} > ${tmp}
 		firstrow=`head -n 1 ${tmp}`
 		if [ "${firstrow}" != "Only in ${src}: .git" ]; then echo ${firstrow}; fi
 		tail -n +2 ${tmp}
@@ -91,6 +91,12 @@ for var in "${z[@]}"; do
 			echo
 			z=( );j=0;is_ok=1
 			while read vr; do
+				if [ "${vr::5}" = Files ]; then
+					base=$(sed "s|.* and ${src}/||;s| differ$||" <<< "${vr}")
+					cp "${src}/${base}" "${dest}/${base}"
+					#read -p "${tmp} is not right, maybe gitignore changes" < /dev/tty
+					continue
+				fi
 				if [ "${lang}" = "ro" ]; then  # for this to work , sudo apt install language-pack-ro
 					if [[ ( "${vr:0:7}" != "Doar în" ) || ( ${vr:8:${#src}} != ${src} ) ]]; then
 						is_ok=0
@@ -107,7 +113,7 @@ for var in "${z[@]}"; do
 								full="${dir}/${file}"
 								rel="${full#$src/}"
 								mkdir -p "${dest}/$(dirname "${rel}")"
-								cp -r "${full}" "${dest}/$rel"
+								cp -r "${full}" "${dest}/${rel}"
 								response=1
 							fi
 						fi
