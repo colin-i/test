@@ -1,5 +1,4 @@
 set -e
-
 FILE=~/pull
 [ -r "$FILE" ] || {
 	echo "❌ File not found: $FILE"
@@ -9,12 +8,10 @@ FILE=~/pull
 #userA repo commit_hash
 #userB repo commit_hash
 #don't forget the final new line
-
 check_commit () {
 	OWNER=$1
 	REPO=$2
 	BRANCH=$3
-
 	DATA=$(curl -sf \
 		-H "Accept: application/vnd.github+json" \
 		-H "Authorization: Bearer $(<~/n/tmp/pat)" \
@@ -23,29 +20,26 @@ check_commit () {
 			echo "❌ curl failed for $OWNER/$REPO $COMMIT"
 			exit 1
 		}
-
 	if [ "$(echo "$DATA" | jq length)" -eq 0 ]; then
 		echo "⚪ $OWNER/$REPO ($BRANCH) $COMMIT -> no PR"
 		exit 1
 	fi
-
 	COMMIT=$(echo "$DATA" | jq -r '.[0].head.sha')
 	STATE=$(echo "$DATA" | jq -r '.[0].state')
-
+	NUMBER=$(echo "$DATA" | jq -r '.[0].number')
+	URL="https://github.com/${OWNER}/${REPO}/pull/${NUMBER}"
 	if [ "$STATE" = "open" ]; then
-		echo "🟡 $OWNER $REPO ($BRANCH) $COMMIT -> OPEN" https://www.github.com/${OWNER}/${REPO}
+		echo "🟡 $OWNER $REPO ($BRANCH) $COMMIT -> OPEN $URL"
 	else # "closed"
 		MERGED=$(echo "$DATA" | jq -r '.[0].merged_at')
-
 		if [ "$MERGED" != "null" ]; then
-			echo "🟢 $OWNER $REPO ($BRANCH) $COMMIT -> MERGED"
+			echo "🟢 $OWNER $REPO ($BRANCH) $COMMIT -> MERGED $URL"
 		else
-			echo "🔴 $OWNER $REPO ($BRANCH) $COMMIT -> CLOSED (not merged)"
+			echo "🔴 $OWNER $REPO ($BRANCH) $COMMIT -> CLOSED (not merged) $URL"
 		fi
 		exit 1
 	fi
 }
-
 while read -r OWNER REPO BRANCH; do
 	check_commit "$OWNER" "$REPO" "$BRANCH"
 done < "$FILE"

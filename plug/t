@@ -9,6 +9,8 @@ fi
 #Termux:Boot is not working, logcat is saying is executed and that's all
 ##am start -n "com.termux/.HomeActivity"
 
+#Broadlink App for 32 bits is at Aptoide
+
 #1Tap Cleaner
 #AndrOpen Office
 #AutoStart App Manager from The Sugar Apps. com.sugarapps.autostartmanager 6.2
