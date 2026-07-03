@@ -1,1 +1,2 @@
-only_commit=x ~/test/bots/botm sync $1
+
+~/test/bots/botm sync $1

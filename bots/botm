@@ -3,4 +3,5 @@ if [ -z "${1}" ]; then exit 1; fi
 if [ -n "${2}" ]; then
 	git add ${2}
 fi
-~/test/bots/${1} -m #-m is not -am so is not a 'git add' command
+if [ -z "${no_only_commit}" ]; then only_commit=x; fi
+only_commit=${only_commit} ~/test/bots/${1} -m #-m is not -am so is not a 'git add' command
