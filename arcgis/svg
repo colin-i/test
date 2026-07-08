@@ -1,0 +1,15 @@
+set -e
+if [ -z "$1" ]; then exit 1; fi
+if [ -z "$2" ]; then exit 1; fi
+
+shopt -s expand_aliases
+source ~/aliases
+
+cop $1 $2
+echo read
+read
+diff $1 $2 || {
+	echo read
+	read
+	rm $2
+}
