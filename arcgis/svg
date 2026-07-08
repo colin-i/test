@@ -6,8 +6,7 @@ shopt -s expand_aliases
 source ~/aliases
 
 cop $1 $2
-echo read
-read
+edor $1
 diff $1 $2 || {
 	echo read
 	read
