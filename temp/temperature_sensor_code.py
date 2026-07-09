@@ -73,7 +73,7 @@ def test(t):
 				else:
 					print("is on")
 		elif t<=min:
-			if t<=lasttemp:
+			if t<lasttemp: # or equal when not needing is extra
 				stop()
 		lasttemp=t
 	sys.stdout.flush()
