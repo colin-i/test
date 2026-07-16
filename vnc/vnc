@@ -1,4 +1,22 @@
 
 #x11vnc -storepasswd
-x11vnc -forever &
-echo `cat ~/n/pat3` | sudo -S cpulimit --pid $! --limit `cat ~/vnc_limit`
+#x11vnc -forever &
+$HOME/a/Desktop/tigervnc/build/unix/w0vncserver/w0vncserver -PasswordFile=$HOME/.vnc/passwd &
+
+echo "$(cat ~/n/pat3)" | sudo -S cpulimit --pid "$!" --limit "$(cat ~/vnc_limit)"
+
+exit
+
+sudo apt install git cmake ninja-build g++ pkg-config \
+    libwayland-dev libwayland-client0 libpipewire-0.3-dev libglib2.0-dev uuid-dev libxkbcommon-dev
+git clone --depth 1 https://github.com/TigerVNC/tigervnc.git
+cd tigervnc
+mkdir build
+cd build
+
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release
+
+ninja w0vncserver vncpasswd
+mkdir ~/.vnc
+./unix/vncpasswd/vncpasswd ~/.vnc/passwd
