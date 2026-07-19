@@ -17,12 +17,15 @@ check_commit () {
 		-H "Authorization: Bearer $(<~/n/tmp/pat)" \
 		"https://api.github.com/repos/$OWNER/$REPO/pulls?head=colin-i:$BRANCH") ||\
 		{
-			echo "❌ curl failed for $OWNER/$REPO $COMMIT"
+			echo "❌ curl failed for $OWNER/$REPO"
 			exit 1
 		}
 	if [ "$(echo "$DATA" | jq length)" -eq 0 ]; then
-		echo "⚪ $OWNER/$REPO ($BRANCH) $COMMIT -> no PR"
-		exit 1
+		echo "⚪ $OWNER/$REPO ($BRANCH) -> no PR . y and Enter to skip exit 1"
+		read -t $((60*60*24)) ans
+		if [ "${ans}" != y ]; then
+			exit 1
+		fi
 	fi
 	COMMIT=$(echo "$DATA" | jq -r '.[0].head.sha')
 	STATE=$(echo "$DATA" | jq -r '.[0].state')
@@ -40,6 +43,9 @@ check_commit () {
 		exit 1
 	fi
 }
-while read -r OWNER REPO BRANCH; do
+mapfile -t LINES < "$FILE"
+
+for line in "${LINES[@]}"; do
+	read -r OWNER REPO BRANCH <<< "$line"
 	check_commit "$OWNER" "$REPO" "$BRANCH"
-done < "$FILE"
+done

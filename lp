@@ -1,6 +1,9 @@
 
 #optional   1 (bool for query last tar)/0   2 tars
 
+#actionswf audapa dicopp edor  ocompiler ovideo sirc  torra wstbld
+#jammy     jammy  jammy  focal xenial    xenial jammy jammy noble
+
 if [ -z "${2}" ] ||  [ "${1}" = "0" ]; then
 	if [ -z "${dist}" ]; then
 		dist=`cat debian/changelog | head -1 | grep -Poe "[^ ]*(?=;)"`
