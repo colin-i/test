@@ -44,9 +44,8 @@ _patches="`cat ./list`"
 
 #if [ -z "`ls src`" ]; then
 
-#still not working: makepkg -oA
-makepkg -g
-if [ ! -e src ]; then
+makepkg -g # oA not working
+if [ ! -e src/* ]; then
 	tar -xf ./*tar* -C src
 fi
 cd src

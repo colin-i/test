@@ -12,7 +12,12 @@ fi
 echo ${ve}-${re}
 text="copr-cli build-package --name ${name} colin/project"
 if [ -n "${exc}" ]; then
-	text+=" --exclude-chroot fedora-42-${exc} --exclude-chroot fedora-43-${exc} --exclude-chroot fedora-44-${exc}"
+	if [ ! -e ~/arh/fedoramin ]; then exit 1; fi
+	fmin=`cat ~/arh/fedoramin`
+	fmax=`cat ~/arh/fedoramax`
+	for ((v=fmin; v<=fmax; v++)); do
+		text+=" --exclude-chroot fedora-${v}-${exc}"
+	done
 fi
 echo ${text}
 echo -n ${text} | xclip -sel clip
