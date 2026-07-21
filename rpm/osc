@@ -22,7 +22,12 @@ if [ -n "`cat 3 | grep ${name}-devel`" ]; then devel=-devel; fi
 
 echo ${proj} ${name} devel=${devel}
 
-dates=( `cat 3 | grep ocompiler | grep -Po '(?<=mtime=")[^"]*'` )
+fullname=${name}
+if [ -n "${py}" ]; then
+	fullname=`echo ${name} | sed "s/-/${py}-/"`
+fi
+
+dates=( `cat 3 | grep ${fullname} | grep -Po '(?<=mtime=")[^"]*'` )
 for d in ${dates[@]}; do
 	date -d @$d
 done
@@ -31,9 +36,6 @@ i=0
 for rep in ${reps[@]}; do
 	echo ${rep}
 	for arh in ${arhs[@]}; do
-		#osc api /build/${proj}/${rep}/${arh}/${name} > 3
-		#if [ -n "`cat 3 | grep ${name}`" ]; then #else is !=succeeded
-		#osc api /build/${proj}/${rep}/${arh}/${name}  #fnames=`xmllint --xpath '/binarylist/binary/@filename'`
 		echo ${arh}
 		while :; do
 			sleep 60
@@ -51,6 +53,14 @@ for rep in ${reps[@]}; do
 				fi
 			fi
 		done
+		if [ "${status}" = succeeded ]; then
+			osc api /build/${proj}/${rep}/${arh}/${name} > 3
+			fnames=( `xmllint --xpath '/binarylist/binary/@filename' ./3 | sed 's/\s*filename="\([^"]*\)"/\1\n/g'` )
+			echo "Files built:"
+			for f in ${fnames[@]}; do
+				echo "  ${f}"
+			done
+		fi
 		#fi
 	done
 done
@@ -60,10 +70,7 @@ rm 1 2 3
 echo "install? y?"
 read -n1 -t $((60*60*24)) ans
 if [ "${ans}" = "y" ]; then
-	if [ -n "${py}" ]; then
-		name=`echo ${name} | sed "s/-/${py}-/"`
-	fi
-	sudo zypper ref && sudo zypper in ${name}${devel}
+	sudo zypper ref && sudo zypper in ${fullname}${devel}
 fi
 
 #when building and realizing that is not the same arch as host, then: osc build openSUSE_Tumbleweed x86_64   , also,x86_64 at i586

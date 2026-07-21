@@ -13,4 +13,4 @@ echo -n "${py}~/test/rpm/osc" | xclip -sel clip
 echo "ready? enter"
 read -t $((60*60*24))
 
-#313 is ephemeral, usually is last Leap version, and is for install after tests, see them at https://download.opensuse.org/repositories/home:/costin/
+#313 is ephemeral, usually is last Leap version, see them at https://download.opensuse.org/repositories/home:/costin/

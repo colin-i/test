@@ -14,7 +14,8 @@ Requires:       python-psutil >= 5.5.1
 Requires:       python-gobject >= 3.40
 Requires:       python-requests >= 2.21
 Requires:       eiskaltdcpp-daemon
-Requires:       libgtk-4-1
+#Requires:       libgtk-4-1
+Requires:       typelib(Gtk) = 4.0
 #for tumbleweed
 Requires(post):   update-alternatives
 Requires(postun): update-alternatives
