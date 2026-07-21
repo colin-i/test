@@ -1,5 +1,5 @@
 set -e
-#1 is for w4: x=N where N is the required number of day words
+#x is for w4: x=N where N is the required number of day words
 
 ./days
 ./s
@@ -24,3 +24,10 @@ read
 touch -d "@${seconds}" ${fl}
 ./t ${ans}
 ./days
+
+#at new file:
+#	cp to ~/Desktop/ffdec
+#	cp to ~/a/tmp/ffdec/f..._ro.properties
+#	if is not in        a , copy-paste from ffdec -translator to ..._ro.properties
+#	don't worry for     z
+#	x=remaining ./w5

@@ -16,13 +16,14 @@ if [ -z "${no_patch}" ]; then
 		}
 		fullname=${name}
 	else
+		fullname=python-${name}
+		~/test/pyp/suse ${fullname}
 		#working with   py2pack generate name -f spec   spec file
 		#must have gnome-shell for introspections to work
 		{
 			~/test/pyp/reversion && \
 			cd ~/pc
 		}
-		fullname=python-${name}
 	fi
 	pcs=~/test/rpm/home:costin/${fullname}
 	n=`find ${pcs} -maxdepth 1 -name "p*.patch.gz" | wc -l`
@@ -57,7 +58,7 @@ fi
 cd ~/pc
 rsync -av --delete ${nmmaj}/ ${nmmaj0}/
 
-#when only spec changed,go at home:.../fullname and : ~/test/rpm/spec fullname
+#when only spec changed,go at home:.../fullname and : ~/test/rpm/spec fullname , and not forget about ~/test/pyp/suse
 #                     then at suse: osc commit
 
 #pt at fedora:

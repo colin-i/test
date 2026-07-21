@@ -14,6 +14,10 @@ Requires:       python-PyAudio >= 0.2.11
 Requires:       python-pycairo >= 1.20.0
 Requires:       python-gobject >= 3.40
 Requires:       libgtk-4-1
+#for tumbleweed
+Requires(post):   update-alternatives
+Requires(postun): update-alternatives
+#
 BuildArch:      noarch
 %python_subpackages
 

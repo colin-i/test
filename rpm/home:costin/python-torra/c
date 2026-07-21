@@ -9,6 +9,11 @@ BuildRequires:  fdupes
 Requires:       python-appdirs >= 1.4.3
 Requires:       python3-libtorrent-rasterbar
 Requires:       libgtk-4-1
+#"Do not put unneeded explicit Requires", I don't think it will look at cdll.LoadLibrary("...")
+#for tumbleweed
+Requires(post):   update-alternatives
+Requires(postun): update-alternatives
+#
 BuildArch:      noarch
 %python_subpackages
 

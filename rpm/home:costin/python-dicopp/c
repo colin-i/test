@@ -15,6 +15,10 @@ Requires:       python-gobject >= 3.40
 Requires:       python-requests >= 2.21
 Requires:       eiskaltdcpp-daemon
 Requires:       libgtk-4-1
+#for tumbleweed
+Requires(post):   update-alternatives
+Requires(postun): update-alternatives
+#
 BuildArch:      noarch
 %python_subpackages
 

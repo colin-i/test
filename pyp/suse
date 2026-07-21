@@ -1,0 +1,4 @@
+
+v=`cat v2`
+cd ~/test/rpm/home:costin/$1
+sed -i "s/^\(Version:[[:space:]]*\).*/\1$v/" a
