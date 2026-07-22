@@ -10,7 +10,8 @@ fi
 if [ -z "${3}" ]; then
 b=--force
 else
-b="${3} --force"
+b="${3} --force-with-lease"
+#               This refuses to push if the remote branch has commits you haven't seen
 fi
 
 ~/test/remote/push ${1} ${a} "${b}" "$4"
