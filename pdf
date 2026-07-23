@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 Script care transforma un PDF cu linii punctate (.......) intr-un PDF
 completabil (cu casute de tip formular), pastrand exact aspectul original.
