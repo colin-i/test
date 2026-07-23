@@ -1,0 +1,163 @@
+"""
+Script care transforma un PDF cu linii punctate (.......) intr-un PDF
+completabil (cu casute de tip formular), pastrand exact aspectul original.
+
+Cum functioneaza:
+1. Se creeaza un PDF "overlay" (transparent) cu reportlab, in care fiecare
+   casuta de completat este un camp de formular (AcroForm text field),
+   pozitionat exact peste linia punctata corespunzatoare din documentul original.
+2. Cu pypdf, paginile documentului original raman neschimbate (text, layout),
+   iar campurile de formular din overlay sunt "lipite" pe deasupra lor
+   (adaugate ca adnotari + AcroForm in documentul final).
+
+Dependinte:
+    pip install reportlab pypdf
+
+Utilizare:
+    python creeaza_pdf_completabil.py input.pdf output.pdf
+
+Notă: coordonatele campurilor de mai jos (x, top, bottom) sunt calculate
+special pentru documentul "Cerere-contestatii-completare-dosare.pdf"
+(AJPIS Constanta). Daca vrei sa adaptezi scriptul la alt formular, va trebui
+sa recalculezi coordonatele - vezi sectiunea "Cum gasesti coordonatele"
+de la finalul fisierului.
+"""
+
+import sys
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import Color
+from pypdf import PdfReader, PdfWriter
+from pypdf.generic import ArrayObject, NameObject, BooleanObject
+
+# Dimensiunea paginii (A4, in puncte - trebuie sa corespunda cu PDF-ul original)
+PAGE_WIDTH, PAGE_HEIGHT = 595.32, 841.92
+
+OVERLAY_PATH = "/tmp/_overlay.pdf"
+
+
+def y_from_top(distance_from_top):
+    """Converteste o coordonata masurata de sus (ca in pdfplumber)
+    in coordonata reportlab/PDF, care porneste de jos."""
+    return PAGE_HEIGHT - distance_from_top
+
+
+def build_overlay():
+    """Creeaza un PDF gol, transparent, care contine doar campurile
+    de formular (casute editabile), pozitionate peste liniile punctate."""
+    c = canvas.Canvas(OVERLAY_PATH, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+    form = c.acroForm
+
+    def add_field(name, x0, top, x1, bottom, multiline=False, fontsize=9):
+        y1 = y_from_top(bottom)
+        y2 = y_from_top(top)
+        height = y2 - y1
+        kwargs = dict(
+            name=name,
+            tooltip=name,
+            x=x0, y=y1,
+            width=x1 - x0, height=height,
+            borderStyle='underlined',
+            borderColor=None,
+            borderWidth=0,
+            fillColor=Color(0.85, 0.92, 1, alpha=0.5),  # fundal albastru pal, pentru a se vedea unde se scrie
+            textColor=Color(0, 0, 0),
+            fontSize=fontsize,
+            forceBorder=False,
+        )
+        if multiline:
+            kwargs['fieldFlags'] = 'multiline'
+        form.textfield(**kwargs)
+
+    # --- Campurile formularului (coordonate exacte, extrase din PDF-ul original) ---
+    add_field("nume_prenume", 185, 104.9, 505, 116.9)               # Subsemnatul(a)
+    add_field("localitatea", 200, 131.8, 347, 143.8)                # localitatea
+    add_field("strada", 366, 131.8, 517, 143.8)                     # Str.
+    add_field("nr", 85, 158.7, 101, 170.7)                          # Nr.
+    add_field("bloc", 126, 158.7, 141, 170.7)                       # Bloc
+    add_field("scara", 172, 158.7, 192, 170.7)                      # Scara
+    add_field("etaj", 215, 158.7, 227, 170.7)                       # Etaj
+    add_field("ap", 245, 158.7, 260, 170.7)                         # Ap
+    add_field("cnp", 285, 158.7, 518, 170.7)                        # CNP
+    add_field("telefon", 109, 185.4, 236, 197.4)                    # telefon
+    add_field("email", 274, 185.4, 517, 197.4)                      # email
+    add_field("continut_cerere", 71, 239.2, 535, 571.3,             # zona mare, textul cererii
+              multiline=True, fontsize=10)
+    add_field("data", 99, 693.2, 163, 704.3)                        # DATA
+    add_field("semnatura", 419, 693.2, 516, 704.3)                  # Semnatura solicitantului
+
+    c.showPage()
+    c.save()
+
+
+def merge_overlay_into_original(input_path, output_path):
+    """Combina PDF-ul original (neschimbat vizual) cu campurile din overlay,
+    rezultand un PDF completabil."""
+    orig_reader = PdfReader(input_path)
+    overlay_reader = PdfReader(OVERLAY_PATH)
+
+    writer = PdfWriter()
+    writer.append(orig_reader)
+
+    orig_page = writer.pages[0]
+    overlay_page = overlay_reader.pages[0]
+
+    overlay_annots = overlay_page.get("/Annots")
+    cloned_refs = []
+    if overlay_annots:
+        for a in overlay_annots:
+            obj = a.get_object()
+            cloned = obj.clone(writer)
+            ref = writer._add_object(cloned)
+            cloned_refs.append(ref)
+            cloned[NameObject("/P")] = orig_page.indirect_reference
+
+    existing = orig_page.get("/Annots")
+    if existing:
+        for r in cloned_refs:
+            existing.append(r)
+    else:
+        orig_page[NameObject("/Annots")] = ArrayObject(cloned_refs)
+
+    overlay_acroform = overlay_reader.trailer["/Root"].get("/AcroForm")
+    if overlay_acroform is not None:
+        cloned_acroform = overlay_acroform.get_object().clone(writer)
+        writer._root_object[NameObject("/AcroForm")] = cloned_acroform
+        # NeedAppearances = True: asigura ca textul introdus se afiseaza
+        # corect in orice cititor de PDF (Acrobat, Preview, etc.)
+        writer._root_object["/AcroForm"][NameObject("/NeedAppearances")] = BooleanObject(True)
+
+    with open(output_path, "wb") as f:
+        writer.write(f)
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Utilizare: python creeaza_pdf_completabil.py input.pdf output.pdf")
+        sys.exit(1)
+
+    input_path, output_path = sys.argv[1], sys.argv[2]
+
+    build_overlay()
+    merge_overlay_into_original(input_path, output_path)
+    print(f"PDF completabil salvat la: {output_path}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+# ---------------------------------------------------------------------------
+# Cum gasesti coordonatele (top/bottom/x0/x1) pentru alt document:
+#
+#   import pdfplumber
+#   with pdfplumber.open("document.pdf") as pdf:
+#       page = pdf.pages[0]
+#       print(page.width, page.height)
+#       for char in page.chars:
+#           print(char["text"], char["x0"], char["top"], char["bottom"])
+#
+# "top" = distanta de la marginea de SUS a paginii pana la caracter.
+# "x0"  = distanta de la marginea din STANGA a paginii.
+# Cauta unde incep/se termina liniile de puncte (".") pentru fiecare
+# camp si foloseste acele coordonate in functia add_field().
+# ---------------------------------------------------------------------------
