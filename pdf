@@ -5,37 +5,44 @@ Script unic pentru transformarea formularelor PDF cu linii libere
 (".........." sau "___________") in PDF-uri completabile digital
 (cu campuri de formular / AcroForm), pastrand exact aspectul original.
 
-Contine doua sabloane predefinite:
-  - "ajpis"  -> Cerere-contestatii-completare-dosare.pdf (AJPIS Constanta)
-  - "anaf"   -> contestatie_ANAF.pdf (Contestatie act administrativ fiscal, 2 pagini)
+Contine trei sabloane predefinite:
+  - "ajpis"       -> Cerere-contestatii-completare-dosare.pdf (AJPIS Constanta)
+  - "anaf"        -> contestatie_ANAF.pdf (Contestatie act administrativ fiscal, 2 pagini)
+  - "declaratie"  -> declaratie_beneficiar.pdf / declaratie_expeditor.pdf
+                     (aceleasi coordonate merg pentru ambele variante)
 
-Cum functioneaza (pentru ambele sabloane):
-1. Se construieste un PDF "overlay" transparent, cu reportlab, care contine
-   campurile de formular (text si, la nevoie, checkbox) pozitionate exact
-   peste liniile libere din document.
-2. Cu pypdf, campurile din overlay sunt adaugate peste paginile documentului
-   original, care raman neschimbate vizual.
+DE CE PyMuPDF SI NU reportlab+pypdf (versiunea anterioara a scriptului):
+Varianta initiala folosea reportlab pentru a desena campurile si pypdf pentru
+a le lipi peste PDF-ul original. Campurile foloseau insa fontul standard
+Helvetica, care NU contine literele romanesti cu virgula (ă, â, î, ș, ț).
+Cand se scria un cuvant ca "atașez", aplicatia de citit PDF nu putea calcula
+corect latimea caracterului "ș" si rupea cuvantul la mijloc, in loc sa treaca
+tot cuvantul pe randul urmator (bug de incadrare pe cuvinte / word-wrap).
+reportlab's AcroForm nu permite fonturi TrueType incorporate pentru campuri
+de formular (doar cele 14 fonturi standard PDF, fara diacritice romanesti).
+
+PyMuPDF (biblioteca "fitz") permite incorporarea directa a unui font
+TrueType complet (DejaVu Sans) in campurile de formular, asa ca toate
+diacriticele se afiseaza si se incadreaza corect.
 
 Dependinte:
-    pip install reportlab pypdf
+    pip install pymupdf
 
 Utilizare:
-    python creeaza_pdf_completabil.py ajpis input.pdf output.pdf
-    python creeaza_pdf_completabil.py anaf  input.pdf output.pdf
+    python creeaza_pdf_completabil.py ajpis      input.pdf output.pdf
+    python creeaza_pdf_completabil.py anaf       input.pdf output.pdf
+    python creeaza_pdf_completabil.py declaratie input.pdf output.pdf
 
 Daca vrei sa adaptezi scriptul la un alt formular, vezi sectiunea
 "Cum gasesti coordonatele" de la finalul fisierului si adauga un nou
-sablon in TEMPLATES (dupa modelul celor doua de mai jos).
+sablon in TEMPLATES (dupa modelul celor de mai jos).
 """
 
 import sys
-from reportlab.pdfgen import canvas
-from reportlab.lib.colors import Color
-from pypdf import PdfReader, PdfWriter
-from pypdf.generic import ArrayObject, NameObject, BooleanObject
+import fitz  # PyMuPDF
 
-PAGE_WIDTH, PAGE_HEIGHT = 595.2756, 841.8898
-OVERLAY_PATH = "/tmp/_overlay_form.pdf"
+FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+FONT_NAME = "DejaVuSans"
 
 
 # =============================================================================
@@ -43,7 +50,7 @@ OVERLAY_PATH = "/tmp/_overlay_form.pdf"
 # Fiecare sablon este o lista de pagini; fiecare pagina este o lista de
 # campuri. Un camp text: ("text", nume, x0, top, x1, bottom, multiline, fontsize)
 # Un checkbox:           ("checkbox", nume, x0, top, x1, bottom)
-# Coordonatele (x0/x1/top/bottom) sunt masurate ca in pdfplumber:
+# Coordonatele sunt masurate ca in pdfplumber / PyMuPDF:
 # x = distanta de la marginea stanga, top/bottom = distanta de la marginea de sus.
 # =============================================================================
 
@@ -93,102 +100,71 @@ TEMPLATES = {
             ("text", "semnatura", 190.3, 594.9, 290.3, 604.9, False, 9),
         ],
     ],
+    "declaratie": [
+        # ---- pagina 1 ----
+        # Merge pentru declaratie_beneficiar.pdf ("De la...") si
+        # declaratie_expeditor.pdf ("Catre..."); numele campului
+        # "persoana_relationata" acopera ambele cazuri.
+        [
+            ("text", "nume_prenume", 241.3, 120.4, 431.3, 130.4, False, 9),
+            ("text", "cnp", 241.3, 141.4, 431.3, 151.4, False, 9),
+            ("text", "domiciliu", 241.3, 162.4, 431.3, 172.4, False, 9),
+            ("text", "suma_lei", 241.3, 217.4, 431.3, 227.4, False, 9),
+            ("text", "persoana_relationata", 241.3, 238.4, 431.3, 248.4, False, 9),
+            ("text", "relatia_rudenie", 241.3, 259.4, 431.3, 269.4, False, 9),
+            ("text", "data_sumei", 241.3, 280.4, 431.3, 290.4, False, 9),
+            ("text", "modalitate", 241.3, 301.4, 431.3, 311.4, False, 9),
+            ("text", "data", 190.3, 452.4, 290.3, 462.4, False, 9),
+            ("text", "semnatura", 190.3, 479.4, 290.3, 489.4, False, 9),
+        ],
+    ],
 }
 
 
-def y_from_top(distance_from_top):
-    return PAGE_HEIGHT - distance_from_top
+def add_text_field(page, name, x0, top, x1, bottom, multiline=False, fontsize=9):
+    page.insert_font(fontname=FONT_NAME, fontfile=FONT_PATH)
+    w = fitz.Widget()
+    w.field_name = name
+    w.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+    w.rect = fitz.Rect(x0, top, x1, bottom)
+    w.text_font = FONT_NAME          # font cu diacritice complete -> incadrare corecta pe cuvinte
+    w.text_fontsize = fontsize
+    w.fill_color = (0.85, 0.92, 1)   # fundal albastru pal, ca sa se vada unde se scrie
+    w.border_color = None
+    w.border_width = 0
+    if multiline:
+        w.field_flags = fitz.PDF_TX_FIELD_IS_MULTILINE
+    page.add_widget(w)
 
 
-def build_overlay(pages_definition):
-    """Creeaza un PDF gol, transparent, cu campurile de formular definite
-    in pages_definition (o lista de pagini, fiecare o lista de campuri)."""
-    c = canvas.Canvas(OVERLAY_PATH, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
-    form = c.acroForm
+def add_checkbox(page, name, x0, top, x1, bottom):
+    w = fitz.Widget()
+    w.field_name = name
+    w.field_type = fitz.PDF_WIDGET_TYPE_CHECKBOX
+    w.rect = fitz.Rect(x0, top, x1, bottom)
+    w.field_value = False
+    w.border_color = (0, 0, 0)
+    w.border_width = 1
+    w.fill_color = (1, 1, 1)
+    page.add_widget(w)
 
-    def add_field(name, x0, top, x1, bottom, multiline=False, fontsize=9):
-        y1 = y_from_top(bottom)
-        y2 = y_from_top(top)
-        height = y2 - y1
-        kwargs = dict(
-            name=name, tooltip=name,
-            x=x0, y=y1, width=x1 - x0, height=height,
-            borderStyle='underlined', borderColor=None, borderWidth=0,
-            fillColor=Color(0.85, 0.92, 1, alpha=0.5),  # fundal albastru pal
-            textColor=Color(0, 0, 0), fontSize=fontsize, forceBorder=False,
-        )
-        if multiline:
-            kwargs['fieldFlags'] = 'multiline'
-        form.textfield(**kwargs)
 
-    def add_checkbox(name, x0, top, x1, bottom):
-        y1 = y_from_top(bottom)
-        size = min(x1 - x0, bottom - top)
-        form.checkbox(
-            name=name, tooltip=name,
-            x=x0, y=y1, size=size,
-            buttonStyle='check',
-            borderStyle='solid', borderWidth=1, borderColor=Color(0, 0, 0),
-            fillColor=Color(1, 1, 1), textColor=Color(0, 0, 0),
-        )
-
-    for page_fields in pages_definition:
-        for field in page_fields:
+def build_fillable_pdf(pages_definition, input_path, output_path):
+    doc = fitz.open(input_path)
+    num_pages = min(len(doc), len(pages_definition))
+    for i in range(num_pages):
+        page = doc[i]
+        for field in pages_definition[i]:
             kind = field[0]
             if kind == "text":
                 _, name, x0, top, x1, bottom, multiline, fontsize = field
-                add_field(name, x0, top, x1, bottom, multiline, fontsize)
+                add_text_field(page, name, x0, top, x1, bottom, multiline, fontsize)
             elif kind == "checkbox":
                 _, name, x0, top, x1, bottom = field
-                add_checkbox(name, x0, top, x1, bottom)
+                add_checkbox(page, name, x0, top, x1, bottom)
             else:
                 raise ValueError(f"Tip de camp necunoscut: {kind}")
-        c.showPage()
-
-    c.save()
-
-
-def merge_overlay_into_original(input_path, output_path):
-    """Combina PDF-ul original (neschimbat vizual) cu campurile din overlay,
-    pagina cu pagina, rezultand un PDF completabil."""
-    orig_reader = PdfReader(input_path)
-    overlay_reader = PdfReader(OVERLAY_PATH)
-
-    writer = PdfWriter()
-    writer.append(orig_reader)
-
-    num_pages = min(len(writer.pages), len(overlay_reader.pages))
-    for i in range(num_pages):
-        orig_page = writer.pages[i]
-        overlay_page = overlay_reader.pages[i]
-
-        overlay_annots = overlay_page.get("/Annots")
-        cloned_refs = []
-        if overlay_annots:
-            for a in overlay_annots:
-                obj = a.get_object()
-                cloned = obj.clone(writer)
-                ref = writer._add_object(cloned)
-                cloned_refs.append(ref)
-                cloned[NameObject("/P")] = orig_page.indirect_reference
-
-        existing = orig_page.get("/Annots")
-        if existing:
-            for r in cloned_refs:
-                existing.append(r)
-        else:
-            orig_page[NameObject("/Annots")] = ArrayObject(cloned_refs)
-
-    overlay_acroform = overlay_reader.trailer["/Root"].get("/AcroForm")
-    if overlay_acroform is not None:
-        cloned_acroform = overlay_acroform.get_object().clone(writer)
-        writer._root_object[NameObject("/AcroForm")] = cloned_acroform
-        # NeedAppearances = True: asigura afisarea corecta a textului
-        # introdus, in orice cititor de PDF (Acrobat, Preview, etc.)
-        writer._root_object["/AcroForm"][NameObject("/NeedAppearances")] = BooleanObject(True)
-
-    with open(output_path, "wb") as f:
-        writer.write(f)
+    doc.save(output_path)
 
 
 def main():
@@ -199,8 +175,7 @@ def main():
 
     template_name, input_path, output_path = sys.argv[1], sys.argv[2], sys.argv[3]
 
-    build_overlay(TEMPLATES[template_name])
-    merge_overlay_into_original(input_path, output_path)
+    build_fillable_pdf(TEMPLATES[template_name], input_path, output_path)
     print(f"PDF completabil ('{template_name}') salvat la: {output_path}")
 
 
@@ -224,4 +199,12 @@ if __name__ == "__main__":
 # "x0"/"x1"      = distanta de la marginea din STANGA a paginii.
 # Cauta liniile compuse din "." sau "_" si foloseste acele coordonate
 # pentru a defini campurile ("text", ...) sau bifele ("checkbox", ...).
+# Aceleasi coordonate merg direct in fitz.Rect(x0, top, x1, bottom) de mai
+# sus, fara nicio conversie (PyMuPDF foloseste acelasi sistem de coordonate
+# ca pdfplumber: originea in coltul stanga-sus al paginii).
+#
+# NOTA despre font: daca folosesti alt font decat DejaVu Sans, asigura-te ca
+# acesta contine glifele ă, â, î, ș, ț (sau diacriticele specifice limbii
+# formularului tau) - altfel poti reintalni bug-ul de incadrare pe cuvinte
+# descris mai sus.
 # ---------------------------------------------------------------------------
