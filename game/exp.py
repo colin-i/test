@@ -35,7 +35,8 @@ def run_scene(scene, cfg, input_file, output_dir):
 	if subprocess.run(cmd).returncode:
 		sys.exit(1)
 
-	subprocess.run([img_viewer,out_file])
+	if img_viewer:
+		subprocess.run([img_viewer,out_file])
 
 def resolve_constant(val):
 	neg = val.startswith("-")
@@ -167,8 +168,12 @@ def main():
 	output_dir = sys.argv[3]
 
 	global img_viewer
-	with open(os.path.expanduser("~/imgviewer"), "r") as f:
-		img_viewer = f.read()
+	no_view=os.environ.get("no_view")
+	if no_view:
+		img_viewer = None
+	else:
+		with open(os.path.expanduser("~/imgviewer"), "r") as f:
+			img_viewer = f.read()
 	global launcher
 	launcher=os.environ.get("p")
 	if not launcher:
