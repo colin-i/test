@@ -33,6 +33,8 @@ else
 fi
 ~/test/act/a
 ~/test/misc/storage
+cat ~/.cache/system-monitor-next-cpu-avg-all.json;echo
+gnome-extensions enable system-monitor-next@paradoxxx.zero.gmail.com
 if [ -z "${is_vnc}" ]; then
 	~/test/bookmarks/bookmark
 	~/test/net/data/a
