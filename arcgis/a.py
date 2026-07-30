@@ -76,12 +76,23 @@ def pack(type):
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()
 		time.sleep(5) #sometimes next click seems to be on undestroyed previous
 
-pack("_")
-pack("0")
-pack("1")
-pack("_new")
-pack("")
-pack("_")
+level=os.environ.get("level")
+if level:
+	level=int(level)
+else:
+	level=0
+if level==0:
+	pack("_")
+if level<=1:
+	pack("0")
+if level<=2:
+	pack("1")
+if level<=3:
+	pack("_new")
+if level<=4:
+	pack("")
+if level<=5:
+	pack("_")
 
 #bottom-left switch for watermark
 # !q=[];action.pointer_action.move_to_location(q[0],q[1]);action.pointer_action.click();action.perform()
