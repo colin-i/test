@@ -40,6 +40,9 @@ iplocation=os.path.expanduser('~')+"/gree_ip"
 with open(iplocation,"rb") as f:
 	greeip=f.read()
 
+debug=os.environ.get('debug')
+no_powget=os.environ.get('no_powget')
+
 def gree(a): #,b):
 	s='Pow='+a
 	print(s)
@@ -55,8 +58,12 @@ def gree(a): #,b):
 	#global on
 	#on=b
 def stop():
+	if no_powget:
+		return
 	z=subprocess.run([sys.executable,'gree.py','-c',greeip,'-i','f4911e448ee8','-k',key,'get','Pow'],capture_output=True,text=True)
 	if z.stdout != 'Getting parameters: Pow\nPow = 0\n':
+		if debug:
+			print(z.stdout)
 		gree('0') #,False)
 	else:
 		print("is off")
