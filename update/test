@@ -1,6 +1,42 @@
-
-apt list ocompiler ovideo actionswf edor sirc torra dicopp audapa
-apt install --dry-run ocompiler actionswf
-apt install --dry-run ovideo # | grep -E "is already|^Inst"
-apt install --dry-run edor sirc torra dicopp audapa
-#if no i386, use dpkg --add-architecture / --remove-architecture, update apt lists in separate folder like in update/up
+set -e
+if [ -z "$1" ]; then
+	sudo apt install ocompiler actionswf wstbld edor sirc torra dicopp audapa
+	v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
+	f=ovideo_${v}_i386.deb
+	n=~/$f
+	wget https://github.com/colin-i/ostream/releases/download/$v/$f -O $n
+	sudo dpkg -i $n
+else
+	w_get () {
+		cd ~/a/$1/$2-$3
+		u=$(curl https://api.github.com/repos/colin-i/$(cat debian/control | grep "^Homepage" | grep -o [^/]*$)/releases/latest -s)
+		if [ -z "$4" ]; then
+			f=$2.windows.zip
+			u=$(echo $u | jq -r ".assets[] | select(.name == \"$f\") | .browser_download_url")
+		else
+			u=$(echo $u | jq -r ".assets[] | select(.name | contains(\"$4\")) | .browser_download_url")
+			f=$2.pkg.tar.zst
+		fi
+		wget $u -O /mnt/d/Downloads/$f
+		if [ -n "$4" ]; then
+			echo pacman -U /d/Downloads/$f
+			read
+		fi
+	}
+	if [ -z "$2" ]; then
+		w_get o ocompiler 2
+		w_get s actionswf 1
+		w_get v ovideo 1
+		w_get o wstbld 1
+		w_get e edor 1 msys
+	else
+		p_get () {
+			echo pip3 install $1
+			read
+		}
+		w_get i sirc 1 mingw-w64
+		p_get torra
+		p_get dicopp
+		p_get audapa
+	fi
+fi
