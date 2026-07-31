@@ -7,5 +7,5 @@ cat ${f}
 read -n1 kbd
 sudo mmcli -m 0 --messaging-delete-sms=$1
 else
-mmcli -m 0 --messaging-list-sms;
+mmcli -m 0 --messaging-list-sms
 fi
