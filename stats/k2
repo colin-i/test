@@ -18,16 +18,16 @@ python ~/games/list/share/get_firestore.py plays > f/chambers
 dif () {
 	c=$(($1-$2))
 	d=`if [ $c = 0 ]; then echo ..........; else echo $c; fi`
-	echo $1 - $2 = $d
+	echo $1 - $2 = $d $3
 }
 
 for var in "${knowngames[@]}";do
 	a=`cat ./k/${var} | jq '.gameplays_count'`
 	echo $a >> 6
 	b=`git show master:./k/${var} | jq '.gameplays_count'`
-	dif $a $b
+	dif $a $b ${var}
 done
-dif `cat ./f/chambers` `git show master:./f/chambers`
+dif `cat ./f/chambers` `git show master:./f/chambers` chambers
 
 exit
 

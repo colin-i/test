@@ -1,5 +1,5 @@
 
-#optional  1: 0=set init  else projName  2: 0 only this proj else continue 1 from projName else after projName
+#optional  1: 0=set init  else projName  2: -z is only this proj else continue 0 from projName else after projName
 #stats/h,backup_paths,backup_is_pub,dbg
 #overall!=1 and not -z to skip overall, like overall=0
 #download with mime folder and .. 0
@@ -54,10 +54,8 @@ for var in "${z[@]}"; do
 			shift
 			shift
 			if [ "${dtype}" != 0 ]; then
-				if [ "${dtype}" != 1 ]; then
-					i=$((i+1))
-					continue
-				fi
+				i=$((i+1))
+				continue
 			fi
 		fi
 		cd ${src} || exit 1
@@ -109,7 +107,7 @@ for var in "${z[@]}"; do
 							qtmp="${vr#Only in }"
 							dir="${qtmp%: *}" #dir="${qtmp%%:*}" #this is after first, will break at home:costin
 							file="${qtmp##*: }"
-							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != temp ] && [ "${file}" != tmp ]; then
+							if [ "${file}" != .git ] && [ "${file}" != .expected ] && [ "${file}" != localtest ] && [ "${file}" != swf_backup ] && [ "${file}" != temp ] && [ "${file}" != tmp ] && [ "${file}" != list ]; then
 								full="${dir}/${file}"
 								rel="${full#$src/}"
 								mkdir -p "${dest}/$(dirname "${rel}")"
