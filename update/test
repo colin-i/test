@@ -1,5 +1,6 @@
 set -e
 if [ -z "$1" ]; then
+	sudo apt update
 	sudo apt install ocompiler actionswf wstbld edor sirc torra dicopp audapa
 	v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
 	f=ovideo_${v}_i386.deb
@@ -39,6 +40,9 @@ elif [ $1 = w ]; then
 		p_get dicopp
 		p_get audapa
 	fi
-else
+elif [ $1 = a ]; then
 	yay -Sy ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
+else
+	sudo zypper refresh
+	sudo zypper install ocompiler actionswf wstbld edor sirc python313-torra python313-dicopp
 fi

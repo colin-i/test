@@ -1,0 +1,10 @@
+
+a=( `cat ~/a/tmp/backup_paths` )
+for p in "${a[@]}"; do
+	if [ $p != /home/bc/Desktop/colin-i.github.io ]; then
+		echo $p
+		cd $p
+		git diff --exit-code || exit 1
+	fi
+done
+echo all good
