@@ -7,4 +7,6 @@ client = Client.create_from_config_file()
 fn=eval("client."+sys.argv[2]+"."+sys.argv[3])
 
 x=fn("colin", "project", p)
-print(x.__response__.json())
+
+import json
+print(json.dumps(x.__response__.json()))
