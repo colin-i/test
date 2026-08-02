@@ -42,7 +42,10 @@ elif [ $1 = w ]; then
 	fi
 elif [ $1 = a ]; then
 	yay -Sy ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
-else
+elif [ $1 = s ]; then
 	sudo zypper refresh
 	sudo zypper install ocompiler actionswf wstbld edor sirc python313-torra python313-dicopp
+else # f
+	sudo dnf copr enable colin/project
+	sudo dnf install ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
 fi
