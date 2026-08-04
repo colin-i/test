@@ -134,17 +134,20 @@ TEMPLATES = {
         # Merge pentru declaratie_beneficiar.pdf ("De la...") si
         # declaratie_expeditor.pdf ("Catre..."); numele campului
         # "persoana_relationata" acopera ambele cazuri.
+        # Coordonate recalculate pentru versiunea cu campul nou
+        # "Am utilizat suma primita pentru:" (doua randuri libere).
         [
-            ("text", "nume_prenume", 241.3, 120.4, 431.3, 130.4, False, 9),
-            ("text", "cnp", 241.3, 141.4, 431.3, 151.4, False, 9),
-            ("text", "domiciliu", 241.3, 162.4, 431.3, 172.4, False, 9),
-            ("text", "suma_lei", 241.3, 217.4, 431.3, 227.4, False, 9),
-            ("text", "persoana_relationata", 241.3, 238.4, 431.3, 248.4, False, 9),
-            ("text", "relatia_rudenie", 241.3, 259.4, 431.3, 269.4, False, 9),
-            ("text", "data_sumei", 241.3, 280.4, 431.3, 290.4, False, 9),
-            ("text", "modalitate", 241.3, 301.4, 431.3, 311.4, False, 9),
-            ("text", "data", 190.3, 452.4, 290.3, 462.4, False, 9),
-            ("text", "semnatura", 190.3, 479.4, 290.3, 489.4, False, 9),
+            ("text", "nume_prenume",         167.0, 114.4, 538.6, 136.4, False, 18),
+            ("text", "cnp",                   91.0, 136.4, 538.6, 158.4, False, 18),
+            ("text", "domiciliu",            120.0, 158.4, 538.6, 180.4, False, 18),
+            ("text", "suma_lei",             199.0, 216.4, 538.6, 238.4, False, 18),
+            ("text", "persoana_relationata", 206.0, 238.4, 538.6, 260.4, False, 18),
+            ("text", "relatia_rudenie",      170.0, 260.4, 538.6, 282.4, False, 18),
+            ("text", "data_sumei",           174.0, 282.4, 538.6, 304.4, False, 18),
+            ("text", "modalitate",           194.0, 304.4, 538.6, 326.4, False, 18),
+            ("text", "suma_folosita",         56.7, 426.2, 538.6, 470.1, True, 18),
+            ("text", "data",                  99.0, 514.4, 538.6, 536.4, False, 18),
+            ("text", "semnatura",            129.0, 542.4, 538.6, 564.4, False, 18),
         ],
     ],
 }
