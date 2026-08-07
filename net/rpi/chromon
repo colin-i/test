@@ -1,4 +1,13 @@
 
+off=0
+lim=25
+if [ -e ~/strel ]; then
+	a=`cat ~/strel`
+	off="${a%,*}"
+	lim="${a#*,}"
+fi
+echo ${lim} ${off}
+
 a=0
 c=0
 while :; do
@@ -8,7 +17,7 @@ while :; do
 			break
 		fi
 	fi
-	json=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=25&offset=0")
+	json=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=${lim}&offset=${off}")
 	if [ -n "$v" ]; then
 		echo "$json" | jq
 	fi
