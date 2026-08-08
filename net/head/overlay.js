@@ -12,13 +12,14 @@ javascript:(function(){
 	label1.style.color = 'white';
 	label1.style.fontSize = '14px';
 	label1.style.fontFamily = 'monospace';
-	let widthPx, overlayTop, overlayBottom;
+	let widthPx, overlayTop, overlayBottom, side1;
 	function loadOverlay1(){
 		let suffix = getSuffix(overlay1Variant);
 		widthPx=parseInt(localStorage.getItem('overlayWidth'+suffix))||Math.floor(window.innerWidth/2); /* overlay width */
 		overlayTop=parseInt(localStorage.getItem('overlayTop'+suffix))||0; /* solo top */
 		overlayBottom=parseInt(localStorage.getItem('overlayBottom'+suffix))||0; /* solo bottom */
-		label1.textContent = 'A' + overlay1Variant;
+		side1=localStorage.getItem('overlaySide1'+suffix)||'right'; /* which edge overlay1 is anchored to */
+		label1.textContent = 'A' + overlay1Variant + (side1=='left' ? ' L' : '');
 	}
 	let overlay1Variant=parseInt(localStorage.getItem('overlay1Variant'))||1;
 	loadOverlay1();
@@ -30,13 +31,14 @@ javascript:(function(){
 	label2.style.color = 'white';
 	label2.style.fontSize = '14px';
 	label2.style.fontFamily = 'monospace';
-	let heightPx, overlay2Left, overlay2Right;
+	let heightPx, overlay2Left, overlay2Right, side2;
 	function loadOverlay2(){
 		let suffix = getSuffix(overlay2Variant);
 		heightPx=parseInt(localStorage.getItem('overlayHeight'+suffix))||Math.floor(window.innerHeight/2); /* overlay2 height */
 		overlay2Left=parseInt(localStorage.getItem('overlay2Left'+suffix))||0; /* solo left */
 		overlay2Right=parseInt(localStorage.getItem('overlay2Right'+suffix))||0; /* solo right */
-		label2.textContent = 'B' + overlay2Variant;
+		side2=localStorage.getItem('overlaySide2'+suffix)||'bottom'; /* which edge overlay2 is anchored to */
+		label2.textContent = 'B' + overlay2Variant + (side2=='top' ? ' T' : '');
 	}
 	let overlay2Variant=parseInt(localStorage.getItem('overlay2Variant'))||1;
 	loadOverlay2();
@@ -48,7 +50,7 @@ javascript:(function(){
 	overlay1a.style.position='fixed';
 	overlay1a.style.top=overlayTop+'px';
 	overlay1a.style.bottom=overlayBottom+'px';
-	overlay1a.style.right='0';
+	if(side1=='left'){ overlay1a.style.left='0'; }else{ overlay1a.style.right='0'; }
 	overlay1a.style.width=widthPx+'px';
 	overlay1a.style.backgroundColor='black';
 	overlay1a.style.zIndex='9999';
@@ -57,7 +59,7 @@ javascript:(function(){
 
 	let overlay2b=document.createElement('div'); /* create bottom overlay */
 	overlay2b.style.position='fixed';
-	overlay2b.style.bottom='0';
+	if(side2=='top'){ overlay2b.style.top='0'; }else{ overlay2b.style.bottom='0'; }
 	overlay2b.style.left=overlay2Left+'px';
 	overlay2b.style.right=overlay2Right+'px';
 	overlay2b.style.height=heightPx+'px';
@@ -82,12 +84,14 @@ javascript:(function(){
 				localStorage.setItem('overlayWidth'+suffix,widthPx); /* save width */
 				localStorage.setItem('overlayTop'+suffix,overlayTop); /* save top */
 				localStorage.setItem('overlayBottom'+suffix,overlayBottom); /* save bottom */
+				localStorage.setItem('overlaySide1'+suffix,side1); /* save side */
 				alert('saved overlay1 ' + overlay1Variant);
 			}else{
 				let suffix = getSuffix(overlay2Variant);
 				localStorage.setItem('overlayHeight'+suffix,heightPx); /* save height */
 				localStorage.setItem('overlay2Left'+suffix,overlay2Left); /* save left */
 				localStorage.setItem('overlay2Right'+suffix,overlay2Right); /* save right */
+				localStorage.setItem('overlaySide2'+suffix,side2); /* save side */
 				alert('saved overlay2 ' + overlay2Variant);
 			}
 		}else{
@@ -203,6 +207,25 @@ javascript:(function(){
 		else if(e.key=='d'){
 			overlay2Right=0;
 			overlay2.style.right='0px';
+		}
+
+		else if(e.key=='l'){ /* flip overlay1 between right and left edge */
+			side1 = side1=='right' ? 'left' : 'right';
+			label1.textContent = 'A' + overlay1Variant + (side1=='left' ? ' L' : '');
+			if(overlay1){
+				overlay1.style.right='';
+				overlay1.style.left='';
+				if(side1=='left'){ overlay1.style.left='0'; }else{ overlay1.style.right='0'; }
+			}
+		}
+		else if(e.key=='t'){ /* flip overlay2 between bottom and top edge */
+			side2 = side2=='bottom' ? 'top' : 'bottom';
+			label2.textContent = 'B' + overlay2Variant + (side2=='top' ? ' T' : '');
+			if(overlay2){
+				overlay2.style.top='';
+				overlay2.style.bottom='';
+				if(side2=='top'){ overlay2.style.top='0'; }else{ overlay2.style.bottom='0'; }
+			}
 		}
 
 		else if (e.key == 'q'){
