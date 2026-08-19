@@ -1,1 +1,2 @@
-sudo gdb -x /home/bc/test/gdb/gdbinit $@
+if [ -z "${nosudo}" ]; then s=sudo; fi
+$s gdb -x /home/bc/test/gdb/gdbinit $@
