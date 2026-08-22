@@ -59,6 +59,10 @@ Sub SelListener_selectionChanged(oEvent As Object)
 	On Error Resume Next
 	Dim oFrame As Object
 	Dim oDispatcher As Object
+
+	Dim bWasModified As Boolean
+	bWasModified = ThisComponent.isModified()
+
 	oFrame = ThisComponent.getCurrentController().Frame
 	oDispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
 
@@ -70,6 +74,8 @@ Sub SelListener_selectionChanged(oEvent As Object)
 	If bTracePrecedentsOn Then
 		oDispatcher.executeDispatch(oFrame, ".uno:ShowPrecedents", "", 0, Array())
 	End If
+
+	ThisComponent.setModified(bWasModified)
 End Sub
 
 'If disposing is missing, it doesn't always throw immediately, but behavior becomes unreliable — some LibreOffice versions raise an error at registration time, others silently fail to call it later and can leave you with warnings in a log, or occasionally crash-adjacent behavior during document close. It's cheap enough to keep as an empty stub that there's no real reason to risk it.
@@ -80,9 +86,15 @@ Sub ClearArrows()
 	On Error Resume Next
 	Dim oFrame As Object
 	Dim oDispatcher As Object
+
+	Dim bWasModified As Boolean
+	bWasModified = ThisComponent.isModified()
+
 	oFrame = ThisComponent.getCurrentController().Frame
 	oDispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
 	oDispatcher.executeDispatch(oFrame, ".uno:ClearArrows", "", 0, Array())
+
+	ThisComponent.setModified(bWasModified)
 End Sub
 
 'Const LOG_PATH As String = "/tmp/trace_toggle.log"
