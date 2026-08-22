@@ -1,0 +1,98 @@
+
+Function TZOFFSET() As Integer
+	Dim oScriptProvider, oScript
+	oScriptProvider = ThisComponent.getScriptProvider()
+	oScript = oScriptProvider.getScript("vnd.sun.star.script:Module.py$getgmtoff?language=Python&location=document")
+	'                                                                                                     user  pentru globale, document pentru moon.ods, ...
+	'                                                        HelloWorld.py$HelloWorldPython?language=Python&location=share
+	TZOFFSET=oScript.invoke(array(), array(), array())
+	REM                          (A1,...)
+End Function
+
+'add buttons for macros from Tools > Customize
+
+Global oSelListener As Object
+Global bTraceDependentsOn As Boolean
+Global bTracePrecedentsOn As Boolean
+Global bListenerRegistered As Boolean
+
+Sub EnableBothTraces()
+	bTraceDependentsOn = True
+	bTracePrecedentsOn = True
+	EnsureListenerState()
+	'LogLine("Both enabled: dep=" & bTraceDependentsOn & " prec=" & bTracePrecedentsOn)
+End Sub
+Sub DisableTraces()
+	bTraceDependentsOn = False
+	bTracePrecedentsOn = False
+	EnsureListenerState()
+End Sub
+Sub ToggleTraceDependents()
+	bTraceDependentsOn = Not bTraceDependentsOn
+	EnsureListenerState()
+	'LogLine("Dependents: " & bTraceDependentsOn)
+End Sub
+Sub ToggleTracePrecedents()
+	bTracePrecedentsOn = Not bTracePrecedentsOn
+	EnsureListenerState()
+	'LogLine("Precedents: " & bTracePrecedentsOn)
+End Sub
+
+Sub EnsureListenerState()
+	On Error Resume Next
+	Dim oController As Object
+	oController = ThisComponent.getCurrentController()
+
+	If Not IsNull(oSelListener) Then
+		oController.removeSelectionChangeListener(oSelListener)
+	End If
+	bListenerRegistered = False
+
+	If (bTraceDependentsOn Or bTracePrecedentsOn) Then
+		oSelListener = createUnoListener("SelListener_", "com.sun.star.view.XSelectionChangeListener")
+		oController.addSelectionChangeListener(oSelListener)
+		bListenerRegistered = True
+	Else
+		ClearArrows()
+	End If
+End Sub
+
+Sub SelListener_selectionChanged(oEvent As Object)
+	On Error Resume Next
+	Dim oFrame As Object
+	Dim oDispatcher As Object
+	oFrame = ThisComponent.getCurrentController().Frame
+	oDispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+
+	oDispatcher.executeDispatch(oFrame, ".uno:ClearArrows", "", 0, Array())
+
+	If bTraceDependentsOn Then
+		oDispatcher.executeDispatch(oFrame, ".uno:ShowDependents", "", 0, Array())
+	End If
+	If bTracePrecedentsOn Then
+		oDispatcher.executeDispatch(oFrame, ".uno:ShowPrecedents", "", 0, Array())
+	End If
+End Sub
+
+'If disposing is missing, it doesn't always throw immediately, but behavior becomes unreliable — some LibreOffice versions raise an error at registration time, others silently fail to call it later and can leave you with warnings in a log, or occasionally crash-adjacent behavior during document close. It's cheap enough to keep as an empty stub that there's no real reason to risk it.
+Sub SelListener_disposing(oEvent As Object)
+End Sub
+
+Sub ClearArrows()
+	On Error Resume Next
+	Dim oFrame As Object
+	Dim oDispatcher As Object
+	oFrame = ThisComponent.getCurrentController().Frame
+	oDispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+	oDispatcher.executeDispatch(oFrame, ".uno:ClearArrows", "", 0, Array())
+End Sub
+
+'Const LOG_PATH As String = "/tmp/trace_toggle.log"
+'Sub LogLine(sMsg As String)
+'	On Error Resume Next
+'	Dim iFile As Integer
+'	iFile = FreeFile
+'	Open LOG_PATH For Append As #iFile
+'	Print #iFile, Format(Now, "YYYY-MM-DD HH:MM:SS") & "  " & sMsg
+'	Close #iFile
+'End Sub
