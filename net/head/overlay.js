@@ -209,7 +209,7 @@ javascript:(function(){
 			overlay2.style.right='0px';
 		}
 
-		else if(e.key=='l'){ /* flip overlay1 between right and left edge */
+		else if(e.key=='c'){ /* flip overlay1 between right and left edge */
 			side1 = side1=='right' ? 'left' : 'right';
 			label1.textContent = 'A' + overlay1Variant + (side1=='left' ? ' L' : '');
 			if(overlay1){
@@ -218,7 +218,7 @@ javascript:(function(){
 				if(side1=='left'){ overlay1.style.left='0'; }else{ overlay1.style.right='0'; }
 			}
 		}
-		else if(e.key=='t'){ /* flip overlay2 between bottom and top edge */
+		else if(e.key=='v'){ /* flip overlay2 between bottom and top edge */
 			side2 = side2=='bottom' ? 'top' : 'bottom';
 			label2.textContent = 'B' + overlay2Variant + (side2=='top' ? ' T' : '');
 			if(overlay2){
