@@ -14,7 +14,6 @@ End Function
 Global oSelListener As Object
 Global bTraceDependentsOn As Boolean
 Global bTracePrecedentsOn As Boolean
-Global bListenerRegistered As Boolean
 
 Sub EnableBothTraces()
 	bTraceDependentsOn = True
@@ -46,12 +45,11 @@ Sub EnsureListenerState()
 	If Not IsNull(oSelListener) Then
 		oController.removeSelectionChangeListener(oSelListener)
 	End If
-	bListenerRegistered = False
 
 	If (bTraceDependentsOn Or bTracePrecedentsOn) Then
 		oSelListener = createUnoListener("SelListener_", "com.sun.star.view.XSelectionChangeListener")
 		oController.addSelectionChangeListener(oSelListener)
-		bListenerRegistered = True
+		SelListener_selectionChanged(Nothing)   ' fire immediately on the current cell
 	Else
 		ClearArrows()
 	End If
