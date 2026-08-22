@@ -3,7 +3,12 @@ t=~/tmp/fisier
 ext=${1##*.}
 
 if [ ${ext} = ods ]; then
-	ods2tsv $1 > $t
+	ods2tsv $1 > $t || {
+		orcus-ods -f csv -o ${t}a $1
+		# orcus-ods --dump-check $1
+		mv ${t}a/Sheet1.csv $t
+		rm -r ${t}a
+	}
 else
 	ln -s `readlink -f $1` $t
 fi
