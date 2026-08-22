@@ -1,12 +1,14 @@
 set -e
 if [ -z "$1" ]; then
 	sudo apt update
-	sudo apt install ocompiler actionswf wstbld edor sirc torra dicopp audapa
-	v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
-	f=ovideo_${v}_i386.deb
-	n=~/$f
-	wget https://github.com/colin-i/ostream/releases/download/$v/$f -O $n
-	sudo dpkg -i $n
+	sudo apt install ocompiler ocompiler-dev actionswf libactionswf-dev wstbld edor sirc torra dicopp audapa
+	if [ -z "$a" ]; then
+		v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
+		f=ovideo_${v}_i386.deb
+		n=~/$f
+		wget https://github.com/colin-i/ostream/releases/download/$v/$f -O $n
+		sudo dpkg -i $n
+	fi
 elif [ $1 = w ]; then
 	w_get () {
 		cd ~/a/$1/$2-$3
