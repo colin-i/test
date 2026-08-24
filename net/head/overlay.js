@@ -46,6 +46,56 @@ javascript:(function(){
 	let enterMode=false; /* toggle mode for solo edge adjustments */
 	let a=false; /* save mode toggle */
 
+	/* clock feature */
+	let clockActive=localStorage.getItem('clockActive')==='true'; /* persisted on/off state */
+	let clockLocation=parseInt(localStorage.getItem('clockLocation'))||1; /* persisted corner: 1=top-right 2=top-left 3=bottom-left 4=bottom-right */
+	let clockColor=localStorage.getItem('clockColor')||'white'; /* persisted color: white/black */
+	let clockInterval;
+
+	let clockDiv=document.createElement('div');
+	clockDiv.style.position='fixed';
+	clockDiv.style.fontSize='14px';
+	clockDiv.style.fontFamily='monospace';
+	clockDiv.style.zIndex='10000';
+	clockDiv.style.padding='2px 5px';
+
+	function applyClockStyle(){
+		clockDiv.style.top='';
+		clockDiv.style.bottom='';
+		clockDiv.style.left='';
+		clockDiv.style.right='';
+		if(clockLocation==1){ clockDiv.style.top='5px'; clockDiv.style.right='5px'; }
+		else if(clockLocation==2){ clockDiv.style.top='5px'; clockDiv.style.left='5px'; }
+		else if(clockLocation==3){ clockDiv.style.bottom='5px'; clockDiv.style.left='5px'; }
+		else{ clockDiv.style.bottom='5px'; clockDiv.style.right='5px'; } /* 4 */
+
+		clockDiv.style.color=clockColor;
+	}
+
+	function updateClockText(){
+		let now=new Date();
+		let hh=String(now.getHours()).padStart(2,'0');
+		let mm=String(now.getMinutes()).padStart(2,'0');
+		let ss=String(now.getSeconds()).padStart(2,'0');
+		clockDiv.textContent=hh+':'+mm+':'+ss;
+	}
+
+	function startClock(){
+		applyClockStyle();
+		updateClockText();
+		document.body.appendChild(clockDiv);
+		clockInterval=setInterval(updateClockText,1000);
+		clockActive=true;
+		localStorage.setItem('clockActive','true');
+	}
+
+	function stopClock(){
+		if(clockActive){ clearInterval(clockInterval); clockDiv.remove(); clockActive=false; }
+		localStorage.setItem('clockActive','false');
+	}
+
+	if(clockActive){ startClock(); } /* resume clock if it was active last session */
+
 	let overlay1a=document.createElement('div');
 	overlay1a.style.position='fixed';
 	overlay1a.style.top=overlayTop+'px';
@@ -226,6 +276,21 @@ javascript:(function(){
 				overlay2.style.bottom='';
 				if(side2=='top'){ overlay2.style.top='0'; }else{ overlay2.style.bottom='0'; }
 			}
+		}
+
+		else if(e.key=='r'){ /* activate clock */
+			if(!clockActive) startClock();
+			else stopClock();
+		}
+		else if(e.key=='f'){ /* cycle clock corner */
+			clockLocation = clockLocation==4 ? 1 : clockLocation+1;
+			localStorage.setItem('clockLocation',clockLocation);
+			if(clockActive) applyClockStyle();
+		}
+		else if(e.key=='t'){ /* toggle clock color */
+			clockColor = clockColor=='white' ? 'black' : 'white';
+			localStorage.setItem('clockColor',clockColor);
+			if(clockActive) applyClockStyle();
 		}
 
 		else if (e.key == 'q'){
