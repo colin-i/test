@@ -7,8 +7,9 @@ javascript:(function(){
 
 	let label1 = document.createElement('div');
 	label1.style.position = 'absolute';
-	label1.style.top = '5px';
+	label1.style.top = '50%';
 	label1.style.left = '5px';
+	label1.style.transform = 'translateY(-50%)';/*a few pixels up, half of it*/
 	label1.style.color = 'white';
 	label1.style.fontSize = '14px';
 	label1.style.fontFamily = 'monospace';
@@ -27,7 +28,8 @@ javascript:(function(){
 	let label2 = document.createElement('div');
 	label2.style.position = 'absolute';
 	label2.style.top = '5px';
-	label2.style.left = '5px';
+	label2.style.left = '50%';
+	label2.style.transform = 'translateX(-50%)';
 	label2.style.color = 'white';
 	label2.style.fontSize = '14px';
 	label2.style.fontFamily = 'monospace';
@@ -60,14 +62,10 @@ javascript:(function(){
 	clockDiv.style.padding='2px 5px';
 
 	function applyClockStyle(){
-		clockDiv.style.top='';
-		clockDiv.style.bottom='';
-		clockDiv.style.left='';
-		clockDiv.style.right='';
-		if(clockLocation==1){ clockDiv.style.top='5px'; clockDiv.style.right='5px'; }
-		else if(clockLocation==2){ clockDiv.style.top='5px'; clockDiv.style.left='5px'; }
-		else if(clockLocation==3){ clockDiv.style.bottom='5px'; clockDiv.style.left='5px'; }
-		else{ clockDiv.style.bottom='5px'; clockDiv.style.right='5px'; } /* 4 */
+		if(clockLocation==1){ clockDiv.style.top='5px'; clockDiv.style.right='5px'; clockDiv.style.bottom=''; }
+		else if(clockLocation==2){ clockDiv.style.top='5px'; clockDiv.style.left='5px'; clockDiv.style.right=''; }
+		else if(clockLocation==3){ clockDiv.style.bottom='5px'; clockDiv.style.left='5px'; clockDiv.style.top=''; }
+		else{ clockDiv.style.bottom='5px'; clockDiv.style.right='5px'; clockDiv.style.left=''; } /* 4 */
 
 		clockDiv.style.color=clockColor;
 	}
