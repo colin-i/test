@@ -37,7 +37,7 @@ if [ -z "$2" ]; then
 	left=240
 	top=139
 	right=1564
-	bottom=748
+	bottom=`cat ~/arcgis_bottom` # 725 748
 	echo left top right bottom , or enter for default ${left} ${top} ${right} ${bottom}
 	read -t $((60*60*24)) ans
 	if [ -n "${ans}" ]; then
