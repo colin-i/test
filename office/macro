@@ -106,3 +106,7 @@ End Sub
 '	Print #iFile, Format(Now, "YYYY-MM-DD HH:MM:SS") & "  " & sMsg
 '	Close #iFile
 'End Sub
+
+Sub UnsetModified()
+	ThisComponent.setModified(False)
+End Sub
