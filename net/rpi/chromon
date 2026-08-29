@@ -6,7 +6,7 @@ if [ -e ~/strel ]; then
 	off="${a%,*}"
 	lim="${a#*,}"
 fi
-echo ${lim} ${off}
+echo ${off} ${lim}
 
 a=0
 c=0
@@ -17,13 +17,15 @@ while :; do
 			break
 		fi
 	fi
-	json=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?limit=${lim}&offset=${off}")
+	json=$(curl -s "https://api.streamelements.com/kappa/v2/points/5fac0b99b28a1b665e5044c1/alltime?offset=${off}&limit=${lim}")
 	if [ -n "$v" ]; then
 		echo "$json" | jq
 	fi
 
-	# your user points
-	b=$(echo "$json" | jq '.users[] | select(.username=="'$(cat ~/twitch_user)'") | .points')
+	# your user index (0-based rank) and points
+	idx_points=$(echo "$json" | jq -r '.users | to_entries[] | select(.value.username=="'$(cat ~/twitch_user)'") | "\(.key) \(.value.points)"')
+	idx=$(echo "$idx_points" | cut -d' ' -f1)
+	b=$(echo "$idx_points" | cut -d' ' -f2)
 
 	# last user points (25th user)
 	last=$(echo "$json" | jq '.users[-1].points')
@@ -41,7 +43,7 @@ while :; do
 		a=$b
 	fi
 
-	echo "$b - $last = $diff | $(date)"
+	echo "#$((off+idx)) $b - $last = $diff | $(date)"
 	sleep $((5*60))
 done
 notify-send "Chromium!"
