@@ -1,4 +1,4 @@
 
 . ~/test/misc/read_char
-echo read
+echo "read: waiting for a single keystroke..."
 wait_char
