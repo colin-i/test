@@ -7,22 +7,7 @@ read -t $((60*60*24)) ans
 ./w4 ${ans}
 read
 
-cd f
-edor ${ans}
-cd ..
-edor q
-~/arh/ffdec
-wc -l q
-mv q a/${ans}
-
-./w6 f z ${ans}
-
-fl=~/a/tmp/ffdec/translation.jpt
-seconds=$(stat -c %Y ${fl})
-echo save translation
-read
-touch -d "@${seconds}" ${fl}
-./t ${ans}
+./w7 ${ans}
 ./days
 
 #at new file:

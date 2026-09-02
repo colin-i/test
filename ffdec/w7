@@ -1,0 +1,17 @@
+
+cd f
+edor $1
+cd ..
+edor q
+~/arh/ffdec
+wc -l q
+mv q a/$1
+
+./w6 f z $1
+
+fl=~/a/tmp/ffdec/translation.jpt
+seconds=$(stat -c %Y ${fl})
+echo save translation
+read
+touch -d "@${seconds}" ${fl}
+./t $1
