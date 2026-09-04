@@ -22,22 +22,31 @@ if inferior and inferior.pid:
 os.kill(os.getpid(), signal.SIGKILL)        # kill gdb itself
 	end
 end
+document qa
+	Kill debug target process (inferior) + gdb itself.
+end
+
 define qq
 	set confirm off
 	quit 1
 end
+document qq
+	Quit without confirmation and returning non-zero.
+end
+
 define ss
 	set confirm off
 	start
 	set confirm on
 end
-
-document qa
-	Kill debug target process (inferior) + gdb itself.
-end
-document qq
-	Quit without confirmation and returning non-zero.
-end
 document ss
 	Restart
+end
+
+define cc
+	set $pc = $pc + 4
+	continue
+end
+define sa
+	set $pc = $pc + 4
 end
