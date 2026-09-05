@@ -13,4 +13,4 @@ fi
 
 #after new, inside ./aa
 #can also use skipdate=x at ./b
-#when from normal to out: use python nlist.py|edor , remove from: recs text text_last current new ex ex2
+#when from normal to out: use python nlist.py|edor , remove from: recs   current new ex ex2 (find)   text text_last
