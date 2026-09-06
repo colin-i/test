@@ -1,6 +1,8 @@
 
 #optional 1 tag
 
+~/test/de/set
+
 url=
 
 if [ -z "${1}" ]; then

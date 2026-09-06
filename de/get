@@ -1,0 +1,23 @@
+#!/bin/sh
+cooldown_dir="$HOME/arh/cooldown"
+
+for file in "$cooldown_dir"/*; do
+	[ -f "$file" ] || continue
+
+	limit_ts=$(cat "$file")
+
+	plus_one_month=$(date -d "@$limit_ts" "+%Y-%m-%d %H:%M:%S %z" 2>/dev/null)
+	now_ts=$(date +%s)
+	diff_seconds=$((limit_ts - now_ts))
+
+	if [ "$diff_seconds" -lt 0 ]; then
+		rm ${file}
+		continue
+	fi
+
+	days=$((diff_seconds / 86400))
+	hours=$(( (diff_seconds % 86400) / 3600 ))
+	minutes=$(( (diff_seconds % 3600) / 60 ))
+
+	echo "$(basename $file) | $plus_one_month | ${days}d ${hours}h ${minutes}m"
+done

@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+changelog="debian/changelog"
+
+# 1. Nume = primul cuvânt de pe rândul 1
+pkg_name=$(head -n 1 "$changelog" | awk '{print $1}')
+
+# 2. Extrage DATA VALIDĂ (format: "Mon, 17 Aug 2026 15:37:25 +0300")
+#    - Folosește regex pentru a extrage doar data în format standard Debian
+date_str=$(grep -m 1 '^ --' "$changelog" | grep -oP '\w{3}, \d{1,2} \w{3} \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}')
+# 3. Convert la format ISO (pentru siguranță) și calculează limit_ts
+normalized_date=$(date -d "$date_str" "+%Y-%m-%d %H:%M:%S %z" 2>/dev/null)
+limit_ts=$(date -d "$normalized_date +1 month" +%s)
+
+# 4. Salvează în fișier
+echo -n $limit_ts > ~/arh/cooldown/"$pkg_name"

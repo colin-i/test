@@ -38,6 +38,7 @@ gnome-extensions enable system-monitor-next@paradoxxx.zero.gmail.com
 if [ -z "${is_vnc}" ]; then
 	~/test/bookmarks/bookmark
 	~/test/net/data/a
+	~/test/de/get
 
 	. ~/test/startup/exports
 	if [ -z "${no_temp}" ]; then
