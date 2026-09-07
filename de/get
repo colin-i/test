@@ -1,6 +1,7 @@
 #!/bin/sh
 cooldown_dir="$HOME/arh/cooldown"
 
+echo ======================
 for file in "$cooldown_dir"/*; do
 	[ -f "$file" ] || continue
 
@@ -21,3 +22,4 @@ for file in "$cooldown_dir"/*; do
 
 	echo "$(basename $file) | $plus_one_month | ${days}d ${hours}h ${minutes}m"
 done
+echo ======================
