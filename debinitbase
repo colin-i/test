@@ -12,10 +12,8 @@ else
  dist=${2}
 fi
 
-if [ -e ./cln ]; then
-	./cln
-fi
-
+{
+~/test/git/cln && \
 if [ -z "${use_version_txt}" ]; then
 # get line 5 from debian/changelog
 	line="$(sed -n '5p' debian/changelog)"
@@ -79,12 +77,14 @@ else
 	version=`cat version.txt | grep -Poe "[^\.]*$"` && \
 	echo version.txt last part is ${version}. press a key && \
 	read
-fi || exit 1
+fi
+} || exit 1
 
 major=`pwd | grep -o "[^-]*$"`
 fullversion=${major}-${version}
 patchversion=${major}.${version}
 if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi
+
 msg=${1}
 ~/test/misc/spell "${msg}" && \
 dch -v ${fullversion} --distribution=${dist} && \

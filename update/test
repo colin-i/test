@@ -2,7 +2,7 @@ set -e
 if [ -z "$1" ]; then
 	sudo apt update
 	sudo apt install ocompiler ocompiler-dev actionswf libactionswf-dev wstbld edor sirc torra dicopp audapa
-	if [ -z "$a" ]; then
+	if [ -n "$a" ]; then
 		v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
 		f=ovideo_${v}_i386.deb
 		n=~/$f
@@ -27,10 +27,12 @@ elif [ $1 = w ]; then
 		fi
 		if [ -n "$4" ]; then
 			echo pacman -U /d/Downloads/$f
-			read
+			if [ -z "${echo}" ]; then
+				read
+			fi
 		fi
 	}
-	if [ -n "$2" ]; then
+	if [ -z "$2" ]; then
 		export echo=x
 	fi
 	w_get o ocompiler 2
@@ -42,7 +44,9 @@ elif [ $1 = w ]; then
 	w_get i sirc 1 mingw-w64
 	p_get () {
 		echo pip3 install $1
-		read
+		if [ -z "${echo}" ]; then
+			read
+		fi
 	}
 	p_get torra
 	p_get dicopp

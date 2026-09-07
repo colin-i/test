@@ -1,0 +1,15 @@
+
+if [ -e ./cln ]; then
+	no_status=x ./cln
+fi
+if [ -n "`git status --porcelain`" ]; then
+	git status
+	echo y and Enter
+	read -t $((60*60*24)) ans
+	if [ ${ans} = y ]; then
+		exit 0
+	fi
+	exit 1
+else
+	echo 0
+fi
