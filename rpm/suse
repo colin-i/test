@@ -1,5 +1,5 @@
 
-{ ~/test/git/cln && ~/test/rpm/pt} || exit 1
+{ ~/test/git/cln && ~/test/rpm/pt; } || exit 1
 
 if [ -n "${py}" ]; then py="py=313 "; fi
 echo "${py}~/test/rpm/osc"

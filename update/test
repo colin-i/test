@@ -43,7 +43,7 @@ elif [ $1 = w ]; then
 
 	w_get i sirc 1 mingw-w64
 	p_get () {
-		echo pip3 install $1
+		echo pip3 install `if [ -n "${echo}" ]; then echo --upgrade; fi` $1
 		if [ -z "${echo}" ]; then
 			read
 		fi
@@ -65,6 +65,7 @@ else # f
 		sudo dnf copr enable colin/project
 		sudo dnf install ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
 	else
+		# dnf repolist --enabled | grep copr
 		sudo dnf upgrade ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
 	fi
 fi
