@@ -1,8 +1,8 @@
 set -e
 #x is for w4: x=N where N is the required number of day words
 
-./days
 ./s
+./days
 read -t $((60*60*24)) ans
 ./w4 ${ans}
 read
