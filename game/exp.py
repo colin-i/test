@@ -35,8 +35,13 @@ def run_scene(scene, cfg, input_file, output_dir):
 	if subprocess.run(cmd).returncode:
 		sys.exit(1)
 
+	global img_viewer
 	if img_viewer:
-		subprocess.run([img_viewer,out_file])
+		if os.path.isfile("no_view"):
+			os.remove("no_view")
+			img_viewer=None
+		else:
+			subprocess.run([img_viewer,out_file])
 
 def resolve_constant(val):
 	neg = val.startswith("-")
