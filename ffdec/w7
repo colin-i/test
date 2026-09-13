@@ -1,4 +1,4 @@
-
+set -e
 cd f
 edor $1
 cd ..
