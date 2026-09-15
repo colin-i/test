@@ -13,21 +13,28 @@ fi
 if [ -z "$1" ]; then
 	exit
 fi
-python ~/games/list/share/get_firestore.py plays > f/chambers
-
-dif () {
-	c=$(($1-$2))
-	d=`if [ $c = 0 ]; then echo ..........; else echo $c; fi`
-	echo $1 - $2 = $d $3
-}
+if [ -z "${no_download}" ]; then
+	python ~/games/list/share/get_firestore.py plays > f/chambers
+fi
 
 for var in "${knowngames[@]}";do
 	a=`cat ./k/${var} | jq '.gameplays_count'`
 	echo $a >> 6
-	b=`git show master:./k/${var} | jq '.gameplays_count'`
-	dif $a $b ${var}
 done
-dif `cat ./f/chambers` `git show master:./f/chambers` chambers
+
+dif () {
+	c=$(($1-$2))
+	d=`if [ $c = 0 ]; then echo ..........; else echo $c; fi`
+	printf '%s\t%s\t%s - %s = %s %s\n' "$c" "$1" "$1" "$2" "$d" "$3"
+}
+{
+	for var in "${knowngames[@]}";do
+		a=`cat ./k/${var} | jq '.gameplays_count'`
+		b=`git show master:./k/${var} | jq '.gameplays_count'`
+		dif $a $b ${var}
+	done
+	dif `cat ./f/chambers` `git show master:./f/chambers` chambers
+} | sort -t$'\t' -k1,1nr -k2,2nr | cut -f3-
 
 exit
 
