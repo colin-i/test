@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import struct
+import sys
+
+path = sys.argv[1]
+with open(path, 'rb') as f:
+    data = f.read()
+
+reserved, ico_type, count = struct.unpack('<HHH', data[:6])
+print(f'File size: {len(data)} bytes')
+print(f'ICO type: {ico_type} (1=icon, 2=cursor)')
+print(f'Icon count: {count}')
+
+for i in range(count):
+    entry = data[6 + i * 16 : 6 + (i + 1) * 16]
+    width, height, color_count, reserved, planes, bpp, bytes_in_res, image_offset = struct.unpack('<BBBBHHII', entry)
+    w = width if width != 0 else 256
+    h = height if height != 0 else 256
+    img_data = data[image_offset:image_offset + min(bytes_in_res, 16)]
+    fmt = 'PNG' if img_data.startswith(b'\x89PNG\r\n\x1a\n') else 'BMP'
+    print(f'  Icon #{i+1}: {w}x{h}, bpp: {bpp}, planes: {planes}, format: {fmt}, size: {bytes_in_res} bytes, offset: {image_offset}')
