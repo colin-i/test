@@ -96,7 +96,7 @@ def main():
 				print("ERROR: layer not found:", name)
 				exit(1)
 
-			selected.insert(0,found)
+			selected.append(found) #selected.insert(0,found)
 
 		w, h = canvas_size(zf, selected)
 
