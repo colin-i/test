@@ -16,8 +16,8 @@ export YDOTOOL_SOCKET=/tmp/.ydotool_socket
 ~/test/keyring
 sudo ydotoold --socket-path ${YDOTOOL_SOCKET} --socket-perm 0666 &
 YDOTOOLD_PID=$!
-
-sleep 9
+#sudo -k # to test
+#sleep 9
 
 scroll() {
     for i in $(seq 5); do
@@ -77,8 +77,9 @@ while read -r _ ev _ key _ state; do
     esac
 done
 
-echo "Stopping ydotoold..."
+~/test/keyring
+echo "Stopping ydotoold ( $YDOTOOLD_PID ) ..."
 sudo kill "$YDOTOOLD_PID"
-wait "$YDOTOOLD_PID" 2>/dev/null
+wait "$YDOTOOLD_PID"
 
 echo "ydotoold stopped."
