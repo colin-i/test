@@ -1,43 +1,84 @@
 #!/usr/bin/env bash
-# keywatch.sh - watch all keyboards for Ctrl+Up / Ctrl+Down and scroll with ydotool.
-# Run in a terminal you can see:  sudo ./keywatch.sh
-# Needs: sudo apt install libinput-tools
+# keywatch.sh
+#
+# Ctrl+Home = activate Up/Down scrolling
+# Ctrl+End  = deactivate Up/Down scrolling
+#
+# Run:
+#   sudo ./keywatch.sh
+#
+# Needs:
+#   sudo apt install libinput-tools ydotool
 
 # Must match the socket your ydotoold is using.
-#export YDOTOOL_SOCKET=/tmp/.ydotool_socket
+export YDOTOOL_SOCKET=/tmp/.ydotool_socket
 
-# scroll <y>  - sends small wheel events (your command, with the direction as a parameter)
+~/test/keyring
+sudo ydotoold --socket-path ${YDOTOOL_SOCKET} --socket-perm 0666 &
+YDOTOOLD_PID=$!
+
+sleep 9
+
 scroll() {
-    for i in $(seq 10); do
+    for i in $(seq 5); do
         ydotool mousemove -w -x 0 -y "$1"
         sleep 0.03
     done
 }
 
 ctrl=0
-echo "Watching for Ctrl+Up / Ctrl+Down (Ctrl+C to quit)..."
+enabled=0
 
-# stdbuf -oL: without it libinput's output is block-buffered in a pipe and events arrive late.
-# Line format: -event3   KEYBOARD_KEY   +1.234s   KEY_UP (103) pressed
+echo "Watching keyboard..."
+echo "Ctrl+Home = ENABLE"
+echo "Ctrl+End  = DISABLE"
+echo "Ctrl+C    = QUIT"
+
 stdbuf -oL libinput debug-events --show-keycodes |
 while read -r _ ev _ key _ state; do
     [[ $ev == KEYBOARD_KEY ]] || continue
 
     case $key in
         KEY_LEFTCTRL|KEY_RIGHTCTRL)
-            [[ $state == pressed ]] && ctrl=1 || ctrl=0
+            if [[ $state == pressed ]]; then
+                ctrl=1
+            else
+                ctrl=0
+            fi
             ;;
-        KEY_UP)
+
+        KEY_HOME)
             if [[ $state == pressed && $ctrl == 1 ]]; then
-                echo "$(date +%T)  Ctrl+Up   -> scroll 1"
+                enabled=1
+                echo "$(date +%T)  Ctrl+Home -> ENABLED"
+            fi
+            ;;
+
+        KEY_END)
+            if [[ $state == pressed && $ctrl == 1 ]]; then
+                enabled=0
+                echo "$(date +%T)  Ctrl+End  -> DISABLED"
+            fi
+            ;;
+
+        KEY_UP)
+            if [[ $state == pressed && $enabled == 1 ]]; then
+                echo "$(date +%T)  Up   -> scroll up"
                 scroll 1
             fi
             ;;
+
         KEY_DOWN)
-            if [[ $state == pressed && $ctrl == 1 ]]; then
-                echo "$(date +%T)  Ctrl+Down -> scroll -1"
+            if [[ $state == pressed && $enabled == 1 ]]; then
+                echo "$(date +%T)  Down -> scroll down"
                 scroll -1
             fi
             ;;
     esac
 done
+
+echo "Stopping ydotoold..."
+sudo kill "$YDOTOOLD_PID"
+wait "$YDOTOOLD_PID" 2>/dev/null
+
+echo "ydotoold stopped."
