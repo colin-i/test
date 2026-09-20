@@ -1,80 +1,82 @@
 #!/usr/bin/env bash
+
 # keywatch.sh
 #
-# Ctrl+Home = activate Up/Down scrolling
-# Ctrl+End  = deactivate Up/Down scrolling
+# Ctrl+Shift+Space = toggle Up/Down scrolling
 #
 # Run:
-#   sudo ./keywatch.sh
+# sudo ./keywatch.sh
 #
 # Needs:
-#   sudo apt install libinput-tools ydotool
-
+# sudo apt install libinput-tools ydotool
 # Must match the socket your ydotoold is using.
+
 export YDOTOOL_SOCKET=/tmp/.ydotool_socket
 
 ~/test/keyring
 sudo ydotoold --socket-path ${YDOTOOL_SOCKET} --socket-perm 0666 &
 YDOTOOLD_PID=$!
-#sudo -k # to test
-#sleep 9
 
 scroll() {
-    for i in $(seq 5); do
-        ydotool mousemove -w -x 0 -y "$1"
-        sleep 0.03
-    done
+	for i in $(seq 5); do
+		ydotool mousemove -w -x 0 -y "$1"
+		sleep 0.03
+	done
 }
 
 ctrl=0
+shift=0
 enabled=0
 
 echo "Watching keyboard..."
-echo "Ctrl+Home = ENABLE"
-echo "Ctrl+End  = DISABLE"
-echo "Ctrl+C    = QUIT"
+echo "Ctrl+Shift+Space = TOGGLE scrolling"
+echo "Ctrl+C         = QUIT"
 
 stdbuf -oL libinput debug-events --show-keycodes |
-while read -r _ ev _ key _ state; do
-    [[ $ev == KEYBOARD_KEY ]] || continue
+while read -r _ ev _ key code state; do
+	[[ $ev == KEYBOARD_KEY ]] || continue
 
-    case $key in
-        KEY_LEFTCTRL|KEY_RIGHTCTRL)
-            if [[ $state == pressed ]]; then
-                ctrl=1
-            else
-                ctrl=0
-            fi
-            ;;
+	case $key in
+		KEY_LEFTCTRL|KEY_RIGHTCTRL)
+			if [[ $state == pressed ]]; then
+				ctrl=1
+			else
+				ctrl=0
+			fi
+			;;
+		KEY_LEFTSHIFT|KEY_RIGHTSHIFT)
+			if [[ $state == pressed ]]; then
+				shift=1
+			else
+				shift=0
+			fi
+			;;
+		KEY_SPACE)
+			if [[ $state == pressed && $ctrl == 1 && $shift == 1 ]]; then
+				if [[ $enabled == 1 ]]; then
+					enabled=0
+					echo "$(date +%T)  Ctrl+Shift+Space -> DISABLED"
+				else
+					enabled=1
+					echo "$(date +%T)  Ctrl+Shift+Space -> ENABLED"
+				fi
+			fi
+			;;
 
-        KEY_HOME)
-            if [[ $state == pressed && $ctrl == 1 ]]; then
-                enabled=1
-                echo "$(date +%T)  Ctrl+Home -> ENABLED"
-            fi
-            ;;
+		KEY_UP)
+			if [[ $state == pressed && $enabled == 1 ]]; then
+				echo "$(date +%T)  Up   -> scroll up"
+				scroll 1
+			fi
+			;;
 
-        KEY_END)
-            if [[ $state == pressed && $ctrl == 1 ]]; then
-                enabled=0
-                echo "$(date +%T)  Ctrl+End  -> DISABLED"
-            fi
-            ;;
-
-        KEY_UP)
-            if [[ $state == pressed && $enabled == 1 ]]; then
-                echo "$(date +%T)  Up   -> scroll up"
-                scroll 1
-            fi
-            ;;
-
-        KEY_DOWN)
-            if [[ $state == pressed && $enabled == 1 ]]; then
-                echo "$(date +%T)  Down -> scroll down"
-                scroll -1
-            fi
-            ;;
-    esac
+		KEY_DOWN)
+			if [[ $state == pressed && $enabled == 1 ]]; then
+				echo "$(date +%T)  Down -> scroll down"
+				scroll -1
+			fi
+			;;
+	esac
 done
 
 ~/test/keyring

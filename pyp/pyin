@@ -11,7 +11,14 @@ fi
 rm setup.py
 
 ls -a
-git diff --exit-code && echo git-diff=$?
+git diff --exit-code || {
+	echo y and Enter
+	read -t $((60*60*24)) ans
+	if [ "${ans}" = y ]; then
+		exit 0
+	fi
+	exit 1
+}
 
 else
 
