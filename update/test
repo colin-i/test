@@ -66,6 +66,7 @@ else # f
 		sudo dnf install ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
 	else
 		# dnf repolist --enabled | grep copr
-		sudo dnf upgrade ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
+		sudo dnf --refresh upgrade ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
+		#        is not at third party copr without this
 	fi
 fi
