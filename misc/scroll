@@ -17,8 +17,10 @@ export YDOTOOL_SOCKET=/tmp/.ydotool_socket
 sudo ydotoold --socket-path ${YDOTOOL_SOCKET} --socket-perm 0666 &
 YDOTOOLD_PID=$!
 
+scrollseq=`cat ~/scrollseq`
+
 scroll() {
-	for i in $(seq 5); do
+	for i in $(seq ${scrollseq}); do
 		ydotool mousemove -w -x 0 -y "$1"
 		sleep 0.03
 	done

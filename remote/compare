@@ -1,0 +1,22 @@
+a=`git show-ref refs/heads/$1 | cut -d' ' -f1`
+echo $a
+
+git fetch $2 HEAD #will also print more details than ls-remote
+#b=`git ls-remote $2 HEAD | cut -f1`
+b=`git rev-parse FETCH_HEAD | cut -d' ' -f1`
+echo $b
+
+today=$(date +%s)
+
+date_a=$(git show -s --format=%ct "$a")
+date_b=$(git show -s --format=%ct "$b")
+
+echo "today-a: $(( (today - date_a) / 86400 )) days"
+echo "today-b: $(( (today - date_b) / 86400 )) days"
+
+if [ "$a" != "$b" ]; then
+    echo DIF
+    exit 1
+fi
+
+echo unchanged
