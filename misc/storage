@@ -16,7 +16,9 @@ for var in ${format[@]}; do
 	x=( `df | grep "^${var} " |  tr -s ' '` ) #df $var is not good at nfs mounts
 
 	b=${x[4]}
-	echo -n "${var} using: ${b}"
+	avail_gb=$(echo "scale=2; ${x[3]} / 1048576" | bc)
+	total_gb=$(echo "scale=2; ${x[1]} / 1048576" | bc)
+	echo -n "${var} using: ${b} (${avail_gb}GB remaining)"
 
 	if [ -z "${teststorage}" ]; then
 		a=${x[1]}
@@ -42,8 +44,12 @@ for var in ${format[@]}; do
 	b=${b:0:-1}
 	echo -n ", "
 	if (( $(echo "${b} > ${c}" |bc -l) )); then
-		echo "NOT OK"
+		diff_pct=$(echo ${c} - ${b} | bc)
+		diff_gb=$(echo "scale=2; (${diff_pct} / 100) * ${total_gb}" | bc)
+		echo "NOT OK (${diff_gb}GB margin)"
 	else
-		echo "diff: "`echo ${c} - ${b} | bc`%
+		diff_pct=$(echo ${c} - ${b} | bc)
+		diff_gb=$(echo "scale=2; (${diff_pct} / 100) * ${total_gb}" | bc)
+		echo "diff: ${diff_pct}% (${diff_gb}GB margin)"
 	fi
 done
