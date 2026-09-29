@@ -1,6 +1,10 @@
 
-n=`ps -C soffice.bin | wc -l`
-libreoffice $1
+if [ -z "${com}" ]; then
+	com=soffice.bin
+	prog=libreoffice
+fi
+n=`ps -C ${com} | wc -l`
+${prog} $@
 if [ $n -gt 1 ]; then
 	echo \?
 	read
