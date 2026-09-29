@@ -27,3 +27,5 @@ export PYTHONPYCACHEPREFIX=~/pycache
 echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PATH=${PATH}
 
 source ~/aliases
+
+export EDITOR=~/test/spell/aspell.py

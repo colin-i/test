@@ -86,7 +86,7 @@ patchversion=${major}.${version}
 if [ -n "${versionscript}" ]; then ${versionscript} ${fullversion}; fi
 
 msg=${1}
-~/test/misc/spell "${msg}" && \
+~/test/spell/spell "${msg}" && \
 dch -v ${fullversion} --distribution=${dist} && \
 if [ -n "${afterversion}" ]; then
 	${afterversion}
