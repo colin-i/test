@@ -29,3 +29,4 @@ echo PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX} PYTHONPATH=${PYTHONPATH} PATH=${
 source ~/aliases
 
 export EDITOR=~/test/spell/aspell.py
+export GIT_EDITOR=nano
