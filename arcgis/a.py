@@ -64,13 +64,14 @@ def pack(type):
 		recs=eval(rd)
 	for r in recs:
 		p=0
-		if len(r)>3:
-			p=r[3]
-			if len(r)>4:
+		#r[3] is objectid for .har
+		if len(r)>4:
+			p=r[4]
+			if len(r)>5:
 				extra=root+"ex"+type+"/"+r[2]
 				if not os.path.isfile(extra):
 					with open(extra,"w") as file:
-						file.write(r[4])
+						file.write(r[5])
 		click(r[0],r[1],p) #to load for write
 		with open(root+"new"+type+"/"+r[2],"wb") as file: file.write(info.text.encode())
 		action.pointer_action.move_to_location(500,500);action.pointer_action.click();action.perform()

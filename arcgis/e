@@ -1,0 +1,9 @@
+set -e
+f=`pwd`/$1
+f2=`pwd`/a.csv
+cd ~/test/arcgis
+python har.py $f $f2
+python cv.py $f2
+./aa
+./a
+rm $f2 $f

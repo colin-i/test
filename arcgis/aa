@@ -1,5 +1,6 @@
 
-./b _new && ./c _new
+#./b _new
+./c _new
 r=$?
 if [ ${r} -ne 0 ]; then
 	if [ ${r} -eq 1 ]; then exit 1; fi
