@@ -12,3 +12,5 @@ sudo docker run -it -e DISPLAY=:1 -v /tmp/.X11-unix:/tmp/.X11-unix --network=hos
 #	but then gdb will not work , remove with : docker run --privileged --rm tonistiigi/binfmt --uninstall i386
 
 # docker exec -it container bash #for a second terminal
+
+# docker exec container1 cat /home/bc/f/flashalizer/flashalizer.AppImage | docker exec -i container2 sh -c 'cat > /home/bc/f/flashalizer/flashalizer.AppImage'
