@@ -11,7 +11,7 @@ fi
 javac -encoding UTF-8 log_missing_ro.java
 
 # Run with current directory as classpath
-java -cp . log_missing_ro
+java -cp . log_missing_ro "$@"
 
 # Clean up
 rm -f log_missing_ro.class

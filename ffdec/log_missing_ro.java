@@ -11,13 +11,9 @@ public class log_missing_ro {
 
     private static List<String> IGNORED_RESOURCES;
 
-    static {
-        IGNORED_RESOURCES = loadIgnoredResources();
-    }
-
-    private static List<String> loadIgnoredResources() {
+    private static List<String> loadIgnoredResources(String translatorPath) {
         List<String> ignored = new ArrayList<>();
-        File translatorFile = new File("/home/bc/ffdec/jpexs-decompiler-1/src/com/jpexs/decompiler/flash/gui/translator/Translator.java");
+        File translatorFile = new File(translatorPath);
         ignored.add("translator/Translator");
 
         if (!translatorFile.exists()) {
@@ -61,6 +57,12 @@ public class log_missing_ro {
     }
 
     public static void main(String[] args) throws Exception {
+        IGNORED_RESOURCES = loadIgnoredResources(
+            args.length > 0
+                ? args[0]
+                : "/home/bc/ffdec/jpexs-decompiler-1/src/com/jpexs/decompiler/flash/gui/translator/Translator.java"
+        );
+
         // Load English resources with full paths from ALL JAR files
         Map<String, String> englishResources = new TreeMap<>(); // key=normalized path, value=full display name
         String[] jarFiles = {"/home/bc/ffdec/jpexs-decompiler-1/dist/ffdec.jar", "/home/bc/ffdec/jpexs-decompiler-1/lib/ffdec_lib.jar", "/home/bc/ffdec/jpexs-decompiler-1/lib/jsyntaxpane-0.9.5.jar"};
