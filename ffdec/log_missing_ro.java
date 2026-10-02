@@ -5,7 +5,7 @@ import java.util.zip.*;
 
 /**
  * Script to find NEW resources in English that don't exist in Romanian translation.
- * Reads ignored resources list from Translator.java source file.
+ * Reads ignored resources list and required JAR files from Translator.java source file.
  */
 public class log_missing_ro {
 
@@ -56,20 +56,62 @@ public class log_missing_ro {
         return ignored;
     }
 
-    public static void main(String[] args) throws Exception {
-        IGNORED_RESOURCES = loadIgnoredResources(
-            args.length > 0
-                ? args[0]
-                : "/home/bc/ffdec/jpexs-decompiler-1/src/com/jpexs/decompiler/flash/gui/translator/Translator.java"
-        );
+    private static List<File> loadRequiredJars(String translatorPath) {
+        List<File> jars = new ArrayList<>();
+        File translatorFile = new File(translatorPath);
+        if (!translatorFile.exists()) {
+            System.err.println("Warning: Translator.java not found for reading JAR list: " + translatorPath);
+            return jars;
+        }
 
-        // Load English resources with full paths from ALL JAR files
+        // Find project root by searching upwards from Translator.java
+        File projectDir = translatorFile.getAbsoluteFile().getParentFile();
+        while (projectDir != null && !new File(projectDir, "build.xml").exists() && !new File(projectDir, "dist").exists()) {
+            projectDir = projectDir.getParentFile();
+        }
+        if (projectDir == null) {
+            projectDir = new File(".");
+        }
+
+        Pattern loadJarPattern = Pattern.compile("loadJarTry\\s*\\(\\s*\"([^\"]+)\"\\s*\\)");
+        try (BufferedReader reader = new BufferedReader(new FileReader(translatorFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Matcher m = loadJarPattern.matcher(line);
+                if (m.find()) {
+                    String relPath = m.group(1);
+                    // Match Translator.loadJarTry logic: check dist/<path> first, then <path>
+                    File file = new File(projectDir, "dist/" + relPath);
+                    if (!file.exists()) {
+                        file = new File(projectDir, relPath);
+                    }
+                    if (file.exists()) {
+                        jars.add(file);
+                    } else {
+                        System.err.println("Warning: Required JAR not found: " + file.getPath());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading JARs from Translator.java: " + e.getMessage());
+        }
+
+        return jars;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String translatorPath = args.length > 0
+                ? args[0]
+                : "/home/bc/ffdec/jpexs-decompiler-1/src/com/jpexs/decompiler/flash/gui/translator/Translator.java";
+
+        IGNORED_RESOURCES = loadIgnoredResources(translatorPath);
+
+        // Dynamically resolve required JAR files from Translator.java
+        List<File> jarFiles = loadRequiredJars(translatorPath);
         Map<String, String> englishResources = new TreeMap<>(); // key=normalized path, value=full display name
-        String[] jarFiles = {"/home/bc/ffdec/jpexs-decompiler-1/dist/ffdec.jar", "/home/bc/ffdec/jpexs-decompiler-1/lib/ffdec_lib.jar", "/home/bc/ffdec/jpexs-decompiler-1/lib/jsyntaxpane-0.9.5.jar"};
         Pattern pat = Pattern.compile("(?<path>.+?)(_(?<locale>[^\\\\.]+))?\\.properties$");
 
-        for (String jarPath : jarFiles) {
-            File jarFile = new File(jarPath);
+        for (File jarFile : jarFiles) {
             if (!jarFile.exists()) continue;
             loadResourceNames(jarFile, englishResources, "en", false, pat);
         }
