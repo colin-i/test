@@ -1,1 +1,6 @@
-cd ~/a/tmp/ffdec && ~/test/ffdec/dif
+set -e
+a=`pwd`
+cd ~/a/tmp/ffdec
+~/test/ffdec/dif
+cd $a
+./log_missing_ro.sh
