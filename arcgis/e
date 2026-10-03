@@ -1,5 +1,6 @@
 set -e
-f=`pwd`/$1
+
+f=`pwd`/a.har
 f2=`pwd`/a.csv
 cd ~/test/arcgis
 python har.py $f $f2
@@ -7,3 +8,7 @@ python cv.py $f2
 ./aa
 ./a
 rm $f2 $f
+
+echo next har \?
+read -t $((60*60*24))
+./har2.py $f $f2 title_clean,completion_pct,modified';'completion_pct
