@@ -1,6 +1,7 @@
 
 cd ~/ffdec/jpexs-decompiler-1
 b=`git branch --show-current`
+echo $b
 gsettings set org.gnome.desktop.interface gtk-theme Yaru
 if [ "$b" = dev ]; then
 	#cp ~/a/tmp/ffdec/translation.jpt ~/.config/FFDec/translated.zip # because it is autosaved on close. want diff 0 and timestamps inside file differs
