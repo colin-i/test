@@ -2,19 +2,21 @@
 #format, conditional, manage, edit, A2:..29, ok
 #select, print, print selected cells, print to file, Desktop/a/a
 #take screenshot, left bar visible
+#1 is file
 
 cd ~/Desktop/a
-if [ -z "$1" ]; then
-	a=`pwd`
-	cd ~/Pictures/Screenshots
-	file=`ls`
-	cd $a
-else
-	file=$1
-fi
-echo ${file}
 
-if [ "${file}" != 0 ]; then
+if [ ! -e ./a.jpg ]; then
+	if [ -z "$1" ]; then
+		a=`pwd`
+		cd ~/Pictures/Screenshots
+		file=`ls`
+		cd $a
+	else
+		file=$1
+	fi
+	echo ${file}
+
 	apath=~
 	from_caps () {
 		mv "${apath}/Pictures/Screenshots/${file}" a.png
@@ -28,16 +30,19 @@ if [ "${file}" != 0 ]; then
 	if [ "${q}" != "y" ]; then
 		exit 1
 	fi
+fi
+if [ ! -e ./b.jpg ]; then
 	#python ~/test/arcgis/pixels.py > 1
 	echo -n `cat ~/measures/kproblems`'kolourpaint ./a.jpg' | xclip -sel clip #when having icon problems, apt install qt6ct (test with: QT_QPA_PLATFORMTHEME=qt6ct qt6ct)
 	echo `xclip -o -sel clip`
-fi
-if [ -z "$2" ]; then
+
 	#at edor only: example: 145-1 / 9 and for y -1: 2 16  , at right 1630, at bottom 929
 	left=240
 	top=139
 	right=1564
-	bottom=`cat ~/arcgis_bottom` # 725 748
+	bottom=`cat ~/arcgis_bottom`
+	bottom=$((((1+bottom+1)*23)+(23/2))) # is 23.5
+	bottom=$((top+bottom))
 	echo left top right bottom , or enter for default ${left} ${top} ${right} ${bottom}
 	read -t $((60*60*24)) ans
 	if [ -n "${ans}" ]; then
@@ -52,19 +57,18 @@ if [ -z "$2" ]; then
 	fi
 	width=$((right-left))
 	height=$((bottom-top))
+
+	#from_caps $2
+	#convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
 	convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
-fi
-if [ -z "$3" ]; then
 	`cat ~/imgviewer` b.jpg
 	echo continue \? y \?
 	read -n1 -t $((60*60*24)) q
 	if [ "${q}" != "y" ]; then
 		exit 1
 	fi
-
-	#from_caps $2
-	#convert a.jpg -crop ${width}x${height}+${left}+${top} b.jpg
-
+fi
+if [ -z "${no_up}" ]; then
 	~/test/arcgis/up b.jpg | xclip -selection clipboard
 	xclip -selection clipboard -o
 	echo continue \? y \?
@@ -73,5 +77,4 @@ if [ -z "$3" ]; then
 		exit 1
 	fi
 fi
-
 rm a.pdf a.png a.jpg b.jpg
