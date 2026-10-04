@@ -1,0 +1,4 @@
+set -e
+ant build
+~/test/upgen dist/flashalizer.jar
+ant clean

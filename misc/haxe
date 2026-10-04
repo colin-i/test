@@ -1,0 +1,39 @@
+set -e
+cd ~/a/haxec
+last=`git ls-remote orig refs/heads/development | cut -f1`
+current=`cat ~/Desktop/haxe/commit.txt`
+if [ ${last} = ${current} ]; then
+	echo equal
+	exit 1
+fi
+git fetch orig development
+count=$(git rev-list --count "$current..FETCH_HEAD")
+echo "not equal: $count new commit(s)"
+
+gh workflow run b.yml --ref=test
+~/test/pub b
+gh run download "$(gh run list --workflow=b.yml --limit=1 --json databaseId --jq '.[0].databaseId')" -D ~/Desktop/haxe
+cd ~/Desktop/haxe
+mv haxe-linux-arm64/haxe-linux-arm64.tar.gz .
+mv haxe-linux-arm64 old
+tar -xf haxe-linux-arm64.tar.gz
+mv haxe-linux-arm64/commit.txt .
+rm -r old
+cd haxe-linux-arm64
+stat haxe
+./haxe --version
+# ~/test/git/hub/brul test haxe
+
+cd ~/haxelib/oimophysics/git
+git switch master
+haxelib upgrade
+git switch armory
+git pull armory3d master
+
+#lime git since openfl, hxcpp git since webassembly
+cd ../../lime/git
+haxelib run lime rebuild tools # lime, reqs are at README, and also the command will ask for hxcpp
+
+#also test for original oimo if is still old
+#cd ../../oimophysics/git
+#~/test/remote/compare master origin
