@@ -113,9 +113,13 @@ echo -n ${patchversion} | xclip -selection clipboard && \
 #gh run view --job=[nr]
 #gh run view --log --job=[nr]
 
-#tar gz without ln first time
+#debmake will make .orig ln
+#tar --exclude='flashalizer-1/.git' --exclude='flashalizer-1/.github' --exclude='flashalizer-1/.tito' --exclude='flashalizer-1/arh' --exclude='flashalizer-1/flashalizer.spec' -cf flashalizer-1.tar flashalizer-1/
+#xz flashalizer-1.tar
 #debmake -b':py3' -e costin.botescu@gmail.com -f 'Botescu Costin'
+#        -b'default-jre'
 #debmake -e costin.botescu@gmail.com -f 'Botescu Costin'
+# git update-ref -d HEAD
 #changelog
 #control: section, build-depends compat 11 for old bionic, homepage, architecture, description
 #at rules uncomment prefix usr, (if it is required: --with autoreconf)

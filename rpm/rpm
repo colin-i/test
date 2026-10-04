@@ -2,3 +2,11 @@
 #optional:    1 ppa sufix
 
 gh workflow run rpm.yml -f ppa=${1}
+
+#after docker/run
+#passwd bc
+#visudo
+#bc ALL=(ALL) ALL
+#dnf install util-linux , for su -i bc
+#rpmdev-newspec flashalizer
+#dnf install copr
