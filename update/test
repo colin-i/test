@@ -1,7 +1,7 @@
 set -e
 if [ -z "$1" ]; then
 	sudo apt update
-	sudo apt install ocompiler ocompiler-dev actionswf libactionswf-dev wstbld edor sirc torra dicopp audapa
+	sudo apt install ocompiler ocompiler-dev actionswf libactionswf-dev wstbld edor sirc torra dicopp audapa flashalizer
 	if [ -n "$a" ]; then
 		v=`cat ~/v/ovideo-1/version.txt | sed 's/\./-/'`
 		f=ovideo_${v}_i386.deb
