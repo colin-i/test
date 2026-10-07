@@ -22,3 +22,11 @@ tito tag --use-version ${ans} --use-release ${rel}
 
 #dnf install tito --setopt=install_weak_deps=False
 #tito init
+
+#at start to work with tag mismatch:
+# git tag NEW_NAME OLD_NAME
+# git tag -d OLD_NAME
+# git tag pop_tag
+
+# tito tag --use-version 1.161 --use-release 1
+# ~/test/remote/push actionswf x --follow-tags
