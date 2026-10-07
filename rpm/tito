@@ -18,8 +18,6 @@ tito tag --use-version ${ans} --use-release ${rel}
 #when deleting a tag (tag=x ~/test/remote/pushdel tagName), a new tag will be with problems
 #	replace with prev valid tag in .tito/packages/[name], and in .spec, and arrange the changelog in .spec
 
-# pt is at ./pt
-
 #dnf install tito --setopt=install_weak_deps=False
 #tito init
 
