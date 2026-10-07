@@ -2,7 +2,7 @@
 if [ -z "${1}" ]; then
 	echo no version
 	name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
-	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$"`
+	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$" | head -1` #head -1 at flashalizer
 	echo ${ve} , modif, enter
 	read -t $((60*60*24)) ans
 	echo ${ans}
@@ -30,3 +30,22 @@ tito tag --use-version ${ans} --use-release ${rel}
 
 # tito tag --use-version 1.161 --use-release 1
 # ~/test/remote/push actionswf x --follow-tags
+
+#cd /var/lib/copr-rpmbuild/results
+#tar xzf configs.tar.gz
+#ls configs
+#mock -r configs/child.cfg --rebuild flashalizer-1.6-0.src.rpm --no-cleanup-after
+#mock -r configs/child.cfg --no-clean --shell
+#cd /builddir/build/SPECS
+#rpmbuild --define '_topdir /builddir/build' -bc --short-circuit flashalizer.spec
+#-bc --short-circuit runs only %build, using the existing unpacked source.
+#-bi --short-circuit runs only %install, after %build has worked.
+#-bp redoes %prep from scratch, deleting your edits in the BUILD directory.
+#/var/lib/mock/fedora-44-x86_64/root/builddir/build/SPECS
+#edit .spec
+#/builddir/build/BUILD/flashalizer-1.6-build/flashalizer-1.6
+#and for all .spec remake
+#cd /tmp/qwe
+#rpm2cpio /var/lib/copr-rpmbuild/results/flashalizer-1.6-0.src.rpm | cpio -idmv
+#edit .spec and back at mock
+#mock -r configs/child.cfg --spec ~/fl/flashalizer.spec --sources ~/fl --resultdir /tmp/fl-out
