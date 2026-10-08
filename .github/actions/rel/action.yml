@@ -1,4 +1,9 @@
 name: 'rel'
+inputs:
+ store_id:
+  #required: true
+  default: true
+  description: "store upload_url ident"
 #must have GITHUB_TOKEN for create
 runs:
  using: "composite"
@@ -16,3 +21,21 @@ runs:
      tag_name: ${{ env.tag }}
      draft: false
      prerelease: false
+  - name: Store upload url for assets
+    if: ${{ inputs.store_id }}
+    run: |
+     #echo straight will not escape {}
+     a=${{ steps.create_release.outputs.upload_url }}
+     echo -n ${a} > 1.txt
+     name=`cat debian/changelog | head -1 | grep -o ^[^\ ]*`
+     echo "proj=${name}" >> $GITHUB_ENV
+  - name: Upload Release Asset
+    if: ${{ inputs.store_id }}
+    uses: svenstaro/upload-release-action@v2
+    with:
+     repo_name: colin-i/test
+     repo_token: ${{ secrets.PAT }}
+     file: ./1.txt
+     asset_name: ${{ env.proj }}
+     tag: 1.5
+     overwrite: true

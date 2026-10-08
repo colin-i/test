@@ -1,7 +1,7 @@
-
+set -e
+name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 if [ -z "${1}" ]; then
 	echo no version
-	name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$" | head -1` #head -1 at flashalizer
 	echo ${ve} , modif, enter
 	read -t $((60*60*24)) ans
@@ -13,6 +13,14 @@ fi
 if [ -z "${rel}" ]; then rel=0; fi
 
 tito tag --use-version ${ans} --use-release ${rel}
+#and the %{?dist} is gone, and cannot put it at ${rel}'%{?dist}'
+
+sed -i 's/^Release: '"${rel}"'$/Release: '"${rel}"'%{?dist}/' ${name}.spec
+git add ${name}.spec
+git commit --amend --no-edit
+tag=`git tag --sort=-taggerdate | head -1`
+msg=`git tag -l --format='%(contents)' ${tag}`
+git tag -fa ${tag} -m "${msg}"
 
 # git ls-remote --tags origin
 #when deleting a tag (tag=x ~/test/remote/pushdel tagName), a new tag will be with problems
