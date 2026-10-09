@@ -58,7 +58,7 @@ elif [ $1 = w ]; then
 	w_get f flashalizer 1 jar
 elif [ $1 = a ]; then
 	if [ -z "$2" ]; then
-		yay -Sy ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa
+		yay -Sy ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa flashalizer
 	else
 		yay -Sy $2
 	fi

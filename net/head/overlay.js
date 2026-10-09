@@ -54,6 +54,35 @@ javascript:(function(){
 	let clockColor=localStorage.getItem('clockColor')||'white'; /* persisted color: white/black */
 	let clockInterval;
 
+	/* active-duration counter: time is counted only while the page is open and the switch is on */
+	let counterAcc=parseInt(localStorage.getItem('counterAcc'))||0; /* persisted ms from previous runs */
+	let counterPaused=localStorage.getItem('counterPaused')==='true'; /* persisted switch state */
+	let counterStart=Date.now(); /* start of the current in-memory segment, never persisted */
+
+	function counterElapsed(){
+		return counterAcc+(counterPaused?0:Date.now()-counterStart);
+	}
+
+	function counterSave(){
+		localStorage.setItem('counterAcc',counterElapsed());
+		localStorage.setItem('counterPaused',counterPaused);
+	}
+
+	function formatDuration(ms){
+		let t=Math.floor(ms/1000);
+		let h=Math.floor(t/3600);
+		let m=Math.floor(t/60)-h*60;
+		let s=t-Math.floor(t/60)*60;
+		return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+	}
+
+	/* the one extra write: only when the switch is on, so a reload keeps the running segment */
+	function saveOnLeave(){
+		if(!counterPaused) counterSave();
+	}
+	window.addEventListener('pagehide',saveOnLeave);
+	window.addEventListener('beforeunload',saveOnLeave);
+
 	let clockDiv=document.createElement('div');
 	clockDiv.style.position='fixed';
 	clockDiv.style.fontSize='14px';
@@ -75,7 +104,7 @@ javascript:(function(){
 		let hh=String(now.getHours()).padStart(2,'0');
 		let mm=String(now.getMinutes()).padStart(2,'0');
 		let ss=String(now.getSeconds()).padStart(2,'0');
-		clockDiv.textContent=hh+':'+mm+':'+ss;
+		clockDiv.textContent=hh+':'+mm+':'+ss+' | '+formatDuration(counterElapsed())+(counterPaused?' (paused)':'');
 	}
 
 	function startClock(){
@@ -151,7 +180,7 @@ javascript:(function(){
 			e.currentTarget.remove(); /* remove overlay on click */
 		}
 	}
-
+	/* ..t ..g ..b*/
 	function keyHandler(e){
 		e.preventDefault();
 
@@ -289,6 +318,23 @@ javascript:(function(){
 			clockColor = clockColor=='white' ? 'black' : 'white';
 			localStorage.setItem('clockColor',clockColor);
 			if(clockActive) applyClockStyle();
+		}
+
+		else if(e.key=='g'){ /* pause / resume counter */
+			if(counterPaused){
+				counterPaused=false;
+				counterStart=Date.now();
+			}else{
+				counterAcc=counterElapsed(); /* bank the running segment */
+				counterPaused=true;
+			}
+			counterSave();
+		}
+		else if(e.key=='b'){ /* restart counter from 0 */
+			counterAcc=0;
+			counterPaused=false;
+			counterStart=Date.now();
+			counterSave();
 		}
 
 		else if (e.key == 'q'){
