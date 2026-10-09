@@ -69,3 +69,5 @@ if [ -n "${dest}" ]; then
 	mv ${f}.tar.gz ${dest}
 fi && \
 rm -r $f
+
+# mounted=/home/bc/f/ dest=/home/bc/a/pc/ ~/test/misc/reversion flashalizer 1

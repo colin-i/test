@@ -15,7 +15,7 @@ if [ -z "${rel}" ]; then rel=0; fi
 tito tag --use-version ${ans} --use-release ${rel}
 #and the %{?dist} is gone, and cannot put it at ${rel}'%{?dist}'
 
-sed -i 's/^Release: '"${rel}"'$/Release: '"${rel}"'%{?dist}/' ${name}.spec
+sed -i 's/^\(Release:[[:space:]]*\)'"${rel}"'$/\1'"${rel}"'%{?dist}/' ${name}.spec
 git add ${name}.spec
 git commit --amend --no-edit
 tag=`git tag --sort=-taggerdate | head -1`

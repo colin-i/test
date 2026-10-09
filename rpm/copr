@@ -2,7 +2,7 @@
 name=`cat debian/control | head -1 | grep -o "[^ ]*$"`
 if [ -z "${py}" ]; then
 	ve=`cat ${name}.spec | grep ^Version | grep -o "[^ ]*$" | head -1` #head -1 at flashalizer
-	re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$"`
+	re=`cat ${name}.spec | grep ^Release | grep -o "[^ ]*$" | sed 's/%{?dist}$//'`
 else
 	name=python-${name}
 	ve=`cat v2`

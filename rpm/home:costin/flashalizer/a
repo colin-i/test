@@ -1,0 +1,12 @@
+#
+# spec file for package flashalizer
+#
+
+Name:           flashalizer
+Version:        1
+Release:        0
+Summary:        GUI to make .swf files
+License:        GPL-3.0-or-later
+Group:          Development/Tools/Other
+URL:            https://github.com/colin-i/%{name}
+Source0:        orig.tar.gz
