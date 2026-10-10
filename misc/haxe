@@ -30,7 +30,7 @@ haxelib upgrade
 git switch armory
 git pull armory3d master
 
-#lime git since openfl, hxcpp git since webassembly
+#lime git since openfl, hxcpp git since webassembly, hxnodejs since electron
 cd ../../lime/git
 haxelib run lime rebuild tools # lime, reqs are at README, and also the command will ask for hxcpp
 
