@@ -238,7 +238,7 @@ def build(inp, out, debug=False):
                     g['top'] += 1.5; g['bottom'] -= 1   # add_comb mareste dreptunghiul cu aceste margini
                     combs.append(g)
             checks += EXTRA_CHECKBOXES.get(i + 1, [])
-            
+
             # Adauga casetele manuale din EXTRA_COMBS
             for x0, top, x1, bottom, n in EXTRA_COMBS.get(i + 1, []):
                 r = (x0, top, x1, bottom)
@@ -246,7 +246,7 @@ def build(inp, out, debug=False):
                     continue
                 taken.append(r)
                 combs.append(dict(x0=x0, x1=x1, top=top, bottom=bottom, n=n, pitch=(x1-x0)/n if n > 0 else 10))
-            
+
             for k, c in enumerate(combs, 1):
                 add_comb(page, f"p{i+1}_{label_left(words, c['x0'], c['top'], c['bottom'])}_c{k}", c, i+1)
             for k, r in enumerate(checks, 1):
