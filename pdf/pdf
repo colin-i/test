@@ -1,0 +1,267 @@
+#!/usr/bin/python3
+"""
+Transforma un formular PDF "plat" intr-unul completabil (AcroForm), detectand AUTOMAT:
+  1. casetele tip  |_|_|_|  (linie de baza gri + liniute verticale)  -> camp text "comb"
+     (un caracter pe caseta, max_len = numarul de casete)
+  2. casetele patrate de bifat (checkbox)                           -> checkbox
+  3. liniile punctate "........." sau "…………"                       -> camp text liber
+
+Dependinte:  pip install pymupdf pdfplumber
+Utilizare:   python3 pdf_auto.py input.pdf output.pdf [--debug]
+"""
+import sys, re, unicodedata
+import pdfplumber
+import pymupdf as fitz
+
+FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+FONT_NAME = "DejaVuSans"
+BLUE = (0.85, 0.92, 1)
+
+
+# Casete pe care detectorul nu le prinde (laturi lipsa in desen). Format: {pagina: [(x0, top, x1, bottom), ...]}
+# Coordonate pdfplumber (origine sus-stanga). Gasesti coordonatele cu page.lines / page.rects.
+EXTRA_CHECKBOXES = {
+    9: [(69.4, 160.9, 88.3, 174.2),    # "Detin in proprietate/inchiriere..."
+        (88.8, 187.0, 107.7, 199.9)],  # "Cladiri, alte spatii locative..."
+}
+
+# Casete text (comb) adaugate manual - format: {pagina: [(x0, top, x1, bottom, n_casete), ...]}
+EXTRA_COMBS = {
+    2: [
+        # Eliberat de - inca o casuta dupa ultima liniuta (inainte de "La data de")
+        (347.8, 167.9, 361.6, 174.3, 1),
+        # La data de - a 8-a casuta (ultimul "a" din an); linia continua pana la 540, fara ultima liniuta
+        (526.7, 167.9, 540.1, 174.3, 1),
+    ],
+}
+
+# Pagini unde NU aplicam offsetul de -5 pixeli
+NO_OFFSET_PAGES = {9}
+
+# ----------------------------------------------------------------- detectare
+def detect_combs(page, tol=1.2, min_ticks=3):
+    hz = [l for l in page.lines if abs(l['top'] - l['bottom']) < 0.6 and (l['x1'] - l['x0']) > 10]
+    vt = [l for l in page.lines if abs(l['x0'] - l['x1']) < 0.6 and 3 < (l['bottom'] - l['top']) < 12]
+    out, seen = [], set()
+    for h in sorted(hz, key=lambda l: (round(l['top'], 1), l['x0'])):
+        y = h['top']
+        ticks = [v for v in vt if abs(v['bottom'] - y) < tol and h['x0'] - tol <= v['x0'] <= h['x1'] + tol]
+        xs = sorted(set(round(v['x0'], 1) for v in ticks))
+        if len(xs) < min_ticks:
+            continue                      # elimina checkbox-uri desenate din linii
+        top = min(v['top'] for v in ticks)
+        # mai multe campuri pe aceeasi linie de baza: taie la schimbarea pasului
+        groups, cur = [], [xs[0]]
+        for a, b in zip(xs, xs[1:]):
+            ref = (cur[-1] - cur[-2]) if len(cur) > 1 else (b - a)
+            if abs((b - a) - ref) < 1.5 and (b - a) < 40:
+                cur.append(b)
+            else:
+                groups.append(cur); cur = [b]
+        groups.append(cur)
+        for g in groups:
+            if len(g) < min_ticks:
+                continue
+            x0 = min(g[0], h['x0']) if abs(g[0] - h['x0']) < 2 else g[0]
+            x1 = h['x1'] if abs(g[-1] - h['x1']) < 2 else g[-1]
+            key = (round(x0), round(top), round(x1))
+            if key in seen:
+                continue
+            seen.add(key)
+            pitch = (g[-1] - g[0]) / (len(g) - 1)
+            out.append(dict(x0=x0, x1=x1, top=top, bottom=y, n=len(g) - 1, pitch=pitch))
+    return out
+
+
+def detect_checkboxes(page, lo=8.5, hi=17):
+    cands = []
+    for o in list(page.rects) + list(page.curves):
+        w, h = o['x1'] - o['x0'], o['bottom'] - o['top']
+        if lo <= w <= hi and lo <= h <= hi and abs(w - h) < 3.5:
+            cands.append((o['x0'], o['top'], o['x1'], o['bottom']))
+    # casete desenate ca imagine mica (ex. "Supliment pentru energie"): umbra e jos-dreapta
+    for o in page.images:
+        w, h = o['x1'] - o['x0'], o['bottom'] - o['top']
+        if 12 <= w <= 20 and 12 <= h <= 21 and abs(w - h) < 4:
+            cands.append((o['x0'], o['top'], o['x1'] - 2.5, o['bottom'] - 3.5))
+    boxes = []
+    for c in sorted(cands):
+        # elimina duplicatele / umbrele (aceeasi casuta desenata de 2 ori)
+        if any(abs(c[0] - b[0]) < 3 and abs(c[1] - b[1]) < 3 for b in boxes):
+            continue
+        boxes.append(c)
+    return boxes
+
+
+
+def detect_grids(page, tol=1.0):
+    """Casete inchise din 4 laturi (grile de 1..n celule). 1 celula -> checkbox, n>1 -> comb."""
+    hz = [l for l in page.lines if abs(l['top'] - l['bottom']) < 0.6 and (l['x1'] - l['x0']) > 8]
+    vt = [l for l in page.lines if abs(l['x0'] - l['x1']) < 0.6 and 8 < (l['bottom'] - l['top']) < 45]
+    res, seen = [], set()
+    for a in hz:
+        for b in hz:
+            hgt = b['top'] - a['top']
+            if not (8 < hgt < 20) or abs(a['x0'] - b['x0']) > tol or abs(a['x1'] - b['x1']) > tol:
+                continue
+            xs = sorted(set(round(v['x0'], 1) for v in vt
+                            if v['top'] <= a['top'] + tol and v['bottom'] >= b['top'] - tol
+                            and a['x0'] - tol <= v['x0'] <= a['x1'] + tol))
+            if len(xs) == 1 and 15 <= (a['x1'] - a['x0']) <= 22 and 10 <= hgt <= 16:
+                xs = [round(a['x0'], 1), round(a['x1'], 1)]      # casuta cu o singura latura verticala
+            if len(xs) < 2:
+                continue
+            key = (round(xs[0]), round(a['top']), round(xs[-1]))
+            if key in seen:
+                continue
+            seen.add(key)
+            res.append(dict(x0=xs[0], x1=xs[-1], top=a['top'], bottom=b['top'], n=len(xs) - 1))
+    return res
+
+
+def overlaps(r, others):
+    return any(not (r[2] <= o[0] or r[0] >= o[2] or r[3] <= o[1] or r[1] >= o[3]) for o in others)
+
+
+DOT_CHARS = {'.', '\u2026', '_'}
+
+def detect_dotted(page, min_chars=5):
+    """Doar sirurile de puncte -- fara textul lipit de ele (ex. 'luna.........')."""
+    out, run = [], []
+    context, context_char, exclude_run = '', None, False
+
+    def flush():
+        nonlocal context, context_char, exclude_run
+        if run:
+            # '…' e un singur caracter, dar lat cat ~3 puncte
+            n = sum(3 if c['text'] == '\u2026' else 1 for c in run)
+            if n >= min_chars and not exclude_run:
+                out.append((run[0]['x0'], min(c['top'] for c in run),
+                            run[-1]['x1'], max(c['bottom'] for c in run)))
+            run.clear()
+            context, context_char, exclude_run = '', None, False
+
+    for c in page.chars:                      # ordinea din fluxul PDF
+        if c['text'] in DOT_CHARS:
+            if run and (abs(c['top'] - run[-1]['top']) > 2 or c['x0'] - run[-1]['x1'] > 3):
+                flush()                       # alt rand sau gol mare -> sir nou
+            if not run:
+                exclude_run = context.rstrip().endswith('TERITORIALĂ')
+            run.append(c)
+        else:
+            flush()                           # orice alt caracter (litera, spatiu) inchide sirul
+            if context_char and (abs(c['top'] - context_char['top']) > 2 or c['x0'] - context_char['x1'] > 3):
+                context = ''
+            context = (context + c['text'])[-32:]
+            context_char = c
+    flush()
+    return out
+
+
+# ----------------------------------------------------------------- denumiri
+def slug(s):
+    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode()
+    return re.sub(r'[^A-Za-z0-9]+', '_', s).strip('_')[:25] or 'camp'
+
+
+def label_left(words, x0, top, bottom):
+    row = []
+    for w in words:
+        if w['x0'] < x0 - 1 and w['bottom'] > top - 3 and w['top'] < bottom + 3:
+            txt = re.sub(r'[.\u2026_]+', '', w['text'])   # scoate punctele lipite: 'luna....' -> 'luna'
+            if txt:
+                row.append((w['x1'], txt))
+    if not row:
+        return 'camp'
+    return slug(max(row)[1])
+
+
+# ----------------------------------------------------------------- creare
+def add_comb(page, name, c, page_num):
+    w = fitz.Widget()
+    w.field_name = name
+    w.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+    # Aplica offset de -5 pixeli (textul e cu 5px mai sus) - NU pe paginile din NO_OFFSET_PAGES
+    y_offset = -6.5 if page_num not in NO_OFFSET_PAGES else -1.5
+    w.rect = fitz.Rect(c['x0'], c['top'] + y_offset, c['x1'], c['bottom'] + 1)
+    w.text_font = FONT_NAME
+    w.text_fontsize = 10
+    w.text_maxlen = c['n']
+    w.field_flags = fitz.PDF_TX_FIELD_IS_COMB
+    w.fill_color = None              # transparent: raman vizibile liniutele |_|_| originale
+    w.border_width = 0
+    page.add_widget(w)
+
+
+def add_text(page, name, r):
+    w = fitz.Widget()
+    w.field_name = name
+    w.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+    w.rect = fitz.Rect(r[0], r[1] - 2, r[2], r[3] + 1.5)
+    w.text_font = FONT_NAME
+    w.text_fontsize = 9
+    w.fill_color = BLUE
+    w.border_width = 0
+    page.add_widget(w)
+
+
+def add_check(page, name, r):
+    w = fitz.Widget()
+    w.field_name = name
+    w.field_type = fitz.PDF_WIDGET_TYPE_CHECKBOX
+    w.rect = fitz.Rect(r)
+    w.field_value = False
+    w.border_color = (0, 0, 0)
+    w.border_width = 1
+    w.fill_color = (1, 1, 1)
+    page.add_widget(w)
+
+
+def build(inp, out, debug=False):
+    doc = fitz.open(inp)
+    stats = []
+    with pdfplumber.open(inp) as pl:
+        for i, pp in enumerate(pl.pages):
+            page = doc[i]
+            page.insert_font(fontname=FONT_NAME, fontfile=FONT_PATH)
+            words = pp.extract_words()
+            combs, checks, dots = detect_combs(pp), detect_checkboxes(pp), detect_dotted(pp)
+            taken = [(c['x0'], c['top'], c['x1'], c['bottom']) for c in combs] + checks
+            for g in detect_grids(pp):
+                r = (g['x0'], g['top'], g['x1'], g['bottom'])
+                if overlaps(r, taken):
+                    continue
+                taken.append(r)
+                if g['n'] == 1:
+                    checks.append(r)
+                else:
+                    g['top'] += 1.5; g['bottom'] -= 1   # add_comb mareste dreptunghiul cu aceste margini
+                    combs.append(g)
+            checks += EXTRA_CHECKBOXES.get(i + 1, [])
+            
+            # Adauga casetele manuale din EXTRA_COMBS
+            for x0, top, x1, bottom, n in EXTRA_COMBS.get(i + 1, []):
+                r = (x0, top, x1, bottom)
+                if overlaps(r, taken):
+                    continue
+                taken.append(r)
+                combs.append(dict(x0=x0, x1=x1, top=top, bottom=bottom, n=n, pitch=(x1-x0)/n if n > 0 else 10))
+            
+            for k, c in enumerate(combs, 1):
+                add_comb(page, f"p{i+1}_{label_left(words, c['x0'], c['top'], c['bottom'])}_c{k}", c, i+1)
+            for k, r in enumerate(checks, 1):
+                add_check(page, f"p{i+1}_bifa_{k}", r)
+            for k, r in enumerate(dots, 1):
+                add_text(page, f"p{i+1}_{label_left(words, r[0], r[1], r[3])}_t{k}", r)
+            stats.append((i + 1, len(combs), len(checks), len(dots)))
+    doc.save(out)
+    print("pagina  casete  bife  puncte")
+    for s in stats:
+        print("%6d  %6d  %4d  %6d" % s)
+    print("salvat:", out)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print(__doc__); sys.exit(1)
+    build(sys.argv[1], sys.argv[2], "--debug" in sys.argv)
