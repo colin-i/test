@@ -13,7 +13,7 @@
 /* Meaningful Defaults */
 #define DEFAULT_FREQ       440.0 /* Middle A */
 #define DEFAULT_LENGTH     200   /* milliseconds */
-#define DEFAULT_REPS       10
+#define DEFAULT_REPS       3
 #define DEFAULT_DELAY      1000   /* milliseconds */
 
 typedef struct beep_parms_t {
@@ -36,6 +36,7 @@ void play_beep(beep_parms_t parms) {
     exit(1);
   }
 
+  printf("%u times\n",parms.reps);
   /* Beep */
   for (i = 0; i < parms.reps; i++) {                    /* start beep */
     if(ioctl(console_fd, KIOCSOUND, (int)(CLOCK_TICK_RATE/parms.freq)) < 0) {

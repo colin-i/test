@@ -1,14 +1,11 @@
 
 #optional 1 tag
 
-~/test/de/set
-
-url=
-
 if [ -z "${1}" ]; then
-url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`/releases/latest
+	~/test/de/set
+	url=`cat debian/control | grep -Poe "(?<=^Homepage: ).*"`/releases/latest
 else
-url=https://github.com/colin-i/arh/releases/tag/${1}
+	url=https://github.com/colin-i/arh/releases/tag/${1}
 fi
 
 echo ${url}
