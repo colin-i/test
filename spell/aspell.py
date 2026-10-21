@@ -34,3 +34,4 @@ if result == 0:
 sys.exit(result)
 
 #.config/Claude/Preferences ,"spellcheck":{"dictionaries":["en-US","ro"],"dictionary":""}}
+#.config/Codex/Default/Preferences ,here is already, only add "ro"
