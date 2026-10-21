@@ -45,10 +45,10 @@ for rep in ${reps[@]}; do
 			if [ "${status}" = succeeded ] || [ "${status}" = disabled ] || [ "${status}" = excluded ]; then
 				break
 			fi
-			if [ "${status}" = unresolvable ] || [ "${status}" = blocked ] || [ `ps aux | grep "python3 -c input('Press any key to exit...')" | wc -l` = 2 ]; then #to do automatic
-				echo "what now? y?"
+			if [ "${status}" = unresolvable ] || [ "${status}" = blocked ] || [ `ps aux | grep 'python3 -c input("Press any key to exit...")' | wc -l` = 2 ]; then #to do automatic
+				echo "what now? y? q?"
 				read -n1 -t $((60*60*24)) ans
-				if [ "${ans}" = "y" ]; then
+				if [ "${ans}" = y ] || [ "${ans}" = q ]; then
 					break
 				fi
 			fi
@@ -61,11 +61,19 @@ for rep in ${reps[@]}; do
 				echo "  ${f}"
 			done
 		fi
-		#fi
+		if [ "${ans}" = q ]; then
+			break
+		fi
 	done
+	if [ "${ans}" = q ]; then
+		break
+	fi
 done
 
 rm 1 2 3
+if [ "${ans}" = q ]; then
+	exit 1
+fi
 
 echo "install? y?"
 read -n1 -t $((60*60*24)) ans
