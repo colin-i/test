@@ -39,7 +39,6 @@ install_number=64 %make_install
 %attr(0644, root, root) "%{_libdir}/liboaas.so"
 %attr(0755, root, root) "%{_bindir}/oaalternative.sh"
 %attr(0755, root, root) "%{_bindir}/oaalternative.py"
-%attr(0755, root, root) "%{_bindir}/oaalternativer.py"
 %attr(0755, root, root) "%{_bindir}/oaas3"
 
 %files devel

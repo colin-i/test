@@ -52,6 +52,7 @@ javascript:(function(){
 	let clockActive=localStorage.getItem('clockActive')==='true'; /* persisted on/off state */
 	let clockLocation=parseInt(localStorage.getItem('clockLocation'))||1; /* persisted corner: 1=top-right 2=top-left 3=bottom-left 4=bottom-right */
 	let clockColor=localStorage.getItem('clockColor')||'white'; /* persisted color: white/black */
+	let clockHidden=localStorage.getItem('clockHidden')==='true'; /* persisted visibility: hidden by 'e' */
 	let clockInterval;
 
 	/* active-duration counter: time is counted only while the page is open and the switch is on */
@@ -99,12 +100,21 @@ javascript:(function(){
 		clockDiv.style.color=clockColor;
 	}
 
+	let was='';
 	function updateClockText(){
-		let now=new Date();
-		let hh=String(now.getHours()).padStart(2,'0');
-		let mm=String(now.getMinutes()).padStart(2,'0');
-		let ss=String(now.getSeconds()).padStart(2,'0');
-		clockDiv.textContent=hh+':'+mm+':'+ss+' | '+formatDuration(counterElapsed())+(counterPaused?' (paused)':'');
+		let a='';
+		if(!clockHidden){
+			let now=new Date();
+			let hh=String(now.getHours()).padStart(2,'0');
+			let mm=String(now.getMinutes()).padStart(2,'0');
+			let ss=String(now.getSeconds()).padStart(2,'0');
+			a=hh+':'+mm+':'+ss+' | ';
+		}
+		a=a+formatDuration(counterElapsed())+(counterPaused?' (paused)':'');
+		if(a!=was){/*to not update, to work with ctrl+c*/
+			clockDiv.textContent=a;
+			was=a;
+		}
 	}
 
 	function startClock(){
@@ -180,7 +190,8 @@ javascript:(function(){
 			e.currentTarget.remove(); /* remove overlay on click */
 		}
 	}
-	/* ..t ..g ..b*/
+	/* ..y ..h ..b*/
+	/* q , q*/
 	function keyHandler(e){
 		e.preventDefault();
 
@@ -319,6 +330,10 @@ javascript:(function(){
 			localStorage.setItem('clockColor',clockColor);
 			if(clockActive) applyClockStyle();
 		}
+		else if(e.key=='e'){ /* hide / show clock, counter keeps running */
+			clockHidden=!clockHidden;
+			localStorage.setItem('clockHidden',clockHidden);
+		}
 
 		else if(e.key=='g'){ /* pause / resume counter */
 			if(counterPaused){
@@ -340,6 +355,15 @@ javascript:(function(){
 		else if (e.key == 'q'){
 			document.removeEventListener('keydown', keyHandler);
 			document.addEventListener('keydown', restoreHandler);
+		}
+		else if (e.key == 'y'){
+			document.removeEventListener('keydown', keyHandler);
+			openPasteInput();
+		}
+		else if (e.key == 'h'){
+			document.removeEventListener('keydown', keyHandler);
+			document.addEventListener('keydown', restoreHandler2);
+			openAddInput();
 		}
 
 		else if(e.key=='z'){
@@ -365,11 +389,95 @@ javascript:(function(){
 			}
 		}
 	}
-	function restoreHandler(e){
-		if (e.key == 'e'){
-			document.removeEventListener('keydown', restoreHandler);
-			document.addEventListener('keydown', keyHandler);
+
+	let addInput=null;
+	function openAddInput(){
+		if(!addInput){
+			setTimeout(function(){ /* to not add same press */
+				addInput=document.createElement('input');
+				addInput.type='text';
+				addInput.placeholder='hh:mm:ss';
+				addInput.style.position='fixed';
+				addInput.style.top='50%';
+				addInput.style.left='50%';
+				addInput.style.transform='translate(-50%,-50%)';
+				addInput.style.zIndex='10001';
+				addInput.style.width='120px';
+				addInput.style.fontSize='18px';
+				addInput.style.fontFamily='monospace';
+				addInput.style.textAlign='center';
+				document.body.appendChild(addInput);
+				addInput.focus();
+			},987);
 		}
+	}
+	function parseDuration(str){ /* accepts hh:mm:ss, mm:ss or ss, returns ms or null */
+		let parts=str.trim().split(':');
+		if(parts.length>3) return null;
+		let ms=0;
+		for(let i=0;i<parts.length;i++){
+			if(!/^\d+$/.test(parts[i].trim())) return null;
+			ms=ms*60+parseInt(parts[i],10);
+		}
+		return ms*1000;
+	}
+	function closeAddInput(){
+		if(addInput){
+			if(addInput.value.trim()!==''){
+				const ms=parseDuration(addInput.value);
+				if(ms===null){ alert('invalid time, use hh:mm:ss'); return; } /* stays open */
+				addInput.remove();
+				addInput=null;
+				if(ms>0){
+					counterAcc+=ms; /* works whether the counter is running or paused */
+					counterSave();
+					if(clockActive) updateClockText();
+				}
+				restoring(restoreHandler2);
+			}
+		}
+	}
+	function restoring(r){
+		document.removeEventListener('keydown', r);
+		document.addEventListener('keydown', keyHandler);
+	}
+	function restoreHandler(e){
+		if (e.key == 'q'){
+			restoring(restoreHandler);
+		}
+	}
+	function restoreHandler2(e){
+		if (e.key == 'q'){
+			closeAddInput();
+		}
+	}
+	function openPasteInput(){
+		setTimeout(function(){ /* to not add same press */
+			const pasteBox=document.createElement('input');
+			pasteBox.type='text';
+			pasteBox.placeholder='paste here';
+			pasteBox.style.position='fixed';
+			pasteBox.style.top='50%';
+			pasteBox.style.left='50%';
+			pasteBox.style.transform='translate(-50%,-50%)';
+			pasteBox.style.zIndex='10001';
+			pasteBox.style.width='300px';
+			pasteBox.style.fontSize='18px';
+			pasteBox.style.fontFamily='monospace';
+			document.body.appendChild(pasteBox);
+			pasteBox.focus();
+			var a=function(){
+				pasteBox.removeEventListener('input', a);
+				pasteBox.addEventListener('input',function(){
+					pasteBox.remove();
+					if(confirm('Close the window?')){
+						window.close(); /* only works on windows opened by script */
+						setTimeout(function(){ location.href='about:blank'; },100); /* still here, so close was refused */
+					}else document.addEventListener('keydown', keyHandler);
+				});
+			};
+			pasteBox.addEventListener('input',a);
+		},654);
 	}
 	document.addEventListener('keydown',keyHandler);
 	add1();
