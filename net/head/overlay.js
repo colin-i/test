@@ -84,12 +84,25 @@ javascript:(function(){
 	window.addEventListener('pagehide',saveOnLeave);
 	window.addEventListener('beforeunload',saveOnLeave);
 
-	let clockDiv=document.createElement('div');
+	/* an input (read-only) so the text can be selected and copied even when the site blocks selection */
+	let clockDiv=document.createElement('input');
+	clockDiv.type='text';
+	clockDiv.readOnly=true;
 	clockDiv.style.position='fixed';
 	clockDiv.style.fontSize='14px';
 	clockDiv.style.fontFamily='monospace';
 	clockDiv.style.zIndex='10000';
 	clockDiv.style.padding='2px 5px';
+	clockDiv.style.margin='0';
+	clockDiv.style.border='none';
+	clockDiv.style.outline='none';
+	clockDiv.style.background='transparent';
+	clockDiv.style.boxSizing='content-box';
+	clockDiv.style.userSelect='text';
+	clockDiv.style.webkitUserSelect='text';
+	/* keys typed while the clock is focused (ctrl+a, ctrl+c ...) must not reach the overlay key handler, which calls preventDefault */
+	clockDiv.addEventListener('keydown',function(e){ e.stopPropagation(); });
+	clockDiv.addEventListener('blur',function(){ updateClockText(); }); /* catch up after being focused */
 
 	function applyClockStyle(){
 		if(clockLocation==1){ clockDiv.style.top='5px'; clockDiv.style.right='5px'; clockDiv.style.bottom=''; }
@@ -102,6 +115,7 @@ javascript:(function(){
 
 	let was='';
 	function updateClockText(){
+		if(document.activeElement===clockDiv) return; /* don't wipe the selection while the user is copying */
 		let a='';
 		if(!clockHidden){
 			let now=new Date();
@@ -112,7 +126,8 @@ javascript:(function(){
 		}
 		a=a+formatDuration(counterElapsed())+(counterPaused?' (paused)':'');
 		if(a!=was){/*to not update, to work with ctrl+c*/
-			clockDiv.textContent=a;
+			clockDiv.value=a;
+			clockDiv.style.width=(a.length+1)+'ch'; /* size the input to the text */
 			was=a;
 		}
 	}
