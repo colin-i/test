@@ -1,0 +1,21 @@
+
+if [ -n "$a" ]; then
+	echo -n `date +%s` > /tmp/olay_timestamp_a
+	exit
+fi
+
+if [ -n "$1" ]; then
+	c=$(awk -F: '{print $1*3600 + $2*60 + $3}' /tmp/olay_timestamp)
+else
+	c=0
+fi
+echo $c
+
+a=`cat /tmp/olay_timestamp_a`
+b=`date +%s`
+secs=$((b-a+c))
+printf -v t '%02d:%02d:%02d' $((secs/3600)) $((secs%3600/60)) $((secs%60))
+echo $t
+echo -n $t > /tmp/olay_timestamp
+
+printf '<form><textarea id="t" rows="5" cols="40" onclick="this.select()">%s</textarea></form><script>var t=document.getElementById("t");t.focus();t.select();</script>\n' "$t" | sudo tee /var/www/html/a.html > /dev/null
