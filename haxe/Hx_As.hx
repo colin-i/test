@@ -2,18 +2,26 @@ import haxe.macro.Context;
 import haxe.macro.Expr.Binop;
 import haxe.macro.Printer;
 import haxe.macro.Type;
+import haxe.macro.TypedExprTools;
 
 /**
  * Skeleton Haxe -> AS generator (macro, walks the typed AST).
+ * Install:
+ *   haxelib dev hxas /path/to/this/folder
  *
  * Usage:
- *   haxe -cp . -main Main --no-output --macro 'MyGen.init()' -D as_out=out.as
+ *   haxe -lib hxas -main Main --no-output --macro 'Hx_As.init()' [Flags]
+ *
+ * Flags:
+ *   -D as_out=<file>   write the AS translation to <file>
+ *   -D txt_out=<file>  write the typed AST as plain Haxe-like text to <file>
+ *   -D txt_out_raw     dump the raw TXxx enum tree instead (Std.string)
  *
  * UNTESTED skeleton: written against the Haxe 4 macro API. Expect to adjust.
  * Not handled yet (a warning is printed): switch, try/catch, enums, interfaces,
  * super.method() calls, ternary-style `if` used as a value, array/string API mapping.
  */
-class MyGen {
+class Hx_As {
 	static var printer = new Printer();
 	static var superName:Null<String> = null;
 
@@ -29,7 +37,12 @@ class MyGen {
 	}
 
 	static function generate(types:Array<Type>) {
+		var asPath = Context.definedValue("as_out");
+		var txtPath = Context.definedValue("txt_out");
+		if (asPath == null && txtPath == null) return;
+
 		var out = new StringBuf();
+		var txt = new StringBuf();
 		var entry:Null<String> = null;
 
 		for (t in types) {
@@ -37,17 +50,33 @@ class MyGen {
 				case TInst(r, _):
 					var c = r.get();
 					if (!isUser(c)) continue;
-					genClass(c, out);
+					if (asPath != null) genClass(c, out);
+					if (txtPath != null) genTxt(c, txt);
 					for (f in c.statics.get())
 						if (f.name == "main") entry = c.name;
 				default:
 			}
 		}
-		if (entry != null) out.add('$entry.main();\n');
 
-		var path = Context.definedValue("as_out");
-		if (path == null) path = "out.as";
-		sys.io.File.saveContent(path, out.toString());
+		if (asPath != null) {
+			if (entry != null) out.add('$entry.main();\n');
+			sys.io.File.saveContent(asPath, out.toString());
+		}
+		if (txtPath != null)
+			sys.io.File.saveContent(txtPath, txt.toString());
+	}
+
+	// Plain typed-AST dump: "<field> = <Haxe-like body>" per field.
+	static function genTxt(c:ClassType, out:StringBuf) {
+		var raw = Context.defined("raw");
+		out.add('// ${c.name}\n');
+		var fs = c.statics.get().concat(c.fields.get());
+		if (c.constructor != null) fs.unshift(c.constructor.get());
+		for (f in fs) {
+			var e = f.expr();
+			if (e != null) out.add('${f.name} = ' + (raw ? Std.string(e.expr) : TypedExprTools.toString(e, true)) + "\n");
+		}
+		out.add("\n");
 	}
 
 	static function genClass(c:ClassType, out:StringBuf) {
