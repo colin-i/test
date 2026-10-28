@@ -4,6 +4,8 @@ Usage: python3 har_pbf_to_csv.py file.har output.csv [layer_number] [sort_column
 Default layer is 0; default sort column is categorie_drum (column E).
 """
 import sys, json, base64, csv, struct, os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Only rows whose categorie_drum is one of these are kept (set to an empty list to keep everything)
 KEEP_CATEGORIES = [
@@ -60,44 +62,53 @@ def value(b):
     return ""
 
 def main():
-    har, outp = sys.argv[1], sys.argv[2]
-    layer = sys.argv[3] if len(sys.argv) > 3 else "0"
-    sort_col = sys.argv[4] if len(sys.argv) > 4 else "categorie_drum"
-    marker = "/FeatureServer/%s/query" % layer
-    merged, cols = {}, []
-    for e in json.load(open(har))['log']['entries']:
-        url = e['request']['url']
-        # Only feature queries for the chosen layer that were requested as pbf
-        if marker not in url or 'f=pbf' not in url: continue
-        c = e['response']['content']
-        if not c.get('text'): continue
-        raw = base64.b64decode(c['text']) if c.get('encoding') == 'base64' else c['text'].encode('latin1')
-        try:
-            # FeatureCollection -> QueryResult -> FeatureResult
-            fr = parse(parse(parse(raw)[2][0])[1][0])
-        except Exception as ex:
-            print("skipping", url[-60:], ex); continue
-        # Field names of this response (different queries may request different outFields)
-        names = [parse(f)[1][0].decode() for f in fr.get(13, [])]
-        if not names: continue
-        cols += [n for n in names if n not in cols]
-        oid = fr.get(1, [b'OBJECTID'])[0].decode()
-        for fb in fr.get(15, []):
-            vals = [value(v) for v in parse(fb).get(1, [])]
-            r = dict(zip(names, vals))
-            # Merge rows that appear in several responses, keyed by the object id
-            key = r.get(oid, id(fb))
-            merged.setdefault(key, {}).update({k: v for k, v in r.items() if v != ""})
-        if fr.get(9, [0])[0]: print("WARNING: exceededTransferLimit in", url[-60:])
-    rows = list(merged.values())
-    # Keep only the categories of interest
-    if os.environ.get('no_categories') is None:
-        rows = [r for r in rows if r.get("categorie_drum") in KEEP_CATEGORIES]
-    # Sort by the chosen column; empty values go last, ties keep their original order
-    rows.sort(key=lambda r: (str(r.get(sort_col, "")) == "", str(r.get(sort_col, ""))))
-    with open(outp, 'w', newline='', encoding='utf-8-sig') as f:
-        w = csv.DictWriter(f, fieldnames=cols, extrasaction='ignore')
-        w.writeheader(); w.writerows(rows)
-    print(len(rows), "unique rows, sorted by", sort_col, "->", outp)
+	har, outp = sys.argv[1], sys.argv[2]
+	layer = sys.argv[3] if len(sys.argv) > 3 else "0"
+	sort_col = sys.argv[4] if len(sys.argv) > 4 else "categorie_drum"
+	marker = "/FeatureServer/%s/query" % layer
+	merged, cols = {}, []
+	last = None   # (epoch ms, user) of the most recent edit
+	for e in json.load(open(har))['log']['entries']:
+		url = e['request']['url']
+		# Only feature queries for the chosen layer that were requested as pbf
+		if marker not in url or 'f=pbf' not in url: continue
+		c = e['response']['content']
+		if not c.get('text'): continue
+		raw = base64.b64decode(c['text']) if c.get('encoding') == 'base64' else c['text'].encode('latin1')
+		try:
+			# FeatureCollection -> QueryResult -> FeatureResult
+			fr = parse(parse(parse(raw)[2][0])[1][0])
+		except Exception as ex:
+			print("skipping", url[-60:], ex); continue
+		# Field names of this response (different queries may request different outFields)
+		names = [parse(f)[1][0].decode() for f in fr.get(13, [])]
+		if not names: continue
+		cols += [n for n in names if n not in cols]
+		oid = fr.get(1, [b'OBJECTID'])[0].decode()
+		for fb in fr.get(15, []):
+			vals = [value(v) for v in parse(fb).get(1, [])]
+			r = dict(zip(names, vals))
+
+			ed = r.get('last_edit_date')
+			if isinstance(ed, (int, float)) and (last is None or ed > last[0]):
+				last = (ed, r.get('last_edit_user', ''))
+
+			# Merge rows that appear in several responses, keyed by the object id
+			key = r.get(oid, id(fb))
+			merged.setdefault(key, {}).update({k: v for k, v in r.items() if v != ""})
+		if fr.get(9, [0])[0]: print("WARNING: exceededTransferLimit in", url[-60:])
+	rows = list(merged.values())
+	# Keep only the categories of interest
+	if os.environ.get('no_categories') is None:
+		rows = [r for r in rows if r.get("categorie_drum") in KEEP_CATEGORIES]
+	# Sort by the chosen column; empty values go last, ties keep their original order
+	rows.sort(key=lambda r: (str(r.get(sort_col, "")) == "", str(r.get(sort_col, ""))))
+	with open(outp, 'w', newline='', encoding='utf-8-sig') as f:
+		w = csv.DictWriter(f, fieldnames=cols, extrasaction='ignore')
+		w.writeheader(); w.writerows(rows)
+	print(len(rows), "unique rows, sorted by", sort_col, "->", outp)
+	if last:
+		t = datetime.fromtimestamp(last[0] / 1000, ZoneInfo("Europe/Bucharest"))
+		print("Edited by %s on %s at %s" % (last[1], t.strftime("%d/%m/%y"), t.strftime("%I:%M %p").lstrip("0")))
 
 main()

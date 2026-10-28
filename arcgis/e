@@ -5,6 +5,7 @@ f2=`pwd`/a.csv
 cd ~/test/arcgis
 python har.py $f $f2
 python cv.py $f2
+if [ -n "${h1}" ]; then exit; fi
 ./aa
 ./a
 rm $f2 $f

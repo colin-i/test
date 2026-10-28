@@ -89,8 +89,7 @@ def wrstate(r,s,nw):
 
 with open(csv_path, newline="", encoding="utf-8-sig") as f:
 	reader = csv.DictReader(f)
-	i = 0
-	for row in reader:
+	for n, row in enumerate(reader, start=2):
 		oid = str(row["objectid"])
 		cat = norm(row[CATEGORY_COLUMN])
 
@@ -109,10 +108,8 @@ with open(csv_path, newline="", encoding="utf-8-sig") as f:
 			exit(1)
 
 		name, r = good
-		print(f"{oid} is ok ({name})")
+		print(f"{n}. {oid} is ok ({name})")
 		if name == tehnic:
 			wrstate(row, r[2], nw)
 		elif name == rcs:
 			wrstate(row, r[2], '')
-		i += 1
-	print(i)
