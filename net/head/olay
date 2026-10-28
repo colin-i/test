@@ -18,4 +18,4 @@ printf -v t '%02d:%02d:%02d' $((secs/3600)) $((secs%3600/60)) $((secs%60))
 echo $t
 echo -n $t > /tmp/olay_timestamp
 
-printf '<form><textarea id="t" rows="5" cols="40" onclick="this.select()">%s</textarea></form><script>var t=document.getElementById("t");t.focus();t.select();</script>\n' "$t" | sudo tee /var/www/html/a.html > /dev/null
+printf '<form><textarea id="t" rows="5" cols="40">%s</textarea></form><script>var t=document.getElementById("t");t.focus();t.select();</script>\n' "$t" | sudo tee /var/www/html/a.html > /dev/null
