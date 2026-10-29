@@ -19,3 +19,5 @@ echo $t
 echo -n $t > /tmp/olay_timestamp
 
 printf '<form><textarea id="t" rows="5" cols="40" onclick="select()">%s</textarea></form><script>var t=document.getElementById("t");t.focus();t.select();</script>\n' "$t" | sudo tee /var/www/html/a.html > /dev/null
+
+echo -n `date +%s` > /tmp/olay_timestamp_a
