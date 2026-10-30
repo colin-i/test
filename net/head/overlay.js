@@ -1,5 +1,6 @@
 javascript:(function(){
-	/* "use strict"; debugger; let overlay1; */
+	/* "use strict"; debugger;*/
+	let overlay1=null;
 	let overlay2=null; /* placeholder for bottom overlay */
 	function getSuffix(v){
 		return v==1 ? '' : '_v'+v;
@@ -297,19 +298,19 @@ javascript:(function(){
 
 		else if(e.key=='w'){
 			overlayTop=0;
-			overlay1.style.top='0px';
+			if(overlay1)overlay1.style.top='0px';
 		}
 		else if(e.key=='s'){
 			overlayBottom=0;
-			overlay1.style.bottom='0px';
+			if(overlay1)overlay1.style.bottom='0px';
 		}
 		else if(e.key=='a'){
 			overlay2Left=0;
-			overlay2.style.left='0px';
+			if(overlay2)overlay2.style.left='0px';
 		}
 		else if(e.key=='d'){
 			overlay2Right=0;
-			overlay2.style.right='0px';
+			if(overlay2)overlay2.style.right='0px';
 		}
 
 		else if(e.key=='c'){ /* flip overlay1 between right and left edge */
@@ -495,5 +496,4 @@ javascript:(function(){
 		},654);
 	}
 	document.addEventListener('keydown',keyHandler);
-	add1();
 })();
