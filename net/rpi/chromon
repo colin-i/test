@@ -43,7 +43,7 @@ while :; do
 		a=$b
 	fi
 
-	echo "#$((off+idx)) $b - $last = $diff | $(date)"
+	echo "#$((off+idx+1)) $b - $last = $diff | $(date)"
 	sleep $((5*60))
 done
 notify-send "Chromium!"
