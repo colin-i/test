@@ -33,7 +33,7 @@ git pull armory3d master
 #lime git since openfl, hxcpp git since webassembly, hxnodejs since electron
 cd ../../lime/git
 haxelib run lime rebuild linux # lime, reqs are at README, and also the command will ask for hxcpp
-haxelib run lime rebuild tools # asta e optionala, 'the Haxe code that runs when you type lime or openfl.'
+haxelib run lime rebuild tools # 'the Haxe code that runs when you type lime or openfl.' , tools/tools.n
 
 #also test for original oimo if is still old
 #cd ../../oimophysics/git
