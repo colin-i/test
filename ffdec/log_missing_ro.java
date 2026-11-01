@@ -9,7 +9,8 @@ import java.util.zip.*;
  */
 public class log_missing_ro {
 
-    private static List<String> IGNORED_RESOURCES;
+	private static List<String> IGNORED_RESOURCES;
+	private static final File BIN_DIR = new File(System.getenv().getOrDefault("FFDEC_BIN", "/home/bc/a/ffdec/bin"));
 
     private static List<String> loadIgnoredResources(String translatorPath) {
         List<String> ignored = new ArrayList<>();
@@ -73,28 +74,31 @@ public class log_missing_ro {
             projectDir = new File(".");
         }
 
-        Pattern loadJarPattern = Pattern.compile("loadJarTry\\s*\\(\\s*\"([^\"]+)\"\\s*\\)");
-        try (BufferedReader reader = new BufferedReader(new FileReader(translatorFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Matcher m = loadJarPattern.matcher(line);
-                if (m.find()) {
-                    String relPath = m.group(1);
-                    // Match Translator.loadJarTry logic: check dist/<path> first, then <path>
-                    File file = new File(projectDir, "dist/" + relPath);
-                    if (!file.exists()) {
-                        file = new File(projectDir, relPath);
-                    }
-                    if (file.exists()) {
-                        jars.add(file);
-                    } else {
-                        System.err.println("Warning: Required JAR not found: " + file.getPath());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading JARs from Translator.java: " + e.getMessage());
-        }
+		Pattern loadJarPattern = Pattern.compile("loadJarTry\\s*\\(\\s*\"([^\"]+)\"\\s*\\)");
+		try (BufferedReader reader = new BufferedReader(new FileReader(translatorFile))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				Matcher m = loadJarPattern.matcher(line);
+				if (m.find()) {
+					String relPath = m.group(1);
+					// Match Translator.loadJarTry logic: check dist/<path> first, then <path>
+					File file = new File(projectDir, "dist/" + relPath);
+					if (!file.exists()) {
+						file = new File(projectDir, relPath);
+						if (!file.exists()) {
+							file = new File(BIN_DIR, relPath);
+						}
+					}
+					if (file.exists()) {
+						jars.add(file);
+					} else {
+						System.err.println("Warning: Required JAR not found: " + file.getPath());
+					}
+				}
+			}
+		} catch (IOException e) {
+			System.err.println("Error reading JARs from Translator.java: " + e.getMessage());
+		}
 
         return jars;
     }

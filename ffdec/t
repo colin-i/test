@@ -1,5 +1,7 @@
 set -e
-./dif $1
+if [ -n "$1" ]; then
+	./dif $1
+fi
 cd ~/a/tmp/ffdec
 fl=./translation.jpt
 a=`git show master:${fl} | wc -c`
