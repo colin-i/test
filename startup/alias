@@ -1,5 +1,5 @@
 
-a=( gre gr mov cop gdb gd fnd kpa pnta xx gfind )
+a=( cop dif gd gdb gfind gr gre fnd kpa mov pnta xx )
 
 if [ -z "$@" ]; then
 	cases=( `cat ~/aliases_default` )
@@ -10,16 +10,17 @@ f=~/aliases
 echo -n > ${f}
 for var in "${cases[@]}"; do
 	case $var in  #case. at this bash break is not required, will break the for
-	  gre) echo "alias gre='grep --color=auto -r --exclude-dir={.git,.osc,.pc,patches,tmp,temp} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'" >> ${f};;
-	  gr) echo "alias gr='gre --exclude=\*.c --exclude=\*.h --exclude=\*.x --exclude=\*.xx'" >> ${f};;
-	  mov) echo "alias mov='~/test/startup/mv'" >> ${f};;
 	  cop) echo "alias cop='~/test/startup/cp'" >> ${f};;
+	  dif) echo "alias dif='diff --color'" >> ${f};;
 	  gd) if [ "${uname_m}" != "x86_64" ]; then echo "alias gd='gdb -ex start'" >> ${f};else echo "alias gd='gdb -ex ar -ex start'" >> ${f};fi;;
 	  gdb) echo "alias gdb='gdb -x ~/.gdbinit'" >> ${f};;
+	  gfind) echo "alias gfind='echo \"#include <gtk/gtk.h>\" | cc \$(pkg-config --cflags gtk4) -E -dD - | grep'" >> ${f};;
+	  gr) echo "alias gr='gre --exclude=\*.c --exclude=\*.h --exclude=\*.x --exclude=\*.xx'" >> ${f};;
+	  gre) echo "alias gre='grep --color=auto -r --exclude-dir={.git,.osc,.pc,patches,tmp,temp} --exclude=\*.dbl --exclude=\*.png --exclude=\*.bmp --exclude=\*.zip --exclude=\*.mp3 --exclude=\*.swf --exclude=\*.log --exclude=\*.edorrestorefile --exclude=\*.o --exclude=\*.a --exclude=\*.so --exclude=\*.out'" >> ${f};;
 	  fnd) echo "alias fnd='find -name'" >> ${f};;
 	  kpa) echo "alias kpa='QT_QPA_PLATFORMTHEME=qt6ct kolourpaint'" >> ${f};;
+	  mov) echo "alias mov='~/test/startup/mv'" >> ${f};;
 	  pnta) echo "alias pnta='G_MESSAGES_DEBUG=all pinta'" >> ${f};;
 	  xx) echo "alias xx='xxd -c 48 -g 4'" >> ${f};;
-	  gfind) echo "alias gfind='echo \"#include <gtk/gtk.h>\" | cc \$(pkg-config --cflags gtk4) -E -dD - | grep'" >> ${f};;
 	esac
 done
