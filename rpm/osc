@@ -87,3 +87,6 @@ fi
 #osc commit
 
 #when building and realizing that is not the same arch as host, then: osc build openSUSE_Tumbleweed x86_64   , i586
+#osc rebuildpac , after meta prj -e , to rebuild at obs
+#osc remotebuildlog home:costin:branches:home:mnhauke:opencl:stable llvm7 openSUSE_Tumbleweed x86_64
+#osc api /build/home:costin:branches:home:mnhauke:opencl:stable/openSUSE_Tumbleweed/x86_64/llvm7/_log?nostream=1 | tail -n 10
