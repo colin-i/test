@@ -1,0 +1,104 @@
+name: Build Vulkan libclc
+
+on:
+ workflow_dispatch:
+
+permissions:
+ contents: read
+
+jobs:
+ build:
+  runs-on: ubuntu-26.04-arm
+
+  steps:
+   - name: Checkout clvk
+     uses: actions/checkout@v4
+     with:
+      repository: kpet/clvk
+      ref: main
+      submodules: recursive
+      path: clvk
+
+   - name: Install dependencies
+     run: |
+      sudo apt-get update
+      sudo apt-get install -y \
+       cmake ninja-build python3 \
+       build-essential git \
+       zlib1g-dev libxml2-dev libzstd-dev \
+            libedit-dev libffi-dev libncurses-dev
+   - name: Fetch pinned LLVM
+     working-directory: clvk
+     run: |
+      python3 external/clspv/utils/fetch_sources.py \
+            --shallow --deps llvm
+   - name: Configure LLVM and libclc
+     working-directory: clvk
+     run: |
+      cmake \
+       -S external/clspv/third_party/llvm/llvm \
+       -B ../build_libclc \
+       -G Ninja \
+       -DCMAKE_BUILD_TYPE=Release \
+       -DLLVM_ENABLE_PROJECTS=clang \
+       -DLLVM_TARGETS_TO_BUILD=Native \
+       -DRUNTIMES_spirv32-unknown-vulkan_LLVM_ENABLE_RUNTIMES=libclc \
+       -DRUNTIMES_spirv64-unknown-vulkan_LLVM_ENABLE_RUNTIMES=libclc \
+       -DLLVM_RUNTIME_TARGETS="spirv32-unknown-vulkan;spirv64-unknown-vulkan"
+      #cmake -G Ninja \
+      #	-S clvk/external/clspv/third_party/llvm/llvm \
+      #	-B build_llvm \
+      #	-DLLVM_ENABLE_PROJECTS="clang" \
+      #	-DLLVM_TARGETS_TO_BUILD="Native;SPIRV" \
+      #	-DCMAKE_BUILD_TYPE=Release \
+      #	-DLLVM_INCLUDE_TESTS=OFF \
+      #	-DLLVM_INCLUDE_EXAMPLES=OFF \
+      #	-DLLVM_INCLUDE_BENCHMARKS=OFF \
+      #	-DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/llvm-install"
+      #cmake --build build_llvm --target install
+   - name: Build libclc
+     run: |
+      cmake --build build_libclc --target runtimes --parallel $(nproc)
+      #for t in spirv32-unknown-vulkan spirv64-unknown-vulkan; do
+      #	cmake -G Ninja \
+      #		-S clvk/external/clspv/third_party/llvm/libclc \
+      #		-B "build_libclc/$t" \
+      #		-DCMAKE_CLC_COMPILER="$GITHUB_WORKSPACE/llvm-install/bin/clang" \
+      #		-DCMAKE_AR="$GITHUB_WORKSPACE/llvm-install/bin/llvm-ar" \
+      #		-DLLVM_DIR="$GITHUB_WORKSPACE/llvm-install/lib/cmake/llvm" \
+      #		-DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/llvm-install" \
+      #		-DLLVM_DEFAULT_TARGET_TRIPLE="$t"
+      #	cmake --build "build_libclc/$t"
+      #done
+   - name: Collect bitcode files
+     shell: bash
+     run: |
+      set -euo pipefail
+      mkdir -p libclc
+      for target in spirv32-unknown-vulkan spirv64-unknown-vulkan; do
+       src=$(find build_libclc -type f -name 'libclc*.bc' \
+        -path "*${target}*" -print -quit || true)
+       if [ -z "$src" ]; then
+        echo "No bitcode found for $target; candidates:"
+        find build_libclc -name '*.bc' | head -50
+        exit 1
+       fi
+       mkdir -p "libclc/$target"
+       cp "$src" "libclc/$target/libclc.bc"
+      done
+      ls -lh libclc/*/libclc.bc
+      sha256sum libclc/*/libclc.bc
+      #for t in spirv32-unknown-vulkan spirv64-unknown-vulkan; do
+      #	mkdir -p "out/$t"
+      #	cp "build_libclc/$t/$t/libclc.bc" "out/$t/libclc.bc"
+      #done
+      #ls -lh out/*/libclc.bc
+      #sha256sum out/*/libclc.bc
+   - name: Upload libclc artifacts
+     uses: actions/upload-artifact@v4
+     with:
+      name: clvk-libclc
+      path: libclc/
+      #path: out/
+      if-no-files-found: error
+      retention-days: 30

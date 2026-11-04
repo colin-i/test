@@ -1,0 +1,60 @@
+name: Build clvk
+
+on:
+ workflow_dispatch:
+
+permissions:
+ actions: read
+ contents: read
+
+jobs:
+ build:
+  runs-on: ubuntu-26.04-arm
+
+  steps:
+   - name: Check out clvk and its submodules
+     uses: actions/checkout@v4
+     with:
+      repository: kpet/clvk
+      ref: main
+      submodules: recursive
+      path: clvk
+
+   - name: Install build dependencies
+     run: |
+      sudo apt-get update
+      sudo apt-get install -y \
+       build-essential cmake git python3 curl \
+       libvulkan-dev zlib1g-dev libxml2-dev libzstd-dev \
+       libedit-dev libffi-dev libncurses-dev
+
+   - name: Download libclc artifact
+     uses: actions/download-artifact@v4
+     with:
+      name: clvk-libclc
+      repository: colin-i/tmp
+      run-id: 41638005872
+      github-token: ${{ github.token }}
+      path: libclc
+
+   - name: Fetch clspv's pinned LLVM sources
+     working-directory: clvk
+     run: python3 external/clspv/utils/fetch_sources.py --shallow --deps llvm
+
+   - name: Configure clvk
+     run: |
+      cmake -S clvk -B build \
+       -DCMAKE_BUILD_TYPE=Release \
+       -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist" \
+       -DCLSPV_EXTERNAL_LIBCLC_DIR="$GITHUB_WORKSPACE/libclc"
+
+   - name: Build and install clvk
+     run: make -C build -j"$(nproc)" install
+
+   - name: Upload the built files
+     uses: actions/upload-artifact@v4
+     with:
+      name: clvk-ubuntu-26.04-arm
+      path: dist/
+      if-no-files-found: error
+      retention-days: 30
