@@ -65,7 +65,7 @@ elif [ $1 = a ]; then
 	# remove orphans: pacman -Qdt ; sudo pacman -Rns $(pacman -Qdtq)
 elif [ $1 = s ]; then
 	sudo zypper refresh
-	sudo zypper install ocompiler actionswf wstbld edor sirc python313-torra python313-dicopp
+	sudo zypper install ocompiler actionswf wstbld edor sirc python313-torra python313-dicopp python313-audapa flashalizer
 else # f
 	if [ -n "$2" ]; then
 		sudo dnf copr enable colin/project
