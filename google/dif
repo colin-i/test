@@ -4,9 +4,10 @@ ext=${1##*.}
 
 if [ ${ext} = ods ]; then
 	ods2tsv $1 > $t || {
+		echo orcus
 		orcus-ods -f csv -o ${t}a $1
 		# orcus-ods --dump-check $1
-		mv ${t}a/Sheet1.csv $t
+		mv ${t}a/Foaia1.csv $t  #Sheet1
 		rm -r ${t}a
 	}
 else
