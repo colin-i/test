@@ -1,0 +1,32 @@
+cd "${root}" || exit 1
+
+pkg="$(dpkg-parsechangelog -S Source)"
+version="$(dpkg-parsechangelog -S Version)"
+version="${version#*:}"       # remove epoch, if present
+upstream="${version%-*}"      # remove Debian revision
+
+shopt -s nullglob
+orig_candidates=( "${root%/}/../${pkg}_${upstream}.orig.tar."* )
+if [ "${#orig_candidates[@]}" -ne 1 ]; then
+	echo "Expected one orig tarball for ${pkg} ${upstream}; found ${#orig_candidates[@]}" >&2
+	exit 1
+fi
+orig="${orig_candidates[0]}"
+
+if [ -e "${root%/}/.pc" ]; then
+	echo "${root%/}/.pc already exists; remove or move it before preparation" >&2
+	exit 1
+fi
+
+prep="$(mktemp -d)"
+trap 'rm -rf "$prep"' EXIT
+
+tar -xf "$orig" --strip-components=1 -C "$prep"
+cp -a "${root%/}/debian" "$prep/debian"
+
+(
+	cd "$prep" || exit 1
+	QUILT_PATCHES=debian/patches quilt push -a
+) || exit 1
+
+cp -a "$prep/.pc" "${root%/}/.pc"

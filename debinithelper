@@ -30,6 +30,7 @@ if [ -z "${2}" ]; then
 			mv ${var} ${root}debian/patches || exit 1
 		done
 	fi
+	. ~/test/de/debinithelper
 	exit $?
 fi
 
