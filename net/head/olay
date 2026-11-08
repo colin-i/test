@@ -1,4 +1,10 @@
 
+if [ -n "$b" ]; then
+	echo $b
+	echo -n $b > /tmp/olay_timestamp
+	exit
+fi
+
 if [ -n "$a" ]; then
 	echo -n `date +%s` > /tmp/olay_timestamp_a
 	exit

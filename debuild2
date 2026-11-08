@@ -16,7 +16,6 @@ else
 	rm -r debian/patches
 fi && \
 cd ~/sync && \
-git restore .pc && \
 git restore debian/patches
 
 # ~/test/debinithelper ocompiler

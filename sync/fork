@@ -7,11 +7,10 @@ cd ${1}
 
 parent=`git rev-parse --abbrev-ref HEAD | grep -Poe "(?<=\-).*"`
 
-cd .pc
-src=( `ls | xargs` )
+cd debian/patches
 srcs=
-for var in "${src[@]}"; do
-	if [ -d "${var}" ]; then
+for var in *; do
+	if [ "${var}" != "series" ]; then
 		srcs+=" ${var}"
 	fi
 done
