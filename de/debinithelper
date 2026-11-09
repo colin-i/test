@@ -1,3 +1,6 @@
+
+#root
+
 cd "${root}" || exit 1
 
 pkg="$(dpkg-parsechangelog -S Source)"
@@ -29,4 +32,4 @@ cp -a "${root%/}/debian" "$prep/debian"
 	QUILT_PATCHES=debian/patches quilt push -a
 ) || exit 1
 
-cp -a "$prep/.pc" "${root%/}/.pc"
+mv "$prep/.pc" "${root%/}/.pc"
