@@ -25,6 +25,20 @@ class Hx_As {
 	static var printer = new Printer();
 	static var superName:Null<String> = null;
 
+	static var scopes:Array<Map<String, Int>> = [];
+
+	static function declare(v:TVar, pos:haxe.macro.Expr.Position) {
+		if (scopes.length == 0) return;
+		for (m in scopes) {
+			var id = m.get(v.name);
+			if (id != null && id != v.id) {
+				Context.warning('as: local "${v.name}" shadows an outer one (AS vars are function-scoped)', pos);
+				break;
+			}
+		}
+		scopes[scopes.length - 1].set(v.name, v.id);
+	}
+
 	public static function init() {
 		Context.onGenerate(generate);
 	}
@@ -68,7 +82,7 @@ class Hx_As {
 
 	// Plain typed-AST dump: "<field> = <Haxe-like body>" per field.
 	static function genTxt(c:ClassType, out:StringBuf) {
-		var raw = Context.defined("raw");
+		var raw = Context.defined("txt_out_raw");
 		out.add('// ${c.name}\n');
 		var fs = c.statics.get().concat(c.fields.get());
 		if (c.constructor != null) fs.unshift(c.constructor.get());
@@ -94,7 +108,11 @@ class Hx_As {
 		} else {
 			out.add('function $name() {}\n');
 		}
-		if (superName != null) out.add('$name.prototype = new $superName();\n'); // TODO: must run before methods are assigned and after Super is defined
+		if (superName != null) {
+			out.add('function ${name}__proto() {}\n');
+			out.add('${name}__proto.prototype = $superName.prototype;\n');
+			out.add('$name.prototype = new ${name}__proto();\n');
+		}
 
 		// instance methods
 		for (f in c.fields.get()) {
@@ -140,7 +158,19 @@ class Hx_As {
 
 	static function stmt(e:TypedExpr, ind:Int):String {
 		var s = expr(e, ind);
-		return StringTools.endsWith(s, "}") ? s : s + ";";
+		return switch e.expr {
+			case TBlock(_) | TIf(_, _, _) | TFor(_, _, _) | TWhile(_, _, true): s;
+			default: s + ";";   // includes do-while
+		}
+	}
+
+	// expression position: if/else becomes ?:
+	static function value(e:TypedExpr, ind:Int):String {
+		return switch e.expr {
+			case TIf(c, a, b) if (b != null):
+				"(" + expr(c, ind) + " ? " + value(a, ind) + " : " + value(b, ind) + ")";
+			default: expr(e, ind);
+		}
 	}
 
 	static function unsupported(e:TypedExpr):String {
@@ -169,22 +199,25 @@ class Hx_As {
 					case TThis: "this";
 					case TSuper: superName;
 				}
-			case TLocal(v): v.name; // TODO: rename shadowed locals (AS vars are function-scoped)
+			case TLocal(v): v.name; // shadowing is reported at the declaration (see declare)
 			case TParenthesis(x): "(" + expr(x, ind) + ")";
 			case TMeta(_, x): expr(x, ind);
 			case TCast(x, _): expr(x, ind);
 
 			// ---- declarations / blocks
 			case TVar(v, init):
-				init == null ? 'var ${v.name}' : 'var ${v.name} = ' + expr(init, ind);
+				declare(v, e.pos);
+				init == null ? 'var ${v.name}' : 'var ${v.name} = ' + value(init, ind);
 			case TBlock(el):
+				scopes.push(new Map());
 				var s = "{\n";
 				for (x in el) s += tabs(ind + 1) + stmt(x, ind + 1) + "\n";
+				scopes.pop();
 				s + tabs(ind) + "}";
 
 			// ---- operators
 			case TBinop(op, a, b):
-				expr(a, ind) + " " + printer.printBinop(op) + " " + expr(b, ind);
+				expr(a, ind) + " " + printer.printBinop(op) + " " + value(b, ind);
 			case TUnop(op, postFix, x):
 				postFix ? expr(x, ind) + printer.printUnop(op) : printer.printUnop(op) + expr(x, ind);
 
@@ -194,7 +227,9 @@ class Hx_As {
 					case FStatic(c, cf): c.get().name + "." + cf.get().name;
 					case FInstance(_, _, cf): expr(x, ind) + "." + cf.get().name;
 					case FAnon(cf): expr(x, ind) + "." + cf.get().name;
-					case FClosure(_, cf): expr(x, ind) + "." + cf.get().name; // TODO: needs delegate/bind in AS
+					case FClosure(_, cf):
+						Context.warning('as: closure loses this: ${cf.get().name} used as a value', e.pos);
+						expr(x, ind) + "." + cf.get().name;
 					case FDynamic(s): expr(x, ind) + "." + s;
 					default: unsupported(e);
 				}
@@ -214,13 +249,22 @@ class Hx_As {
 						var rest = a.map(x -> expr(x, ind));
 						rest.unshift("this");
 						superName + ".call(" + rest.join(", ") + ")";
+					case TField({expr: TConst(TSuper)}, FInstance(_, _, cf)):
+						var rest = a.map(x -> expr(x, ind));
+						rest.unshift("this");
+						superName + ".prototype." + cf.get().name + ".call(" + rest.join(", ") + ")";
 					default:
 						expr(f, ind) + "(" + a.map(x -> expr(x, ind)).join(", ") + ")";
 				}
 			case TNew(c, _, a):
 				"new " + c.get().name + "(" + a.map(x -> expr(x, ind)).join(", ") + ")";
 			case TFunction(tf):
-				"function(" + args(tf) + ") " + body(tf.expr, ind);
+				// a nested function has its own AS scope, so outer names can't collide
+				var saved = scopes;
+				scopes = [];
+				var s = "function(" + args(tf) + ") " + body(tf.expr, ind);
+				scopes = saved;
+				s;
 
 			// ---- control flow
 			case TIf(cond, th, el):
@@ -242,7 +286,7 @@ class Hx_As {
 					var n = v.name;
 					'for (var $n = ' + expr(range.a, ind) + '; $n < ' + expr(range.b, ind) + '; $n++) ' + body(b, ind);
 				}
-			case TReturn(x): x == null ? "return" : "return " + expr(x, ind);
+			case TReturn(x): x == null ? "return" : "return " + value(x, ind);
 			case TBreak: "break";
 			case TContinue: "continue";
 			case TThrow(x): "throw " + expr(x, ind);
