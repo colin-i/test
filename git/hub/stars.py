@@ -64,18 +64,27 @@ def main():
 				repo = repo[:-4]
 			out.append(f'{owner}/{repo}')
 			if not test:
+				if name in OVERRIDES:
+					del OVERRIDES[name]
 				continue
 			if name in OVERRIDES:
+				del OVERRIDES[name]
 				s='ignored in overrides'
 			else:
 				s='ok'
 		elif name in OVERRIDES:
-			out.append(OVERRIDES[name])
+			out.append(OVERRIDES.pop(name))
 			s='override'
 		else:
 			s='no github'
 		print(f'{s}: {name}')
 
+	if len(OVERRIDES):
+		print()
+		for name in OVERRIDES:
+			print(f'unused override: {name}')
+
+	print()
 	if not test:
 		results = []
 
