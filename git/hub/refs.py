@@ -5,24 +5,28 @@ import re
 import sys
 import urllib.request
 
-# Usage: python refs.py [article.wiki]
-#    or: cat article.wiki | python refs.py
-#    or from ~/.gh_refs.wiki
+# Usage: python stars.py [article.wiki]
+#    or: cat article.wiki | python stars.py
+#    or from ~/.gh_stars.wiki
 
 GITHUB = re.compile(r'github\.com/([^/\s\]|<]+)/([^/\s\]|<#?]+)')
 LINKED = re.compile(r'^\*\s*\[\[([^\]|]+)')
-PLAIN = re.compile(r'^\*\s*([^<\[{]+?)\s*(?:<|\s-\s|$)')
+PLAIN = re.compile(r'^\*\s*([^<\[{]+?)\s*(?:<|\s-\s|\sby\s|$)')
 WIKI_URL = 'https://en.wikipedia.org/w/index.php?title=Physics_engine&action=raw'
+OVERRIDES = {
+	'CryPhysics': 'MergHQ/CRYENGINE',
+	'idPhysics': 'id-Software/DOOM-3-BFG',
+}
 
 def read_source():
 	if len(sys.argv) > 1:
 		return open(sys.argv[1], encoding='utf-8').read()
 	if not sys.stdin.isatty():
 		return sys.stdin.read()
-	path = os.path.expanduser('~/.gh_refs.wiki')
+	path = os.path.expanduser('~/.gh_stars.wiki')
 	if os.path.exists(path):
 		return open(path, encoding='utf-8').read()
-	req = urllib.request.Request(WIKI_URL, headers={'User-Agent': 'refs.py (personal script)'})
+	req = urllib.request.Request(WIKI_URL, headers={'User-Agent': 'stars.py (personal script)'})
 	with urllib.request.urlopen(req) as response:
 		return response.read().decode('utf-8')
 
@@ -34,9 +38,9 @@ def main():
 	text = read_source()
 
 	in_section = False
-	selected = False
 	seen_header = '=== Real-time physics engines ===' in text
 	out = []
+	test=os.environ.get('test')
 
 	for line in text.splitlines():
 		if '=== Real-time physics engines ===' in line:
@@ -47,23 +51,29 @@ def main():
 		if in_section and line.startswith('='):
 			break
 		if line.startswith(';'):
-			header = line[1:].strip()
-			selected = header.startswith(('Open source', 'Public domain'))
-			print(f'{"selected" if selected else "not selected"}: {header}')
+			print(f'\n{line[1:]}')
 			continue
-		if not selected or not line.startswith('*'):
+		if not line.startswith('*'):
 			continue
 
+		name = entry_name(line)
 		m = GITHUB.search(line)
 		if m:
-			owner, name = m.group(1), m.group(2)
-			if name.endswith('.git'):
-				name = name[:-4]
-			out.append(f'{owner}/{name}')
+			owner, repo = m.group(1), m.group(2)
+			if repo.endswith('.git'):
+				repo = repo[:-4]
+			out.append(f'{owner}/{repo}')
+			if not test:
+				continue
+			s='ok'
+		elif name in OVERRIDES:
+			out.append(OVERRIDES[name])
+			s='override'
 		else:
-			print(f'no github: {entry_name(line)}')
+			s='no github'
+		print(f'{s}: {name}')
 
-	if not os.environ.get('test'):
+	if not test:
 		results = []
 
 		for repo in out:
