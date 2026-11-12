@@ -65,7 +65,10 @@ def main():
 			out.append(f'{owner}/{repo}')
 			if not test:
 				continue
-			s='ok'
+			if name in OVERRIDES:
+				s='ignored in overrides'
+			else:
+				s='ok'
 		elif name in OVERRIDES:
 			out.append(OVERRIDES[name])
 			s='override'
