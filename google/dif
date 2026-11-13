@@ -7,14 +7,18 @@ if [ ${ext} = ods ]; then
 		echo orcus
 		orcus-ods -f csv -o ${t}a $1
 		# orcus-ods --dump-check $1
-		mv ${t}a/Foaia1.csv $t  #Sheet1
+		nm=${t}a/Sheet1.csv
+		if [ ! -e ${nm} ]; then
+			nm=${t}a/Foaia1.csv
+		fi
+		mv ${nm} $t
 		rm -r ${t}a
 		orc=.o
 	}
 else
 	ln -s `readlink -f $1` $t
 fi
-if [ ! -e ~/tabs/$1 ]; then
+if [ ! -e ~/tabs/$1${orc} ]; then
 	cat $t
 else
 	diff ~/tabs/$1${orc} $t --color
