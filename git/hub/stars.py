@@ -17,6 +17,10 @@ OVERRIDES = {
 	'CryPhysics': 'MergHQ/CRYENGINE',
 	'idPhysics': 'id-Software/DOOM-3-BFG',
 }
+OTHER_SOURCES = {
+	'Open Dynamics Engine': 'https://bitbucket.org/odedevs/ode',
+	'PAL (Physics Abstraction Layer)': 'https://sourceforge.net/projects/pal',
+}
 
 def read_source():
 	if len(sys.argv) > 1:
@@ -28,19 +32,23 @@ def read_source():
 		return open(path, encoding='utf-8').read()
 	req = urllib.request.Request(WIKI_URL, headers={'User-Agent': 'stars.py (personal script)'})
 	with urllib.request.urlopen(req) as response:
-		return response.read().decode('utf-8')
+		ret = response.read().decode('utf-8')
+		if test:
+			with open(path,'w') as f:
+				f.write(ret)
+		return ret
 
 def entry_name(line):
 	m = LINKED.match(line) or PLAIN.match(line)
 	return m.group(1).strip() if m else line
 
 def main():
+	global test
+	test=os.environ.get('test')
 	text = read_source()
-
 	in_section = False
 	seen_header = '=== Real-time physics engines ===' in text
 	out = []
-	test=os.environ.get('test')
 
 	for line in text.splitlines():
 		if '=== Real-time physics engines ===' in line:
@@ -57,6 +65,8 @@ def main():
 			continue
 
 		name = entry_name(line)
+		owner = ''
+		repo = ''
 		m = GITHUB.search(line)
 		if m:
 			owner, repo = m.group(1), m.group(2)
@@ -73,16 +83,23 @@ def main():
 			else:
 				s='ok'
 		elif name in OVERRIDES:
-			out.append(OVERRIDES.pop(name))
+			repo=OVERRIDES.pop(name)
+			out.append(repo)
 			s='override'
 		else:
 			s='no github'
-		print(f'{s}: {name}')
+			if name in OTHER_SOURCES:
+				repo=OTHER_SOURCES.pop(name)
+		print(f'{s}: {name}'+((f': {owner}/{repo}' if owner else f': {repo}') if repo else ''))
 
 	if len(OVERRIDES):
 		print()
 		for name in OVERRIDES:
 			print(f'unused override: {name}')
+	if len(OTHER_SOURCES):
+		print()
+		for name in OTHER_SOURCES:
+			print(f'unused other source: {name}')
 
 	print()
 	if not test:
