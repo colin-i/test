@@ -41,3 +41,8 @@ else
 		sed -i "0,/^${astr}/s/^${astr}\ ${arhs}/${astr}\ ${architectures}/" debian/control
 	fi
 fi
+
+#when adding permanent packages: sudo schroot -c source:jammy-amd64 -u root
+#cd /;tar -C /home/bc -cf - ./e/edor-1/s/edor | sudo schroot -c source:jammy-amd64 -u root -- sh -c 'mkdir -p /root/debug && tar -C /root/debug -xf -'
+#sbuild --chroot-mode=schroot --chroot=jammy-amd64 --dist=jammy --arch=amd64 --build-failed-commands='%SBUILD_SHELL' ../actionswf_1-187.dsc
+#--purge-session=never --purge-build=never

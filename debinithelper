@@ -58,7 +58,7 @@ if [ "${2}" != "0" ]; then
 else
 	#                  assuming was restored at switch from parent
 	{ rm -r .pc; } && \
-	{ mv debian/patches ~/sync/debian || rm -r debian/patches; }
+	{ mv debian/patches/* ~/sync/debian/patches || rm -r debian/patches; }
 	#if files are restored at switch, mv cannot overwrite even with -f
 fi && \
 #and now, put parent back, needed at local debuild
