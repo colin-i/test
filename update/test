@@ -60,7 +60,8 @@ elif [ $1 = a ]; then
 	if [ -z "$2" ]; then
 		yay -Sy ocompiler actionswf wstbld edor sirc python-torra python-dicopp python-audapa flashalizer
 	else
-		yay -Sy $2
+		shift
+		yay -Sy $@
 	fi
 	# remove orphans: pacman -Qdt ; sudo pacman -Rns $(pacman -Qdtq)
 elif [ $1 = s ]; then
